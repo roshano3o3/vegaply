@@ -680,6 +680,29 @@ export default function Home() {
       });
     });
     const savedResume = localStorage.getItem("applysmart_resume");
+    // Clear resume if different user logged in
+    supabase.auth.getUser().then(async ({ data }) => {
+      const currentUserId = data?.user?.id;
+      const storedUserId = localStorage.getItem("applysmart_user_id");
+      if (currentUserId && storedUserId && currentUserId !== storedUserId) {
+        localStorage.removeItem("applysmart_resume");
+        localStorage.removeItem("applysmart_resume_name");
+        setResumeText("");
+        setResumeFileName("");
+      }
+      if (currentUserId) {
+        localStorage.setItem("applysmart_user_id", currentUserId);
+        if (!savedResume || currentUserId !== storedUserId) {
+          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", currentUserId).single();
+          if (resumeData?.resume_text) {
+            setResumeText(resumeData.resume_text);
+            setResumeFileName(resumeData.file_name ?? "Saved Resume");
+            localStorage.setItem("applysmart_resume", resumeData.resume_text);
+            localStorage.setItem("applysmart_resume_name", resumeData.file_name ?? "Saved Resume");
+          }
+        }
+      }
+    });
     // Load resume from Supabase if not in localStorage
     if (!savedResume) {
       supabase.auth.getUser().then(async ({ data }) => {
@@ -1308,6 +1331,7 @@ export default function Home() {
     </>
   );
 }
+
 
 
 
