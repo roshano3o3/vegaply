@@ -1,45 +1,33 @@
-// FILE: app/api/interview/route.ts
-
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { job, resumeText } = await req.json();
+    const { resumeText, job } = await req.json();
 
-    const prompt = `You are an expert interview coach. Generate interview preparation content for this specific job.
+    const prompt = `You are an expert interview coach. Analyze this job posting and resume, then return ONLY valid JSON with no markdown or explanation.
 
-Job Title: ${job.job_title}
-Company: ${job.employer_name}
-Description: ${job.job_description?.slice(0, 2000) ?? ""}
-Qualifications: ${job.job_highlights?.Qualifications?.join(", ") ?? ""}
-${resumeText ? `Candidate Resume:\n${resumeText.slice(0, 2000)}` : ""}
+JOB TITLE: ${job.job_title}
+COMPANY: ${job.employer_name}
+JOB DESCRIPTION: ${job.job_description?.slice(0, 2000)}
+QUALIFICATIONS: ${job.job_highlights?.Qualifications?.join(", ") ?? ""}
 
-Return ONLY valid JSON (no markdown, no explanation):
+RESUME:
+${resumeText?.slice(0, 2000) ?? "Not provided"}
+
+Return exactly this JSON structure:
 {
   "likelyQuestions": [
-    {
-      "question": "Tell me about yourself",
-      "category": "Behavioral",
-      "tip": "Focus on your most relevant experience for this role",
-      "sampleAnswer": "A 2-3 sentence strong sample answer tailored to this job"
-    }
+    {"question": "Tell me about yourself", "category": "Behavioral", "tip": "Focus on relevant experience", "sampleAnswer": "2-3 sentence answer"}
   ],
   "technicalQuestions": [
-    {
-      "question": "technical question based on job requirements",
-      "category": "Technical",
-      "tip": "what to focus on",
-      "sampleAnswer": "brief ideal answer"
-    }
+    {"question": "Technical question here", "category": "Technical", "tip": "Show your process", "sampleAnswer": "2-3 sentence answer"}
   ],
-  "questionsToAsk": [
-    "Smart question candidate should ask the interviewer"
-  ],
-  "keyThemes": ["theme1", "theme2", "theme3"],
-  "redFlags": ["thing to avoid saying/doing in this interview"]
+  "questionsToAsk": ["Question you should ask the interviewer"],
+  "keyThemes": ["Theme 1", "Theme 2"],
+  "redFlags": ["Potential concern to address"]
 }
 
-Generate 5 behavioral questions, 4 technical questions, 4 questions to ask, 4 key themes, 3 red flags.`;
+Include 4 likelyQuestions, 3 technicalQuestions, 3 questionsToAsk, 3 keyThemes, 2 redFlags.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -57,14 +45,25 @@ Generate 5 behavioral questions, 4 technical questions, 4 questions to ask, 4 ke
 
     const data = await response.json();
     const text = data?.content?.[0]?.text ?? "{}";
-    const clean = text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(clean);
-    return NextResponse.json(result);
+    const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    const result = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+
+    return NextResponse.json({
+      likelyQuestions: Array.isArray(result.likelyQuestions) ? result.likelyQuestions : [],
+      technicalQuestions: Array.isArray(result.technicalQuestions) ? result.technicalQuestions : [],
+      questionsToAsk: Array.isArray(result.questionsToAsk) ? result.questionsToAsk : [],
+      keyThemes: Array.isArray(result.keyThemes) ? result.keyThemes : [],
+      redFlags: Array.isArray(result.redFlags) ? result.redFlags : [],
+    });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { likelyQuestions: [], technicalQuestions: [], questionsToAsk: [], keyThemes: [], redFlags: [] },
-      { status: 500 }
-    );
+    console.error("Interview API error:", err);
+    return NextResponse.json({
+      likelyQuestions: [],
+      technicalQuestions: [],
+      questionsToAsk: [],
+      keyThemes: [],
+      redFlags: [],
+    });
   }
 }
