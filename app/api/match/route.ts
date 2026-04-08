@@ -32,8 +32,6 @@ Return exactly this JSON (all fields required, matchScore and atsScore must be i
     });
 
     const data = await response.json();
-    console.log("API status:", response.status);
-    console.log("Full response:", JSON.stringify(data).slice(0, 500));
     const text = data?.content?.[0]?.text ?? "{}";
     console.log("Claude raw:", text.slice(0, 200));
     const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
