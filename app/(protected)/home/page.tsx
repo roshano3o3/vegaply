@@ -693,7 +693,7 @@ export default function Home() {
       if (currentUserId) {
         localStorage.setItem("applysmart_user_id", currentUserId);
         if (!savedResume || currentUserId !== storedUserId) {
-          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", currentUserId).single();
+          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", currentUserId).order("created_at", { ascending: false }).limit(1).single();
           if (resumeData?.resume_text) {
             setResumeText(resumeData.resume_text);
             setResumeFileName(resumeData.file_name ?? "Saved Resume");
@@ -707,7 +707,7 @@ export default function Home() {
     if (!savedResume) {
       supabase.auth.getUser().then(async ({ data }) => {
         if (data?.user) {
-          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", data.user.id).single();
+          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", data.user.id).order("created_at", { ascending: false }).limit(1).single();
           if (resumeData?.resume_text) {
             setResumeText(resumeData.resume_text);
             setResumeFileName(resumeData.file_name ?? "Saved Resume");
@@ -1086,7 +1086,7 @@ export default function Home() {
                 localStorage.setItem("applysmart_resume_name", n);
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) { alert("User not logged in"); return; }
-                const { error } = await supabase.from("resumes").upsert([{ user_id: user.id, title: "Test Resume", file_name: n, resume_text: t }]);
+                const { error } = await supabase.from("resumes").insert([{ user_id: user.id, title: n, file_name: n, resume_text: t }]);
                 if (error) { console.error("Resume insert error:", error); alert("Failed to save resume"); }
                 else { alert("Resume saved successfully"); }
               }}
@@ -1331,6 +1331,9 @@ export default function Home() {
     </>
   );
 }
+
+
+
 
 
 
