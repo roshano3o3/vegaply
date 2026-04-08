@@ -680,6 +680,20 @@ export default function Home() {
       });
     });
     const savedResume = localStorage.getItem("applysmart_resume");
+    // Load resume from Supabase if not in localStorage
+    if (!savedResume) {
+      supabase.auth.getUser().then(async ({ data }) => {
+        if (data?.user) {
+          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", data.user.id).single();
+          if (resumeData?.resume_text) {
+            setResumeText(resumeData.resume_text);
+            setResumeFileName(resumeData.file_name ?? "Saved Resume");
+            localStorage.setItem("applysmart_resume", resumeData.resume_text);
+            localStorage.setItem("applysmart_resume_name", resumeData.file_name ?? "Saved Resume");
+          }
+        }
+      });
+    }
     const savedFileName = localStorage.getItem("applysmart_resume_name");
     if (savedResume && savedFileName) { setResumeText(savedResume); setResumeFileName(savedFileName); }
     // Show onboarding for new users
@@ -779,7 +793,7 @@ export default function Home() {
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
   const currentLoading=isEbMode?ebLoading:loading;
   const allJobs=[...jobs,...earlyBirdJobs];
-  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();window.location.href="/login";};
+  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();localStorage.removeItem("applysmart_resume");localStorage.removeItem("applysmart_resume_name");localStorage.removeItem("applysmart_onboarded");window.location.href="/login";};
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
   const completeOnboarding = async () => {
@@ -1294,4 +1308,6 @@ export default function Home() {
     </>
   );
 }
+
+
 
