@@ -723,7 +723,7 @@ export default function Home() {
 
   // Fix My Resume
   const handleFixResume = async (job: JobWithMatch) => {
-    if (!resumeText) return;
+    if (!resumeText) { alert("No resume found - please upload your resume first"); return; }
     setFixResumeJob(job);
     setFixResumeResult(null);
     setFixResumeLoading(true);
