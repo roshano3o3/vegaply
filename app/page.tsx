@@ -1,12 +1,17 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
   const statsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Redirect logged-in users to dashboard
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = "/home";
+    });
     const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
