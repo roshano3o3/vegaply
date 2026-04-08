@@ -1049,7 +1049,7 @@ export default function Home() {
                 localStorage.setItem("applysmart_resume_name", n);
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) { alert("User not logged in"); return; }
-                const { error } = await supabase.from("resumes").insert([{ user_id: user.id, title: "Test Resume", file_name: n, resume_text: t }]);
+                const { error } = await supabase.from("resumes").upsert([{ user_id: user.id, title: "Test Resume", file_name: n, resume_text: t }]);
                 if (error) { console.error("Resume insert error:", error); alert("Failed to save resume"); }
                 else { alert("Resume saved successfully"); }
               }}
@@ -1294,3 +1294,4 @@ export default function Home() {
     </>
   );
 }
+
