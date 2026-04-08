@@ -663,6 +663,16 @@ export default function Home() {
   const [onboardFileName,setOnboardFileName]=useState("");
   const [onboardParsing,setOnboardParsing]=useState(false);
   const [onboardSearching,setOnboardSearching]=useState(false);
+  // Resume History
+  const [showResumeHistory, setShowResumeHistory] = useState(false);
+  const [resumeHistory, setResumeHistory] = useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
+  const loadResumeHistory = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("resumes").select("id, file_name, created_at, resume_text").eq("user_id", user.id).order("created_at", { ascending: false });
+    if (data) setResumeHistory(data);
+    setShowResumeHistory(true);
+  };
   // Fix My Resume
   const [fixResumeJob,setFixResumeJob]=useState<JobWithMatch|null>(null);
   const [fixResumeResult,setFixResumeResult]=useState<{improvedBullets:string[];addedKeywords:string[];summary:string}|null>(null);
@@ -758,6 +768,16 @@ export default function Home() {
     setMatchPanelJob(job);
   };
 
+  // Resume History
+  const [showResumeHistory, setShowResumeHistory] = useState(false);
+  const [resumeHistory, setResumeHistory] = useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
+  const loadResumeHistory = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("resumes").select("id, file_name, created_at, resume_text").eq("user_id", user.id).order("created_at", { ascending: false });
+    if (data) setResumeHistory(data);
+    setShowResumeHistory(true);
+  };
   // Fix My Resume
   const handleFixResume = async (job: JobWithMatch) => {
     if (!resumeText) { alert("No resume found - please upload your resume first"); return; }
@@ -1074,7 +1094,7 @@ export default function Home() {
         <aside className="sidebar">
           {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
           <div className="sidebar-card">
-            <div className="sidebar-card-title">🤖 AI Resume Match</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="sidebar-card-title">\uD83E\uDD16 AI Resume Match</div><button onClick={loadResumeHistory} style={{fontSize:11,color:"#818cf8",background:"none",border:"1px solid rgba(129,140,248,0.3)",borderRadius:6,padding:"3px 8px",cursor:"pointer"}}>?? History</button></div>
             <div className="sidebar-card-sub">Upload PDF to match & auto-apply</div>
             <ResumePanel
               resumeText={resumeText}
@@ -1088,7 +1108,7 @@ export default function Home() {
                 if (!user) { alert("User not logged in"); return; }
                 const { error } = await supabase.from("resumes").insert([{ user_id: user.id, title: n, file_name: n, resume_text: t }]);
                 if (error) { console.error("Resume insert error:", error); alert("Failed to save resume"); }
-                else { alert("Resume saved successfully"); }
+                else { alert("Resume saved! \u2705"); setShowResumeHistory(true); }
               }}
               onClear={() => {
                 setResumeText("");
@@ -1331,6 +1351,9 @@ export default function Home() {
     </>
   );
 }
+
+
+
 
 
 
