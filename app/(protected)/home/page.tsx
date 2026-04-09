@@ -852,7 +852,7 @@ export default function Home() {
           {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
           <div className="sidebar-card">
             <div className="sidebar-card-title">🤖 AI Resume Match</div>
-            <div className="sidebar-card-sub">Upload PDF to match & auto-apply</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><span style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.4)"}}>Upload PDF to match</span><button onClick={loadResumeHistory} style={{fontSize:11,color:"#818cf8",background:"none",border:"1px solid rgba(129,140,248,0.3)",borderRadius:6,padding:"3px 8px",cursor:"pointer",fontFamily:"inherit"}}>History</button></div>
             <ResumePanel
               resumeText={resumeText}
               fileName={resumeFileName}
@@ -987,6 +987,7 @@ export default function Home() {
     </>
   );
 }
+
 
 
 
