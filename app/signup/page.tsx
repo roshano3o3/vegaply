@@ -460,9 +460,9 @@ export default function SignupPage() {
               <p className="success-sub">
                 We sent a confirmation link to<br />
                 <strong>{email}</strong><br /><br />
-                Click the link to activate your account and start finding jobs.
+                Click the link to activate your account and start finding jobs.<br/><span style={{fontSize:12,color:"rgba(255,255,255,0.3)"}}>Check spam folder if you do not see it.</span>
               </p>
-              <a href="/login" style={{ display: 'block', textAlign: 'center', color: '#818cf8', fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
+              {resent&&<div style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:10,padding:"10px 16px",fontSize:13,color:"#34d399",marginBottom:16}}>Email resent!</div>}<button onClick={handleResend} disabled={!canResend||resending} style={{width:"100%",background:canResend?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"13px",fontSize:14,fontWeight:600,fontFamily:"inherit",color:canResend?"#fff":"rgba(255,255,255,0.3)",cursor:canResend?"pointer":"not-allowed",marginBottom:16}}>{resending?"Sending...":canResend?"Resend Email":"Resend in "+countdown+"s"}</button><a href="/login" style={{display:"block",textAlign:"center",color:"#818cf8",fontSize:14,fontWeight:500,textDecoration:"none"}}>
                 ← Back to sign in
               </a>
             </div>
@@ -525,4 +525,5 @@ export default function SignupPage() {
     </>
   );
 }
+
 
