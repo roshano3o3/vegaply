@@ -648,6 +648,16 @@ export default function Home() {
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
   const currentLoading=isEbMode?ebLoading:loading;
   const allJobs=[...jobs,...earlyBirdJobs];
+  // Resume History
+  const [showResumeHistory, setShowResumeHistory] = useState(false);
+  const [resumeHistory, setResumeHistory] = useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
+  const loadResumeHistory = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("resumes").select("id, file_name, created_at, resume_text").eq("user_id", user.id).order("created_at", { ascending: false });
+    if (data) setResumeHistory(data as any[]);
+    setShowResumeHistory(true);
+  };
   const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();window.location.href="/login";};
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
@@ -958,6 +968,25 @@ export default function Home() {
       {tailorJob?.tailor&&<TailorModal job={tailorJob} tailor={tailorJob.tailor} onClose={()=>setTailorJob(null)}/>}
       {interviewJob?.interview&&<InterviewModal job={interviewJob} interview={interviewJob.interview} onClose={()=>setInterviewJob(null)}/>}
       {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
+      {showResumeHistory&&(
+        <div onClick={()=>setShowResumeHistory(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(10px)"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#0d0d14",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,padding:32,width:"100%",maxWidth:560,maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+              <h2 style={{fontFamily:"Playfair Display,serif",fontSize:22,fontWeight:700,color:"#fff"}}>Resume History</h2>
+              <button onClick={()=>setShowResumeHistory(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.5)",fontSize:20,cursor:"pointer"}}>x</button>
+            </div>
+            {resumeHistory.length===0?<p style={{color:"rgba(255,255,255,0.4)",textAlign:"center",padding:"32px 0"}}>No resumes saved yet</p>:resumeHistory.map((r,i)=>(
+              <div key={r.id} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${i===0?"rgba(129,140,248,0.3)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:16,marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:14,fontWeight:600,color:"#fff",marginBottom:4}}>{r.file_name}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>{i===0&&<div style={{fontSize:10,color:"#818cf8",fontWeight:600,marginTop:4}}>Currently active</div>}</div>
+                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);localStorage.setItem("applysmart_resume",r.resume_text);localStorage.setItem("applysmart_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(129,140,248,0.1)":"linear-gradient(135deg,#6366f1,#8b5cf6)",color:i===0?"#818cf8":"#fff",border:i===0?"1px solid rgba(129,140,248,0.3)":"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{i===0?"Active":"Use This"}</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
+
+
+
