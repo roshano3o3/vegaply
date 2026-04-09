@@ -11,10 +11,8 @@ interface Job {
   job_salary_currency?: string; job_highlights?: { Qualifications?: string[]; Responsibilities?: string[]; Benefits?: string[] };
 }
 interface MatchResult {
-  matchScore: number; atsScore: number; matchLabel: "Excellent"|"Strong"|"Good"|"Fair"|"Low";
-  matchSummary: string; matchedSkills: string[]; missingSkills: string[];
-  atsKeywordsFound: string[]; atsKeywordsMissing: string[];
-  topTip: string; coverLetter: string;
+  matchScore: number; matchLabel: "Excellent"|"Strong"|"Good"|"Fair"|"Low";
+  matchSummary: string; matchedSkills: string[]; missingSkills: string[]; coverLetter: string;
 }
 interface TailorResult {
   tailoredBullets: { original: string; tailored: string; reason: string }[];
@@ -75,16 +73,13 @@ function ScoreRing({ score }: { score: number }) {
 }
 
 // --- Slide-in Resume Match Panel ---
-function ResumeMatchPanel({ job, onClose, resumeText, onFixResume }: { job: JobWithMatch; onClose: () => void; resumeText: string; onFixResume: (job: JobWithMatch) => void }) {
+function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onClose: () => void; resumeText: string }) {
   const [matchResult, setMatchResult] = useState<MatchResult | null>(job.match || null);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<"match"|"ats"|"cover">("match");
-  const [copied, setCopied] = useState(false);
 
-  const hasRun = useRef(false);
+  // Auto-run match on open if resume is ready and no result yet
   useEffect(() => {
-    if (resumeText && !matchResult && !loading && !hasRun.current) {
-      hasRun.current = true;
+    if (resumeText && !matchResult && !loading) {
       runMatch();
     }
   }, []);
@@ -93,38 +88,25 @@ function ResumeMatchPanel({ job, onClose, resumeText, onFixResume }: { job: JobW
     if (!resumeText) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeText, job }) });
+      const res = await fetch("/api/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, job }),
+      });
       const data: MatchResult = await res.json();
       setMatchResult(data);
     } catch { /* silent */ }
     setLoading(false);
   };
 
-  const matchColor = matchResult ? scoreColor(Number(matchResult.matchScore)) : "#818cf8";
-  const atsColor = matchResult ? scoreColor(Number(matchResult.atsScore)) : "#818cf8";
-
-  function DualScoreBar({ label, score, color }: { label: string; score: number; color: string }) {
-    const safeScore = isNaN(score) ? 0 : Math.min(100, Math.max(0, Math.round(score)));
-    return (
-      <div style={{ flex: 1 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>{label}</span>
-          <span style={{ fontSize: 13, fontWeight: 800, color }}>{safeScore}%</span>
-        </div>
-        <div style={{ height: 6, background: "rgba(255,255,255,0.07)", borderRadius: 6, overflow: "hidden" }}>
-          <div style={{ height: "100%", width: `${safeScore}%`, background: color, borderRadius: 6, transition: "width 1s ease" }} />
-        </div>
-      </div>
-    );
-  }
+  const color = matchResult ? scoreColor(matchResult.matchScore) : "#818cf8";
 
   return (
     <div className="match-panel-overlay" onClick={onClose}>
       <div className="match-panel" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className="match-panel-header">
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>AI Resume Analysis</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Resume Match</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{job.job_title} · {job.employer_name}</div>
           </div>
           <button className="modal-close" style={{ position: "static" }} onClick={onClose}>✕</button>
@@ -139,122 +121,74 @@ function ResumeMatchPanel({ job, onClose, resumeText, onFixResume }: { job: JobW
         )}
 
         {resumeText && loading && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 20px", gap: 16 }}>
-            <div className="spin" style={{ width: 36, height: 36, borderWidth: 3 }} />
-            <div style={{ fontSize: 13, color: "#818cf8", fontWeight: 600 }}>Analyzing resume + ATS keywords…</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", textAlign: "center" }}>Comparing your experience against<br/>job requirements & ATS systems</div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 20px", gap: 14 }}>
+            <div className="spin" style={{ width: 32, height: 32, borderWidth: 3 }} />
+            <div style={{ fontSize: 13, color: "#818cf8", fontWeight: 500 }}>Analyzing your resume…</div>
           </div>
         )}
 
         {resumeText && !loading && matchResult && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18, padding: "4px 0" }}>
 
-            {/* Dual score bars */}
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.25)", marginBottom: 2 }}>{matchResult.matchLabel} Overall Fit</div>
-              <DualScoreBar label="Resume Match" score={Number(matchResult.matchScore)} color={matchColor} />
-              <DualScoreBar label="ATS Score" score={Number(matchResult.atsScore)} color={atsColor} />
+            {/* Score */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, background: `${color}0d`, border: `1px solid ${color}25`, borderRadius: 14, padding: "16px 18px" }}>
+              <ScoreRing score={matchResult.matchScore} />
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color, fontFamily: "'Playfair Display',serif" }}>{matchResult.matchLabel} Match</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 3, lineHeight: 1.5 }}>{matchResult.matchSummary}</div>
+              </div>
             </div>
 
-            {/* Competition */}
+            {/* Competition badge */}
             {job.job_posted_at_datetime_utc && (() => {
               const h = getHoursAgo(job.job_posted_at_datetime_utc);
               const comp = getCompetitionLabel(h);
               return (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, background: comp.bg, border: `1px solid ${comp.color}25`, borderRadius: 10, padding: "9px 14px" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: comp.color }}>{comp.label}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginLeft: "auto" }}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: comp.bg, border: `1px solid ${comp.color}25`, borderRadius: 10, padding: "10px 14px" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: comp.color }}>{comp.label}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginLeft: "auto" }}>posted {timeAgo(job.job_posted_at_datetime_utc)}</span>
                 </div>
               );
             })()}
 
-            {/* Tabs */}
-            <div style={{ display: "flex", gap: 3, background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: 4 }}>
-              {(["match","ats","cover"] as const).map(t => (
-                <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "7px 4px", border: "none", borderRadius: 7, fontSize: 11, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", background: tab === t ? "rgba(255,255,255,0.08)" : "transparent", color: tab === t ? "#fff" : "rgba(255,255,255,0.3)", transition: "all .2s" }}>
-                  {t === "match" ? "💪 Skills" : t === "ats" ? "🤖 ATS" : "✉️ Cover"}
-                </button>
-              ))}
-            </div>
-
-            {/* Match tab */}
-            {tab === "match" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "12px 14px" }}>{matchResult.matchSummary}</p>
-                {(matchResult.matchedSkills?.length ?? 0) > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#34d399", marginBottom: 8 }}>✅ Strengths ({matchResult.matchedSkills?.length ?? 0})</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {matchResult.matchedSkills.map((s, i) => <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 20, background: "rgba(52,211,153,0.1)", color: "#34d399", border: "1px solid rgba(52,211,153,0.15)" }}>{s}</span>)}
-                    </div>
-                  </div>
-                )}
-                {(matchResult.missingSkills?.length ?? 0) > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#f87171", marginBottom: 8 }}>⚠️ Gaps ({matchResult.missingSkills?.length ?? 0})</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {matchResult.missingSkills.map((s, i) => <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 20, background: "rgba(248,113,113,0.08)", color: "#f87171", border: "1px solid rgba(248,113,113,0.15)" }}>{s}</span>)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ATS tab */}
-            {tab === "ats" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {/* ATS score explanation */}
-                <div style={{ background: "rgba(129,140,248,0.06)", border: "1px solid rgba(129,140,248,0.15)", borderRadius: 10, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#818cf8", marginBottom: 4 }}>🤖 What is ATS Score?</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.6 }}>ATS (Applicant Tracking System) score measures how well your resume matches the job's keywords. Most companies auto-reject resumes below 60%.</div>
-                </div>
-                {matchResult.topTip && (
-                  <div style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.18)", borderRadius: 10, padding: "12px 14px", fontSize: 12, color: "rgba(251,191,36,0.85)", lineHeight: 1.6 }}>
-                    <span style={{ fontWeight: 700 }}>💡 Top Fix: </span>{matchResult.topTip}
-                  </div>
-                )}
-                {(matchResult.atsKeywordsFound?.length ?? 0) > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#34d399", marginBottom: 8 }}>✅ ATS Keywords Found ({matchResult.atsKeywordsFound.length})</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {matchResult.atsKeywordsFound.map((k, i) => <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 20, background: "rgba(52,211,153,0.08)", color: "#34d399", border: "1px solid rgba(52,211,153,0.12)" }}>{k}</span>)}
-                    </div>
-                  </div>
-                )}
-                {(matchResult.atsKeywordsMissing?.length ?? 0) > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#f87171", marginBottom: 8 }}>❌ Keywords to Add ({matchResult.atsKeywordsMissing.length})</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {matchResult.atsKeywordsMissing.map((k, i) => <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 20, background: "rgba(248,113,113,0.08)", color: "#f87171", border: "1px solid rgba(248,113,113,0.12)", cursor: "pointer" }} onClick={() => { navigator.clipboard.writeText(k); }} title="Click to copy">{k} 📋</span>)}
-                    </div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 6 }}>Click any keyword to copy it</div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Cover letter tab */}
-            {tab === "cover" && matchResult.coverLetter && (
+            {/* Matched skills */}
+            {matchResult.matchedSkills.length > 0 && (
               <div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.75, whiteSpace: "pre-wrap", background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 14, border: "1px solid rgba(255,255,255,0.06)", maxHeight: 220, overflowY: "auto" }}>{matchResult.coverLetter}</div>
-                <button className="ghost-btn" style={{ marginTop: 10, width: "100%", textAlign: "center" }} onClick={() => { navigator.clipboard.writeText(matchResult.coverLetter); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>{copied ? "✓ Copied!" : "📋 Copy Cover Letter"}</button>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#34d399", marginBottom: 8 }}>✅ Your Strengths</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {matchResult.matchedSkills.map((s, i) => (
+                    <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 20, background: "rgba(52,211,153,0.1)", color: "#34d399", border: "1px solid rgba(52,211,153,0.15)" }}>{s}</span>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Fix My Resume + Apply */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {(matchResult.missingSkills?.length ?? 0) > 0 && (
-                <button className="ghost-btn" style={{ width: "100%", textAlign: "center", background: "rgba(251,191,36,0.06)", borderColor: "rgba(251,191,36,0.2)", color: "#fbbf24", padding: "11px", fontSize: "13px", fontWeight: 600 }}
-                  onClick={() => { onClose(); onFixResume(job); }}>
-                  🔧 Fix My Resume for this Job
-                </button>
-              )}
-              {job.job_apply_link && (
-                <a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" className={`apply-btn${isHot(job.job_posted_at_datetime_utc) ? " apply-btn-hot" : ""}`} style={{ textAlign: "center", display: "block", textDecoration: "none" }}>
-                  {isHot(job.job_posted_at_datetime_utc) ? "⚡ Apply Now — Beat the Rush!" : "Apply Now →"}
-                </a>
-              )}
+            {/* Missing skills */}
+            {matchResult.missingSkills.length > 0 && (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#f87171", marginBottom: 8 }}>⚠️ Gaps to Address</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {matchResult.missingSkills.map((s, i) => (
+                    <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 20, background: "rgba(248,113,113,0.08)", color: "#f87171", border: "1px solid rgba(248,113,113,0.15)" }}>{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tailoring tip */}
+            <div style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 10, padding: "12px 14px", fontSize: 12, color: "rgba(251,191,36,0.8)", lineHeight: 1.6 }}>
+              <span style={{ fontWeight: 700 }}>💡 Tip: </span>
+              {matchResult.missingSkills.length > 0
+                ? `Highlight experience related to ${matchResult.missingSkills[0]} in your resume to improve your match score.`
+                : "Your resume aligns well. Customize your cover letter to mention specific company projects."}
             </div>
+
+            {/* Apply button */}
+            {job.job_apply_link && (
+              <a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" className="apply-btn" style={{ textAlign: "center", display: "block", textDecoration: "none" }}>
+                {isHot(job.job_posted_at_datetime_utc) ? "⚡ Apply Now — Beat the Rush!" : "Apply Now →"}
+              </a>
+            )}
           </div>
         )}
 
@@ -375,70 +309,47 @@ function InterviewModal({ job, interview, onClose }: { job: Job; interview: Inte
   );
 }
 
-function AnalyticsView({ apps, savedCount, totalSearched, totalMatchesRun, avgMatchScore, topFitCount }: { apps: TrackedApp[]; savedCount: number; totalSearched: number; totalMatchesRun: number; avgMatchScore: number; topFitCount: number }) {
+function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]; savedCount: number; totalSearched: number }) {
   const sc: Record<AppStatus,number> = {Applied:0,Interviewing:0,Offer:0,Rejected:0};
   apps.forEach(a=>{sc[a.status]=(sc[a.status]||0)+1;});
   const rr = apps.length>0?Math.round(((sc.Interviewing+sc.Offer)/apps.length)*100):0;
-  const sc2: Record<AppStatus,string> = {Applied:"#818cf8",Interviewing:"#fbbf24",Offer:"#34d399",Rejected:"#f87171"};
-  const funnel = [{label:"Jobs Scanned",count:totalSearched,color:"rgba(255,255,255,0.15)"},{label:"Resumes Matched",count:totalMatchesRun,color:"#818cf8"},{label:"Top Fits (70%+)",count:topFitCount,color:"#fbbf24"},{label:"Applications",count:apps.length,color:"#34d399"}];
+  const cards = [{label:"Total Applied",value:apps.length,color:"#818cf8",icon:"📋"},{label:"Interviewing",value:sc.Interviewing,color:"#fbbf24",icon:"🎯"},{label:"Offers",value:sc.Offer,color:"#34d399",icon:"🎉"},{label:"Response Rate",value:`${rr}%`,color:"#ec4899",icon:"📈"}];
+  const funnel = [{label:"Saved",count:savedCount,color:"rgba(255,255,255,0.15)"},{label:"Applied",count:sc.Applied+sc.Interviewing+sc.Offer+sc.Rejected,color:"#818cf8"},{label:"Interviewing",count:sc.Interviewing+sc.Offer,color:"#fbbf24"},{label:"Offers",count:sc.Offer,color:"#34d399"}];
   const mx = funnel[0].count||1;
+  const sc2: Record<AppStatus,string> = {Applied:"#818cf8",Interviewing:"#fbbf24",Offer:"#34d399",Rejected:"#f87171"};
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
-      {/* Hero stats */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-        {[
-          {icon:"🎯",value:totalMatchesRun,label:"Resumes Analyzed",color:"#818cf8"},
-          {icon:"📊",value:`${avgMatchScore}%`,label:"Avg Match Score",color:avgMatchScore>=70?"#34d399":avgMatchScore>=50?"#fbbf24":"#f87171"},
-          {icon:"⚡",value:topFitCount,label:"Top Fits Today",color:"#fbbf24"},
-          {icon:"📈",value:`${rr}%`,label:"Response Rate",color:"#ec4899"},
-        ].map((c,i)=>(
-          <div key={i} className="stat-card">
-            <div style={{fontSize:24,marginBottom:8}}>{c.icon}</div>
-            <div className="stat-number" style={{color:c.color}}>{c.value}</div>
-            <div className="stat-label">{c.label}</div>
+      <div className="analytics-grid">
+        {cards.map((c,i)=>(
+          <div key={i} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${c.color}25`,borderRadius:14,padding:18,textAlign:"center"}}>
+            <div style={{fontSize:22,marginBottom:8}}>{c.icon}</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:700,color:c.color,marginBottom:4}}>{c.value}</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,0.3)"}}>{c.label}</div>
           </div>
         ))}
       </div>
-
-      {/* Application funnel */}
       <div className="dark-card">
-        <div className="dark-card-title">🔥 Your Job Search Funnel</div>
+        <div className="dark-card-title">Application Funnel</div>
         {funnel.map((f,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"center",gap:12,marginBottom:i<funnel.length-1?14:0}}>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.35)",width:110,flexShrink:0}}>{f.label}</div>
-            <div style={{flex:1,height:8,background:"rgba(255,255,255,0.06)",borderRadius:8,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${(f.count/mx)*100}%`,background:f.color,borderRadius:8,transition:"width .8s ease"}}/>
-            </div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:16,color:f.color,width:30,textAlign:"right"}}>{f.count}</div>
+          <div key={i} style={{display:"flex",alignItems:"center",gap:12,marginBottom:i<funnel.length-1?12:0}}>
+            <div style={{fontSize:13,color:"rgba(255,255,255,0.35)",width:90,flexShrink:0}}>{f.label}</div>
+            <div style={{flex:1,height:8,background:"rgba(255,255,255,0.06)",borderRadius:8,overflow:"hidden"}}><div style={{height:"100%",width:`${(f.count/mx)*100}%`,background:f.color,borderRadius:8,transition:"width .6s ease"}}/></div>
+            <div style={{fontWeight:700,fontSize:14,color:f.color,width:24,textAlign:"right"}}>{f.count}</div>
           </div>
         ))}
       </div>
-
-      {/* Application tracker summary */}
       <div className="dark-card">
-        <div className="dark-card-title">📋 Application Status</div>
+        <div className="dark-card-title">Status Breakdown</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginTop:4}}>
           {(Object.entries(sc) as [AppStatus,number][]).map(([s,c])=>(
             <div key={s} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${sc2[s]}25`,borderRadius:10,padding:14,textAlign:"center"}}>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:sc2[s]}}>{c}</div>
-              <div style={{fontSize:11,fontWeight:600,color:sc2[s],marginTop:3,opacity:0.7}}>{s}</div>
+              <div style={{fontSize:12,fontWeight:500,color:sc2[s],marginTop:3,opacity:0.7}}>{s}</div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Tips based on data */}
-      <div className="dark-card">
-        <div className="dark-card-title">💡 Smart Insights</div>
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {avgMatchScore < 60 && totalMatchesRun > 0 && <div style={{background:"rgba(248,113,113,0.06)",border:"1px solid rgba(248,113,113,0.15)",borderRadius:10,padding:"12px 14px",fontSize:13,color:"rgba(248,113,113,0.8)"}}>⚠️ Your avg match score is {avgMatchScore}%. Try using the ✂️ Tailor feature to improve your resume bullets for each job.</div>}
-          {avgMatchScore >= 70 && totalMatchesRun > 0 && <div style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.15)",borderRadius:10,padding:"12px 14px",fontSize:13,color:"rgba(52,211,153,0.8)"}}>🎉 Great match scores! Apply early — jobs under 6 hours old have the least competition.</div>}
-          {apps.length === 0 && <div style={{background:"rgba(129,140,248,0.06)",border:"1px solid rgba(129,140,248,0.15)",borderRadius:10,padding:"12px 14px",fontSize:13,color:"rgba(129,140,248,0.8)"}}>💼 Start tracking applications using the + button on job cards to see your pipeline here.</div>}
-          {topFitCount > 0 && <div style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.15)",borderRadius:10,padding:"12px 14px",fontSize:13,color:"rgba(251,191,36,0.8)"}}>⚡ You have {topFitCount} top fit job{topFitCount>1?"s":""} today. Apply now before competition increases!</div>}
-        </div>
-      </div>
-
-      {apps.length===0&&totalMatchesRun===0&&<div className="empty-state"><div className="empty-icon">📊</div><h3>Your dashboard is ready</h3><p>Match your resume to jobs and track applications to see insights here.</p></div>}
+      {apps.length===0&&<div className="empty-state"><div className="empty-icon">📊</div><h3>No data yet</h3><p>Start tracking applications to see your analytics here.</p></div>}
     </div>
   );
 }
@@ -464,8 +375,8 @@ function AlertPanel({ jobRole, location, jobs }: { jobRole: string; location: st
   );
 }
 
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onFixResume }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onFixResume:()=>void;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;
 }) {
   const loc=[job.job_city,job.job_state,job.job_country].filter(Boolean).join(", ");
   const badge=empBadge(job.job_employment_type);const hot=isHot(job.job_posted_at_datetime_utc);const hours=getHoursAgo(job.job_posted_at_datetime_utc);
@@ -493,13 +404,11 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, ear
       {earlyBirdMode&&<UrgencyBar hoursAgo={hours}/>}
 
       <div className="card-actions">
+        {/* Match Resume button — shown when resume is uploaded */}
         {resumeReady&&(
           <button className={`card-btn match-btn${job.match?" done":""}`} onClick={(e)=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading}>
-            {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?`✓ ${job.match.matchScore}%`:"🔍 Match"}
+            {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?`✓ ${job.match.matchScore}% Match`:"🔍 Match"}
           </button>
-        )}
-        {resumeReady&&job.match&&(job.match.missingSkills?.length??0)>0&&(
-          <button className="card-btn" style={{background:"rgba(251,191,36,0.07)",borderColor:"rgba(251,191,36,0.18)",color:"#fbbf24"}} onClick={(e)=>{e.stopPropagation();onFixResume();}}>🔧 Fix</button>
         )}
         {resumeReady&&<button className={`card-btn tailor-btn${job.tailor?" done":""}`} onClick={(e)=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading}>{job.tailorLoading?<><div className="spin-sm"/>Tailoring…</>:job.tailor?"✓ Tailored":"✂️ Tailor"}</button>}
         <button className={`card-btn interview-btn${job.interview?" done":""}`} onClick={(e)=>{e.stopPropagation();onInterview();}} disabled={job.interviewLoading}>{job.interviewLoading?<><div className="spin-sm"/>Prepping…</>:job.interview?"✓ Prep'd":"🤖 Prep"}</button>
@@ -576,7 +485,7 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
               <button className={`mtab${tab==="overview"?" active":""}`} onClick={()=>setTab("overview")}>📊 Match Analysis</button>
               <button className={`mtab${tab==="cover"?" active":""}`} onClick={()=>setTab("cover")}>✉️ Cover Letter</button>
             </div>
-            {tab==="overview"&&<div style={{marginBottom:16}}><p style={{fontSize:13,color:"rgba(255,255,255,0.45)",lineHeight:1.7,background:"rgba(255,255,255,0.04)",borderRadius:10,padding:14,marginBottom:14}}>{job.match.matchSummary}</p><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}><div><div style={{fontSize:12,fontWeight:600,color:"#34d399",marginBottom:8}}>✅ Matched</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{job.match.matchedSkills.map((s,i)=><span key={i} style={{fontSize:11,fontWeight:500,padding:"4px 10px",borderRadius:20,background:"rgba(52,211,153,0.1)",color:"#34d399"}}>{s}</span>)}</div></div><div><div style={{fontSize:12,fontWeight:600,color:"#f87171",marginBottom:8}}>⚠️ Gaps</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{job.match.missingSkills?.length>0?job.match.missingSkills.map((s,i)=><span key={i} style={{fontSize:11,fontWeight:500,padding:"4px 10px",borderRadius:20,background:"rgba(248,113,113,0.1)",color:"#f87171"}}>{s}</span>):<span style={{fontSize:12,color:"#34d399",fontStyle:"italic"}}>No major gaps!</span>}</div></div></div></div>}
+            {tab==="overview"&&<div style={{marginBottom:16}}><p style={{fontSize:13,color:"rgba(255,255,255,0.45)",lineHeight:1.7,background:"rgba(255,255,255,0.04)",borderRadius:10,padding:14,marginBottom:14}}>{job.match.matchSummary}</p><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}><div><div style={{fontSize:12,fontWeight:600,color:"#34d399",marginBottom:8}}>✅ Matched</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{job.match.matchedSkills.map((s,i)=><span key={i} style={{fontSize:11,fontWeight:500,padding:"4px 10px",borderRadius:20,background:"rgba(52,211,153,0.1)",color:"#34d399"}}>{s}</span>)}</div></div><div><div style={{fontSize:12,fontWeight:600,color:"#f87171",marginBottom:8}}>⚠️ Gaps</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{job.match.missingSkills.length>0?job.match.missingSkills.map((s,i)=><span key={i} style={{fontSize:11,fontWeight:500,padding:"4px 10px",borderRadius:20,background:"rgba(248,113,113,0.1)",color:"#f87171"}}>{s}</span>):<span style={{fontSize:12,color:"#34d399",fontStyle:"italic"}}>No major gaps!</span>}</div></div></div></div>}
             {tab==="cover"&&<div><div style={{fontSize:13,color:"rgba(255,255,255,0.45)",lineHeight:1.75,whiteSpace:"pre-wrap",background:"rgba(255,255,255,0.03)",borderRadius:10,padding:16,maxHeight:280,overflowY:"auto",border:"1px solid rgba(255,255,255,0.06)"}}>{job.match.coverLetter}</div><button className="ghost-btn" style={{marginTop:10}} onClick={()=>{if(job.match?.coverLetter){navigator.clipboard.writeText(job.match.coverLetter);setCopied(true);setTimeout(()=>setCopied(false),2000);}}}>{copied?"✓ Copied!":"📋 Copy"}</button></div>}
           </>
         )}
@@ -653,85 +562,16 @@ export default function Home() {
   const [isMatching,setIsMatching]=useState(false);const [matchProgress,setMatchProgress]=useState(0);
   const [autoOpenDone,setAutoOpenDone]=useState(false);const [trackedApps,setTrackedApps]=useState<TrackedApp[]>([]);
   const [mounted,setMounted]=useState(false);const [userEmail,setUserEmail]=useState("");
-  const [userName,setUserName]=useState("");
-  // Onboarding
-  const [showOnboarding,setShowOnboarding]=useState(false);
-  const [onboardStep,setOnboardStep]=useState(1);
-  const [onboardRole,setOnboardRole]=useState("");
-  const [onboardLocation,setOnboardLocation]=useState("");
-  const [onboardResume,setOnboardResume]=useState("");
-  const [onboardFileName,setOnboardFileName]=useState("");
-  const [onboardParsing,setOnboardParsing]=useState(false);
-  const [onboardSearching,setOnboardSearching]=useState(false);
-  // Resume History
-  const [showResumeHistory, setShowResumeHistory] = useState(false);
-  const [resumeHistory, setResumeHistory] = useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
-  const loadResumeHistory = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase.from("resumes").select("id, file_name, created_at, resume_text").eq("user_id", user.id).order("created_at", { ascending: false });
-    if (data) setResumeHistory(data);
-    setShowResumeHistory(true);
-  };
-  // Fix My Resume
-  const [fixResumeJob,setFixResumeJob]=useState<JobWithMatch|null>(null);
-  const [fixResumeResult,setFixResumeResult]=useState<{improvedBullets:string[];addedKeywords:string[];summary:string}|null>(null);
-  const [fixResumeLoading,setFixResumeLoading]=useState(false);
 
   useEffect(()=>{
     setMounted(true);
     import("@/lib/supabase").then(({supabase})=>{
-      supabase.auth.getUser().then(({data})=>{
-        if(data.user?.email){
-          setUserEmail(data.user.email);
-          const name=data.user.user_metadata?.full_name||data.user.email.split("@")[0];
-          setUserName(name);
-        }
-      });
+      supabase.auth.getUser().then(({data})=>{if(data.user?.email)setUserEmail(data.user.email);});
     });
+    // Restore resume from localStorage
     const savedResume = localStorage.getItem("applysmart_resume");
-    // Clear resume if different user logged in
-    supabase.auth.getUser().then(async ({ data }) => {
-      const currentUserId = data?.user?.id;
-      const storedUserId = localStorage.getItem("applysmart_user_id");
-      if (currentUserId && storedUserId && currentUserId !== storedUserId) {
-        localStorage.removeItem("applysmart_resume");
-        localStorage.removeItem("applysmart_resume_name");
-        setResumeText("");
-        setResumeFileName("");
-      }
-      if (currentUserId) {
-        localStorage.setItem("applysmart_user_id", currentUserId);
-        if (!savedResume || currentUserId !== storedUserId) {
-          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", currentUserId).order("created_at", { ascending: false }).limit(1).single();
-          if (resumeData?.resume_text) {
-            setResumeText(resumeData.resume_text);
-            setResumeFileName(resumeData.file_name ?? "Saved Resume");
-            localStorage.setItem("applysmart_resume", resumeData.resume_text);
-            localStorage.setItem("applysmart_resume_name", resumeData.file_name ?? "Saved Resume");
-          }
-        }
-      }
-    });
-    // Load resume from Supabase if not in localStorage
-    if (!savedResume) {
-      supabase.auth.getUser().then(async ({ data }) => {
-        if (data?.user) {
-          const { data: resumeData } = await supabase.from("resumes").select("resume_text, file_name").eq("user_id", data.user.id).order("created_at", { ascending: false }).limit(1).single();
-          if (resumeData?.resume_text) {
-            setResumeText(resumeData.resume_text);
-            setResumeFileName(resumeData.file_name ?? "Saved Resume");
-            localStorage.setItem("applysmart_resume", resumeData.resume_text);
-            localStorage.setItem("applysmart_resume_name", resumeData.file_name ?? "Saved Resume");
-          }
-        }
-      });
-    }
     const savedFileName = localStorage.getItem("applysmart_resume_name");
     if (savedResume && savedFileName) { setResumeText(savedResume); setResumeFileName(savedFileName); }
-    // Show onboarding for new users
-    const onboardDone = localStorage.getItem("applysmart_onboarded");
-    if (!onboardDone) setShowOnboarding(true);
   },[]);
 
   const fetchJobs=async(mode:"normal"|"earlybird")=>{
@@ -766,34 +606,6 @@ export default function Home() {
   const handleSingleMatch = async (job: JobWithMatch) => {
     if (job.match) { setMatchPanelJob(job); return; }
     setMatchPanelJob(job);
-  };
-
-  // Resume History
-  const [showResumeHistory, setShowResumeHistory] = useState(false);
-  const [resumeHistory, setResumeHistory] = useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
-  const loadResumeHistory = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase.from("resumes").select("id, file_name, created_at, resume_text").eq("user_id", user.id).order("created_at", { ascending: false });
-    if (data) setResumeHistory(data);
-    setShowResumeHistory(true);
-  };
-  // Fix My Resume
-  const handleFixResume = async (job: JobWithMatch) => {
-    if (!resumeText) { alert("No resume found - please upload your resume first"); return; }
-    setFixResumeJob(job);
-    setFixResumeResult(null);
-    setFixResumeLoading(true);
-    try {
-      const tailorRes = await fetch("/api/tailor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeText, job }) });
-      const tailor = await tailorRes.json();
-      setFixResumeResult({
-        improvedBullets: tailor.tailoredBullets?.map((b: any) => b.tailored) ?? [],
-        addedKeywords: [...(job.match?.atsKeywordsMissing ?? []), ...(tailor.keywordsAdded ?? [])].slice(0, 8),
-        summary: tailor.atsTip ?? "",
-      });
-    } catch { /* silent */ }
-    setFixResumeLoading(false);
   };
 
   // Update a job's match result in whichever list it lives in
@@ -836,38 +648,8 @@ export default function Home() {
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
   const currentLoading=isEbMode?ebLoading:loading;
   const allJobs=[...jobs,...earlyBirdJobs];
-  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();localStorage.removeItem("applysmart_resume");localStorage.removeItem("applysmart_resume_name");localStorage.removeItem("applysmart_onboarded");window.location.href="/login";};
+  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();window.location.href="/login";};
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
-
-  const completeOnboarding = async () => {
-    if (!onboardRole || !onboardLocation) return;
-    localStorage.setItem("applysmart_onboarded", "true");
-    if (onboardResume) {
-      setResumeText(onboardResume);
-      setResumeFileName(onboardFileName);
-      localStorage.setItem("applysmart_resume", onboardResume);
-      localStorage.setItem("applysmart_resume_name", onboardFileName);
-    }
-    setJobRole(onboardRole);
-    setLocation(onboardLocation);
-    setShowOnboarding(false);
-    setHasSearched(true);
-    setActiveTab("earlybird");
-    // Auto-run early bird search
-    setEbLoading(true);
-    setEarlyBirdJobs([]);
-    try {
-      const res = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jobRole: onboardRole, location: onboardLocation, earlyBird: true }) });
-      const data = await res.json();
-      setEarlyBirdJobs(data?.data || []);
-    } catch (err) { console.error(err); }
-    setEbLoading(false);
-  };
-
-  // Analytics stats
-  const totalMatchesRun = [...jobs, ...earlyBirdJobs].filter(j => j.match).length;
-  const avgMatchScore = totalMatchesRun > 0 ? Math.round([...jobs, ...earlyBirdJobs].filter(j => j.match).reduce((a, j) => a + (j.match?.matchScore ?? 0), 0) / totalMatchesRun) : 0;
-  const topFitCount = [...jobs, ...earlyBirdJobs].filter(j => j.match && j.match.matchScore >= 70).length;
 
   return (
     <>
@@ -1021,42 +803,7 @@ export default function Home() {
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
         .match-panel-header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
 
-        /* Onboarding */
-        .ob-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;padding:24px;animation:fi .3s}
-        .ob-card{background:#0d0d14;border:1px solid rgba(255,255,255,0.08);border-radius:24px;width:100%;max-width:560px;padding:48px;position:relative;animation:su .3s ease}
-        .ob-step-dots{display:flex;gap:8px;justify-content:center;margin-bottom:40px}
-        .ob-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all .3s}
-        .ob-dot.active{background:linear-gradient(135deg,#818cf8,#ec4899);width:24px;border-radius:4px}
-        .ob-dot.done{background:#34d399}
-        .ob-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:10px;text-align:center}
-        .ob-sub{font-size:14px;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:32px;line-height:1.6}
-        .ob-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;font-size:15px;font-family:inherit;color:#fff;outline:none;transition:all .2s;margin-bottom:12px}
-        .ob-input:focus{border-color:rgba(129,140,248,0.5);background:rgba(129,140,248,0.06);box-shadow:0 0 0 4px rgba(129,140,248,0.08)}
-        .ob-input::placeholder{color:rgba(255,255,255,0.2)}
-        .ob-suggestions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
-        .ob-chip{padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);font-size:12px;font-weight:500;color:rgba(255,255,255,0.45);cursor:pointer;transition:all .2s;font-family:inherit}
-        .ob-chip:hover{border-color:rgba(129,140,248,0.4);color:#818cf8;background:rgba(129,140,248,0.08)}
-        .ob-chip.selected{border-color:rgba(129,140,248,0.5);color:#818cf8;background:rgba(129,140,248,0.12)}
-        .ob-btn{width:100%;background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-        .ob-btn:hover{opacity:0.9;transform:translateY(-1px)}
-        .ob-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
-        .ob-skip{font-size:12px;color:rgba(255,255,255,0.2);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:16px;width:100%;text-align:center;display:block;transition:color .2s}
-        .ob-skip:hover{color:rgba(255,255,255,0.4)}
-        .ob-upload-area{border:2px dashed rgba(129,140,248,0.2);border-radius:14px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px}
-        .ob-upload-area:hover{border-color:rgba(129,140,248,0.5);background:rgba(129,140,248,0.04)}
-        .ob-upload-done{background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:16px}
-
-        /* Fix My Resume Modal */
-        .fix-overlay{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:24px;animation:fi .2s}
-        .fix-modal{background:#0d0d14;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:620px;max-height:88vh;overflow-y:auto;padding:32px;animation:su .22s ease}
-
-        /* Enhanced Analytics */
-        .stat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px;text-align:center;transition:all .2s}
-        .stat-card:hover{border-color:rgba(129,140,248,0.2);transform:translateY(-2px)}
-        .stat-number{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;line-height:1;margin-bottom:6px}
-        .stat-label{font-size:11px;color:rgba(255,255,255,0.3);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-
-        @media(max-width:900px){.analytics-grid{grid-template-columns:repeat(2,1fr)}.match-panel{width:100%}.ob-card{padding:32px}}
+        @media(max-width:900px){.analytics-grid{grid-template-columns:repeat(2,1fr)}.match-panel{width:100%}}
         @media(max-width:768px){.main-layout{flex-direction:column}.sidebar{width:100%}.filter-card{position:static}.jobs-grid,.loading-grid{grid-template-columns:1fr}.hero-title{font-size:32px}.search-box{flex-direction:column}}
       `}</style>
 
@@ -1094,7 +841,7 @@ export default function Home() {
         <aside className="sidebar">
           {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
           <div className="sidebar-card">
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="sidebar-card-title">\uD83E\uDD16 AI Resume Match</div><button onClick={loadResumeHistory} style={{fontSize:11,color:"#818cf8",background:"none",border:"1px solid rgba(129,140,248,0.3)",borderRadius:6,padding:"3px 8px",cursor:"pointer"}}>?? History</button></div>
+            <div className="sidebar-card-title">🤖 AI Resume Match</div>
             <div className="sidebar-card-sub">Upload PDF to match & auto-apply</div>
             <ResumePanel
               resumeText={resumeText}
@@ -1106,9 +853,9 @@ export default function Home() {
                 localStorage.setItem("applysmart_resume_name", n);
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) { alert("User not logged in"); return; }
-                const { error } = await supabase.from("resumes").insert([{ user_id: user.id, title: n, file_name: n, resume_text: t }]);
+                const { error } = await supabase.from("resumes").insert([{ user_id: user.id, title: "Test Resume", file_name: n, resume_text: t }]);
                 if (error) { console.error("Resume insert error:", error); alert("Failed to save resume"); }
-                else { alert("Resume saved! \u2705"); setShowResumeHistory(true); }
+                else { alert("Resume saved successfully"); }
               }}
               onClear={() => {
                 setResumeText("");
@@ -1166,7 +913,7 @@ export default function Home() {
           {activeTab==="tracker"?(
             <TrackerView apps={trackedApps} onUpdateStatus={(id,s)=>setTrackedApps(prev=>prev.map(a=>a.id===id?{...a,status:s}:a))} onUpdateNotes={(id,n)=>setTrackedApps(prev=>prev.map(a=>a.id===id?{...a,notes:n}:a))} onRemove={(id)=>setTrackedApps(prev=>prev.filter(a=>a.id!==id))}/>
           ):activeTab==="analytics"?(
-            <AnalyticsView apps={trackedApps} savedCount={savedJobs.size} totalSearched={allJobs.length} totalMatchesRun={totalMatchesRun} avgMatchScore={avgMatchScore} topFitCount={topFitCount}/>
+            <AnalyticsView apps={trackedApps} savedCount={savedJobs.size} totalSearched={allJobs.length}/>
           ):currentLoading?(
             <div className="loading-grid">{[...Array(6)].map((_,i)=><div key={i} className="skel-card"><div className="skel" style={{width:44,height:44,borderRadius:10}}/><div className="skel" style={{height:14,width:"65%"}}/><div className="skel" style={{height:11,width:"45%"}}/><div className="skel" style={{height:3,width:"100%",borderRadius:3}}/></div>)}</div>
           ):paginatedJobs.length>0?(
@@ -1181,7 +928,6 @@ export default function Home() {
                     onTailor={()=>{if(job.tailor)setTailorJob(job);else handleTailor(job);}}
                     onInterview={()=>handleInterview(job)}
                     onMatchResume={()=>handleSingleMatch(job)}
-                    onFixResume={()=>handleFixResume(job)}
                     earlyBirdMode={isEbMode} resumeReady={!!resumeText}
                     isTracked={trackedApps.some(a=>a.job.job_id===job.job_id)}
                     onTrack={()=>addToTracker(job)}/>
@@ -1211,153 +957,7 @@ export default function Home() {
       {selectedJob&&<JobModal job={selectedJob} saved={savedJobs.has(selectedJob.job_id)} onToggleSave={()=>toggleSave(selectedJob.job_id)} onClose={()=>setSelectedJob(null)} earlyBirdMode={isEbMode} onAddToTracker={()=>{addToTracker(selectedJob);setSelectedJob(null);setActiveTab("tracker");}} isTracked={trackedApps.some(a=>a.job.job_id===selectedJob.job_id)}/>}
       {tailorJob?.tailor&&<TailorModal job={tailorJob} tailor={tailorJob.tailor} onClose={()=>setTailorJob(null)}/>}
       {interviewJob?.interview&&<InterviewModal job={interviewJob} interview={interviewJob.interview} onClose={()=>setInterviewJob(null)}/>}
-      {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText} onFixResume={(job)=>{setMatchPanelJob(null);handleFixResume(job);}}/>}
-
-      {/* Fix My Resume Modal */}
-      {fixResumeJob&&(
-        <div className="fix-overlay" onClick={()=>setFixResumeJob(null)}>
-          <div className="fix-modal" onClick={e=>e.stopPropagation()}>
-            <button className="modal-close" onClick={()=>setFixResumeJob(null)}>✕</button>
-            <div className="modal-head">
-              <span style={{fontSize:32}}>🔧</span>
-              <div><h2 className="modal-title">Fix My Resume</h2><p className="modal-sub">{fixResumeJob.job_title} at {fixResumeJob.employer_name}</p></div>
-            </div>
-            {fixResumeLoading&&(
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"40px 20px",gap:14}}>
-                <div className="spin" style={{width:32,height:32,borderWidth:3}}/>
-                <div style={{fontSize:13,color:"#818cf8",fontWeight:500}}>Rewriting your resume for this job…</div>
-              </div>
-            )}
-            {!fixResumeLoading&&fixResumeResult&&(
-              <div style={{display:"flex",flexDirection:"column",gap:18}}>
-                {fixResumeResult.summary&&<div style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.15)",borderRadius:10,padding:"12px 14px",fontSize:13,color:"rgba(251,191,36,0.8)",lineHeight:1.6}}><strong>💡 ATS Tip:</strong> {fixResumeResult.summary}</div>}
-                {fixResumeResult.addedKeywords.length>0&&(
-                  <div>
-                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#818cf8",marginBottom:8}}>🎯 Add These Keywords to Your Resume</div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                      {fixResumeResult.addedKeywords.map((k,i)=>(
-                        <span key={i} onClick={()=>navigator.clipboard.writeText(k)} style={{fontSize:12,fontWeight:600,padding:"5px 12px",borderRadius:20,background:"rgba(129,140,248,0.1)",color:"#818cf8",border:"1px solid rgba(129,140,248,0.2)",cursor:"pointer"}} title="Click to copy">{k} 📋</span>
-                      ))}
-                    </div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:6}}>Click any keyword to copy</div>
-                  </div>
-                )}
-                {fixResumeResult.improvedBullets.length>0&&(
-                  <div>
-                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#34d399",marginBottom:10}}>✅ Rewritten Resume Bullets</div>
-                    {fixResumeResult.improvedBullets.map((b,i)=>(
-                      <div key={i} style={{background:"rgba(52,211,153,0.05)",border:"1px solid rgba(52,211,153,0.12)",borderRadius:10,padding:"12px 14px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
-                        <span style={{fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.55,flex:1}}>• {b}</span>
-                        <button style={{background:"none",border:"none",cursor:"pointer",fontSize:14,color:"rgba(255,255,255,0.3)",flexShrink:0}} onClick={()=>navigator.clipboard.writeText(b)}>📋</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {fixResumeJob.job_apply_link&&<a href={fixResumeJob.job_apply_link} target="_blank" rel="noopener noreferrer" className="apply-btn" style={{textAlign:"center",display:"block",textDecoration:"none"}}>Apply Now with Fixed Resume →</a>}
-              </div>
-            )}
-            {!fixResumeLoading&&!fixResumeResult&&(
-              <div style={{textAlign:"center",padding:"32px 20px"}}>
-                <button className="gradient-btn" onClick={()=>handleFixResume(fixResumeJob)}>🔧 Fix My Resume Now</button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Onboarding */}
-      {showOnboarding&&mounted&&(
-        <div className="ob-overlay">
-          <div className="ob-card">
-            <div className="ob-step-dots">
-              {[1,2,3].map(i=><div key={i} className={`ob-dot${onboardStep===i?" active":onboardStep>i?" done":""}`}/>)}
-            </div>
-
-            {onboardStep===1&&(
-              <>
-                <div style={{textAlign:"center",marginBottom:12}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:48,fontWeight:900,background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",lineHeight:1}}>Apply<span style={{fontStyle:"italic"}}>Smart</span></div>
-                </div>
-                <h2 className="ob-title">Welcome{userName?`, ${userName.split(" ")[0]}`:""}! 👋</h2>
-                <p className="ob-sub">Get matched to jobs before anyone else applies. Let's set up your profile in 60 seconds.</p>
-                <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:24}}>
-                  {[{icon:"⚡",text:"See jobs posted in the last 24 hours"},{icon:"🤖",text:"AI matches your resume to each job"},{icon:"🎯",text:"Know your ATS score before applying"}].map((f,i)=>(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:14,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"14px 16px"}}>
-                      <span style={{fontSize:20}}>{f.icon}</span>
-                      <span style={{fontSize:13,color:"rgba(255,255,255,0.55)"}}>{f.text}</span>
-                    </div>
-                  ))}
-                </div>
-                <button className="ob-btn" onClick={()=>setOnboardStep(2)}>Let's Get Started →</button>
-              </>
-            )}
-
-            {onboardStep===2&&(
-              <>
-                <h2 className="ob-title">What jobs are you looking for?</h2>
-                <p className="ob-sub">We'll search fresh opportunities posted in the last 24 hours.</p>
-                <input className="ob-input" placeholder="Job title e.g. Data Analyst" value={onboardRole} onChange={e=>setOnboardRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardLocation&&setOnboardStep(3)}/>
-                <input className="ob-input" placeholder="Location e.g. Dallas, TX or Remote" value={onboardLocation} onChange={e=>setOnboardLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardRole&&setOnboardStep(3)}/>
-                <div className="ob-suggestions">
-                  {["Data Analyst","Software Engineer","Product Manager","UX Designer","Business Analyst","Marketing Manager"].map(r=>(
-                    <button key={r} className={`ob-chip${onboardRole===r?" selected":""}`} onClick={()=>setOnboardRole(r)}>{r}</button>
-                  ))}
-                </div>
-                <button className="ob-btn" onClick={()=>setOnboardStep(3)} disabled={!onboardRole||!onboardLocation}>Continue →</button>
-                <button className="ob-skip" onClick={()=>setOnboardStep(3)}>Skip for now</button>
-              </>
-            )}
-
-            {onboardStep===3&&(
-              <>
-                <h2 className="ob-title">Upload your resume</h2>
-                <p className="ob-sub">We'll instantly match your skills to every job and show your ATS score. You can skip this and add it later.</p>
-                {onboardResume?(
-                  <div className="ob-upload-done">
-                    <div style={{width:36,height:36,background:"#34d399",color:"#060608",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,flexShrink:0}}>✓</div>
-                    <div><div style={{fontSize:13,fontWeight:700,color:"#34d399"}}>Resume ready!</div><div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginTop:2}}>{onboardFileName}</div></div>
-                    <button className="ghost-btn" style={{marginLeft:"auto"}} onClick={()=>{setOnboardResume("");setOnboardFileName("");}}>Change</button>
-                  </div>
-                ):(
-                  <div className="ob-upload-area" onClick={()=>document.getElementById("ob-file-input")?.click()}>
-                    <input id="ob-file-input" type="file" accept=".pdf" style={{display:"none"}} onChange={async e=>{
-                      const file=e.target.files?.[0];
-                      if(!file)return;
-                      setOnboardParsing(true);
-                      try{
-                        if(!(window as any).pdfjsLib){await new Promise<void>((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>res();s.onerror=()=>rej();document.head.appendChild(s);});(window as any).pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}
-                        const ab=await file.arrayBuffer();const pdf=await (window as any).pdfjsLib.getDocument({data:new Uint8Array(ab)}).promise;
-                        let text="";for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();text+=content.items.map((it:any)=>it.str).join(" ")+"\n";}
-                        setOnboardResume(text);setOnboardFileName(file.name);
-                      }catch{alert("Failed to parse PDF");}
-                      setOnboardParsing(false);
-                    }}/>
-                    {onboardParsing?<div style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#818cf8"}}><div className="spin"/>Parsing…</div>:<>
-                      <div style={{fontSize:36,marginBottom:10}}>📄</div>
-                      <div style={{fontSize:14,fontWeight:600,color:"rgba(255,255,255,0.5)",marginBottom:4}}>Drop your resume PDF here</div>
-                      <div style={{fontSize:12,color:"rgba(255,255,255,0.25)"}}>or click to browse</div>
-                    </>}
-                  </div>
-                )}
-                <button className="ob-btn" onClick={completeOnboarding} disabled={onboardSearching||!onboardRole||!onboardLocation}>
-                  {onboardSearching?<><div className="spin-sm"/>Scanning fresh jobs…</>:"🚀 Find My Jobs Now"}
-                </button>
-                <button className="ob-skip" onClick={completeOnboarding}>Skip resume upload</button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
     </>
   );
 }
-
-
-
-
-
-
-
-
-
-
