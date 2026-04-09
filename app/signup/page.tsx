@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function SignupPage() {
@@ -8,6 +8,24 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  useEffect(() => {
+    if (!success) return;
+    setCountdown(60); setCanResend(false);
+    const timer = setInterval(() => {
+      setCountdown(prev => { if (prev <= 1) { clearInterval(timer); setCanResend(true); return 0; } return prev - 1; });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [success]);
+  const handleResend = async () => {
+    setResending(true); setResent(false);
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    if (!error) { setResent(true); setCountdown(60); setCanResend(false); const timer = setInterval(() => { setCountdown(prev => { if (prev <= 1) { clearInterval(timer); setCanResend(true); return 0; } return prev - 1; }); }, 1000); }
+    setResending(false);
+  };
 
   const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3;
   const strengthLabel = ["", "Weak", "Good", "Strong"][strength];
@@ -507,3 +525,4 @@ export default function SignupPage() {
     </>
   );
 }
+
