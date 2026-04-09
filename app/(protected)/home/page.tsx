@@ -568,10 +568,29 @@ export default function Home() {
     import("@/lib/supabase").then(({supabase})=>{
       supabase.auth.getUser().then(({data})=>{if(data.user?.email)setUserEmail(data.user.email);});
     });
-    // Restore resume from localStorage
-    const savedResume = localStorage.getItem("applysmart_resume");
-    const savedFileName = localStorage.getItem("applysmart_resume_name");
-    if (savedResume && savedFileName) { setResumeText(savedResume); setResumeFileName(savedFileName); }
+    // Restore resume with user isolation
+    import("@/lib/supabase").then(({supabase}) => {
+      supabase.auth.getUser().then(async ({ data }) => {
+        const currentUserId = data?.user?.id;
+        const storedUserId = localStorage.getItem("applysmart_user_id");
+        if (!currentUserId) return;
+        // Different user - clear everything
+        if (storedUserId && storedUserId !== currentUserId) {
+          localStorage.removeItem("applysmart_resume");
+          localStorage.removeItem("applysmart_resume_name");
+          setResumeText(""); setResumeFileName("");
+        } else {
+          const savedResume = localStorage.getItem("applysmart_resume");
+          const savedFileName = localStorage.getItem("applysmart_resume_name");
+          if (savedResume && savedFileName) { setResumeText(savedResume); setResumeFileName(savedFileName); }
+          else {
+            const { data: rd } = await supabase.from("resumes").select("resume_text,file_name").eq("user_id", currentUserId).order("created_at",{ascending:false}).limit(1).single();
+            if (rd?.resume_text) { setResumeText(rd.resume_text); setResumeFileName(rd.file_name ?? "Resume"); localStorage.setItem("applysmart_resume", rd.resume_text); localStorage.setItem("applysmart_resume_name", rd.file_name ?? "Resume"); }
+          }
+        }
+        localStorage.setItem("applysmart_user_id", currentUserId);
+      });
+    });
   },[]);
 
   const fetchJobs=async(mode:"normal"|"earlybird")=>{
@@ -658,7 +677,7 @@ export default function Home() {
     if (data) setResumeHistory(data as any[]);
     setShowResumeHistory(true);
   };
-  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();window.location.href="/login";};
+  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();localStorage.removeItem("applysmart_resume");localStorage.removeItem("applysmart_resume_name");localStorage.removeItem("applysmart_onboarded");localStorage.removeItem("applysmart_user_id");window.location.href="/login";};
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
   return (
@@ -987,6 +1006,8 @@ export default function Home() {
     </>
   );
 }
+
+
 
 
 
