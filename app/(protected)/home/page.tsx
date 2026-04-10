@@ -713,11 +713,11 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'DM Sans',sans-serif;background:#07080A;color:#fff;min-height:100vh}
+        body{font-family:'DM Sans',sans-serif;background:#07080B;color:#fff;min-height:100vh}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.07);border-radius:4px}
 
         /* TOP BAR */
-        .topbar{background:#07080A;border-bottom:1px solid #13151A;padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:200}
+        .topbar{background:#07080B;border-bottom:1px solid #13151A;padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:200}
         .topbar-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px}
         .topbar-logo span{background:linear-gradient(135deg,#6366f1,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:600px}
