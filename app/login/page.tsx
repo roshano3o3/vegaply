@@ -89,7 +89,7 @@ export default function LoginPage() {
           <div className="auth-hero">
             <div className="auth-eyebrow">AI-Powered Job Search</div>
             <h1 className="auth-headline">Land your<br />dream job <em>faster</em><br />than anyone else.</h1>
-            <p className="auth-sub">ApplySmart finds freshly posted roles before the crowd arrives — then tailors your resume, preps your interview, and tracks every application automatically.</p>
+            <p className="auth-sub">Vegaply finds freshly posted roles before the crowd arrives — then tailors your resume, preps your interview, and tracks every application automatically.</p>
             <div className="auth-stats">
               <div><div className="auth-stat-num">⚡ 6h</div><div className="auth-stat-label">Early bird advantage</div></div>
               <div><div className="auth-stat-num">3×</div><div className="auth-stat-label">More interviews</div></div>
@@ -129,3 +129,4 @@ export default function LoginPage() {
     </>
   );
 }
+

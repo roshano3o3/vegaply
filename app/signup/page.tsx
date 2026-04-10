@@ -411,7 +411,7 @@ export default function SignupPage() {
               your next role.
             </h1>
             <p className="auth-sub">
-              Stop applying late. ApplySmart surfaces jobs the moment they're posted — giving you a head start before hundreds of applicants pile in.
+              Stop applying late. Vegaply surfaces jobs the moment they're posted — giving you a head start before hundreds of applicants pile in.
             </p>
 
             <div className="features-list">
@@ -447,7 +447,7 @@ export default function SignupPage() {
           </div>
 
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.18)', fontWeight: 300 }}>
-            © 2025 ApplySmart · Built for ambitious job seekers
+            © 2025 Vegaply · Built for ambitious job seekers
           </div>
         </div>
 
@@ -525,5 +525,6 @@ export default function SignupPage() {
     </>
   );
 }
+
 
 
