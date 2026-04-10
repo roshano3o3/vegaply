@@ -400,12 +400,10 @@ function JobRow({ job, saved, onToggleSave, onClick, onTailor, onInterview, earl
       {job.matchLoading&&<div style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#818cf8",flexShrink:0}}><div className="spin-sm"/>Matchingâ€¦</div>}
 
       <div style={{display:"flex",gap:5,flexShrink:0}}>
-        {resumeReady&&(
-          <button className={`row-btn match-btn${job.match?" done":""}`} onClick={(e)=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="Match Resume">
-            {job.matchLoading?<div className="spin-sm"/>:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
-          </button>
+        {(
+          <button className={`row-btn match-btn${job.match?" done":""}`} onClick={(e)=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="Match">{job.matchLoading?<><div className="spin-sm"/>…</>:job.match?`? ${job.match.matchScore}%`:"?? Match"}</button>
         )}
-        {resumeReady&&<button className={`row-btn tailor-btn${job.tailor?" done":""}`} onClick={(e)=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="Tailor Resume">{job.tailorLoading?<div className="spin-sm"/>:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>}</button>}
+        <button className={`row-btn tailor-btn${job.tailor?" done":""}`} onClick={(e)=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="Tailor Resume">{job.tailorLoading?<div className="spin-sm"/>:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>}</button>}
         <button className={`row-btn interview-btn${job.interview?" done":""}`} onClick={(e)=>{e.stopPropagation();onInterview();}} disabled={job.interviewLoading} title="Interview Prep">{job.interviewLoading?<div className="spin-sm"/>:<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>}</button>
         <button className={`row-btn track-btn${isTracked?" tracked":""}`} onClick={(e)=>{e.stopPropagation();onTrack();}} title={isTracked?"Tracked":"Track"}>
           {isTracked?<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>}
@@ -1156,3 +1154,5 @@ export default function Home() {
     </>
   );
 }
+
+
