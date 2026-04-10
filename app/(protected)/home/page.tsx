@@ -562,11 +562,24 @@ export default function Home() {
   const [isMatching,setIsMatching]=useState(false);const [matchProgress,setMatchProgress]=useState(0);
   const [autoOpenDone,setAutoOpenDone]=useState(false);const [trackedApps,setTrackedApps]=useState<TrackedApp[]>([]);
   const [mounted,setMounted]=useState(false);const [userEmail,setUserEmail]=useState("");
+  const [showOnboard,setShowOnboard]=useState(false);
+  const [onboardStep,setOnboardStep]=useState(1);
+  const [onboardRole,setOnboardRole]=useState("");
+  const [onboardLocation,setOnboardLocation]=useState("");
+  const [onboardParsing,setOnboardParsing]=useState(false);
 
   useEffect(()=>{
     setMounted(true);
     import("@/lib/supabase").then(({supabase})=>{
-      supabase.auth.getUser().then(({data})=>{if(data.user?.email)setUserEmail(data.user.email);});
+      supabase.auth.getUser().then(({data})=>{
+        if(data.user?.email)setUserEmail(data.user.email);
+        const uid=data.user?.id;
+        if(uid){
+          localStorage.setItem("applysmart_user_id",uid);
+          const onboarded=localStorage.getItem(`applysmart_onboarded_${uid}`);
+          if(!onboarded)setShowOnboard(true);
+        }
+      });
     });
     // Restore resume with user isolation
     import("@/lib/supabase").then(({supabase}) => {
@@ -670,6 +683,14 @@ export default function Home() {
   // Resume History
   const [showResumeHistory, setShowResumeHistory] = useState(false);
   const [resumeHistory, setResumeHistory] = useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
+  const completeOnboarding=async()=>{
+    const uid=localStorage.getItem("applysmart_user_id");
+    if(uid)localStorage.setItem(`applysmart_onboarded_${uid}`,"true");
+    if(onboardRole)setJobRole(onboardRole);
+    if(onboardLocation)setLocation(onboardLocation);
+    setShowOnboard(false);
+  };
+
   // User-scoped localStorage helpers
   const lsGet = (key: string) => { const uid = localStorage.getItem("applysmart_user_id"); return localStorage.getItem(uid ? `${key}_${uid}` : key); };
   const lsSet = (key: string, val: string) => { const uid = localStorage.getItem("applysmart_user_id"); localStorage.setItem(uid ? `${key}_${uid}` : key, val); };
@@ -992,6 +1013,55 @@ export default function Home() {
       {tailorJob?.tailor&&<TailorModal job={tailorJob} tailor={tailorJob.tailor} onClose={()=>setTailorJob(null)}/>}
       {interviewJob?.interview&&<InterviewModal job={interviewJob} interview={interviewJob.interview} onClose={()=>setInterviewJob(null)}/>}
       {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
+      {showOnboard&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(6,6,8,0.97)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(20px)"}}>
+          <div style={{background:"#0d0d14",border:"1px solid rgba(255,255,255,0.1)",borderRadius:24,padding:40,width:"100%",maxWidth:520,textAlign:"center"}}>
+            <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:32}}>
+              {[1,2,3].map(s=><div key={s} style={{width:32,height:4,borderRadius:4,background:s<=onboardStep?"linear-gradient(135deg,#6366f1,#ec4899)":"rgba(255,255,255,0.1)"}}/>)}
+            </div>
+            {onboardStep===1&&<>
+              <div style={{fontSize:32,marginBottom:12}}>??</div>
+              <h2 style={{fontFamily:"Playfair Display,serif",fontSize:26,fontWeight:700,color:"#fff",marginBottom:8}}>Welcome to ApplySmart!</h2>
+              <p style={{color:"rgba(255,255,255,0.4)",fontSize:14,marginBottom:32}}>Let us personalize your job search. What role are you looking for?</p>
+              <input value={onboardRole} onChange={e=>setOnboardRole(e.target.value)} placeholder="e.g. Data Analyst, Software Engineer" style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px 18px",fontSize:15,color:"#fff",outline:"none",marginBottom:16,fontFamily:"inherit"}}/>
+              <button onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:600,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue ?</button>
+            </>}
+            {onboardStep===2&&<>
+              <div style={{fontSize:32,marginBottom:12}}>??</div>
+              <h2 style={{fontFamily:"Playfair Display,serif",fontSize:26,fontWeight:700,color:"#fff",marginBottom:8}}>Where are you looking?</h2>
+              <p style={{color:"rgba(255,255,255,0.4)",fontSize:14,marginBottom:32}}>Enter your preferred job location or country.</p>
+              <input value={onboardLocation} onChange={e=>setOnboardLocation(e.target.value)} placeholder="e.g. New York, US or Remote" style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px 18px",fontSize:15,color:"#fff",outline:"none",marginBottom:16,fontFamily:"inherit"}}/>
+              <div style={{display:"flex",gap:12}}>
+                <button onClick={()=>setOnboardStep(1)} style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px",fontSize:15,fontWeight:600,color:"rgba(255,255,255,0.5)",cursor:"pointer",fontFamily:"inherit"}}>? Back</button>
+                <button onClick={()=>{if(onboardLocation.trim())setOnboardStep(3);}} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:600,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue ?</button>
+              </div>
+            </>}
+            {onboardStep===3&&<>
+              <div style={{fontSize:32,marginBottom:12}}>??</div>
+              <h2 style={{fontFamily:"Playfair Display,serif",fontSize:26,fontWeight:700,color:"#fff",marginBottom:8}}>Upload your resume</h2>
+              <p style={{color:"rgba(255,255,255,0.4)",fontSize:14,marginBottom:32}}>Upload your PDF resume for AI matching and auto-apply.</p>
+              {onboardParsing&&<div style={{color:"#818cf8",fontSize:14,marginBottom:16}}>? Parsing resume...</div>}
+              <input id="ob-file-input" type="file" accept=".pdf" style={{display:"none"}} onChange={async(e)=>{
+                const file=e.target.files?.[0];if(!file)return;
+                setOnboardParsing(true);
+                const fd=new FormData();fd.append("file",file);
+                try{const res=await fetch("/api/parse-resume",{method:"POST",body:fd});const d=await res.json();
+                if(d.text){setResumeText(d.text);setResumeFileName(file.name);lsSet("applysmart_resume",d.text);lsSet("applysmart_resume_name",file.name);
+                const {supabase}=await import("@/lib/supabase");const {data:{user}}=await supabase.auth.getUser();
+                if(user)await supabase.from("resumes").insert({user_id:user.id,title:"Resume",file_name:file.name,resume_text:d.text});}}catch(err){console.error(err);}
+                setOnboardParsing(false);completeOnboarding();
+              }}/>
+              <button onClick={()=>document.getElementById("ob-file-input")?.click()} disabled={onboardParsing} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:600,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginBottom:12}}>
+                {onboardParsing?"Parsing...":"?? Upload Resume PDF"}
+              </button>
+              <div style={{display:"flex",gap:12}}>
+                <button onClick={()=>setOnboardStep(2)} style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px",fontSize:15,fontWeight:600,color:"rgba(255,255,255,0.5)",cursor:"pointer",fontFamily:"inherit"}}>? Back</button>
+                <button onClick={completeOnboarding} style={{flex:2,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px",fontSize:15,fontWeight:600,color:"rgba(255,255,255,0.4)",cursor:"pointer",fontFamily:"inherit"}}>Skip for now</button>
+              </div>
+            </>}
+          </div>
+        </div>
+      )}
       {showResumeHistory&&(
         <div onClick={()=>setShowResumeHistory(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(10px)"}}>
           <div onClick={e=>e.stopPropagation()} style={{background:"#0d0d14",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,padding:32,width:"100%",maxWidth:560,maxHeight:"80vh",overflowY:"auto"}}>
@@ -1011,6 +1081,10 @@ export default function Home() {
     </>
   );
 }
+
+
+
+
 
 
 
