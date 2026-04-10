@@ -55,7 +55,7 @@ export default function TailoredResumePage() {
       <div style={{ fontSize: 52 }}>📄</div>
       <h2 style={{ fontSize: 22, color: "#1a1a1a" }}>No tailored resume found</h2>
       <p style={{ color: "#888", fontSize: 14, maxWidth: 320 }}>Go back and click "✂️ Tailor Resume" on a job card first.</p>
-      <button onClick={() => router.push("/")} style={{ background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>← Back to ApplySmart</button>
+      <button onClick={() => router.push("/")} style={{ background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>← Back to Vegaply</button>
     </div>
   );
 

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ApplySmart",
-  description: "Find and apply to jobs smarter",
+  title: "Vegaply",
+  description: "Apply faster than everyone else - AI powered job search",
 };
 
 export default function RootLayout({
