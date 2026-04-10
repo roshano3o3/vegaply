@@ -401,7 +401,7 @@ export default function SignupPage() {
       <div className="auth-root">
         {/* LEFT */}
         <div className="auth-left">
-          <div className="auth-logo">Apply<span>Smart</span></div>
+          <div className="auth-logo">Vega<span>ply</span></div>
 
           <div className="auth-hero">
             <div className="auth-eyebrow">Free — No credit card</div>
@@ -525,6 +525,7 @@ export default function SignupPage() {
     </>
   );
 }
+
 
 
 

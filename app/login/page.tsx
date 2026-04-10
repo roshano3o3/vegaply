@@ -85,7 +85,7 @@ export default function LoginPage() {
 
       <div className="auth-root">
         <div className="auth-left">
-          <div className="auth-logo">Apply<span>Smart</span></div>
+          <div className="auth-logo">Vega<span>ply</span></div>
           <div className="auth-hero">
             <div className="auth-eyebrow">AI-Powered Job Search</div>
             <h1 className="auth-headline">Land your<br />dream job <em>faster</em><br />than anyone else.</h1>
@@ -129,4 +129,5 @@ export default function LoginPage() {
     </>
   );
 }
+
 
