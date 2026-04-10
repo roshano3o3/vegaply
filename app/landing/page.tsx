@@ -214,7 +214,7 @@ export default function LandingPage() {
 
       {/* Nav */}
       <nav className={`nav${scrollY > 20 ? " scrolled" : ""}`}>
-        <a href="#" className="nav-logo">Apply<span>Smart</span></a>
+        <a href="#" className="nav-logo">Vega<span>ply</span></a>
         <div className="nav-links">
           <a href="#features" className="nav-link">Features</a>
           <a href="#how" className="nav-link">How it works</a>
@@ -405,9 +405,11 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="footer">
-        <div className="footer-logo">Apply<span>Smart</span></div>
+        <div className="footer-logo">Vega<span>ply</span></div>
         <div className="footer-copy">© 2026 Vegaply. Built with ❤️ for job seekers everywhere.</div>
       </footer>
     </>
   );
 }
+
+
