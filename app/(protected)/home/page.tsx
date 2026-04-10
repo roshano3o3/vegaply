@@ -575,8 +575,8 @@ export default function Home() {
         if(data.user?.email)setUserEmail(data.user.email);
         const uid=data.user?.id;
         if(uid){
-          localStorage.setItem("Vegaply_user_id",uid);
-          const onboarded=localStorage.getItem(`Vegaply_onboarded_${uid}`);
+          localStorage.setItem("applysmart_user_id",uid);
+          const onboarded=localStorage.getItem(`applysmart_onboarded_${uid}`);
           if(!onboarded)setShowOnboard(true);
         }
       });
@@ -585,23 +585,23 @@ export default function Home() {
     import("@/lib/supabase").then(({supabase}) => {
       supabase.auth.getUser().then(async ({ data }) => {
         const currentUserId = data?.user?.id;
-        const storedUserId = localStorage.getItem("Vegaply_user_id");
+        const storedUserId = localStorage.getItem("applysmart_user_id");
         if (!currentUserId) return;
         // Different user - clear everything
         if (storedUserId && storedUserId !== currentUserId) {
-          lsRemove("Vegaply_resume");
-          lsRemove("Vegaply_resume_name");
+          lsRemove("applysmart_resume");
+          lsRemove("applysmart_resume_name");
           setResumeText(""); setResumeFileName("");
         } else {
-          const savedResume = lsGet("Vegaply_resume");
-          const savedFileName = lsGet("Vegaply_resume_name");
+          const savedResume = lsGet("applysmart_resume");
+          const savedFileName = lsGet("applysmart_resume_name");
           if (savedResume && savedFileName) { setResumeText(savedResume); setResumeFileName(savedFileName); }
           else {
             const { data: rd } = await supabase.from("resumes").select("resume_text,file_name").eq("user_id", currentUserId).order("created_at",{ascending:false}).limit(1).single();
-            if (rd?.resume_text) { setResumeText(rd.resume_text); setResumeFileName(rd.file_name ?? "Resume"); lsSet("Vegaply_resume", rd.resume_text); lsSet("Vegaply_resume_name", rd.file_name ?? "Resume"); }
+            if (rd?.resume_text) { setResumeText(rd.resume_text); setResumeFileName(rd.file_name ?? "Resume"); lsSet("applysmart_resume", rd.resume_text); lsSet("applysmart_resume_name", rd.file_name ?? "Resume"); }
           }
         }
-        localStorage.setItem("Vegaply_user_id", currentUserId);
+        localStorage.setItem("applysmart_user_id", currentUserId);
       });
     });
   },[]);
@@ -684,17 +684,17 @@ export default function Home() {
   const [showResumeHistory, setShowResumeHistory] = useState(false);
   const [resumeHistory, setResumeHistory] = useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
   const completeOnboarding=async()=>{
-    const uid=localStorage.getItem("Vegaply_user_id");
-    if(uid)localStorage.setItem(`Vegaply_onboarded_${uid}`,"true");
+    const uid=localStorage.getItem("applysmart_user_id");
+    if(uid)localStorage.setItem(`applysmart_onboarded_${uid}`,"true");
     if(onboardRole)setJobRole(onboardRole);
     if(onboardLocation)setLocation(onboardLocation);
     setShowOnboard(false);
   };
 
   // User-scoped localStorage helpers
-  const lsGet = (key: string) => { const uid = localStorage.getItem("Vegaply_user_id"); return localStorage.getItem(uid ? `${key}_${uid}` : key); };
-  const lsSet = (key: string, val: string) => { const uid = localStorage.getItem("Vegaply_user_id"); localStorage.setItem(uid ? `${key}_${uid}` : key, val); };
-  const lsRemove = (key: string) => { const uid = localStorage.getItem("Vegaply_user_id"); localStorage.removeItem(uid ? `${key}_${uid}` : key); localStorage.removeItem(key); };
+  const lsGet = (key: string) => { const uid = localStorage.getItem("applysmart_user_id"); return localStorage.getItem(uid ? `${key}_${uid}` : key); };
+  const lsSet = (key: string, val: string) => { const uid = localStorage.getItem("applysmart_user_id"); localStorage.setItem(uid ? `${key}_${uid}` : key, val); };
+  const lsRemove = (key: string) => { const uid = localStorage.getItem("applysmart_user_id"); localStorage.removeItem(uid ? `${key}_${uid}` : key); localStorage.removeItem(key); };
 
   const loadResumeHistory = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -703,7 +703,7 @@ export default function Home() {
     if (data) setResumeHistory(data as any[]);
     setShowResumeHistory(true);
   };
-  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();lsRemove("Vegaply_resume");lsRemove("Vegaply_resume_name");lsRemove("Vegaply_onboarded");localStorage.removeItem("Vegaply_user_id");window.location.href="/login";};
+  const handleLogout=async()=>{const {supabase}=await import("@/lib/supabase");await supabase.auth.signOut();lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");lsRemove("applysmart_onboarded");localStorage.removeItem("applysmart_user_id");window.location.href="/login";};
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
   return (
@@ -863,7 +863,7 @@ export default function Home() {
       `}</style>
 
       <nav className="navbar">
-        <div className="navbar-logo">Apply<span>Smart</span></div>
+        <div className="navbar-logo">Vega<span>ply</span></div>
         <div className="navbar-right">
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early Bird</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">📋 {trackedApps.length} tracked</span>}
@@ -904,8 +904,8 @@ export default function Home() {
               onResume={async (t, n) => {
                 setResumeText(t);
                 setResumeFileName(n);
-                lsSet("Vegaply_resume", t);
-                lsSet("Vegaply_resume_name", n);
+                lsSet("applysmart_resume", t);
+                lsSet("applysmart_resume_name", n);
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) { alert("User not logged in"); return; }
                 const { error } = await supabase.from("resumes").insert([{ user_id: user.id, title: "Test Resume", file_name: n, resume_text: t }]);
@@ -915,8 +915,8 @@ export default function Home() {
               onClear={() => {
                 setResumeText("");
                 setResumeFileName("");
-                lsRemove("Vegaply_resume");
-                lsRemove("Vegaply_resume_name");
+                lsRemove("applysmart_resume");
+                lsRemove("applysmart_resume_name");
               }}
             />
             {resumeText&&earlyBirdJobs.length>0&&(
@@ -1046,7 +1046,7 @@ export default function Home() {
                 setOnboardParsing(true);
                 const fd=new FormData();fd.append("file",file);
                 try{const res=await fetch("/api/parse-resume",{method:"POST",body:fd});const d=await res.json();
-                if(d.text){setResumeText(d.text);setResumeFileName(file.name);lsSet("Vegaply_resume",d.text);lsSet("Vegaply_resume_name",file.name);
+                if(d.text){setResumeText(d.text);setResumeFileName(file.name);lsSet("applysmart_resume",d.text);lsSet("applysmart_resume_name",file.name);
                 const {supabase}=await import("@/lib/supabase");const {data:{user}}=await supabase.auth.getUser();
                 if(user)await supabase.from("resumes").insert({user_id:user.id,title:"Resume",file_name:file.name,resume_text:d.text});}}catch(err){console.error(err);}
                 setOnboardParsing(false);completeOnboarding();
@@ -1072,7 +1072,7 @@ export default function Home() {
             {resumeHistory.length===0?<p style={{color:"rgba(255,255,255,0.4)",textAlign:"center",padding:"32px 0"}}>No resumes saved yet</p>:resumeHistory.map((r,i)=>(
               <div key={r.id} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${i===0?"rgba(129,140,248,0.3)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:16,marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div><div style={{fontSize:14,fontWeight:600,color:"#fff",marginBottom:4}}>{r.file_name}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>{i===0&&<div style={{fontSize:10,color:"#818cf8",fontWeight:600,marginTop:4}}>Currently active</div>}</div>
-                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("Vegaply_resume",r.resume_text);lsSet("Vegaply_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(129,140,248,0.1)":"linear-gradient(135deg,#6366f1,#8b5cf6)",color:i===0?"#818cf8":"#fff",border:i===0?"1px solid rgba(129,140,248,0.3)":"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{i===0?"Active":"Use This"}</button>
+                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("applysmart_resume",r.resume_text);lsSet("applysmart_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(129,140,248,0.1)":"linear-gradient(135deg,#6366f1,#8b5cf6)",color:i===0?"#818cf8":"#fff",border:i===0?"1px solid rgba(129,140,248,0.3)":"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{i===0?"Active":"Use This"}</button>
               </div>
             ))}
           </div>
@@ -1081,6 +1081,8 @@ export default function Home() {
     </>
   );
 }
+
+
 
 
 
