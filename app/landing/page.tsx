@@ -70,13 +70,13 @@ export default function LandingPage() {
 
   const steps = [
     { num: "01", title: "Search fresh jobs", desc: "Enter your role and location. Early Bird mode shows only jobs posted in the last 24 hours.", icon: "🔍" },
-    { num: "02", title: "Upload your resume", desc: "Drop your PDF once. ApplySmart remembers it for every future match.", icon: "📄" },
+    { num: "02", title: "Upload your resume", desc: "Drop your PDF once. Vegaply remembers it for every future match.", icon: "📄" },
     { num: "03", title: "See your match score", desc: "Instant AI analysis — Resume Match %, ATS Score, strengths, and gaps for each job.", icon: "📊" },
     { num: "04", title: "Fix & apply early", desc: "One click rewrites your resume for that job. Apply before the competition even notices.", icon: "🚀" },
   ];
 
   const testimonials = [
-    { name: "Sarah K.", role: "Data Analyst", company: "Got hired at Deloitte", text: "I applied to a job 2 hours after it was posted. ApplySmart showed me I was an 84% match. Got the interview next day.", score: 84 },
+    { name: "Sarah K.", role: "Data Analyst", company: "Got hired at Deloitte", text: "I applied to a job 2 hours after it was posted. Vegaply showed me I was an 84% match. Got the interview next day.", score: 84 },
     { name: "Marcus T.", role: "Software Engineer", company: "Now at a Series B startup", text: "The ATS score feature is a game changer. I was getting ghosted until I fixed my keywords. Response rate went from 5% to 40%.", score: 91 },
     { name: "Priya M.", role: "Product Manager", company: "Joined Google", text: "Found my job 1 hour after posting. The resume tailoring literally rewrote my bullets to match their JD. Insane tool.", score: 78 },
   ];
@@ -237,7 +237,7 @@ export default function LandingPage() {
           <span className="hero-title-line2">anyone else does</span>
         </h1>
         <p className="hero-sub">
-          ApplySmart finds jobs posted in the last 24 hours, matches your resume instantly, and tells you your ATS score — so you apply first and get hired faster.
+          Vegaply finds jobs posted in the last 24 hours, matches your resume instantly, and tells you your ATS score — so you apply first and get hired faster.
         </p>
         <div className="hero-actions">
           <Link href="/signup" className="btn-primary">Start for Free →</Link>
@@ -252,7 +252,7 @@ export default function LandingPage() {
               <div className="mockup-dot" style={{ background: "#fbbf24" }}/>
               <div className="mockup-dot" style={{ background: "#34d399" }}/>
               <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 6, padding: "3px 24px", fontSize: 11, color: "rgba(255,255,255,0.3)" }}>applysmart.app</div>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 6, padding: "3px 24px", fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Vegaply.app</div>
               </div>
             </div>
             {/* Tabs */}
@@ -406,7 +406,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="footer">
         <div className="footer-logo">Apply<span>Smart</span></div>
-        <div className="footer-copy">© 2026 ApplySmart. Built with ❤️ for job seekers everywhere.</div>
+        <div className="footer-copy">© 2026 Vegaply. Built with ❤️ for job seekers everywhere.</div>
       </footer>
     </>
   );
