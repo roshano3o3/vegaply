@@ -1436,7 +1436,7 @@ export default function Home() {
                     <button
                       key={role}
                       className={`ob-chip${onboardRole===role?" selected":""}`}
-                      onClick={()=>setOnboardRole(role)}
+                      onClick={()=>{setOnboardRole(role);setTimeout(()=>setOnboardStep(2),300);}}
                       style={{
                         background:onboardRole===role?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",
                         border:`1px solid ${onboardRole===role?"transparent":"rgba(99,102,241,0.22)"}`,
@@ -1485,7 +1485,7 @@ export default function Home() {
                     <button
                       key={loc}
                       className={`ob-chip${onboardLocation===loc?" selected":""}`}
-                      onClick={()=>setOnboardLocation(loc)}
+                      onClick={()=>{setOnboardLocation(loc);setTimeout(()=>setOnboardStep(3),300);}}
                       style={{
                         background:onboardLocation===loc?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",
                         border:`1px solid ${onboardLocation===loc?"transparent":"rgba(99,102,241,0.22)"}`,
