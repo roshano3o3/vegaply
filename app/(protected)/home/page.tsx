@@ -826,6 +826,7 @@ export default function Home() {
   const [autoOpenDone,setAutoOpenDone]=useState(false);const [trackedApps,setTrackedApps]=useState<TrackedApp[]>([]);
   const [mounted,setMounted]=useState(false);const [userEmail,setUserEmail]=useState("");
   const [refreshToast,setRefreshToast]=useState(false);const [isRefreshing,setIsRefreshing]=useState(false);
+  const [darkMode,setDarkMode]=useState(true);
   const [showWelcomeTour,setShowWelcomeTour]=useState(false);
   const [onboardStep,setOnboardStep]=useState(1);
   const [onboardRole,setOnboardRole]=useState("");
@@ -841,6 +842,8 @@ export default function Home() {
 
   useEffect(()=>{
     setMounted(true);
+    const savedTheme=localStorage.getItem("applysmart_theme");
+    if(savedTheme==="light")setDarkMode(false);
     try{const t=localStorage.getItem("applysmart_tracker");if(t)setTrackedApps(JSON.parse(t));}catch{}
     const savedRole=localStorage.getItem("applysmart_jobRole");
     const savedLocation=localStorage.getItem("applysmart_location");
@@ -1035,6 +1038,12 @@ export default function Home() {
     return()=>clearInterval(interval);
   },[hasSearched,jobRole,location,activeTab,jobs.length,earlyBirdJobs.length]);
 
+  const toggleTheme=()=>{
+    const next=!darkMode;
+    setDarkMode(next);
+    localStorage.setItem("applysmart_theme",next?"dark":"light");
+  };
+
   const handleLogout=async()=>{
     const{supabase}=await import("@/lib/supabase");
     await supabase.auth.signOut();
@@ -1046,7 +1055,7 @@ export default function Home() {
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
   return (
-    <>
+    <div data-theme={darkMode?"dark":"light"}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1213,6 +1222,61 @@ export default function Home() {
 
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
+        /* THEME TOGGLE */
+        .theme-toggle{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);transition:all .2s;flex-shrink:0}
+        .theme-toggle:hover{background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.3);color:#818cf8}
+
+        /* LIGHT MODE */
+        [data-theme="light"] body{background:#f4f5f9;color:#0f0f14}
+        [data-theme="light"] .topbar{background:rgba(255,255,255,0.95);border-bottom-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .topbar-logo{color:#0f0f14}
+        [data-theme="light"] .topbar-input{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:#0f0f14}
+        [data-theme="light"] .topbar-input::placeholder{color:rgba(0,0,0,0.3)}
+        [data-theme="light"] .topbar-input:focus{background:rgba(99,102,241,0.06);border-color:rgba(99,102,241,0.4)}
+        [data-theme="light"] .refresh-btn{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.45)}
+        [data-theme="light"] .theme-toggle{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.5)}
+        [data-theme="light"] .theme-toggle:hover{background:rgba(99,102,241,0.1);color:#6366f1}
+        [data-theme="light"] .logout-btn{color:rgba(0,0,0,0.35);border-color:rgba(0,0,0,0.1)}
+        [data-theme="light"] .nav-pill.pill-eb{background:rgba(251,191,36,0.12)}
+        [data-theme="light"] .nav-pill.pill-tracker{background:rgba(99,102,241,0.1)}
+        [data-theme="light"] .app-layout{background:#f4f5f9}
+        [data-theme="light"] .sidebar{background:#fff;border-right-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .sidebar-card{background:rgba(0,0,0,0.025);border-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .sidebar-card:hover{border-color:rgba(0,0,0,0.14)}
+        [data-theme="light"] .sidebar-card-title{color:rgba(0,0,0,0.7)}
+        [data-theme="light"] .sidebar-card-sub{color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .dark-input{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:#0f0f14}
+        [data-theme="light"] .dark-input::placeholder{color:rgba(0,0,0,0.3)}
+        [data-theme="light"] .filter-label{color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .filter-select{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.6)}
+        [data-theme="light"] .toggle-row{color:rgba(0,0,0,0.45)}
+        [data-theme="light"] .ghost-btn{color:rgba(0,0,0,0.45);border-color:rgba(0,0,0,0.12)}
+        [data-theme="light"] .ghost-btn:hover{color:rgba(0,0,0,0.75);border-color:rgba(0,0,0,0.25)}
+        [data-theme="light"] .tabs-row{border-bottom-color:rgba(0,0,0,0.08)}
+        [data-theme="light"] .tab{color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .tab.active{color:#111}
+        [data-theme="light"] .tab:hover:not(.active){color:rgba(0,0,0,0.65);background:rgba(0,0,0,0.04)}
+        [data-theme="light"] .job-card{background:#fff;border-color:rgba(0,0,0,0.07);box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+        [data-theme="light"] .job-card:hover{background:#fff;border-color:rgba(99,102,241,0.35);box-shadow:0 8px 32px rgba(99,102,241,0.1),0 1px 4px rgba(0,0,0,0.08)}
+        [data-theme="light"] .job-card-hot{border-color:rgba(251,191,36,0.3)!important;background:rgba(251,191,36,0.03)!important}
+        [data-theme="light"] .action-card-btn.tailor-btn{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.45)}
+        [data-theme="light"] .action-card-btn.tailor-btn:hover{background:rgba(0,0,0,0.07);color:rgba(0,0,0,0.7)}
+        [data-theme="light"] .action-card-btn.track-btn{background:rgba(0,0,0,0.03);border-color:rgba(0,0,0,0.08);color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .action-card-btn.track-btn:hover{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.6)}
+        [data-theme="light"] .page-btn{background:#fff;border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.4);box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+        [data-theme="light"] .page-btn:hover:not(:disabled){background:rgba(99,102,241,0.06);color:#6366f1}
+        [data-theme="light"] .skel{background:linear-gradient(90deg,rgba(0,0,0,0.05) 25%,rgba(0,0,0,0.08) 50%,rgba(0,0,0,0.05) 75%);background-size:200% 100%}
+        [data-theme="light"] .modal{background:#fff;border-color:rgba(0,0,0,0.08);box-shadow:0 40px 120px rgba(0,0,0,0.15)}
+        [data-theme="light"] .modal-close{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.09);color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .modal-head{border-bottom-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .modal-title{color:#0f0f14}
+        [data-theme="light"] .modal-tabs{background:rgba(0,0,0,0.04)}
+        [data-theme="light"] .mtab{color:rgba(0,0,0,0.3)}
+        [data-theme="light"] .mtab.active{background:rgba(99,102,241,0.1);color:#6366f1}
+        [data-theme="light"] .overlay{background:rgba(0,0,0,0.4);backdrop-filter:blur(12px)}
+        [data-theme="light"] .refresh-toast{background:rgba(255,255,255,0.97);border-color:rgba(52,211,153,0.4);box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+        [data-theme="light"] .eb-banner{background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.2)}
+
         @media(max-width:900px){.sidebar{display:none}.content{padding:16px;max-width:100%}.jobs-grid{grid-template-columns:1fr}}
         @media(max-width:768px){.topbar-search{display:none}.jobs-grid{grid-template-columns:1fr}}
       `}</style>
@@ -1235,6 +1299,12 @@ export default function Home() {
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
           {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
           {mounted&&userEmail&&<span style={{fontSize:11,color:"rgba(255,255,255,0.2)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userEmail}</span>}
+          <button className="theme-toggle" onClick={toggleTheme} title={darkMode?"Switch to light mode":"Switch to dark mode"}>
+            {darkMode
+              ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            }
+          </button>
           <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
         </div>
       </nav>
@@ -1615,6 +1685,6 @@ export default function Home() {
           Updated just now — new jobs found
         </div>
       )}
-    </>
+    </div>
   );
 }
