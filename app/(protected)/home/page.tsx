@@ -975,6 +975,8 @@ export default function Home() {
   const [showOnboard,setShowOnboard]=useState(false);
   const [showResumeHistory,setShowResumeHistory]=useState(false);
   const [resumeHistory,setResumeHistory]=useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
+  const [showMobileSearch,setShowMobileSearch]=useState(false);
+  const [showMobileSidebar,setShowMobileSidebar]=useState(false);
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -1438,9 +1440,53 @@ export default function Home() {
         [data-theme="light"] .overlay{background:rgba(0,0,0,0.4);backdrop-filter:blur(12px)}
         [data-theme="light"] .refresh-toast{background:rgba(255,255,255,0.97);border-color:rgba(52,211,153,0.4);box-shadow:0 8px 32px rgba(0,0,0,0.12)}
         [data-theme="light"] .eb-banner{background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.2)}
+        [data-theme="light"] .mobile-sidebar-backdrop{background:rgba(0,0,0,0.4)}
+        [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
 
-        @media(max-width:900px){.sidebar{display:none}.content{padding:16px;max-width:100%}.jobs-grid{grid-template-columns:1fr}}
-        @media(max-width:768px){.topbar-search{display:none}.jobs-grid{grid-template-columns:1fr}}
+        @media(max-width:900px){.sidebar{display:none}.content{padding:20px 16px;max-width:100%}.jobs-grid{grid-template-columns:1fr}}
+
+        /* ── MOBILE ── */
+        @media(max-width:768px){
+          .topbar{padding:0 14px;height:56px;gap:8px}
+          .topbar-search{display:none}
+          .topbar-logo{font-size:18px;margin-right:0}
+          .topbar-right{gap:6px}
+          .topbar-right .nav-pill{display:none}
+          .topbar-right>span{display:none}
+          .logout-btn{display:none}
+          .user-avatar{width:28px;height:28px;font-size:11px}
+          .theme-toggle{width:30px;height:30px}
+          .mob-search-btn{display:flex!important}
+          .mob-sidebar-btn{display:flex!important}
+          .mob-signout-btn{display:flex!important}
+          .mob-eb-btn{display:flex!important}
+
+          .mobile-search-panel{display:flex}
+
+          .content{padding:14px 12px;max-width:100%}
+          .jobs-grid{grid-template-columns:1fr}
+
+          .tabs-row{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:0;flex-wrap:nowrap}
+          .tabs-row::-webkit-scrollbar{display:none}
+          .tab{padding:9px 12px;font-size:11px;flex-shrink:0}
+
+          .search-btn,.eb-btn,.refresh-btn{min-height:44px;padding:10px 14px}
+          .action-card-btn{padding:8px 6px;min-height:40px;font-size:10px}
+          .page-btn{width:38px;height:38px;font-size:13px}
+          .apply-btn{padding:12px 18px;min-height:44px;font-size:13px}
+
+          .overlay{padding:0;align-items:flex-end;padding-top:60px}
+          .modal{max-width:100%;border-radius:20px 20px 0 0;padding:24px 18px;max-height:90vh}
+          .modal-close{top:12px;right:12px}
+
+          .mobile-sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:350;display:flex;flex-direction:column;justify-content:flex-end;backdrop-filter:blur(4px)}
+          .mobile-sidebar-sheet{background:#0d0d14;border-radius:20px 20px 0 0;padding:16px;max-height:80vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.09)}
+          .mob-filters-btn{display:flex!important}
+        }
+        .mob-search-btn,.mob-sidebar-btn,.mob-signout-btn,.mob-eb-btn,.mob-filters-btn{display:none}
+        @media(min-width:769px){.mobile-search-panel{display:none!important}}
+        [data-theme="light"] .mobile-search-panel{background:rgba(255,255,255,0.98);border-bottom-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
       `}</style>
 
       {/* TOPBAR */}
@@ -1457,6 +1503,12 @@ export default function Home() {
           </button>}
         </div>
         <div className="topbar-right">
+          {/* Mobile: search toggle */}
+          <button className="mob-search-btn theme-toggle" onClick={()=>setShowMobileSearch(s=>!s)} style={{color:showMobileSearch?"#818cf8":"inherit"}} title="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          {/* Mobile: early bird quick-access */}
+          <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:13,cursor:"pointer",color:"#fbbf24",display:"none",alignItems:"center",gap:4,minHeight:36}}>⚡</button>
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
           {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
@@ -1468,8 +1520,28 @@ export default function Home() {
             }
           </button>
           <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
+          {/* Mobile: sign out icon */}
+          <button className="mob-signout-btn theme-toggle" onClick={handleLogout} title="Sign out" style={{color:"rgba(239,68,68,0.6)"}}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
         </div>
       </nav>
+
+      {/* MOBILE SEARCH PANEL — conditionally rendered, hidden on desktop via CSS */}
+      {showMobileSearch&&(
+        <div className="mobile-search-panel" style={{position:"sticky",top:56,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
+          <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{height:44,fontSize:14}}/>
+          <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{height:44,fontSize:14}}/>
+          <div style={{display:"flex",gap:8}}>
+            <button className="search-btn" style={{flex:1,height:44,fontSize:14}} onClick={()=>{handleSearch();setShowMobileSearch(false);}} disabled={loading}>{loading?"Searching…":"Search"}</button>
+            <button className="eb-btn" style={{height:44,fontSize:13}} onClick={()=>{handleEarlyBirdSearch();setShowMobileSearch(false);}} disabled={ebLoading}>{ebLoading?"…":"⚡"}</button>
+          </div>
+          {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} style={{width:"100%",justifyContent:"center",height:40}} onClick={handleRefresh} disabled={isRefreshing}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            {isRefreshing?"Refreshing…":"Refresh jobs"}
+          </button>}
+        </div>
+      )}
 
       <div className="app-layout">
         {/* SIDEBAR */}
@@ -1537,6 +1609,15 @@ export default function Home() {
 
         {/* MAIN */}
         <main className="content">
+          {/* Mobile filters row */}
+          <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
+            <button className="mob-filters-btn" onClick={()=>setShowMobileSidebar(true)} style={{background:darkMode?"rgba(99,102,241,0.1)":"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:20,padding:"7px 14px",fontSize:12,fontWeight:600,color:"#818cf8",cursor:"pointer",fontFamily:"inherit",display:"none",alignItems:"center",gap:6,minHeight:36}}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+              Filters{(filterType!=="ALL"||filterDate!=="ANY"||filterRemote)?" ●":""}
+            </button>
+            {jobRole&&location&&<span className="mob-filters-btn" style={{fontSize:11,color:darkMode?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.4)",background:"none",border:"none",padding:0,minHeight:"auto",display:"none"}}>{jobRole} · {location}</span>}
+          </div>
+
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
               Results {jobs.length>0&&`(${filterJobs(jobs).length})`}
@@ -1648,6 +1729,61 @@ export default function Home() {
       {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
       {coverLetterJob?.coverLetter&&<CoverLetterModal job={coverLetterJob} coverLetter={coverLetterJob.coverLetter} onClose={()=>setCoverLetterJob(null)}/>}
       {skillGapJob?.skillGap&&<SkillGapModal job={skillGapJob} result={skillGapJob.skillGap} onClose={()=>setSkillGapJob(null)}/>}
+
+      {/* MOBILE SIDEBAR BOTTOM SHEET */}
+      {showMobileSidebar&&(
+        <div className="mobile-sidebar-backdrop" onClick={()=>setShowMobileSidebar(false)}>
+          <div className="mobile-sidebar-sheet" onClick={e=>e.stopPropagation()}>
+            {/* drag handle */}
+            <div style={{width:36,height:4,background:darkMode?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)",borderRadius:2,margin:"0 auto 18px"}}/>
+            <div style={{fontSize:15,fontWeight:700,color:darkMode?"#fff":"#111",marginBottom:16}}>Filters & Resume</div>
+
+            <div className="sidebar-card" style={{marginBottom:12}}>
+              <div className="sidebar-card-title">🎯 AI Resume Match</div>
+              <div className="sidebar-card-sub">Upload PDF for AI matching</div>
+              <ResumePanel
+                resumeText={resumeText}
+                fileName={resumeFileName}
+                onResume={async(t,n)=>{
+                  setResumeText(t);setResumeFileName(n);
+                  lsSet("applysmart_resume",t);lsSet("applysmart_resume_name",n);
+                  const{data:{user}}=await supabase.auth.getUser();
+                  if(!user)return;
+                  await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                }}
+                onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
+              />
+            </div>
+
+            <div className="sidebar-card">
+              <div className="sidebar-card-title">Filters</div>
+              <div className="filter-label">Job Type</div>
+              <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
+                <option value="ALL">All Types</option>
+                <option value="FULLTIME">Full-time</option>
+                <option value="PARTTIME">Part-time</option>
+                <option value="CONTRACTOR">Contract</option>
+                <option value="INTERN">Internship</option>
+              </select>
+              <div className="filter-label">Date Posted</div>
+              <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
+                <option value="ANY">Any Time</option>
+                <option value="TODAY">Today</option>
+                <option value="WEEK">This Week</option>
+                <option value="MONTH">This Month</option>
+              </select>
+              <div className="toggle-row">
+                <span>Remote Only</span>
+                <button className={`toggle${filterRemote?" on":""}`} onClick={()=>{setFilterRemote(!filterRemote);setCurrentPage(1);}}/>
+              </div>
+            </div>
+
+            <button onClick={()=>setShowMobileSidebar(false)} style={{marginTop:16,width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* WELCOME TOUR */}
       {showWelcomeTour&&<WelcomeTour onClose={closeTour}/>}
