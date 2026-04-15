@@ -25,6 +25,7 @@ interface InterviewResult {
 interface JobWithMatch extends Job {
   match?: MatchResult; matchLoading?: boolean; tailor?: TailorResult;
   tailorLoading?: boolean; interview?: InterviewResult; interviewLoading?: boolean;
+  coverLetter?: string; coverLetterLoading?: boolean;
 }
 type AppStatus = "Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
@@ -467,6 +468,31 @@ function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove }: { apps: 
   );
 }
 
+function CoverLetterModal({ job, coverLetter, onClose }: { job: Job; coverLetter: string; onClose: ()=>void }) {
+  const [copied,setCopied]=useState(false);
+  useEffect(()=>{
+    const fn=(e:KeyboardEvent)=>{if(e.key==="Escape")onClose();};
+    window.addEventListener("keydown",fn);
+    return()=>window.removeEventListener("keydown",fn);
+  },[onClose]);
+  return(
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-head">
+          <div style={{fontSize:32}}>✉️</div>
+          <div><h2 className="modal-title">Cover Letter</h2><p className="modal-sub">{job.job_title} at {job.employer_name}</p></div>
+        </div>
+        <div style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.85,whiteSpace:"pre-wrap",background:"rgba(255,255,255,0.02)",borderRadius:10,padding:18,maxHeight:340,overflowY:"auto",border:"1px solid rgba(255,255,255,0.05)",marginBottom:14}}>{coverLetter}</div>
+        <div style={{display:"flex",gap:10}}>
+          <button className="ghost-btn" style={{flex:1}} onClick={()=>{navigator.clipboard.writeText(coverLetter);setCopied(true);setTimeout(()=>setCopied(false),2000);}}>{copied?"✓ Copied!":"📋 Copy to clipboard"}</button>
+          {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" className="apply-btn" style={{flex:2,textDecoration:"none",textAlign:"center"}}>Apply Now →</a>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function getDifficultyBadge(title?: string, desc?: string): { label: string; color: string; bg: string; border: string } {
   const t = (title||"").toLowerCase();
   const d = (desc||"").toLowerCase();
@@ -492,8 +518,8 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 }
 
 // JOB CARD — 2x3 grid, highlighted Match + Prep
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -567,6 +593,9 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, ear
         <button className={`action-card-btn interview-btn${job.interview?" done":""}`} onClick={e=>{e.stopPropagation();onInterview();}} disabled={job.interviewLoading} title="AI interview questions for this job">
           {job.interviewLoading?<><div className="spin-sm"/>Loading…</>:job.interview?"✓ Prep Done":"🤖 Prep"}
         </button>
+        <button className={`action-card-btn cover-btn${job.coverLetter?" done":""}`} onClick={e=>{e.stopPropagation();onCoverLetter();}} disabled={job.coverLetterLoading} title="AI generates a cover letter for this job">
+          {job.coverLetterLoading?<><div className="spin-sm"/>Writing…</>:job.coverLetter?"✓ Letter":"✉️ Cover"}
+        </button>
         <button className={`action-card-btn tailor-btn${job.tailor?" done":""}`} onClick={e=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="AI tailors your resume bullets">
           {job.tailorLoading?<><div className="spin-sm"/>Tailoring…</>:job.tailor?"✓ Tailored":"✂️ Tailor"}
         </button>
@@ -594,6 +623,7 @@ export default function Home() {
   const [tailorJob,setTailorJob]=useState<JobWithMatch|null>(null);
   const [interviewJob,setInterviewJob]=useState<JobWithMatch|null>(null);
   const [matchPanelJob,setMatchPanelJob]=useState<JobWithMatch|null>(null);
+  const [coverLetterJob,setCoverLetterJob]=useState<JobWithMatch|null>(null);
   const [activeTab,setActiveTab]=useState<TabType>("results");const [currentPage,setCurrentPage]=useState(1);
   const [hasSearched,setHasSearched]=useState(false);const [filterType,setFilterType]=useState("ALL");
   const [filterRemote,setFilterRemote]=useState(false);const [filterDate,setFilterDate]=useState("ANY");
@@ -702,6 +732,15 @@ export default function Home() {
   };
 
   const handleSingleMatch=async(job:JobWithMatch)=>{setMatchPanelJob(job);};
+
+  const handleCoverLetter=async(job:JobWithMatch)=>{
+    if(job.coverLetter){setCoverLetterJob(job);return;}
+    if(!resumeText){alert("Upload your resume first!");return;}
+    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
+    setList(list.map(j=>j.job_id===job.job_id?{...j,coverLetterLoading:true}:j));
+    try{const res=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const data:MatchResult=await res.json();const updated={...job,coverLetter:data.coverLetter,coverLetterLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setCoverLetterJob(updated);}
+    catch{setList(list.map(j=>j.job_id===job.job_id?{...j,coverLetterLoading:false}:j));}
+  };
 
   const handleTailor=async(job:JobWithMatch)=>{
     if(job.tailor){setTailorJob(job);return;}
@@ -859,6 +898,9 @@ export default function Home() {
         .action-card-btn.interview-btn.done{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.35);color:#10b981}
 
         /* TAILOR — subtle */
+        .action-card-btn.cover-btn{background:rgba(236,72,153,0.08);border-color:rgba(236,72,153,0.25);color:#f472b6}
+        .action-card-btn.cover-btn:hover{background:rgba(236,72,153,0.15);box-shadow:0 0 16px rgba(236,72,153,0.12)}
+        .action-card-btn.cover-btn.done{background:rgba(236,72,153,0.13);border-color:rgba(236,72,153,0.4);color:#f472b6}
         .action-card-btn.tailor-btn{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.09);color:rgba(255,255,255,0.4)}
         .action-card-btn.tailor-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.65)}
         .action-card-btn.tailor-btn.done{background:rgba(14,165,233,0.07);border-color:rgba(14,165,233,0.2);color:#0ea5e9}
@@ -1070,6 +1112,7 @@ export default function Home() {
                         onClick={()=>setSelectedJob(job)}
                         onTailor={()=>{if(job.tailor)setTailorJob(job);else handleTailor(job);}}
                         onInterview={()=>handleInterview(job)}
+                        onCoverLetter={()=>handleCoverLetter(job)}
                         onMatchResume={()=>handleSingleMatch(job)}
                         earlyBirdMode={isEbMode}
                         resumeReady={!!resumeText}
@@ -1105,6 +1148,7 @@ export default function Home() {
       {tailorJob?.tailor&&<TailorModal job={tailorJob} tailor={tailorJob.tailor} onClose={()=>setTailorJob(null)}/>}
       {interviewJob?.interview&&<InterviewModal job={interviewJob} interview={interviewJob.interview} onClose={()=>setInterviewJob(null)}/>}
       {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
+      {coverLetterJob?.coverLetter&&<CoverLetterModal job={coverLetterJob} coverLetter={coverLetterJob.coverLetter} onClose={()=>setCoverLetterJob(null)}/>}
 
       {/* WELCOME TOUR */}
       {showWelcomeTour&&<WelcomeTour onClose={closeTour}/>}
