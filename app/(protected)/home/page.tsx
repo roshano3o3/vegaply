@@ -467,6 +467,19 @@ function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove }: { apps: 
   );
 }
 
+function getVisaBadges(desc?: string): { label: string; color: string; bg: string; border: string }[] {
+  if (!desc) return [];
+  const d = desc.toLowerCase();
+  const badges = [];
+  const hasClearance = /security clearance|clearance required|top secret|ts\/sci|secret clearance/.test(d);
+  const hasCitizenOnly = /must be (a )?us citizen|u\.s\. citizen(s)? only|citizens? only|authorized to work in the (us|united states)|no (h[\-]?1b|sponsorship)|will not sponsor|unable to sponsor/.test(d);
+  const hasH1b = /h[\-]?1b (sponsor|transfer|visa)|sponsor.*h[\-]?1b|visa sponsorship (is )?available|open to sponsorship|will (consider|sponsor).*visa|sponsoring.*visa/.test(d);
+  if (hasClearance) badges.push({ label: "🔒 Clearance Req.", color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)" });
+  if (hasCitizenOnly) badges.push({ label: "🇺🇸 Citizens Only", color: "#ef4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)" });
+  if (hasH1b) badges.push({ label: "✅ H1B Friendly", color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" });
+  return badges;
+}
+
 // JOB CARD — 2x3 grid, highlighted Match + Prep
 function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume }: {
   job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;
@@ -476,6 +489,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, ear
   const hot=isHot(job.job_posted_at_datetime_utc);
   const hours=getHoursAgo(job.job_posted_at_datetime_utc);
   const comp=getCompetitionLabel(hours);
+  const visaBadges=getVisaBadges(job.job_description);
 
   return(
     <div className={`job-card${hot&&earlyBirdMode?" job-card-hot":""}`} style={{display:"flex",flexDirection:"column",gap:12,position:"relative"}}>
@@ -527,6 +541,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, ear
         {badge&&<span className="badge badge-type">{badge}</span>}
         {job.job_is_remote&&<span className="badge badge-remote">Remote</span>}
         {(job.job_min_salary||job.job_max_salary)&&<span className="badge badge-salary">💰 {job.job_salary_currency??"$"}{job.job_min_salary?.toLocaleString()}–{job.job_max_salary?.toLocaleString()}</span>}
+        {visaBadges.map((vb,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:vb.bg,color:vb.color,border:`1px solid ${vb.border}`}}>{vb.label}</span>)}
       </div>
 
       {/* ACTION BUTTONS — Match & Prep highlighted */}
