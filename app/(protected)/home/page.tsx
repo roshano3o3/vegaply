@@ -1030,10 +1030,11 @@ export default function Home() {
     });
   },[]);
 
-  const fetchJobs=async(mode:"normal"|"earlybird")=>{
-    if(!jobRole||!location)return;
+  const fetchJobs=async(mode:"normal"|"earlybird",role?:string,loc?:string)=>{
+    const r=role??jobRole;const l=loc??location;
+    if(!r||!l)return;
     if(mode==="normal"){setLoading(true);setJobs([]);}else{setEbLoading(true);setEarlyBirdJobs([]);setAutoOpenDone(false);}
-    try{const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole,location,earlyBird:mode==="earlybird"})});const data=await res.json();if(mode==="normal")setJobs(data?.data||[]);else setEarlyBirdJobs(data?.data||[]);}catch(err){console.error(err);}
+    try{const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:r,location:l,earlyBird:mode==="earlybird"})});if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json();if(mode==="normal")setJobs(data?.data||[]);else setEarlyBirdJobs(data?.data||[]);}catch(err){console.error("fetchJobs error:",err);}
     if(mode==="normal")setLoading(false);else setEbLoading(false);
   };
 
@@ -1042,14 +1043,14 @@ export default function Home() {
     localStorage.setItem("applysmart_jobRole",jobRole);
     localStorage.setItem("applysmart_location",location);
     setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
-    await fetchJobs("normal");
+    await fetchJobs("normal",jobRole,location);
   };
   const handleEarlyBirdSearch=async()=>{
     if(!jobRole||!location){alert("Please enter job role and location first");return;}
     localStorage.setItem("applysmart_jobRole",jobRole);
     localStorage.setItem("applysmart_location",location);
     setHasSearched(true);setActiveTab("earlybird");setCurrentPage(1);
-    await fetchJobs("earlybird");
+    await fetchJobs("earlybird",jobRole,location);
   };
 
   const runResumeMatch=async()=>{
@@ -1133,13 +1134,20 @@ export default function Home() {
     const uid=localStorage.getItem("applysmart_user_id");
     if(uid){
       localStorage.setItem(`applysmart_onboarded_${uid}`,"true");
-      // Show feature tour after onboarding
       const toured=localStorage.getItem(`applysmart_toured_${uid}`);
       if(!toured){setShowWelcomeTour(true);}
     }
-    if(onboardRole)setJobRole(onboardRole);
-    if(onboardLocation)setLocation(onboardLocation);
+    const role=onboardRole||jobRole;const loc=onboardLocation||location;
+    if(role)setJobRole(role);
+    if(loc)setLocation(loc);
     setShowOnboard(false);
+    // Auto-search with the onboarding role/location so user sees results immediately
+    if(role&&loc){
+      localStorage.setItem("applysmart_jobRole",role);
+      localStorage.setItem("applysmart_location",loc);
+      setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
+      await fetchJobs("normal",role,loc);
+    }
   };
 
   const closeTour=()=>{
@@ -1161,6 +1169,7 @@ export default function Home() {
     setIsRefreshing(true);
     try{
       const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole,location,earlyBird:activeTab==="earlybird"})});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
       const data=await res.json();
       const newJobs:JobWithMatch[]=data?.data||[];
       if(activeTab==="earlybird"){
@@ -1168,15 +1177,27 @@ export default function Home() {
       }else{
         if(newJobs.length>jobs.length){setJobs(newJobs);setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);}
       }
-    }catch(err){console.error(err);}
+    }catch(err){console.error("handleRefresh error:",err);}
     setIsRefreshing(false);
   };
 
+  const jobRoleRef=useRef(jobRole);const locationRef=useRef(location);const activeTabRef=useRef(activeTab);const hasSearchedRef=useRef(hasSearched);
+  useEffect(()=>{jobRoleRef.current=jobRole;locationRef.current=location;activeTabRef.current=activeTab;hasSearchedRef.current=hasSearched;});
+
   useEffect(()=>{
     if(!hasSearched)return;
-    const interval=setInterval(()=>handleRefresh(),3*60*1000);
+    const interval=setInterval(async()=>{
+      if(!hasSearchedRef.current||!jobRoleRef.current||!locationRef.current)return;
+      const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:jobRoleRef.current,location:locationRef.current,earlyBird:activeTabRef.current==="earlybird"})}).catch(()=>null);
+      if(!res||!res.ok)return;
+      const data=await res.json().catch(()=>null);
+      if(!data)return;
+      const newJobs:JobWithMatch[]=data?.data||[];
+      if(activeTabRef.current==="earlybird"){if(newJobs.length>0)setEarlyBirdJobs(prev=>{if(newJobs.length>prev.length){setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);return newJobs;}return prev;});}
+      else{setJobs(prev=>{if(newJobs.length>prev.length){setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);return newJobs;}return prev;});}
+    },3*60*1000);
     return()=>clearInterval(interval);
-  },[hasSearched,jobRole,location,activeTab,jobs.length,earlyBirdJobs.length]);
+  },[hasSearched]);
 
   const toggleTheme=()=>{
     const next=!darkMode;
