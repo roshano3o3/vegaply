@@ -160,7 +160,6 @@ function HelpPanel() {
 function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onClose: () => void; resumeText: string }) {
   const [matchResult, setMatchResult] = useState<MatchResult | null>(job.match || null);
   const [loading, setLoading] = useState(false);
-  useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, []);
   const runMatch = async () => {
     if (!resumeText) return;
     setLoading(true);
@@ -171,6 +170,7 @@ function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onC
     } catch {}
     setLoading(false);
   };
+  useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, []);
   const color = matchResult ? scoreColor(matchResult.matchScore) : "#06b6d4";
   return (
     <div className="overlay" onClick={onClose} style={{zIndex:250}}>
