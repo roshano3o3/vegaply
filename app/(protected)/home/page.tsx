@@ -476,6 +476,142 @@ function AnalyticsView({ apps, savedCount, totalSearched, lm }: { apps: TrackedA
   );
 }
 
+// ── RESUME STRENGTH ANALYSER ────────────────────────────────────────────────
+interface StrengthCheck { label: string; pass: boolean; tip: string; weight: number; }
+
+function analyzeResume(text: string): { score: number; checks: StrengthCheck[] } {
+  const t = text.toLowerCase();
+  const words = text.split(/\s+/).filter(Boolean);
+
+  const checks: StrengthCheck[] = [
+    {
+      label: "Measurable achievements",
+      pass: /\d+\s*(%|percent|x\b|million|billion|thousand|k\b|\+|\bincreased\b|\bdecreased\b|\breduced\b|\bimproved\b|\bgrew\b|\bsaved\b|\bgenerated\b|\bdelivered\b)/.test(t) || /\b\d{2,}\b/.test(t),
+      tip: 'Add numbers & metrics (e.g. "increased revenue by 30%")',
+      weight: 20,
+    },
+    {
+      label: "Technical skills section",
+      pass: /\b(python|javascript|typescript|java|sql|react|node|aws|azure|gcp|docker|kubernetes|git|machine learning|data|api|html|css|excel|tableau|figma|c\+\+|go|rust|swift|kotlin|tensorflow|pytorch)\b/.test(t),
+      tip: "List specific tools, languages, or platforms you know",
+      weight: 18,
+    },
+    {
+      label: "Work experience",
+      pass: /\b(experience|employment|work history|professional background|worked at|worked for|position|role|job title|company|corp|inc\.|llc|ltd)\b/.test(t),
+      tip: "Include a clear Work Experience section with company names",
+      weight: 16,
+    },
+    {
+      label: "Education section",
+      pass: /\b(education|university|college|bachelor|master|degree|phd|b\.s\.|m\.s\.|b\.a\.|m\.a\.|gpa|graduated|diploma|certification|certificate)\b/.test(t),
+      tip: "Add your education (degree, school, graduation year)",
+      weight: 12,
+    },
+    {
+      label: "Good resume length",
+      pass: words.length >= 200 && words.length <= 1200,
+      tip: words.length < 200 ? "Resume is too short — add more detail" : "Resume is very long — consider trimming to 1–2 pages",
+      weight: 12,
+    },
+    {
+      label: "Strong action verbs",
+      pass: /\b(led|built|designed|developed|managed|created|implemented|launched|optimized|architected|drove|delivered|spearheaded|collaborated|established|achieved|improved|analyzed|executed|coordinated|scaled|automated|deployed|mentored|negotiated|secured|generated)\b/.test(t),
+      tip: "Start bullet points with strong verbs (Led, Built, Improved…)",
+      weight: 10,
+    },
+    {
+      label: "Contact information",
+      pass: /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/.test(text) || /(\+?1?\s?)?(\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})/.test(text),
+      tip: "Include your email address and phone number",
+      weight: 8,
+    },
+    {
+      label: "No obvious red flags",
+      pass: !/(references available upon request|responsible for|duties included|i am a|to whom it may concern|dear sir|dear madam)/i.test(text),
+      tip: 'Remove outdated phrases like "Responsible for" or "References available"',
+      weight: 4,
+    },
+  ];
+
+  const totalWeight = checks.reduce((s, c) => s + c.weight, 0);
+  const earned = checks.filter(c => c.pass).reduce((s, c) => s + c.weight, 0);
+  const score = Math.round((earned / totalWeight) * 100);
+  return { score, checks };
+}
+
+function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: boolean }) {
+  const { score, checks } = analyzeResume(resumeText);
+  const color = score >= 71 ? "#10b981" : score >= 41 ? "#f59e0b" : "#ef4444";
+  const label = score >= 71 ? "Strong" : score >= 41 ? "Fair" : "Weak";
+  const r = 28, circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  const failing = checks.filter(c => !c.pass);
+  const passing = checks.filter(c => c.pass);
+  const t2 = lm ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.4)";
+  const t3 = lm ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.28)";
+  const bd = lm ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.06)";
+  const bg = lm ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.02)";
+
+  return (
+    <div className="sidebar-card" style={{marginTop:0}}>
+      <div className="sidebar-card-title">📈 Resume Strength</div>
+      <div className="sidebar-card-sub">Analysis based on your uploaded resume</div>
+
+      {/* Circle meter */}
+      <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
+        <svg width="72" height="72" viewBox="0 0 72 72" style={{flexShrink:0}}>
+          <circle cx="36" cy="36" r={r} fill="none" stroke={lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.07)"} strokeWidth="5"/>
+          <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="5"
+            strokeDasharray={circ} strokeDashoffset={offset}
+            strokeLinecap="round" transform="rotate(-90 36 36)"
+            style={{transition:"stroke-dashoffset .8s ease"}}/>
+          <text x="36" y="33" textAnchor="middle" fontSize="16" fontWeight="800" fill={color} fontFamily="'DM Sans',sans-serif">{score}</text>
+          <text x="36" y="46" textAnchor="middle" fontSize="8" fontWeight="600" fill={color} fontFamily="'DM Sans',sans-serif" opacity="0.8">{label.toUpperCase()}</text>
+        </svg>
+        <div style={{flex:1}}>
+          <div style={{fontSize:13,fontWeight:700,color:color,marginBottom:4}}>{label} Resume</div>
+          <div style={{fontSize:11,color:t3,lineHeight:1.5}}>
+            {passing.length}/{checks.length} checks passed
+          </div>
+          <div style={{marginTop:7,height:4,background:bg,borderRadius:99,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${score}%`,background:`linear-gradient(90deg,${color},${color}bb)`,borderRadius:99,transition:"width .8s ease"}}/>
+          </div>
+        </div>
+      </div>
+
+      {/* Issues to fix */}
+      {failing.length > 0 && (
+        <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8}}>
+          <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:2}}>Fix these</div>
+          {failing.map((c,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:7,background:`rgba(239,68,68,0.06)`,border:`1px solid rgba(239,68,68,0.15)`,borderRadius:7,padding:"6px 9px"}}>
+              <span style={{fontSize:10,color:"#ef4444",flexShrink:0,marginTop:1}}>✗</span>
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:"#ef4444",marginBottom:1}}>{c.label}</div>
+                <div style={{fontSize:10,color:t2,lineHeight:1.4}}>{c.tip}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Passing checks */}
+      {passing.length > 0 && (
+        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+          <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:2}}>Looking good</div>
+          {passing.map((c,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:7,padding:"4px 0"}}>
+              <span style={{fontSize:10,color:"#10b981",flexShrink:0}}>✓</span>
+              <span style={{fontSize:11,color:t2}}>{c.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AlertPanel({ jobRole, location, jobs }: { jobRole: string; location: string; jobs: any[] }) {
   const [email,setEmail]=useState("");const [sending,setSending]=useState(false);const [sent,setSent]=useState(false);const [error,setError]=useState("");
   const send=async()=>{
@@ -1344,6 +1480,8 @@ export default function Home() {
             )}
             {autoOpenDone&&<div style={{fontSize:11,color:"#10b981",textAlign:"center",marginTop:7}}>✓ Opened top matches in new tabs</div>}
           </div>
+
+          {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
 
           <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
 
