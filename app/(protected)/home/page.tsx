@@ -821,6 +821,7 @@ export default function Home() {
   const [isMatching,setIsMatching]=useState(false);const [matchProgress,setMatchProgress]=useState(0);
   const [autoOpenDone,setAutoOpenDone]=useState(false);const [trackedApps,setTrackedApps]=useState<TrackedApp[]>([]);
   const [mounted,setMounted]=useState(false);const [userEmail,setUserEmail]=useState("");
+  const [refreshToast,setRefreshToast]=useState(false);const [isRefreshing,setIsRefreshing]=useState(false);
   const [showWelcomeTour,setShowWelcomeTour]=useState(false);
   const [onboardStep,setOnboardStep]=useState(1);
   const [onboardRole,setOnboardRole]=useState("");
@@ -1008,6 +1009,28 @@ export default function Home() {
     setShowResumeHistory(true);
   };
 
+  const handleRefresh=async()=>{
+    if(!hasSearched||!jobRole||!location||isRefreshing)return;
+    setIsRefreshing(true);
+    try{
+      const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole,location,earlyBird:activeTab==="earlybird"})});
+      const data=await res.json();
+      const newJobs:JobWithMatch[]=data?.data||[];
+      if(activeTab==="earlybird"){
+        if(newJobs.length>earlyBirdJobs.length){setEarlyBirdJobs(newJobs);setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);}
+      }else{
+        if(newJobs.length>jobs.length){setJobs(newJobs);setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);}
+      }
+    }catch(err){console.error(err);}
+    setIsRefreshing(false);
+  };
+
+  useEffect(()=>{
+    if(!hasSearched)return;
+    const interval=setInterval(()=>handleRefresh(),3*60*1000);
+    return()=>clearInterval(interval);
+  },[hasSearched,jobRole,location,activeTab,jobs.length,earlyBirdJobs.length]);
+
   const handleLogout=async()=>{
     const{supabase}=await import("@/lib/supabase");
     await supabase.auth.signOut();
@@ -1041,6 +1064,14 @@ export default function Home() {
         .eb-btn{background:rgba(251,191,36,0.08);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:9px 16px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .2s}
         .eb-btn:hover{background:rgba(251,191,36,0.14);transform:translateY(-1px)}
         .eb-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+        .refresh-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:9px 12px;font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:'DM Sans',sans-serif}
+        .refresh-btn:hover{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.3);color:#818cf8}
+        .refresh-btn:disabled{opacity:0.35;cursor:not-allowed}
+        .refresh-btn.spinning svg{animation:spin360 .8s linear infinite}
+        @keyframes spin360{to{transform:rotate(360deg)}}
+        @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(20px)}}
+        .refresh-toast{position:fixed;bottom:28px;right:28px;background:rgba(10,10,16,0.95);border:1px solid rgba(52,211,153,0.3);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;color:#34d399;display:flex;align-items:center;gap:8px;z-index:600;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:toastIn .25s ease both}
         .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
         .nav-pill{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
         .pill-eb{background:rgba(251,191,36,0.08);color:#fbbf24;border:1px solid rgba(251,191,36,0.2)}
@@ -1190,6 +1221,10 @@ export default function Home() {
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <button className="search-btn" onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</button>
           <button className="eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading}>{ebLoading?"Scanning…":"⚡ Early Bird"}</button>
+          {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            {isRefreshing?"Refreshing…":"Refresh"}
+          </button>}
         </div>
         <div className="topbar-right">
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
@@ -1568,6 +1603,14 @@ export default function Home() {
 
       {/* FLOATING HELP */}
       <HelpPanel/>
+
+      {/* REFRESH TOAST */}
+      {refreshToast&&(
+        <div className="refresh-toast">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Updated just now — new jobs found
+        </div>
+      )}
     </>
   );
 }
