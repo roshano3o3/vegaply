@@ -247,45 +247,291 @@ function ResumePanel({ resumeText, fileName, onResume, onClear }: { resumeText: 
   );
 }
 
-function InterviewModal({ job, interview, onClose }: { job: Job; interview: InterviewResult; onClose: () => void }) {
-  const [tab, setTab] = useState<"behavioral"|"technical"|"ask"|"tips">("behavioral");
-  const [expanded, setExpanded] = useState<number|null>(null);
-  useEffect(()=>{const fn=(e:KeyboardEvent)=>{if(e.key==="Escape")onClose();};window.addEventListener("keydown",fn);return()=>window.removeEventListener("keydown",fn);},[onClose]);
-  const allB = interview.likelyQuestions??[], allT = interview.technicalQuestions??[];
+// ── INTERVIEW SIMULATOR ──────────────────────────────────────────────────
+interface SimQuestion { question: string; type: "Behavioral"|"Technical"; focus: string; }
+interface SimFeedback { score: number; verdict: string; strengths: string[]; improvements: string[]; betterAnswer: string; }
+interface SimQA { question: SimQuestion; answer: string; feedback: SimFeedback; }
+interface SimSummary { overallScore: number; verdict: string; strengths: string[]; improvements: string[]; recommendation: string; }
+
+function SimFeedbackCard({ feedback }: { feedback: SimFeedback }) {
+  const score = feedback.score ?? 5;
+  const color = score >= 8 ? "#10b981" : score >= 6 ? "#818cf8" : score >= 4 ? "#f59e0b" : "#ef4444";
+  const label = score >= 8 ? "Excellent" : score >= 6 ? "Good" : score >= 4 ? "Fair" : "Needs Work";
+  const rgbMap: Record<string,string> = { "#10b981":"16,185,129", "#818cf8":"129,140,248", "#f59e0b":"245,158,11", "#ef4444":"239,68,68" };
+  const rgb = rgbMap[color] ?? "129,140,248";
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" style={{maxWidth:700}} onClick={e=>e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
-        <div className="modal-head">
-          <div style={{width:48,height:48,background:"rgba(99,102,241,0.08)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:24}}>🤖</div>
-          <div><h2 className="modal-title">Interview Prep</h2><p className="modal-sub">{job.job_title} at {job.employer_name}</p></div>
+    <div style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:14,marginLeft:38}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:feedback.strengths?.length||feedback.improvements?.length?10:0}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:50,height:50,background:`rgba(${rgb},0.08)`,borderRadius:10,border:`1px solid rgba(${rgb},0.2)`,flexShrink:0}}>
+          <div style={{fontSize:20,fontWeight:800,color,lineHeight:1}}>{score}</div>
+          <div style={{fontSize:8,fontWeight:600,color,opacity:0.6,letterSpacing:0.5}}>/10</div>
         </div>
-        {interview.keyThemes?.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:16}}>{interview.keyThemes.map((t,i)=><span key={i} style={{background:"rgba(99,102,241,0.08)",color:"#818cf8",fontSize:11,fontWeight:600,padding:"4px 12px",borderRadius:6,border:"1px solid rgba(99,102,241,0.15)"}}>{t}</span>)}</div>}
-        <div className="modal-tabs">
-          {[["behavioral",`💬 Behavioral (${allB.length})`],["technical",`⚙️ Technical (${allT.length})`],["ask","🙋 Ask Them"],["tips","⚠️ Watch Out"]].map(([k,label])=>(
-            <button key={k} className={`mtab${tab===k?" active":""}`} onClick={()=>{setTab(k as any);setExpanded(null);}}>{label}</button>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:12,fontWeight:700,color,marginBottom:3}}>{label}</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.4}}>{feedback.verdict}</div>
+        </div>
+      </div>
+      {feedback.strengths?.map((s,i)=>(
+        <div key={i} style={{display:"flex",gap:6,alignItems:"flex-start",marginBottom:4}}>
+          <span style={{color:"#10b981",fontSize:11,flexShrink:0,marginTop:1}}>✓</span>
+          <span style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.4}}>{s}</span>
+        </div>
+      ))}
+      {feedback.improvements?.map((s,i)=>(
+        <div key={i} style={{display:"flex",gap:6,alignItems:"flex-start",marginBottom:4}}>
+          <span style={{color:"#f59e0b",fontSize:11,flexShrink:0,marginTop:1}}>↑</span>
+          <span style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.4}}>{s}</span>
+        </div>
+      ))}
+      {feedback.betterAnswer&&(
+        <div style={{marginTop:8,background:"rgba(99,102,241,0.06)",borderRadius:8,padding:"8px 10px",border:"1px solid rgba(99,102,241,0.12)"}}>
+          <span style={{fontSize:10,fontWeight:700,color:"#818cf8",letterSpacing:0.5}}>💡 TIP  </span>
+          <span style={{fontSize:12,color:"rgba(255,255,255,0.4)",lineHeight:1.4}}>{feedback.betterAnswer}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SimSummaryScreen({ summary, allQA, onClose }: { summary: SimSummary; allQA: SimQA[]; onClose: () => void }) {
+  const recMap: Record<string,string> = { "Strong Hire":"#10b981","Hire":"#818cf8","Borderline":"#f59e0b","Needs More Prep":"#f59e0b","Not Ready":"#ef4444" };
+  const recColor = recMap[summary.recommendation ?? ""] ?? "#818cf8";
+  return (
+    <div style={{flex:1,overflowY:"auto",padding:"24px 22px 28px"}}>
+      {/* Hero score */}
+      <div style={{textAlign:"center",marginBottom:24}}>
+        <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
+          <ScoreRing score={summary.overallScore ?? 0}/>
+        </div>
+        <div style={{fontSize:20,fontWeight:800,color:"#fff",marginBottom:6}}>Interview Complete</div>
+        <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",maxWidth:400,margin:"0 auto",lineHeight:1.55}}>{summary.verdict}</div>
+        <div style={{display:"inline-block",marginTop:10,padding:"4px 14px",borderRadius:20,background:`${recColor}18`,border:`1px solid ${recColor}30`,fontSize:11,fontWeight:700,color:recColor,letterSpacing:0.5}}>
+          {summary.recommendation}
+        </div>
+      </div>
+      {/* Per-question breakdown */}
+      <div style={{marginBottom:18}}>
+        <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"rgba(255,255,255,0.2)",marginBottom:8}}>Question Scores</div>
+        <div style={{display:"flex",gap:6}}>
+          {allQA.map((qa,i)=>{
+            const sc=qa.feedback.score??5;
+            const c=sc>=8?"#10b981":sc>=6?"#818cf8":sc>=4?"#f59e0b":"#ef4444";
+            return(
+              <div key={i} style={{flex:1,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"8px 4px",textAlign:"center"}}>
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.2)",marginBottom:2}}>Q{i+1}</div>
+                <div style={{fontSize:17,fontWeight:800,color:c}}>{sc}</div>
+                <div style={{fontSize:8,color:"rgba(255,255,255,0.18)"}}>/10</div>
+                <div style={{fontSize:8,color:c,marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",padding:"0 2px"}}>{qa.question.focus}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {/* Strengths + improvements */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+        <div style={{background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.12)",borderRadius:10,padding:14}}>
+          <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#10b981",marginBottom:8}}>Strengths</div>
+          {summary.strengths?.map((s,i)=>(
+            <div key={i} style={{display:"flex",gap:6,marginBottom:5}}>
+              <span style={{color:"#10b981",fontSize:11,flexShrink:0,marginTop:1}}>✓</span>
+              <span style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.4}}>{s}</span>
+            </div>
           ))}
         </div>
-        {(tab==="behavioral"||tab==="technical")&&(
-          <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:12}}>
-            {(tab==="behavioral"?allB:allT).map((q,i)=>(
-              <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${expanded===i?"rgba(99,102,241,0.25)":"rgba(255,255,255,0.06)"}`,borderRadius:8,padding:14,cursor:"pointer"}} onClick={()=>setExpanded(expanded===i?null:i)}>
-                <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
-                  <span style={{fontSize:9,fontWeight:700,background:"rgba(99,102,241,0.08)",color:"#818cf8",padding:"3px 8px",borderRadius:4,whiteSpace:"nowrap",flexShrink:0,marginTop:1}}>{q.category}</span>
-                  <span style={{flex:1,fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.7)",lineHeight:1.4}}>{q.question}</span>
-                  <span style={{fontSize:10,color:"rgba(255,255,255,0.2)",flexShrink:0}}>{expanded===i?"▲":"▼"}</span>
-                </div>
-                {expanded===i&&<div style={{marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-                  <div style={{fontSize:12,color:"#f59e0b",background:"rgba(245,158,11,0.06)",borderRadius:6,padding:"8px 10px",marginBottom:10}}>💡 {q.tip}</div>
-                  <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",color:"rgba(255,255,255,0.2)",marginBottom:6}}>Sample Answer</div>
-                  <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",lineHeight:1.6,background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"10px 12px"}}>{q.sampleAnswer}</div>
-                </div>}
-              </div>
-            ))}
+        <div style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.12)",borderRadius:10,padding:14}}>
+          <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:"#f59e0b",marginBottom:8}}>Improve On</div>
+          {summary.improvements?.map((s,i)=>(
+            <div key={i} style={{display:"flex",gap:6,marginBottom:5}}>
+              <span style={{color:"#f59e0b",fontSize:11,flexShrink:0,marginTop:1}}>↑</span>
+              <span style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.4}}>{s}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <button onClick={onClose} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:13,fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",letterSpacing:0.3}}>
+        Done — Back to Jobs
+      </button>
+    </div>
+  );
+}
+
+function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => void }) {
+  const [phase, setPhase] = useState<"loading"|"chat"|"summary">("loading");
+  const [questions, setQuestions] = useState<SimQuestion[]>([]);
+  const [currentQ, setCurrentQ] = useState(0);
+  type ChatMsg = { role:"ai"|"user"|"feedback"; content:string; feedback?:SimFeedback; };
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [allQA, setAllQA] = useState<SimQA[]>([]);
+  const [summary, setSummary] = useState<SimSummary|null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(()=>{const fn=(e:KeyboardEvent)=>{if(e.key==="Escape")onClose();};window.addEventListener("keydown",fn);return()=>window.removeEventListener("keydown",fn);},[onClose]);
+  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:"smooth"});},[messages,isTyping]);
+
+  useEffect(()=>{
+    (async()=>{
+      try{
+        const res=await fetch("/api/interview-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"start",job})});
+        const data=await res.json();
+        const qs:SimQuestion[]=data.questions??[];
+        setQuestions(qs);
+        setPhase("chat");
+        setMessages([{role:"ai",content:`Welcome to your mock interview for ${job.job_title} at ${job.employer_name}.\n\nI'll ask you 5 questions — a mix of behavioral and technical. Take your time with each answer. Ready?\n\nQuestion 1 of 5 · ${qs[0]?.type} · ${qs[0]?.focus}\n\n${qs[0]?.question}`}]);
+      }catch{
+        setPhase("chat");
+        setMessages([{role:"ai",content:"Sorry, I couldn't load your questions. Please close and try again."}]);
+      }
+    })();
+  },[]);
+
+  const sendAnswer=async()=>{
+    if(!input.trim()||isTyping)return;
+    const answer=input.trim();
+    setInput("");
+    const q=questions[currentQ];
+    setMessages(prev=>[...prev,{role:"user",content:answer}]);
+    setIsTyping(true);
+    try{
+      const res=await fetch("/api/interview-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"evaluate",job,question:q.question,questionType:q.type,answer})});
+      const data=await res.json();
+      const feedback:SimFeedback=data.feedback;
+      const newQA:SimQA={question:q,answer,feedback};
+      const newAllQA=[...allQA,newQA];
+      setAllQA(newAllQA);
+      setIsTyping(false);
+      setMessages(prev=>[...prev,{role:"feedback",content:"",feedback}]);
+      const nextQ=currentQ+1;
+      if(nextQ<questions.length){
+        setTimeout(()=>{
+          setMessages(prev=>[...prev,{role:"ai",content:`Question ${nextQ+1} of 5 · ${questions[nextQ].type} · ${questions[nextQ].focus}\n\n${questions[nextQ].question}`}]);
+          setCurrentQ(nextQ);
+          inputRef.current?.focus();
+        },600);
+      }else{
+        setSummaryLoading(true);
+        setTimeout(async()=>{
+          try{
+            const sr=await fetch("/api/interview-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"summary",job,allQA:newAllQA.map(qa=>({question:qa.question.question,type:qa.question.type,score:qa.feedback.score}))})});
+            const sd=await sr.json();
+            setSummary(sd.summary);
+          }catch{}
+          setSummaryLoading(false);
+          setPhase("summary");
+        },800);
+      }
+    }catch{
+      setIsTyping(false);
+      setMessages(prev=>[...prev,{role:"ai",content:"Something went wrong evaluating your answer. Please try again."}]);
+    }
+  };
+
+  return(
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{maxWidth:720,height:"84vh",display:"flex",flexDirection:"column",padding:0,overflow:"hidden",borderRadius:18}} onClick={e=>e.stopPropagation()}>
+
+        {/* ── HEADER ── */}
+        <div style={{padding:"14px 18px",borderBottom:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",gap:12,flexShrink:0,background:"rgba(255,255,255,0.015)"}}>
+          <div style={{width:34,height:34,background:"linear-gradient(135deg,rgba(99,102,241,0.25),rgba(236,72,153,0.15))",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>🤖</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>AI Interview Simulator</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title} · {job.employer_name}</div>
+          </div>
+          {phase==="chat"&&questions.length>0&&(
+            <div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}>
+              {questions.map((_,i)=>(
+                <div key={i} style={{width:7,height:7,borderRadius:"50%",transition:"all 0.3s",background:i<allQA.length?"#10b981":i===currentQ&&phase==="chat"?"#818cf8":"rgba(255,255,255,0.1)",boxShadow:i===currentQ&&phase==="chat"?"0 0 6px rgba(129,140,248,0.5)":"none"}}/>
+              ))}
+            </div>
+          )}
+          <button className="modal-close" style={{position:"static",marginLeft:4}} onClick={onClose}>✕</button>
+        </div>
+
+        {/* ── LOADING ── */}
+        {phase==="loading"&&(
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14}}>
+            <div style={{width:40,height:40,border:"3px solid rgba(99,102,241,0.15)",borderTopColor:"#818cf8",borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+            <div style={{fontSize:13,color:"rgba(255,255,255,0.3)"}}>Preparing your interview questions…</div>
           </div>
         )}
-        {tab==="ask"&&<div style={{display:"flex",flexDirection:"column",gap:10,marginTop:12}}>{interview.questionsToAsk?.map((q,i)=><div key={i} style={{display:"flex",alignItems:"flex-start",gap:12,background:"rgba(99,102,241,0.04)",borderRadius:8,padding:14,border:"1px solid rgba(99,102,241,0.1)"}}><span style={{width:22,height:22,background:"rgba(99,102,241,0.15)",color:"#818cf8",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>{i+1}</span><span style={{fontSize:13,color:"rgba(255,255,255,0.6)",lineHeight:1.5}}>{q}</span></div>)}</div>}
-        {tab==="tips"&&<div style={{marginTop:12}}>{interview.redFlags?.map((r,i)=><div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,background:"rgba(239,68,68,0.05)",borderRadius:8,padding:12,marginBottom:8,border:"1px solid rgba(239,68,68,0.1)"}}><span>⚠️</span><span style={{fontSize:13,color:"rgba(255,255,255,0.45)"}}>{r}</span></div>)}</div>}
+
+        {/* ── CHAT ── */}
+        {phase==="chat"&&(
+          <>
+            <div style={{flex:1,overflowY:"auto",padding:"18px 18px 10px",display:"flex",flexDirection:"column",gap:12}}>
+              {messages.map((msg,i)=>(
+                <div key={i}>
+                  {msg.role==="ai"&&(
+                    <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                      <div style={{width:28,height:28,background:"rgba(99,102,241,0.12)",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0,marginTop:2}}>🤖</div>
+                      <div style={{background:"rgba(255,255,255,0.035)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"2px 12px 12px 12px",padding:"10px 14px",maxWidth:"82%"}}>
+                        <div style={{fontSize:13,color:"rgba(255,255,255,0.75)",lineHeight:1.65,whiteSpace:"pre-wrap"}}>{msg.content}</div>
+                      </div>
+                    </div>
+                  )}
+                  {msg.role==="user"&&(
+                    <div style={{display:"flex",justifyContent:"flex-end"}}>
+                      <div style={{background:"rgba(99,102,241,0.14)",border:"1px solid rgba(99,102,241,0.22)",borderRadius:"12px 2px 12px 12px",padding:"10px 14px",maxWidth:"82%"}}>
+                        <div style={{fontSize:13,color:"rgba(255,255,255,0.8)",lineHeight:1.6}}>{msg.content}</div>
+                      </div>
+                    </div>
+                  )}
+                  {msg.role==="feedback"&&msg.feedback&&<SimFeedbackCard feedback={msg.feedback}/>}
+                </div>
+              ))}
+              {isTyping&&(
+                <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <div style={{width:28,height:28,background:"rgba(99,102,241,0.12)",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>🤖</div>
+                  <div style={{background:"rgba(255,255,255,0.035)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"2px 12px 12px 12px",padding:"12px 16px"}}>
+                    <div style={{display:"flex",gap:5,alignItems:"center"}}>
+                      {[0,1,2].map(d=><div key={d} style={{width:6,height:6,background:"rgba(255,255,255,0.25)",borderRadius:"50%",animation:`simBounce 1.2s ease-in-out ${d*0.18}s infinite`}}/>)}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef}/>
+            </div>
+
+            {/* ── INPUT ── */}
+            {allQA.length<(questions.length||5)&&!summaryLoading?(
+              <div style={{padding:"10px 16px 16px",borderTop:"1px solid rgba(255,255,255,0.06)",flexShrink:0}}>
+                <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={e=>setInput(e.target.value)}
+                    onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAnswer();}}}
+                    placeholder="Type your answer… (Enter to send · Shift+Enter for new line)"
+                    rows={2}
+                    disabled={isTyping}
+                    style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"10px 14px",fontSize:13,fontFamily:"inherit",color:"#fff",resize:"none",minHeight:50,maxHeight:120,outline:"none",lineHeight:1.55,transition:"border-color 0.2s"}}
+                  />
+                  <button
+                    onClick={sendAnswer}
+                    disabled={!input.trim()||isTyping}
+                    style={{width:42,height:42,background:input.trim()&&!isTyping?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(255,255,255,0.06)",border:"none",borderRadius:11,cursor:input.trim()&&!isTyping?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </button>
+                </div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.18)",marginTop:5,textAlign:"right"}}>
+                  Q{Math.min(currentQ+1,questions.length||5)} of {questions.length||5} · {questions[currentQ]?.type??""} · {questions[currentQ]?.focus??""}
+                </div>
+              </div>
+            ):summaryLoading?(
+              <div style={{padding:"14px 18px",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+                <div style={{width:18,height:18,border:"2px solid rgba(99,102,241,0.25)",borderTopColor:"#818cf8",borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.35)"}}>Generating your interview report…</div>
+              </div>
+            ):null}
+          </>
+        )}
+
+        {/* ── SUMMARY ── */}
+        {phase==="summary"&&summary&&<SimSummaryScreen summary={summary} allQA={allQA} onClose={onClose}/>}
       </div>
     </div>
   );
@@ -1127,11 +1373,8 @@ export default function Home() {
     try{const res=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const tailor:TailorResult=await res.json();const updated={...job,tailor,tailorLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setTailorJob(updated);}catch{setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:false}:j));}
   };
 
-  const handleInterview=async(job:JobWithMatch)=>{
-    if(job.interview){setInterviewJob(job);return;}
-    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
-    setList(list.map(j=>j.job_id===job.job_id?{...j,interviewLoading:true}:j));
-    try{const res=await fetch("/api/interview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({job,resumeText})});const interview:InterviewResult=await res.json();const updated={...job,interview,interviewLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setInterviewJob(updated);}catch{setList(list.map(j=>j.job_id===job.job_id?{...j,interviewLoading:false}:j));}
+  const handleInterview=(job:JobWithMatch)=>{
+    setInterviewJob(job);
   };
 
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
@@ -1386,6 +1629,7 @@ export default function Home() {
         .spin{width:16px;height:16px;border:2px solid rgba(99,102,241,0.2);border-top-color:#818cf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
         .spin-sm{width:11px;height:11px;border:2px solid rgba(255,255,255,0.1);border-top-color:#818cf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
         @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes simBounce{0%,80%,100%{transform:translateY(0);opacity:0.25}40%{transform:translateY(-5px);opacity:0.8}}
 
         /* MODALS */
         .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(16px);animation:fi .18s}
@@ -1750,7 +1994,7 @@ export default function Home() {
       {/* MODALS */}
       {selectedJob&&<JobModal job={selectedJob} saved={savedJobs.has(selectedJob.job_id)} onToggleSave={()=>toggleSave(selectedJob.job_id)} onClose={()=>setSelectedJob(null)} earlyBirdMode={isEbMode} onAddToTracker={()=>addToTracker(selectedJob)} isTracked={!!trackedApps.find(a=>a.job.job_id===selectedJob.job_id)}/>}
       {tailorJob?.tailor&&<TailorModal job={tailorJob} tailor={tailorJob.tailor} onClose={()=>setTailorJob(null)}/>}
-      {interviewJob?.interview&&<InterviewModal job={interviewJob} interview={interviewJob.interview} onClose={()=>setInterviewJob(null)}/>}
+      {interviewJob&&<InterviewSimulatorModal job={interviewJob} onClose={()=>setInterviewJob(null)}/>}
       {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
       {coverLetterJob?.coverLetter&&<CoverLetterModal job={coverLetterJob} coverLetter={coverLetterJob.coverLetter} onClose={()=>setCoverLetterJob(null)}/>}
       {skillGapJob?.skillGap&&<SkillGapModal job={skillGapJob} result={skillGapJob.skillGap} onClose={()=>setSkillGapJob(null)}/>}
