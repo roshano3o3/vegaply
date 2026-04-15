@@ -1492,9 +1492,9 @@ export default function Home() {
 
           .search-btn,.eb-btn,.refresh-btn{min-height:44px;padding:10px 14px}
           .action-card-btn{padding:8px 6px;min-height:40px;font-size:10px}
-          .action-btns{display:grid!important;grid-template-columns:repeat(3,1fr);gap:5px}
-          .action-btns .action-card-btn{flex:none;width:100%;justify-content:center}
-          .action-btns .action-card-btn.track-btn{flex:none;padding:8px 6px;width:100%}
+          .action-btns{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:5px}
+          .action-btns .action-card-btn{flex:none!important;width:100%!important;min-width:0!important;justify-content:center;overflow:hidden}
+          .action-btns .action-card-btn.track-btn{flex:none!important;padding:8px 4px;width:100%!important;min-width:0!important}
           .page-btn{width:38px;height:38px;font-size:13px}
           .apply-btn{padding:12px 18px;min-height:44px;font-size:13px}
 
