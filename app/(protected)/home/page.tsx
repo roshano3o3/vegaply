@@ -1390,7 +1390,12 @@ export default function Home() {
             {onboardStep===1&&<>
               <div style={{fontSize:24,fontWeight:800,color:"#fff",marginBottom:8}}>Welcome to <span style={{color:"#818cf8"}}>Vegaply</span></div>
               <p style={{color:"rgba(255,255,255,0.32)",fontSize:13,marginBottom:24,lineHeight:1.6}}>The AI-powered job search platform built for students. Let's set you up in 60 seconds.</p>
-              <input value={onboardRole} onChange={e=>setOnboardRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardStep(2)} placeholder="What role are you looking for? (e.g. Data Analyst)" style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#fff",outline:"none",marginBottom:12,fontFamily:"inherit"}}/>
+              <input value={onboardRole} onChange={e=>setOnboardRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardStep(2)} placeholder="What role are you looking for? (e.g. Data Analyst)" style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#fff",outline:"none",marginBottom:14,fontFamily:"inherit"}}/>
+              <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:16,justifyContent:"center"}}>
+                {["Software Engineer","Data Analyst","UX Designer","Product Manager","ML Engineer","Cybersecurity Analyst","Financial Analyst","Cloud Engineer","Marketing Manager","Business Analyst"].map(role=>(
+                  <button key={role} onClick={()=>setOnboardRole(role)} style={{background:onboardRole===role?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",border:`1px solid ${onboardRole===role?"transparent":"rgba(99,102,241,0.22)"}`,borderRadius:100,padding:"5px 13px",fontSize:11,fontWeight:600,color:onboardRole===role?"#fff":"#a5b4fc",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",whiteSpace:"nowrap"}}>{role}</button>
+                ))}
+              </div>
               <button onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
             </>}
             {onboardStep===2&&<>
