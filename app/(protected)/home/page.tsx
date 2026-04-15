@@ -1056,6 +1056,26 @@ export default function Home() {
     await fetchJobs("earlybird",jobRole,location);
   };
 
+  // Mobile: await the search so the button shows "Searching…" before the panel closes
+  const handleMobileSearch=async()=>{
+    const role=jobRole;const loc=location;
+    if(!role||!loc){alert("Please enter job role and location");return;}
+    setShowMobileSearch(false);
+    localStorage.setItem("applysmart_jobRole",role);
+    localStorage.setItem("applysmart_location",loc);
+    setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
+    await fetchJobs("normal",role,loc);
+  };
+  const handleMobileEarlyBird=async()=>{
+    const role=jobRole;const loc=location;
+    if(!role||!loc){alert("Please enter job role and location first");return;}
+    setShowMobileSearch(false);
+    localStorage.setItem("applysmart_jobRole",role);
+    localStorage.setItem("applysmart_location",loc);
+    setHasSearched(true);setActiveTab("earlybird");setCurrentPage(1);
+    await fetchJobs("earlybird",role,loc);
+  };
+
   const runResumeMatch=async()=>{
     if(!resumeText||earlyBirdJobs.length===0)return;
     setIsMatching(true);setMatchProgress(0);setAutoOpenDone(false);
@@ -1534,11 +1554,11 @@ export default function Home() {
       {/* MOBILE SEARCH PANEL — conditionally rendered, hidden on desktop via CSS */}
       {showMobileSearch&&(
         <div className="mobile-search-panel" style={{position:"sticky",top:56,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
-          <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{height:44,fontSize:14}}/>
-          <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{height:44,fontSize:14}}/>
+          <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
+          <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
           <div style={{display:"flex",gap:8}}>
-            <button className="search-btn" style={{flex:1,height:44,fontSize:14}} onClick={()=>{handleSearch();setShowMobileSearch(false);}} disabled={loading}>{loading?"Searching…":"Search"}</button>
-            <button className="eb-btn" style={{height:44,fontSize:13}} onClick={()=>{handleEarlyBirdSearch();setShowMobileSearch(false);}} disabled={ebLoading}>{ebLoading?"…":"⚡"}</button>
+            <button className="search-btn" style={{flex:1,height:44,fontSize:14}} onClick={handleMobileSearch} disabled={loading}>{loading?"Searching…":"Search"}</button>
+            <button className="eb-btn" style={{height:44,fontSize:13}} onClick={handleMobileEarlyBird} disabled={ebLoading}>{ebLoading?"…":"⚡"}</button>
           </div>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} style={{width:"100%",justifyContent:"center",height:40}} onClick={handleRefresh} disabled={isRefreshing}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
