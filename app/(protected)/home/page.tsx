@@ -22,10 +22,16 @@ interface InterviewResult {
   technicalQuestions: { question: string; category: string; tip: string; sampleAnswer: string }[];
   questionsToAsk: string[]; keyThemes: string[]; redFlags: string[];
 }
+interface SkillGapResult {
+  missingSkills: string[];
+  strongSkills: string[];
+  courses: { skill: string; title: string; platform: string; url: string }[];
+}
 interface JobWithMatch extends Job {
   match?: MatchResult; matchLoading?: boolean; tailor?: TailorResult;
   tailorLoading?: boolean; interview?: InterviewResult; interviewLoading?: boolean;
   coverLetter?: string; coverLetterLoading?: boolean;
+  skillGap?: SkillGapResult; skillGapLoading?: boolean;
 }
 type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
@@ -594,6 +600,81 @@ function CoverLetterModal({ job, coverLetter, onClose }: { job: Job; coverLetter
   );
 }
 
+function SkillGapModal({ job, result, onClose }: { job: Job; result: SkillGapResult; onClose: ()=>void }) {
+  useEffect(()=>{
+    const fn=(e:KeyboardEvent)=>{if(e.key==="Escape")onClose();};
+    window.addEventListener("keydown",fn);
+    return()=>window.removeEventListener("keydown",fn);
+  },[onClose]);
+  const platformColor=(p:string)=>{
+    if(/youtube/i.test(p))     return "#ef4444";
+    if(/coursera/i.test(p))    return "#0056d2";
+    if(/udemy/i.test(p))       return "#a435f0";
+    if(/linkedin/i.test(p))    return "#0077b5";
+    if(/freecodecamp/i.test(p))return "#0a0a23";
+    if(/edx/i.test(p))         return "#02262b";
+    return "#06b6d4";
+  };
+  return(
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-head">
+          <div style={{fontSize:32}}>🧠</div>
+          <div><h2 className="modal-title">Skill Gap Analysis</h2><p className="modal-sub">{job.job_title} · {job.employer_name}</p></div>
+        </div>
+
+        {/* STRONG SKILLS */}
+        <div style={{marginBottom:18}}>
+          <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#10b981",marginBottom:10}}>✅ Your Strong Skills</div>
+          {result.strongSkills.length>0
+            ? <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {result.strongSkills.map((s,i)=>(
+                  <span key={i} style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:6,background:"rgba(16,185,129,0.1)",color:"#10b981",border:"1px solid rgba(16,185,129,0.2)"}}>{s}</span>
+                ))}
+              </div>
+            : <p style={{fontSize:12,color:"rgba(255,255,255,0.25)"}}>No strong matches detected — try uploading a more detailed resume.</p>
+          }
+        </div>
+
+        {/* MISSING SKILLS */}
+        <div style={{marginBottom:18}}>
+          <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#ef4444",marginBottom:10}}>⚠️ Missing Skills</div>
+          {result.missingSkills.length>0
+            ? <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {result.missingSkills.map((s,i)=>(
+                  <span key={i} style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:6,background:"rgba(239,68,68,0.08)",color:"#ef4444",border:"1px solid rgba(239,68,68,0.18)"}}>{s}</span>
+                ))}
+              </div>
+            : <p style={{fontSize:12,color:"rgba(255,255,255,0.25)"}}>No major skill gaps found!</p>
+          }
+        </div>
+
+        {/* COURSES */}
+        {result.courses.length>0&&(
+          <div>
+            <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#f59e0b",marginBottom:10}}>📚 Recommended Courses</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {result.courses.map((c,i)=>(
+                <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:12,padding:"10px 12px",borderRadius:8,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",textDecoration:"none",transition:"border-color .15s"}}
+                  onMouseEnter={e=>(e.currentTarget.style.borderColor="rgba(255,255,255,0.14)")}
+                  onMouseLeave={e=>(e.currentTarget.style.borderColor="rgba(255,255,255,0.07)")}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:platformColor(c.platform),flexShrink:0}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.8)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.title}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:2}}>{c.platform} · fills gap: <span style={{color:"#f59e0b"}}>{c.skill}</span></div>
+                  </div>
+                  <span style={{fontSize:10,color:"rgba(255,255,255,0.2)",flexShrink:0}}>→</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function getDifficultyBadge(title?: string, desc?: string): { label: string; color: string; bg: string; border: string } {
   const t = (title||"").toLowerCase();
   const d = (desc||"").toLowerCase();
@@ -619,8 +700,8 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 }
 
 // JOB CARD — 2x3 grid, highlighted Match + Prep
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -703,6 +784,9 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         <button className={`action-card-btn cover-btn${job.coverLetter?" done":""}`} onClick={e=>{e.stopPropagation();onCoverLetter();}} disabled={job.coverLetterLoading} title="AI generates a cover letter for this job">
           {job.coverLetterLoading?<><div className="spin-sm"/>Writing…</>:job.coverLetter?"✓ Letter":"✉️ Cover"}
         </button>
+        <button className={`action-card-btn skillgap-btn${job.skillGap?" done":""}`} onClick={e=>{e.stopPropagation();onSkillGap();}} disabled={job.skillGapLoading} title="See skill gaps and recommended courses">
+          {job.skillGapLoading?<><div className="spin-sm"/>Analyzing…</>:job.skillGap?"✓ Gaps":"🧠 Skills"}
+        </button>
         <button className={`action-card-btn tailor-btn${job.tailor?" done":""}`} onClick={e=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="AI tailors your resume bullets">
           {job.tailorLoading?<><div className="spin-sm"/>Tailoring…</>:job.tailor?"✓ Tailored":"✂️ Tailor"}
         </button>
@@ -731,6 +815,7 @@ export default function Home() {
   const [interviewJob,setInterviewJob]=useState<JobWithMatch|null>(null);
   const [matchPanelJob,setMatchPanelJob]=useState<JobWithMatch|null>(null);
   const [coverLetterJob,setCoverLetterJob]=useState<JobWithMatch|null>(null);
+  const [skillGapJob,setSkillGapJob]=useState<JobWithMatch|null>(null);
   const [activeTab,setActiveTab]=useState<TabType>("results");const [currentPage,setCurrentPage]=useState(1);
   const [hasSearched,setHasSearched]=useState(false);const [filterType,setFilterType]=useState("ALL");
   const [filterRemote,setFilterRemote]=useState(false);const [filterDate,setFilterDate]=useState("ANY");
@@ -840,6 +925,20 @@ export default function Home() {
   };
 
   const handleSingleMatch=async(job:JobWithMatch)=>{setMatchPanelJob(job);};
+
+  const handleSkillGap=async(job:JobWithMatch)=>{
+    if(job.skillGap){setSkillGapJob(job);return;}
+    if(!resumeText){alert("Upload your resume first!");return;}
+    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
+    setList(list.map(j=>j.job_id===job.job_id?{...j,skillGapLoading:true}:j));
+    try{
+      const res=await fetch("/api/skillgap",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+      const skillGap:SkillGapResult=await res.json();
+      const updated={...job,skillGap,skillGapLoading:false};
+      setList(list.map(j=>j.job_id===job.job_id?updated:j));
+      setSkillGapJob(updated);
+    }catch{setList(list.map(j=>j.job_id===job.job_id?{...j,skillGapLoading:false}:j));}
+  };
 
   const handleCoverLetter=async(job:JobWithMatch)=>{
     if(job.coverLetter){setCoverLetterJob(job);return;}
@@ -1006,6 +1105,9 @@ export default function Home() {
         .action-card-btn.interview-btn.done{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.35);color:#10b981}
 
         /* TAILOR — subtle */
+        .action-card-btn.skillgap-btn{background:rgba(139,92,246,0.09);border-color:rgba(139,92,246,0.28);color:#a78bfa}
+        .action-card-btn.skillgap-btn:hover{background:rgba(139,92,246,0.16);box-shadow:0 0 16px rgba(139,92,246,0.12)}
+        .action-card-btn.skillgap-btn.done{background:rgba(139,92,246,0.14);border-color:rgba(139,92,246,0.4);color:#a78bfa}
         .action-card-btn.cover-btn{background:rgba(236,72,153,0.08);border-color:rgba(236,72,153,0.25);color:#f472b6}
         .action-card-btn.cover-btn:hover{background:rgba(236,72,153,0.15);box-shadow:0 0 16px rgba(236,72,153,0.12)}
         .action-card-btn.cover-btn.done{background:rgba(236,72,153,0.13);border-color:rgba(236,72,153,0.4);color:#f472b6}
@@ -1225,6 +1327,7 @@ export default function Home() {
                         onTailor={()=>{if(job.tailor)setTailorJob(job);else handleTailor(job);}}
                         onInterview={()=>handleInterview(job)}
                         onCoverLetter={()=>handleCoverLetter(job)}
+                        onSkillGap={()=>handleSkillGap(job)}
                         onMatchResume={()=>handleSingleMatch(job)}
                         earlyBirdMode={isEbMode}
                         resumeReady={!!resumeText}
@@ -1261,6 +1364,7 @@ export default function Home() {
       {interviewJob?.interview&&<InterviewModal job={interviewJob} interview={interviewJob.interview} onClose={()=>setInterviewJob(null)}/>}
       {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
       {coverLetterJob?.coverLetter&&<CoverLetterModal job={coverLetterJob} coverLetter={coverLetterJob.coverLetter} onClose={()=>setCoverLetterJob(null)}/>}
+      {skillGapJob?.skillGap&&<SkillGapModal job={skillGapJob} result={skillGapJob.skillGap} onClose={()=>setSkillGapJob(null)}/>}
 
       {/* WELCOME TOUR */}
       {showWelcomeTour&&<WelcomeTour onClose={closeTour}/>}
