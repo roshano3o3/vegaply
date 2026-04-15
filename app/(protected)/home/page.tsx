@@ -27,7 +27,7 @@ interface JobWithMatch extends Job {
   tailorLoading?: boolean; interview?: InterviewResult; interviewLoading?: boolean;
   coverLetter?: string; coverLetterLoading?: boolean;
 }
-type AppStatus = "Applied"|"Interviewing"|"Offer"|"Rejected";
+type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
 type TabType = "results"|"earlybird"|"saved"|"tracker"|"analytics";
 const JOBS_PER_PAGE = 6;
@@ -363,13 +363,14 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
 }
 
 function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]; savedCount: number; totalSearched: number }) {
-  const sc: Record<AppStatus,number> = {Applied:0,Interviewing:0,Offer:0,Rejected:0};
+  const sc: Record<AppStatus,number> = {Saved:0,Applied:0,Interviewing:0,Offer:0,Rejected:0};
   apps.forEach(a=>{sc[a.status]=(sc[a.status]||0)+1;});
-  const rr = apps.length>0?Math.round(((sc.Interviewing+sc.Offer)/apps.length)*100):0;
-  const cards = [{label:"Total Applied",value:apps.length,color:"#06b6d4",icon:"📋"},{label:"Interviewing",value:sc.Interviewing,color:"#f59e0b",icon:"🎯"},{label:"Offers",value:sc.Offer,color:"#10b981",icon:"🎉"},{label:"Response Rate",value:`${rr}%`,color:"#0ea5e9",icon:"📈"}];
-  const funnel = [{label:"Jobs Scanned",count:totalSearched,color:"rgba(255,255,255,0.15)"},{label:"Saved",count:savedCount,color:"#06b6d4"},{label:"Applied",count:sc.Applied+sc.Interviewing+sc.Offer+sc.Rejected,color:"#f59e0b"},{label:"Offers",count:sc.Offer,color:"#10b981"}];
+  const totalApplied=sc.Applied+sc.Interviewing+sc.Offer+sc.Rejected;
+  const rr = totalApplied>0?Math.round(((sc.Interviewing+sc.Offer)/totalApplied)*100):0;
+  const cards = [{label:"Total Tracked",value:apps.length,color:"#06b6d4",icon:"📋"},{label:"Interviewing",value:sc.Interviewing,color:"#f59e0b",icon:"🎯"},{label:"Offers",value:sc.Offer,color:"#10b981",icon:"🎉"},{label:"Response Rate",value:`${rr}%`,color:"#0ea5e9",icon:"📈"}];
+  const funnel = [{label:"Jobs Scanned",count:totalSearched,color:"rgba(255,255,255,0.15)"},{label:"Bookmarked",count:savedCount,color:"#94a3b8"},{label:"Applied",count:totalApplied,color:"#06b6d4"},{label:"Offers",count:sc.Offer,color:"#10b981"}];
   const mx = Math.max(funnel[0].count,1);
-  const sc2: Record<AppStatus,string> = {Applied:"#06b6d4",Interviewing:"#f59e0b",Offer:"#10b981",Rejected:"#ef4444"};
+  const sc2: Record<AppStatus,string> = {Saved:"#94a3b8",Applied:"#06b6d4",Interviewing:"#f59e0b",Offer:"#10b981",Rejected:"#ef4444"};
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
@@ -393,7 +394,7 @@ function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]
       </div>
       <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:20}}>
         <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.6)",marginBottom:16,textTransform:"uppercase",letterSpacing:"0.5px"}}>Status Breakdown</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
           {(Object.entries(sc) as [AppStatus,number][]).map(([s,c])=>(
             <div key={s} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${sc2[s]}20`,borderRadius:8,padding:14,textAlign:"center"}}>
               <div style={{fontSize:26,fontWeight:800,color:sc2[s]}}>{c}</div>
@@ -428,39 +429,78 @@ function AlertPanel({ jobRole, location, jobs }: { jobRole: string; location: st
   );
 }
 
-function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove }: { apps: TrackedApp[]; onUpdateStatus: (id:string,s:AppStatus)=>void; onUpdateNotes: (id:string,n:string)=>void; onRemove: (id:string)=>void }) {
-  const cols: Record<AppStatus,{color:string;border:string}> = {Applied:{color:"#06b6d4",border:"rgba(6,182,212,0.2)"},Interviewing:{color:"#f59e0b",border:"rgba(245,158,11,0.2)"},Offer:{color:"#10b981",border:"rgba(16,185,129,0.2)"},Rejected:{color:"#ef4444",border:"rgba(239,68,68,0.2)"}};
-  if(apps.length===0)return<div style={{textAlign:"center",padding:"64px 24px",background:"rgba(255,255,255,0.02)",borderRadius:12,border:"1px dashed rgba(255,255,255,0.06)"}}><div style={{fontSize:36,marginBottom:14}}>📋</div><h3 style={{fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:8}}>No applications tracked yet</h3><p style={{fontSize:13,color:"rgba(255,255,255,0.2)"}}>Click "+" on any job card to track it here.</p></div>;
+const TRACKER_COLS: { status: AppStatus; label: string; icon: string; color: string; border: string; bg: string }[] = [
+  { status:"Saved",      label:"Saved",       icon:"🔖", color:"#94a3b8", border:"rgba(148,163,184,0.2)", bg:"rgba(148,163,184,0.06)" },
+  { status:"Applied",    label:"Applied",     icon:"📤", color:"#06b6d4", border:"rgba(6,182,212,0.2)",   bg:"rgba(6,182,212,0.05)"   },
+  { status:"Interviewing",label:"Interview",  icon:"🎯", color:"#f59e0b", border:"rgba(245,158,11,0.2)",  bg:"rgba(245,158,11,0.05)"  },
+  { status:"Offer",      label:"Offer",       icon:"🎉", color:"#10b981", border:"rgba(16,185,129,0.2)",  bg:"rgba(16,185,129,0.05)"  },
+  { status:"Rejected",   label:"Rejected",    icon:"❌", color:"#ef4444", border:"rgba(239,68,68,0.2)",   bg:"rgba(239,68,68,0.05)"   },
+];
+
+function TrackerCard({ app, onUpdateStatus, onUpdateNotes, onRemove }: { app: TrackedApp; onUpdateStatus:(s:AppStatus)=>void; onUpdateNotes:(n:string)=>void; onRemove:()=>void }) {
+  const col = TRACKER_COLS.find(c=>c.status===app.status)!;
+  const prev = TRACKER_COLS[TRACKER_COLS.findIndex(c=>c.status===app.status)-1];
+  const next = TRACKER_COLS[TRACKER_COLS.findIndex(c=>c.status===app.status)+1];
+  return(
+    <div style={{background:"rgba(255,255,255,0.025)",borderRadius:8,padding:12,border:`1px solid ${col.border}`,display:"flex",flexDirection:"column",gap:8}}>
+      <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
+        <div style={{width:30,height:30,borderRadius:6,border:"1px solid rgba(255,255,255,0.07)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.03)",flexShrink:0}}>
+          {app.job.employer_logo?<img src={app.job.employer_logo} alt="" onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.3)"}}>{app.job.employer_name?.[0]}</span>}
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:11,fontWeight:700,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{app.job.job_title}</div>
+          <div style={{fontSize:10,color:col.color,marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{app.job.employer_name}</div>
+        </div>
+        <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.15)",fontSize:12,padding:0,flexShrink:0}} onClick={onRemove}>✕</button>
+      </div>
+      <div style={{fontSize:10,color:"rgba(255,255,255,0.2)"}}>Added {new Date(app.appliedDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
+      <div style={{display:"flex",gap:4}}>
+        {prev&&<button style={{flex:1,padding:"4px 0",border:`1px solid ${prev.border}`,borderRadius:4,fontSize:9,fontWeight:600,cursor:"pointer",background:"transparent",color:prev.color,fontFamily:"inherit"}} onClick={()=>onUpdateStatus(prev.status)}>← {prev.label}</button>}
+        {next&&<button style={{flex:1,padding:"4px 0",border:`1px solid ${next.border}`,borderRadius:4,fontSize:9,fontWeight:700,cursor:"pointer",background:next.bg,color:next.color,fontFamily:"inherit"}} onClick={()=>onUpdateStatus(next.status)}>{next.label} →</button>}
+      </div>
+      <textarea style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:6,padding:"5px 8px",fontSize:10,fontFamily:"inherit",resize:"none",outline:"none",color:"rgba(255,255,255,0.4)"}} placeholder="Notes…" value={app.notes} onChange={e=>onUpdateNotes(e.target.value)} rows={2}/>
+      {app.job.job_apply_link&&<a href={app.job.job_apply_link} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#06b6d4",fontWeight:600,textDecoration:"none"}}>View Job →</a>}
+    </div>
+  );
+}
+
+function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove }: { apps: TrackedApp[]; onUpdateStatus:(id:string,s:AppStatus)=>void; onUpdateNotes:(id:string,n:string)=>void; onRemove:(id:string)=>void }) {
+  if(apps.length===0) return(
+    <div style={{textAlign:"center",padding:"64px 24px",background:"rgba(255,255,255,0.02)",borderRadius:12,border:"1px dashed rgba(255,255,255,0.06)"}}>
+      <div style={{fontSize:36,marginBottom:14}}>📋</div>
+      <h3 style={{fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:8}}>No applications tracked yet</h3>
+      <p style={{fontSize:13,color:"rgba(255,255,255,0.2)"}}>Click "+ Track" on any job card to add it here.</p>
+    </div>
+  );
   return(
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
-      <div style={{display:"flex",alignItems:"center",gap:20,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:"16px 24px",flexWrap:"wrap"}}>
-        <div style={{textAlign:"center"}}><span style={{fontSize:26,fontWeight:800,color:"#fff",display:"block"}}>{apps.length}</span><span style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Total</span></div>
-        {(["Applied","Interviewing","Offer","Rejected"] as AppStatus[]).map(s=>(
-          <><div key={s+"d"} style={{width:1,height:32,background:"rgba(255,255,255,0.06)"}}/><div key={s} style={{textAlign:"center"}}><span style={{fontSize:26,fontWeight:800,color:cols[s].color,display:"block"}}>{apps.filter(a=>a.status===s).length}</span><span style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{s}</span></div></>
+      {/* SUMMARY BAR */}
+      <div style={{display:"flex",alignItems:"center",gap:0,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,overflow:"hidden"}}>
+        <div style={{padding:"14px 20px",textAlign:"center",borderRight:"1px solid rgba(255,255,255,0.05)"}}>
+          <div style={{fontSize:24,fontWeight:800,color:"#fff"}}>{apps.length}</div>
+          <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Total</div>
+        </div>
+        {TRACKER_COLS.map(c=>(
+          <div key={c.status} style={{flex:1,padding:"14px 8px",textAlign:"center",borderRight:"1px solid rgba(255,255,255,0.05)"}}>
+            <div style={{fontSize:20,fontWeight:800,color:c.color}}>{apps.filter(a=>a.status===c.status).length}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{c.label}</div>
+          </div>
         ))}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-        {(["Applied","Interviewing","Offer","Rejected"] as AppStatus[]).map(col=>(
-          <div key={col} style={{display:"flex",flexDirection:"column",gap:10}}>
-            <div style={{fontSize:11,fontWeight:700,padding:"7px 12px",borderRadius:6,border:`1.5px solid ${cols[col].border}`,color:cols[col].color,display:"flex",alignItems:"center",justifyContent:"space-between"}}>{col}<span style={{fontSize:15,fontWeight:800}}>{apps.filter(a=>a.status===col).length}</span></div>
-            {apps.filter(a=>a.status===col).map(app=>(
-              <div key={app.id} style={{background:"rgba(255,255,255,0.02)",borderRadius:8,padding:12,border:"1px solid rgba(255,255,255,0.06)",display:"flex",flexDirection:"column",gap:8}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <div style={{width:28,height:28,borderRadius:6,border:"1px solid rgba(255,255,255,0.06)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.03)",flexShrink:0}}>{app.job.employer_logo?<img src={app.job.employer_logo} alt="" onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.3)"}}>{app.job.employer_name?.[0]}</span>}</div>
-                  <div style={{flex:1,minWidth:0}}><div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.75)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{app.job.job_title}</div><div style={{fontSize:10,color:"#06b6d4",marginTop:1}}>{app.job.employer_name}</div></div>
-                  <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.15)",fontSize:11}} onClick={()=>onRemove(app.id)}>✕</button>
-                </div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.18)"}}>Added {new Date(app.appliedDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
-                <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-                  {(["Applied","Interviewing","Offer","Rejected"] as AppStatus[]).map(s=>(
-                    <button key={s} style={{flex:1,minWidth:55,padding:"3px 2px",border:`1px solid ${app.status===s?cols[s].border:"rgba(255,255,255,0.05)"}`,borderRadius:4,fontSize:9,fontWeight:600,cursor:"pointer",background:app.status===s?cols[s].border:"transparent",color:app.status===s?cols[s].color:"rgba(255,255,255,0.2)",fontFamily:"inherit"}} onClick={()=>onUpdateStatus(app.id,s)}>{s}</button>
-                  ))}
-                </div>
-                <textarea style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:6,padding:"6px 8px",fontSize:11,fontFamily:"inherit",resize:"none",outline:"none",color:"rgba(255,255,255,0.4)"}} placeholder="Add notes…" value={app.notes} onChange={e=>onUpdateNotes(app.id,e.target.value)} rows={2}/>
-                {app.job.job_apply_link&&<a href={app.job.job_apply_link} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:"#06b6d4",fontWeight:600,textDecoration:"none"}}>View Job →</a>}
-              </div>
+      {/* KANBAN COLUMNS */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
+        {TRACKER_COLS.map(col=>(
+          <div key={col.status} style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{fontSize:11,fontWeight:700,padding:"7px 10px",borderRadius:6,border:`1.5px solid ${col.border}`,background:col.bg,color:col.color,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <span>{col.icon} {col.label}</span>
+              <span style={{fontSize:14,fontWeight:800}}>{apps.filter(a=>a.status===col.status).length}</span>
+            </div>
+            {apps.filter(a=>a.status===col.status).map(app=>(
+              <TrackerCard key={app.id} app={app} onUpdateStatus={s=>onUpdateStatus(app.id,s)} onUpdateNotes={n=>onUpdateNotes(app.id,n)} onRemove={()=>onRemove(app.id)}/>
             ))}
-            {apps.filter(a=>a.status===col).length===0&&<div style={{textAlign:"center",padding:20,color:"rgba(255,255,255,0.12)",fontSize:11,background:"rgba(255,255,255,0.01)",borderRadius:6,border:"1px dashed rgba(255,255,255,0.05)"}}>No {col.toLowerCase()} yet</div>}
+            {apps.filter(a=>a.status===col.status).length===0&&(
+              <div style={{textAlign:"center",padding:"20px 8px",color:"rgba(255,255,255,0.1)",fontSize:10,background:"rgba(255,255,255,0.01)",borderRadius:6,border:"1px dashed rgba(255,255,255,0.04)"}}>Empty</div>
+            )}
           </div>
         ))}
       </div>
@@ -646,6 +686,7 @@ export default function Home() {
 
   useEffect(()=>{
     setMounted(true);
+    try{const t=localStorage.getItem("applysmart_tracker");if(t)setTrackedApps(JSON.parse(t));}catch{}
     const savedRole=localStorage.getItem("applysmart_jobRole");
     const savedLocation=localStorage.getItem("applysmart_location");
     if(savedRole)setJobRole(savedRole);
@@ -757,7 +798,7 @@ export default function Home() {
     try{const res=await fetch("/api/interview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({job,resumeText})});const interview:InterviewResult=await res.json();const updated={...job,interview,interviewLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setInterviewJob(updated);}catch{setList(list.map(j=>j.job_id===job.job_id?{...j,interviewLoading:false}:j));}
   };
 
-  const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>[...prev,{job,status:"Applied",appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}]);};
+  const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
   const toggleSave=(jobId:string)=>setSavedJobs(prev=>{const n=new Set(prev);n.has(jobId)?n.delete(jobId):n.add(jobId);return n;});
   const filterJobs=(list:JobWithMatch[])=>list.filter(job=>{
     if(filterType!=="ALL"&&job.job_employment_type!==filterType)return false;
@@ -1063,7 +1104,11 @@ export default function Home() {
             </button>
           </div>
 
-          {activeTab==="tracker"&&<TrackerView apps={trackedApps} onUpdateStatus={(id,s)=>setTrackedApps(prev=>prev.map(a=>a.id===id?{...a,status:s}:a))} onUpdateNotes={(id,n)=>setTrackedApps(prev=>prev.map(a=>a.id===id?{...a,notes:n}:a))} onRemove={id=>setTrackedApps(prev=>prev.filter(a=>a.id!==id))}/>}
+          {activeTab==="tracker"&&<TrackerView apps={trackedApps}
+            onUpdateStatus={(id,s)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,status:s}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
+            onUpdateNotes={(id,n)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,notes:n}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
+            onRemove={id=>setTrackedApps(prev=>{const next=prev.filter(a=>a.id!==id);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
+          />}
           {activeTab==="analytics"&&<AnalyticsView apps={trackedApps} savedCount={savedJobs.size} totalSearched={totalSearched}/>}
 
           {(activeTab==="results"||activeTab==="earlybird"||activeTab==="saved")&&(
