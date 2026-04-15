@@ -368,7 +368,8 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
   );
 }
 
-function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]; savedCount: number; totalSearched: number }) {
+function AnalyticsView({ apps, savedCount, totalSearched, lm }: { apps: TrackedApp[]; savedCount: number; totalSearched: number; lm?: boolean }) {
+  const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.35)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.07)":"rgba(255,255,255,0.06)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.025)"};
   const sc: Record<AppStatus,number> = {Saved:0,Applied:0,Interviewing:0,Offer:0,Rejected:0};
   apps.forEach(a=>{sc[a.status]=(sc[a.status]||0)+1;});
   const totalApplied = sc.Applied+sc.Interviewing+sc.Offer+sc.Rejected;
@@ -418,24 +419,24 @@ function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]
         <div style={{fontSize:30,flexShrink:0,lineHeight:1}}>{motivational.emoji}</div>
         <div>
           <div style={{fontSize:15,fontWeight:700,color:motivational.color,marginBottom:4}}>{motivational.title}</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.6}}>{motivational.body}</div>
+          <div style={{fontSize:12,color:t.t2,lineHeight:1.6}}>{motivational.body}</div>
         </div>
       </div>
 
       {/* STAT CARDS */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
         {statCards.map((c,i)=>(
-          <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${c.color}22`,borderRadius:10,padding:"16px 14px",textAlign:"center"}}>
+          <div key={i} style={{background:t.bg,border:`1px solid ${c.color}22`,borderRadius:10,padding:"16px 14px",textAlign:"center"}}>
             <div style={{fontSize:18,marginBottom:6}}>{c.icon}</div>
             <div style={{fontSize:26,fontWeight:800,color:c.color,fontFamily:"'Inter',sans-serif",marginBottom:3}}>{c.value}</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.28)",fontWeight:500}}>{c.label}</div>
+            <div style={{fontSize:10,color:t.t3,fontWeight:500}}>{c.label}</div>
           </div>
         ))}
       </div>
 
       {/* STATUS BREAKDOWN */}
-      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:18}}>
-        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",marginBottom:14,textTransform:"uppercase",letterSpacing:"1px"}}>Applications by Status</div>
+      <div style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:18}}>
+        <div style={{fontSize:11,fontWeight:700,color:t.t3,marginBottom:14,textTransform:"uppercase",letterSpacing:"1px"}}>Applications by Status</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
           {(["Saved","Applied","Interviewing","Offer","Rejected"] as AppStatus[]).map(s=>(
             <div key={s} style={{background:`${sc2[s]}0d`,border:`1px solid ${sc2[s]}28`,borderRadius:8,padding:"12px 8px",textAlign:"center"}}>
@@ -448,13 +449,13 @@ function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]
       </div>
 
       {/* FUNNEL */}
-      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:18}}>
-        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",marginBottom:14,textTransform:"uppercase",letterSpacing:"1px"}}>Application Funnel</div>
+      <div style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:18}}>
+        <div style={{fontSize:11,fontWeight:700,color:t.t3,marginBottom:14,textTransform:"uppercase",letterSpacing:"1px"}}>Application Funnel</div>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {funnel.map((f,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:12}}>
-              <div style={{fontSize:11,color:"rgba(255,255,255,0.35)",width:90,flexShrink:0}}>{f.label}</div>
-              <div style={{flex:1,height:7,background:"rgba(255,255,255,0.04)",borderRadius:99,overflow:"hidden"}}>
+              <div style={{fontSize:11,color:t.t3,width:90,flexShrink:0}}>{f.label}</div>
+              <div style={{flex:1,height:7,background:lm?"rgba(0,0,0,0.06)":"rgba(255,255,255,0.04)",borderRadius:99,overflow:"hidden"}}>
                 <div style={{height:"100%",width:`${(f.count/mx)*100}%`,background:f.color,borderRadius:99,transition:"width .7s ease"}}/>
               </div>
               <div style={{fontSize:12,fontWeight:700,color:f.color,width:28,textAlign:"right"}}>{f.count}</div>
@@ -465,10 +466,10 @@ function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]
 
       {/* TIPS — only when no apps */}
       {apps.length===0&&(
-        <div style={{background:"rgba(255,255,255,0.015)",border:"1px dashed rgba(255,255,255,0.07)",borderRadius:12,padding:24,textAlign:"center"}}>
+        <div style={{background:t.bg,border:`1px dashed ${t.bd}`,borderRadius:12,padding:24,textAlign:"center"}}>
           <div style={{fontSize:34,marginBottom:12}}>📊</div>
-          <div style={{fontSize:14,fontWeight:600,color:"rgba(255,255,255,0.35)",marginBottom:6}}>No tracking data yet</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,0.2)"}}>Click "+ Track" on job cards to start building your pipeline.</div>
+          <div style={{fontSize:14,fontWeight:600,color:t.t3,marginBottom:6}}>No tracking data yet</div>
+          <div style={{fontSize:12,color:t.t4}}>Click "+ Track" on job cards to start building your pipeline.</div>
         </div>
       )}
     </div>
@@ -504,53 +505,55 @@ const TRACKER_COLS: { status: AppStatus; label: string; icon: string; color: str
   { status:"Rejected",   label:"Rejected",    icon:"❌", color:"#ef4444", border:"rgba(239,68,68,0.2)",   bg:"rgba(239,68,68,0.05)"   },
 ];
 
-function TrackerCard({ app, onUpdateStatus, onUpdateNotes, onRemove }: { app: TrackedApp; onUpdateStatus:(s:AppStatus)=>void; onUpdateNotes:(n:string)=>void; onRemove:()=>void }) {
+function TrackerCard({ app, onUpdateStatus, onUpdateNotes, onRemove, lm }: { app: TrackedApp; onUpdateStatus:(s:AppStatus)=>void; onUpdateNotes:(n:string)=>void; onRemove:()=>void; lm?:boolean }) {
+  const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.35)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.07)":"rgba(255,255,255,0.07)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.025)"};
   const col = TRACKER_COLS.find(c=>c.status===app.status)!;
   const prev = TRACKER_COLS[TRACKER_COLS.findIndex(c=>c.status===app.status)-1];
   const next = TRACKER_COLS[TRACKER_COLS.findIndex(c=>c.status===app.status)+1];
   return(
-    <div style={{background:"rgba(255,255,255,0.025)",borderRadius:8,padding:12,border:`1px solid ${col.border}`,display:"flex",flexDirection:"column",gap:8}}>
+    <div style={{background:t.bg,borderRadius:8,padding:12,border:`1px solid ${col.border}`,display:"flex",flexDirection:"column",gap:8}}>
       <div style={{display:"flex",alignItems:"flex-start",gap:8}}>
-        <div style={{width:30,height:30,borderRadius:6,border:"1px solid rgba(255,255,255,0.07)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.03)",flexShrink:0}}>
-          {app.job.employer_logo?<img src={app.job.employer_logo} alt="" onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.3)"}}>{app.job.employer_name?.[0]}</span>}
+        <div style={{width:30,height:30,borderRadius:6,border:`1px solid ${t.bd}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:t.bg,flexShrink:0}}>
+          {app.job.employer_logo?<img src={app.job.employer_logo} alt="" onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:11,fontWeight:700,color:t.t3}}>{app.job.employer_name?.[0]}</span>}
         </div>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:11,fontWeight:700,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{app.job.job_title}</div>
+          <div style={{fontSize:11,fontWeight:700,color:t.t1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{app.job.job_title}</div>
           <div style={{fontSize:10,color:col.color,marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{app.job.employer_name}</div>
         </div>
-        <button style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.15)",fontSize:12,padding:0,flexShrink:0}} onClick={onRemove}>✕</button>
+        <button style={{background:"none",border:"none",cursor:"pointer",color:t.t4,fontSize:12,padding:0,flexShrink:0}} onClick={onRemove}>✕</button>
       </div>
-      <div style={{fontSize:10,color:"rgba(255,255,255,0.2)"}}>Added {new Date(app.appliedDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
+      <div style={{fontSize:10,color:t.t4}}>Added {new Date(app.appliedDate).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
       <div style={{display:"flex",gap:4}}>
         {prev&&<button style={{flex:1,padding:"4px 0",border:`1px solid ${prev.border}`,borderRadius:4,fontSize:9,fontWeight:600,cursor:"pointer",background:"transparent",color:prev.color,fontFamily:"inherit"}} onClick={()=>onUpdateStatus(prev.status)}>← {prev.label}</button>}
         {next&&<button style={{flex:1,padding:"4px 0",border:`1px solid ${next.border}`,borderRadius:4,fontSize:9,fontWeight:700,cursor:"pointer",background:next.bg,color:next.color,fontFamily:"inherit"}} onClick={()=>onUpdateStatus(next.status)}>{next.label} →</button>}
       </div>
-      <textarea style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:6,padding:"5px 8px",fontSize:10,fontFamily:"inherit",resize:"none",outline:"none",color:"rgba(255,255,255,0.4)"}} placeholder="Notes…" value={app.notes} onChange={e=>onUpdateNotes(e.target.value)} rows={2}/>
+      <textarea style={{width:"100%",boxSizing:"border-box",background:t.bg,border:`1px solid ${t.bd}`,borderRadius:6,padding:"5px 8px",fontSize:10,fontFamily:"inherit",resize:"none",outline:"none",color:t.t2}} placeholder="Notes…" value={app.notes} onChange={e=>onUpdateNotes(e.target.value)} rows={2}/>
       {app.job.job_apply_link&&<a href={app.job.job_apply_link} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#818cf8",fontWeight:600,textDecoration:"none"}}>View Job →</a>}
     </div>
   );
 }
 
-function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove }: { apps: TrackedApp[]; onUpdateStatus:(id:string,s:AppStatus)=>void; onUpdateNotes:(id:string,n:string)=>void; onRemove:(id:string)=>void }) {
+function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove, lm }: { apps: TrackedApp[]; onUpdateStatus:(id:string,s:AppStatus)=>void; onUpdateNotes:(id:string,n:string)=>void; onRemove:(id:string)=>void; lm?:boolean }) {
+  const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.35)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.07)":"rgba(255,255,255,0.06)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.025)"};
   if(apps.length===0) return(
-    <div style={{textAlign:"center",padding:"64px 24px",background:"rgba(255,255,255,0.02)",borderRadius:12,border:"1px dashed rgba(255,255,255,0.06)"}}>
+    <div style={{textAlign:"center",padding:"64px 24px",background:t.bg,borderRadius:12,border:`1px dashed ${t.bd}`}}>
       <div style={{fontSize:36,marginBottom:14}}>📋</div>
-      <h3 style={{fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:8}}>No applications tracked yet</h3>
-      <p style={{fontSize:13,color:"rgba(255,255,255,0.2)"}}>Click "+ Track" on any job card to add it here.</p>
+      <h3 style={{fontSize:16,color:t.t3,marginBottom:8}}>No applications tracked yet</h3>
+      <p style={{fontSize:13,color:t.t4}}>Click "+ Track" on any job card to add it here.</p>
     </div>
   );
   return(
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
       {/* SUMMARY BAR */}
-      <div style={{display:"flex",alignItems:"center",gap:0,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,overflow:"hidden"}}>
-        <div style={{padding:"14px 20px",textAlign:"center",borderRight:"1px solid rgba(255,255,255,0.05)"}}>
-          <div style={{fontSize:24,fontWeight:800,color:"#fff"}}>{apps.length}</div>
-          <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Total</div>
+      <div style={{display:"flex",alignItems:"center",gap:0,background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,overflow:"hidden"}}>
+        <div style={{padding:"14px 20px",textAlign:"center",borderRight:`1px solid ${t.bd}`}}>
+          <div style={{fontSize:24,fontWeight:800,color:t.t1}}>{apps.length}</div>
+          <div style={{fontSize:10,color:t.t3}}>Total</div>
         </div>
         {TRACKER_COLS.map(c=>(
-          <div key={c.status} style={{flex:1,padding:"14px 8px",textAlign:"center",borderRight:"1px solid rgba(255,255,255,0.05)"}}>
+          <div key={c.status} style={{flex:1,padding:"14px 8px",textAlign:"center",borderRight:`1px solid ${t.bd}`}}>
             <div style={{fontSize:20,fontWeight:800,color:c.color}}>{apps.filter(a=>a.status===c.status).length}</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{c.label}</div>
+            <div style={{fontSize:10,color:t.t3}}>{c.label}</div>
           </div>
         ))}
       </div>
@@ -563,10 +566,10 @@ function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove }: { apps: 
               <span style={{fontSize:14,fontWeight:800}}>{apps.filter(a=>a.status===col.status).length}</span>
             </div>
             {apps.filter(a=>a.status===col.status).map(app=>(
-              <TrackerCard key={app.id} app={app} onUpdateStatus={s=>onUpdateStatus(app.id,s)} onUpdateNotes={n=>onUpdateNotes(app.id,n)} onRemove={()=>onRemove(app.id)}/>
+              <TrackerCard key={app.id} app={app} onUpdateStatus={s=>onUpdateStatus(app.id,s)} onUpdateNotes={n=>onUpdateNotes(app.id,n)} onRemove={()=>onRemove(app.id)} lm={lm}/>
             ))}
             {apps.filter(a=>a.status===col.status).length===0&&(
-              <div style={{textAlign:"center",padding:"20px 8px",color:"rgba(255,255,255,0.1)",fontSize:10,background:"rgba(255,255,255,0.01)",borderRadius:6,border:"1px dashed rgba(255,255,255,0.04)"}}>Empty</div>
+              <div style={{textAlign:"center",padding:"20px 8px",color:t.t4,fontSize:10,background:t.bg,borderRadius:6,border:`1px dashed ${t.bd}`}}>Empty</div>
             )}
           </div>
         ))}
@@ -698,8 +701,8 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 }
 
 // JOB CARD — 2x3 grid, highlighted Match + Prep
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, lm }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;lm?:boolean;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -713,6 +716,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
   const successColor=successChance>=70?"#10b981":successChance>=50?"#f59e0b":"#ef4444";
   const successBg=successChance>=70?"rgba(16,185,129,0.08)":successChance>=50?"rgba(245,158,11,0.08)":"rgba(239,68,68,0.08)";
   const successBorder=successChance>=70?"rgba(16,185,129,0.22)":successChance>=50?"rgba(245,158,11,0.22)":"rgba(239,68,68,0.22)";
+  const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.3)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.06)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.03)"};
 
   return(
     <div className={`job-card${hot&&earlyBirdMode?" job-card-hot":""}`} style={{display:"flex",flexDirection:"column",gap:12,position:"relative"}}>
@@ -722,17 +726,17 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       {/* HEADER */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginTop:hot&&earlyBirdMode?18:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer",minWidth:0}} onClick={onClick}>
-          <div style={{width:42,height:42,borderRadius:8,border:"1px solid rgba(255,255,255,0.07)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.03)",flexShrink:0}}>
+          <div style={{width:42,height:42,borderRadius:8,border:`1px solid ${t.bd}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:t.bg,flexShrink:0}}>
             {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:17,fontWeight:700,color:"rgba(99,102,241,0.5)"}}>{job.employer_name?.[0]??"?"}</span>}
           </div>
           <div style={{minWidth:0}}>
-            <h3 style={{fontSize:14,fontWeight:700,color:"#fff",lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title}</h3>
+            <h3 style={{fontSize:14,fontWeight:700,color:t.t1,lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title}</h3>
             <p style={{fontSize:12,color:"#818cf8",fontWeight:500,marginBottom:1}}>{job.employer_name}</p>
-            <p style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{job.job_is_remote?"🌐 Remote":loc||"Location not specified"}</p>
+            <p style={{fontSize:10,color:t.t4}}>{job.job_is_remote?"🌐 Remote":loc||"Location not specified"}</p>
           </div>
         </div>
         <button style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.5,flexShrink:0}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":"rgba(255,255,255,0.3)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":t.t3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
         </button>
       </div>
 
@@ -741,21 +745,21 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 9px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
           <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
         </div>
-        <span style={{fontSize:10,color:"rgba(255,255,255,0.2)"}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
+        <span style={{fontSize:10,color:t.t4}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
       </div>
 
       {/* MATCH SCORE (if available) */}
       {(job.match||job.matchLoading)&&(
         <div style={{display:"flex",alignItems:"center",gap:10,borderRadius:8,padding:"8px 12px",border:`1px solid ${job.match?scoreColor(job.match.matchScore)+"22":"rgba(99,102,241,0.15)"}`,background:job.match?scoreColor(job.match.matchScore)+"07":"rgba(99,102,241,0.04)"}}>
-          {job.matchLoading?<><div className="spin-sm"/><span style={{fontSize:11,color:"#818cf8"}}>Analyzing…</span></>:<><ScoreRing score={job.match!.matchScore}/><div><div style={{fontSize:12,fontWeight:700,color:scoreColor(job.match!.matchScore)}}>{job.match!.matchLabel} Match — {job.match!.matchScore}%</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)",marginTop:1}}>{job.match!.matchedSkills.slice(0,2).join(" · ")}</div></div></>}
+          {job.matchLoading?<><div className="spin-sm"/><span style={{fontSize:11,color:"#818cf8"}}>Analyzing…</span></>:<><ScoreRing score={job.match!.matchScore}/><div><div style={{fontSize:12,fontWeight:700,color:scoreColor(job.match!.matchScore)}}>{job.match!.matchLabel} Match — {job.match!.matchScore}%</div><div style={{fontSize:10,color:t.t4,marginTop:1}}>{job.match!.matchedSkills.slice(0,2).join(" · ")}</div></div></>}
         </div>
       )}
 
       {/* NO RESUME PLACEHOLDER */}
       {!job.match&&!job.matchLoading&&!resumeReady&&(
-        <div style={{display:"flex",alignItems:"center",gap:8,borderRadius:8,padding:"7px 12px",border:"1px solid rgba(255,255,255,0.05)",background:"rgba(255,255,255,0.02)"}}>
-          <span style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>-- Match</span>
-          <span style={{fontSize:10,color:"rgba(255,255,255,0.15)"}}>· Upload resume to see your score</span>
+        <div style={{display:"flex",alignItems:"center",gap:8,borderRadius:8,padding:"7px 12px",border:`1px solid ${t.bd}`,background:t.bg}}>
+          <span style={{fontSize:11,color:t.t4}}>-- Match</span>
+          <span style={{fontSize:10,color:t.t4}}>· Upload resume to see your score</span>
         </div>
       )}
 
@@ -770,7 +774,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       </div>
 
       {/* ACTION BUTTONS — Match & Prep highlighted */}
-      <div style={{borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:10,display:"flex",gap:5,flexWrap:"wrap"}}>
+      <div style={{borderTop:`1px solid ${t.bd}`,paddingTop:10,display:"flex",gap:5,flexWrap:"wrap"}}>
         {/* MATCH */}
         <button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="AI scores your resume vs this job">
           {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
@@ -1391,12 +1395,12 @@ export default function Home() {
             </button>
           </div>
 
-          {activeTab==="tracker"&&<TrackerView apps={trackedApps}
+          {activeTab==="tracker"&&<TrackerView lm={!darkMode} apps={trackedApps}
             onUpdateStatus={(id,s)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,status:s}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
             onUpdateNotes={(id,n)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,notes:n}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
             onRemove={id=>setTrackedApps(prev=>{const next=prev.filter(a=>a.id!==id);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
           />}
-          {activeTab==="analytics"&&<AnalyticsView apps={trackedApps} savedCount={savedJobs.size} totalSearched={totalSearched}/>}
+          {activeTab==="analytics"&&<AnalyticsView lm={!darkMode} apps={trackedApps} savedCount={savedJobs.size} totalSearched={totalSearched}/>}
 
           {(activeTab==="results"||activeTab==="earlybird"||activeTab==="saved")&&(
             <>
@@ -1407,9 +1411,9 @@ export default function Home() {
                     <div style={{fontSize:11,color:"rgba(245,158,11,0.4)"}}>Jobs posted in the last 24 hours — minimal competition</div>
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:18}}>
-                    <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800}}>{earlyBirdJobs.length}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>Fresh Jobs</div></div>
-                    <div style={{width:1,height:28,background:"rgba(255,255,255,0.06)"}}/>
-                    <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:"#ef4444"}}>{hotCount}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>🔥 Under 6h</div></div>
+                    <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:darkMode?"#fff":"#111"}}>{earlyBirdJobs.length}</div><div style={{fontSize:10,color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>Fresh Jobs</div></div>
+                    <div style={{width:1,height:28,background:darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}}/>
+                    <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:"#ef4444"}}>{hotCount}</div><div style={{fontSize:10,color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>🔥 Under 6h</div></div>
                   </div>
                 </div>
               )}
@@ -1419,7 +1423,7 @@ export default function Home() {
               {currentLoading&&(
                 <div className="jobs-grid">
                   {[...Array(6)].map((_,i)=>(
-                    <div key={i} style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:10}}>
+                    <div key={i} style={{background:darkMode?"rgba(255,255,255,0.025)":"#fff",border:`1px solid ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.07)"}`,borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:10}}>
                       <div style={{display:"flex",gap:10}}><div className="skel" style={{width:42,height:42,borderRadius:8,flexShrink:0}}/><div style={{flex:1,display:"flex",flexDirection:"column",gap:7}}><div className="skel" style={{height:13,width:"68%"}}/><div className="skel" style={{height:10,width:"42%"}}/></div></div>
                       <div className="skel" style={{height:32,borderRadius:7}}/>
                       <div style={{display:"flex",gap:5}}><div className="skel" style={{height:30,flex:1,borderRadius:6}}/><div className="skel" style={{height:30,flex:1,borderRadius:6}}/><div className="skel" style={{height:30,flex:1,borderRadius:6}}/></div>
@@ -1430,8 +1434,8 @@ export default function Home() {
 
               {!currentLoading&&paginatedJobs.length>0&&(
                 <>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.22)",marginBottom:14}}>
-                    Showing <strong style={{color:"rgba(255,255,255,0.45)"}}>{(currentPage-1)*JOBS_PER_PAGE+1}–{Math.min(currentPage*JOBS_PER_PAGE,displayJobs.length)}</strong> of <strong style={{color:"rgba(255,255,255,0.45)"}}>{displayJobs.length}</strong> jobs
+                  <div style={{fontSize:11,color:darkMode?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.4)",marginBottom:14}}>
+                    Showing <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{(currentPage-1)*JOBS_PER_PAGE+1}–{Math.min(currentPage*JOBS_PER_PAGE,displayJobs.length)}</strong> of <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{displayJobs.length}</strong> jobs
                     {isEbMode&&<span style={{color:"#f59e0b",fontWeight:600}}> · ⚡ All posted today</span>}
                   </div>
                   <div className="jobs-grid">
@@ -1451,6 +1455,7 @@ export default function Home() {
                         resumeReady={!!resumeText}
                         isTracked={!!trackedApps.find(a=>a.job.job_id===job.job_id)}
                         onTrack={()=>addToTracker(job)}
+                        lm={!darkMode}
                       />
                     ))}
                   </div>
@@ -1465,10 +1470,10 @@ export default function Home() {
               )}
 
               {!currentLoading&&paginatedJobs.length===0&&(
-                <div style={{textAlign:"center",padding:"56px 24px",background:"rgba(255,255,255,0.015)",borderRadius:12,border:"1px dashed rgba(255,255,255,0.06)"}}>
+                <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
                   <div style={{fontSize:36,marginBottom:12}}>{activeTab==="saved"?"🔖":activeTab==="earlybird"?"⚡":"🔍"}</div>
-                  <h3 style={{fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:6,fontWeight:700}}>{activeTab==="saved"?"No saved jobs":activeTab==="earlybird"?"No early bird jobs yet":"Start your search"}</h3>
-                  <p style={{fontSize:12,color:"rgba(255,255,255,0.2)"}}>{activeTab==="saved"?"Bookmark jobs to see them here":activeTab==="earlybird"?"Click ⚡ Early Bird to find freshly posted jobs":"Enter a job role and location above to find opportunities"}</p>
+                  <h3 style={{fontSize:16,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>{activeTab==="saved"?"No saved jobs":activeTab==="earlybird"?"No early bird jobs yet":"Start your search"}</h3>
+                  <p style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)"}}>{activeTab==="saved"?"Bookmark jobs to see them here":activeTab==="earlybird"?"Click ⚡ Early Bird to find freshly posted jobs":"Enter a job role and location above to find opportunities"}</p>
                 </div>
               )}
             </>
