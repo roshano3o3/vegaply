@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         {
           method: "GET",
           headers: {
-            "X-RapidAPI-Key": process.env.RAPIDAPI_KEY ?? "",
+            "X-RapidAPI-Key": "3b0e6ccc99mshc01a164089bc27cp19afc3jsn2bad51802495",
             "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
           },
           next: { revalidate: 0 }, // always fresh data

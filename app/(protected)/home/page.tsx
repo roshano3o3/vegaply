@@ -1039,6 +1039,7 @@ export default function Home() {
   };
 
   const handleSearch=async()=>{
+    console.log("SEARCH CLICKED",{jobRole,location});
     if(!jobRole||!location){alert("Please enter job role and location");return;}
     localStorage.setItem("applysmart_jobRole",jobRole);
     localStorage.setItem("applysmart_location",location);
