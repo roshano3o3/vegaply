@@ -365,45 +365,106 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
 function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]; savedCount: number; totalSearched: number }) {
   const sc: Record<AppStatus,number> = {Saved:0,Applied:0,Interviewing:0,Offer:0,Rejected:0};
   apps.forEach(a=>{sc[a.status]=(sc[a.status]||0)+1;});
-  const totalApplied=sc.Applied+sc.Interviewing+sc.Offer+sc.Rejected;
-  const rr = totalApplied>0?Math.round(((sc.Interviewing+sc.Offer)/totalApplied)*100):0;
-  const cards = [{label:"Total Tracked",value:apps.length,color:"#06b6d4",icon:"📋"},{label:"Interviewing",value:sc.Interviewing,color:"#f59e0b",icon:"🎯"},{label:"Offers",value:sc.Offer,color:"#10b981",icon:"🎉"},{label:"Response Rate",value:`${rr}%`,color:"#0ea5e9",icon:"📈"}];
-  const funnel = [{label:"Jobs Scanned",count:totalSearched,color:"rgba(255,255,255,0.15)"},{label:"Bookmarked",count:savedCount,color:"#94a3b8"},{label:"Applied",count:totalApplied,color:"#06b6d4"},{label:"Offers",count:sc.Offer,color:"#10b981"}];
-  const mx = Math.max(funnel[0].count,1);
+  const totalApplied = sc.Applied+sc.Interviewing+sc.Offer+sc.Rejected;
+  const responseRate = totalApplied>0 ? Math.round(((sc.Interviewing+sc.Offer)/totalApplied)*100) : 0;
+  const offerRate    = totalApplied>0 ? Math.round((sc.Offer/totalApplied)*100) : 0;
+  const rejectionRate= totalApplied>0 ? Math.round((sc.Rejected/totalApplied)*100) : 0;
+
+  const motivational = (()=>{
+    if(apps.length===0) return { emoji:"🚀", title:"Ready to launch?", body:"Add your first job to the Tracker to start seeing your analytics here.", color:"#06b6d4" };
+    if(sc.Offer>0)       return { emoji:"🎉", title:"You have an offer!", body:`${sc.Offer} offer${sc.Offer>1?"s":""} — you're crushing it. Keep negotiating and don't stop tracking.`, color:"#10b981" };
+    if(sc.Interviewing>0)return { emoji:"🎯", title:"Interviews incoming!", body:`${sc.Interviewing} interview${sc.Interviewing>1?"s":""} lined up. Prep hard with the Interview Prep tool and land that offer.`, color:"#f59e0b" };
+    if(totalApplied>10&&responseRate===0) return { emoji:"💡", title:"No responses yet — let's fix that.", body:"Try tailoring your resume to each job description. Even small changes improve ATS scores significantly.", color:"#f59e0b" };
+    if(totalApplied>0&&responseRate>0)   return { emoji:"📈", title:`${responseRate}% response rate — keep going!`, body:"You're getting traction. Apply to 5 more jobs today to keep the pipeline full.", color:"#06b6d4" };
+    if(totalApplied>0)  return { emoji:"⚡", title:"Applications sent!", body:"Consistency wins. Aim for 5–10 quality applications per day and use the Match tool to prioritise.", color:"#06b6d4" };
+    return { emoji:"🔖", title:`${sc.Saved} job${sc.Saved!==1?"s":""} saved — time to apply!`, body:"You've bookmarked jobs. Hit Apply on your top picks and move them to Applied to track your progress.", color:"#94a3b8" };
+  })();
+
+  const statCards = [
+    { label:"Total Tracked", value:apps.length,        icon:"📋", color:"#06b6d4" },
+    { label:"Applied",       value:totalApplied,        icon:"📤", color:"#06b6d4" },
+    { label:"Interviewing",  value:sc.Interviewing,     icon:"🎯", color:"#f59e0b" },
+    { label:"Offers",        value:sc.Offer,            icon:"🎉", color:"#10b981" },
+    { label:"Response Rate", value:`${responseRate}%`,  icon:"📈", color:"#0ea5e9" },
+    { label:"Offer Rate",    value:`${offerRate}%`,     icon:"✅", color:"#10b981" },
+    { label:"Rejected",      value:sc.Rejected,         icon:"❌", color:"#ef4444" },
+    { label:"Rejection Rate",value:`${rejectionRate}%`, icon:"📉", color:"#ef4444" },
+  ];
+
+  const funnel = [
+    { label:"Jobs Scanned", count:totalSearched, color:"rgba(255,255,255,0.2)" },
+    { label:"Bookmarked",   count:savedCount,    color:"#94a3b8" },
+    { label:"Tracked",      count:apps.length,   color:"#06b6d4" },
+    { label:"Applied",      count:totalApplied,  color:"#f59e0b" },
+    { label:"Interviewing", count:sc.Interviewing,color:"#a78bfa" },
+    { label:"Offers",       count:sc.Offer,      color:"#10b981" },
+  ];
+  const mx = Math.max(funnel[0].count, 1);
+
   const sc2: Record<AppStatus,string> = {Saved:"#94a3b8",Applied:"#06b6d4",Interviewing:"#f59e0b",Offer:"#10b981",Rejected:"#ef4444"};
+  const sc2icon: Record<AppStatus,string> = {Saved:"🔖",Applied:"📤",Interviewing:"🎯",Offer:"🎉",Rejected:"❌"};
+
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:20}}>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-        {cards.map((c,i)=>(
-          <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${c.color}20`,borderRadius:12,padding:20,textAlign:"center"}}>
-            <div style={{fontSize:22,marginBottom:8}}>{c.icon}</div>
-            <div style={{fontSize:30,fontWeight:800,color:c.color,marginBottom:4,fontFamily:"'Inter',sans-serif"}}>{c.value}</div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{c.label}</div>
+    <div style={{display:"flex",flexDirection:"column",gap:18}}>
+
+      {/* MOTIVATIONAL BANNER */}
+      <div style={{background:`linear-gradient(135deg,${motivational.color}12,${motivational.color}06)`,border:`1px solid ${motivational.color}28`,borderRadius:14,padding:"18px 22px",display:"flex",alignItems:"flex-start",gap:14}}>
+        <div style={{fontSize:30,flexShrink:0,lineHeight:1}}>{motivational.emoji}</div>
+        <div>
+          <div style={{fontSize:15,fontWeight:700,color:motivational.color,marginBottom:4}}>{motivational.title}</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.6}}>{motivational.body}</div>
+        </div>
+      </div>
+
+      {/* STAT CARDS */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+        {statCards.map((c,i)=>(
+          <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${c.color}22`,borderRadius:10,padding:"16px 14px",textAlign:"center"}}>
+            <div style={{fontSize:18,marginBottom:6}}>{c.icon}</div>
+            <div style={{fontSize:26,fontWeight:800,color:c.color,fontFamily:"'Inter',sans-serif",marginBottom:3}}>{c.value}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.28)",fontWeight:500}}>{c.label}</div>
           </div>
         ))}
       </div>
-      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:20}}>
-        <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.6)",marginBottom:16,textTransform:"uppercase",letterSpacing:"0.5px"}}>Application Funnel</div>
-        {funnel.map((f,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"center",gap:12,marginBottom:i<funnel.length-1?12:0}}>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.3)",width:100,flexShrink:0}}>{f.label}</div>
-            <div style={{flex:1,height:6,background:"rgba(255,255,255,0.05)",borderRadius:6,overflow:"hidden"}}><div style={{height:"100%",width:`${(f.count/mx)*100}%`,background:f.color,borderRadius:6,transition:"width .6s ease"}}/></div>
-            <div style={{fontWeight:700,fontSize:13,color:f.color,width:24,textAlign:"right"}}>{f.count}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:20}}>
-        <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.6)",marginBottom:16,textTransform:"uppercase",letterSpacing:"0.5px"}}>Status Breakdown</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
-          {(Object.entries(sc) as [AppStatus,number][]).map(([s,c])=>(
-            <div key={s} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${sc2[s]}20`,borderRadius:8,padding:14,textAlign:"center"}}>
-              <div style={{fontSize:26,fontWeight:800,color:sc2[s]}}>{c}</div>
-              <div style={{fontSize:11,fontWeight:500,color:sc2[s],marginTop:3,opacity:0.7}}>{s}</div>
+
+      {/* STATUS BREAKDOWN */}
+      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:18}}>
+        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",marginBottom:14,textTransform:"uppercase",letterSpacing:"1px"}}>Applications by Status</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+          {(["Saved","Applied","Interviewing","Offer","Rejected"] as AppStatus[]).map(s=>(
+            <div key={s} style={{background:`${sc2[s]}0d`,border:`1px solid ${sc2[s]}28`,borderRadius:8,padding:"12px 8px",textAlign:"center"}}>
+              <div style={{fontSize:16,marginBottom:4}}>{sc2icon[s]}</div>
+              <div style={{fontSize:24,fontWeight:800,color:sc2[s]}}>{sc[s]}</div>
+              <div style={{fontSize:10,fontWeight:500,color:sc2[s],marginTop:3,opacity:0.75}}>{s}</div>
             </div>
           ))}
         </div>
       </div>
-      {apps.length===0&&<div style={{textAlign:"center",padding:"48px 24px",background:"rgba(255,255,255,0.02)",borderRadius:12,border:"1px dashed rgba(255,255,255,0.06)"}}><div style={{fontSize:36,marginBottom:14}}>📊</div><h3 style={{fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:8}}>No data yet</h3><p style={{fontSize:13,color:"rgba(255,255,255,0.2)"}}>Start tracking applications to see your analytics here.</p></div>}
+
+      {/* FUNNEL */}
+      <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12,padding:18}}>
+        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",marginBottom:14,textTransform:"uppercase",letterSpacing:"1px"}}>Application Funnel</div>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {funnel.map((f,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:12}}>
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.35)",width:90,flexShrink:0}}>{f.label}</div>
+              <div style={{flex:1,height:7,background:"rgba(255,255,255,0.04)",borderRadius:99,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${(f.count/mx)*100}%`,background:f.color,borderRadius:99,transition:"width .7s ease"}}/>
+              </div>
+              <div style={{fontSize:12,fontWeight:700,color:f.color,width:28,textAlign:"right"}}>{f.count}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* TIPS — only when no apps */}
+      {apps.length===0&&(
+        <div style={{background:"rgba(255,255,255,0.015)",border:"1px dashed rgba(255,255,255,0.07)",borderRadius:12,padding:24,textAlign:"center"}}>
+          <div style={{fontSize:34,marginBottom:12}}>📊</div>
+          <div style={{fontSize:14,fontWeight:600,color:"rgba(255,255,255,0.35)",marginBottom:6}}>No tracking data yet</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.2)"}}>Click "+ Track" on job cards to start building your pipeline.</div>
+        </div>
+      )}
     </div>
   );
 }
