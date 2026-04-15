@@ -50,7 +50,7 @@ function timeAgo(d?: string) {
 function isHot(d?: string) { return getHoursAgo(d) < 6; }
 function isEarlyBird(d?: string) { return getHoursAgo(d) < 24; }
 function empBadge(t?: string) { return ({ FULLTIME: "Full-time", PARTTIME: "Part-time", CONTRACTOR: "Contract", INTERN: "Internship" } as any)[t ?? ""] ?? t ?? null; }
-function scoreColor(s: number) { return s >= 80 ? "#10b981" : s >= 65 ? "#06b6d4" : s >= 50 ? "#f59e0b" : "#ef4444"; }
+function scoreColor(s: number) { return s >= 80 ? "#10b981" : s >= 65 ? "#818cf8" : s >= 50 ? "#f59e0b" : "#ef4444"; }
 
 function getCompetitionLabel(h: number) {
   if (h < 2)  return { label: "🔥 Very Low Competition", color: "#ef4444", bg: "rgba(239,68,68,0.08)" };
@@ -108,22 +108,22 @@ function WelcomeTour({ onClose }: { onClose: () => void }) {
   const current = steps[step];
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(5,8,16,0.97)",zIndex:600,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(20px)"}}>
-      <div style={{background:"#0a0f1e",border:"1px solid rgba(6,182,212,0.2)",borderRadius:20,padding:40,width:"100%",maxWidth:480,textAlign:"center",boxShadow:"0 0 60px rgba(6,182,212,0.08)"}}>
+      <div style={{background:"#0a0a10",border:"1px solid rgba(99,102,241,0.2)",borderRadius:20,padding:40,width:"100%",maxWidth:480,textAlign:"center",boxShadow:"0 0 60px rgba(99,102,241,0.08)"}}>
         {/* Progress dots */}
         <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:32}}>
           {steps.map((_, i) => (
-            <div key={i} style={{height:3,borderRadius:3,transition:"all .3s",background:i===step?"#06b6d4":i<step?"rgba(6,182,212,0.4)":"rgba(255,255,255,0.08)",width:i===step?28:8}}/>
+            <div key={i} style={{height:3,borderRadius:3,transition:"all .3s",background:i===step?"#818cf8":i<step?"rgba(99,102,241,0.4)":"rgba(255,255,255,0.08)",width:i===step?28:8}}/>
           ))}
         </div>
         <div style={{fontSize:48,marginBottom:16}}>{current.icon}</div>
         <div style={{fontSize:22,fontWeight:700,color:"#fff",marginBottom:10,letterSpacing:"-0.3px"}}>{current.title}</div>
         <p style={{color:"rgba(255,255,255,0.4)",fontSize:14,lineHeight:1.7,marginBottom:16}}>{current.desc}</p>
-        <div style={{background:"rgba(6,182,212,0.06)",border:"1px solid rgba(6,182,212,0.15)",borderRadius:10,padding:"10px 16px",fontSize:13,color:"#06b6d4",marginBottom:28}}>💡 {current.highlight}</div>
+        <div style={{background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:10,padding:"10px 16px",fontSize:13,color:"#818cf8",marginBottom:28}}>💡 {current.highlight}</div>
         <div style={{display:"flex",gap:10}}>
           {step > 0 && <button onClick={()=>setStep(s=>s-1)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"12px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.3)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>}
           {step < steps.length - 1
-            ? <button onClick={()=>setStep(s=>s+1)} style={{flex:2,background:"linear-gradient(135deg,#0891b2,#06b6d4)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Next →</button>
-            : <button onClick={onClose} style={{flex:2,background:"linear-gradient(135deg,#0891b2,#06b6d4)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Let's Go 🚀</button>
+            ? <button onClick={()=>setStep(s=>s+1)} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Next →</button>
+            : <button onClick={onClose} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Let's Go 🚀</button>
           }
           <button onClick={onClose} style={{position:"absolute",top:16,right:16,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"50%",width:28,height:28,cursor:"pointer",color:"rgba(255,255,255,0.25)",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"inherit"}}>✕</button>
         </div>
@@ -147,17 +147,17 @@ function HelpPanel() {
   ];
   return (
     <>
-      <button onClick={()=>setOpen(o=>!o)} style={{position:"fixed",bottom:24,right:24,width:44,height:44,borderRadius:"50%",background:"linear-gradient(135deg,#0891b2,#06b6d4)",border:"none",cursor:"pointer",fontSize:18,color:"#fff",zIndex:400,boxShadow:"0 4px 20px rgba(6,182,212,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,transition:"transform .2s"}} title="Feature Guide">?</button>
+      <button onClick={()=>setOpen(o=>!o)} style={{position:"fixed",bottom:24,right:24,width:44,height:44,borderRadius:"50%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",cursor:"pointer",fontSize:18,color:"#fff",zIndex:400,boxShadow:"0 4px 20px rgba(99,102,241,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,transition:"transform .2s"}} title="Feature Guide">?</button>
       {open && (
-        <div style={{position:"fixed",bottom:76,right:24,width:300,background:"#0a0f1e",border:"1px solid rgba(6,182,212,0.2)",borderRadius:16,padding:16,zIndex:400,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",animation:"su .18s ease"}}>
-          <div style={{fontSize:13,fontWeight:700,color:"#06b6d4",marginBottom:14,letterSpacing:"0.3px"}}>FEATURE GUIDE</div>
+        <div style={{position:"fixed",bottom:76,right:24,width:300,background:"#0a0a10",border:"1px solid rgba(99,102,241,0.2)",borderRadius:16,padding:16,zIndex:400,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",animation:"su .18s ease"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#818cf8",marginBottom:14,letterSpacing:"0.3px"}}>FEATURE GUIDE</div>
           {features.map((f,i)=>(
             <div key={i} style={{display:"flex",gap:10,padding:"8px 0",borderBottom:i<features.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
               <span style={{fontSize:16,flexShrink:0}}>{f.icon}</span>
               <div><div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.75)"}}>{f.name}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginTop:1}}>{f.desc}</div></div>
             </div>
           ))}
-          <button onClick={()=>setOpen(false)} style={{width:"100%",marginTop:12,background:"rgba(6,182,212,0.08)",border:"1px solid rgba(6,182,212,0.15)",borderRadius:8,padding:"8px",fontSize:12,fontWeight:600,color:"#06b6d4",cursor:"pointer",fontFamily:"inherit"}}>Close</button>
+          <button onClick={()=>setOpen(false)} style={{width:"100%",marginTop:12,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:8,padding:"8px",fontSize:12,fontWeight:600,color:"#818cf8",cursor:"pointer",fontFamily:"inherit"}}>Close</button>
         </div>
       )}
     </>
@@ -178,16 +178,16 @@ function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onC
     setLoading(false);
   };
   useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, []);
-  const color = matchResult ? scoreColor(matchResult.matchScore) : "#06b6d4";
+  const color = matchResult ? scoreColor(matchResult.matchScore) : "#818cf8";
   return (
     <div className="overlay" onClick={onClose} style={{zIndex:250}}>
-      <div style={{position:"fixed",top:0,right:0,bottom:0,width:400,background:"#070c19",borderLeft:"1px solid rgba(6,182,212,0.12)",padding:24,overflowY:"auto",display:"flex",flexDirection:"column",gap:16,animation:"slideIn .25s ease",zIndex:251}} onClick={e=>e.stopPropagation()}>
+      <div style={{position:"fixed",top:0,right:0,bottom:0,width:400,background:"#080810",borderLeft:"1px solid rgba(99,102,241,0.12)",padding:24,overflowY:"auto",display:"flex",flexDirection:"column",gap:16,animation:"slideIn .25s ease",zIndex:251}} onClick={e=>e.stopPropagation()}>
         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",paddingBottom:16,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
           <div><div style={{fontSize:14,fontWeight:700,color:"#fff"}}>Resume Analysis</div><div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginTop:2}}>{job.job_title} · {job.employer_name}</div></div>
           <button className="modal-close" style={{position:"static"}} onClick={onClose}>✕</button>
         </div>
         {!resumeText&&<div style={{textAlign:"center",padding:"40px 20px"}}><div style={{fontSize:40,marginBottom:12}}>📄</div><div style={{fontSize:13,color:"rgba(255,255,255,0.4)"}}>Upload your resume first</div></div>}
-        {resumeText&&loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"48px 20px",gap:14}}><div className="spin" style={{width:32,height:32}}/><div style={{fontSize:13,color:"#06b6d4"}}>Analyzing your resume…</div></div>}
+        {resumeText&&loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"48px 20px",gap:14}}><div className="spin" style={{width:32,height:32}}/><div style={{fontSize:13,color:"#818cf8"}}>Analyzing your resume…</div></div>}
         {resumeText&&!loading&&matchResult&&(
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <div style={{display:"flex",alignItems:"center",gap:14,background:`${color}0d`,border:`1px solid ${color}25`,borderRadius:14,padding:"16px 18px"}}>
@@ -242,7 +242,7 @@ function ResumePanel({ resumeText, fileName, onResume, onClear }: { resumeText: 
   return (
     <div className={`resume-drop${dragging?" dragging":""}`} onDragOver={e=>{e.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)} onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files[0];if(f)handleFile(f);}} onClick={()=>inputRef.current?.click()}>
       <input ref={inputRef} type="file" accept=".pdf" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f)handleFile(f);}}/>
-      {parsing?<div style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#06b6d4"}}><div className="spin"/>Parsing…</div>:(<><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(6,182,212,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.3)",marginTop:6}}>Drop resume PDF here</div><div style={{fontSize:10,color:"rgba(255,255,255,0.18)",marginTop:2}}>or click to browse</div>{error&&<div style={{fontSize:11,color:"#ef4444",marginTop:6}}>{error}</div>}</>)}
+      {parsing?<div style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#818cf8"}}><div className="spin"/>Parsing…</div>:(<><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(99,102,241,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.3)",marginTop:6}}>Drop resume PDF here</div><div style={{fontSize:10,color:"rgba(255,255,255,0.18)",marginTop:2}}>or click to browse</div>{error&&<div style={{fontSize:11,color:"#ef4444",marginTop:6}}>{error}</div>}</>)}
     </div>
   );
 }
@@ -257,10 +257,10 @@ function InterviewModal({ job, interview, onClose }: { job: Job; interview: Inte
       <div className="modal" style={{maxWidth:700}} onClick={e=>e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="modal-head">
-          <div style={{width:48,height:48,background:"rgba(6,182,212,0.08)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:24}}>🤖</div>
+          <div style={{width:48,height:48,background:"rgba(99,102,241,0.08)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:24}}>🤖</div>
           <div><h2 className="modal-title">Interview Prep</h2><p className="modal-sub">{job.job_title} at {job.employer_name}</p></div>
         </div>
-        {interview.keyThemes?.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:16}}>{interview.keyThemes.map((t,i)=><span key={i} style={{background:"rgba(6,182,212,0.08)",color:"#06b6d4",fontSize:11,fontWeight:600,padding:"4px 12px",borderRadius:6,border:"1px solid rgba(6,182,212,0.15)"}}>{t}</span>)}</div>}
+        {interview.keyThemes?.length>0&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:16}}>{interview.keyThemes.map((t,i)=><span key={i} style={{background:"rgba(99,102,241,0.08)",color:"#818cf8",fontSize:11,fontWeight:600,padding:"4px 12px",borderRadius:6,border:"1px solid rgba(99,102,241,0.15)"}}>{t}</span>)}</div>}
         <div className="modal-tabs">
           {[["behavioral",`💬 Behavioral (${allB.length})`],["technical",`⚙️ Technical (${allT.length})`],["ask","🙋 Ask Them"],["tips","⚠️ Watch Out"]].map(([k,label])=>(
             <button key={k} className={`mtab${tab===k?" active":""}`} onClick={()=>{setTab(k as any);setExpanded(null);}}>{label}</button>
@@ -269,9 +269,9 @@ function InterviewModal({ job, interview, onClose }: { job: Job; interview: Inte
         {(tab==="behavioral"||tab==="technical")&&(
           <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:12}}>
             {(tab==="behavioral"?allB:allT).map((q,i)=>(
-              <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${expanded===i?"rgba(6,182,212,0.25)":"rgba(255,255,255,0.06)"}`,borderRadius:8,padding:14,cursor:"pointer"}} onClick={()=>setExpanded(expanded===i?null:i)}>
+              <div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${expanded===i?"rgba(99,102,241,0.25)":"rgba(255,255,255,0.06)"}`,borderRadius:8,padding:14,cursor:"pointer"}} onClick={()=>setExpanded(expanded===i?null:i)}>
                 <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
-                  <span style={{fontSize:9,fontWeight:700,background:"rgba(6,182,212,0.08)",color:"#06b6d4",padding:"3px 8px",borderRadius:4,whiteSpace:"nowrap",flexShrink:0,marginTop:1}}>{q.category}</span>
+                  <span style={{fontSize:9,fontWeight:700,background:"rgba(99,102,241,0.08)",color:"#818cf8",padding:"3px 8px",borderRadius:4,whiteSpace:"nowrap",flexShrink:0,marginTop:1}}>{q.category}</span>
                   <span style={{flex:1,fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.7)",lineHeight:1.4}}>{q.question}</span>
                   <span style={{fontSize:10,color:"rgba(255,255,255,0.2)",flexShrink:0}}>{expanded===i?"▲":"▼"}</span>
                 </div>
@@ -284,7 +284,7 @@ function InterviewModal({ job, interview, onClose }: { job: Job; interview: Inte
             ))}
           </div>
         )}
-        {tab==="ask"&&<div style={{display:"flex",flexDirection:"column",gap:10,marginTop:12}}>{interview.questionsToAsk?.map((q,i)=><div key={i} style={{display:"flex",alignItems:"flex-start",gap:12,background:"rgba(6,182,212,0.04)",borderRadius:8,padding:14,border:"1px solid rgba(6,182,212,0.1)"}}><span style={{width:22,height:22,background:"rgba(6,182,212,0.15)",color:"#06b6d4",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>{i+1}</span><span style={{fontSize:13,color:"rgba(255,255,255,0.6)",lineHeight:1.5}}>{q}</span></div>)}</div>}
+        {tab==="ask"&&<div style={{display:"flex",flexDirection:"column",gap:10,marginTop:12}}>{interview.questionsToAsk?.map((q,i)=><div key={i} style={{display:"flex",alignItems:"flex-start",gap:12,background:"rgba(99,102,241,0.04)",borderRadius:8,padding:14,border:"1px solid rgba(99,102,241,0.1)"}}><span style={{width:22,height:22,background:"rgba(99,102,241,0.15)",color:"#818cf8",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>{i+1}</span><span style={{fontSize:13,color:"rgba(255,255,255,0.6)",lineHeight:1.5}}>{q}</span></div>)}</div>}
         {tab==="tips"&&<div style={{marginTop:12}}>{interview.redFlags?.map((r,i)=><div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,background:"rgba(239,68,68,0.05)",borderRadius:8,padding:12,marginBottom:8,border:"1px solid rgba(239,68,68,0.1)"}}><span>⚠️</span><span style={{fontSize:13,color:"rgba(255,255,255,0.45)"}}>{r}</span></div>)}</div>}
       </div>
     </div>
@@ -300,12 +300,12 @@ function TailorModal({ job, tailor, onClose }: { job: Job; tailor: TailorResult;
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="modal-head"><div style={{fontSize:32}}>✂️</div><div><h2 className="modal-title">Resume Tailored</h2><p className="modal-sub">{job.job_title} at {job.employer_name}</p></div></div>
         {tailor.atsTip&&<div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.15)",borderRadius:8,padding:"12px 14px",fontSize:13,color:"rgba(245,158,11,0.8)",marginBottom:16,lineHeight:1.6}}>💡 <strong>ATS Tip:</strong> {tailor.atsTip}</div>}
-        {tailor.keywordsAdded?.length>0&&<div style={{marginBottom:16}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.2)",marginBottom:8}}>Keywords to include</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{tailor.keywordsAdded.map((k,i)=><span key={i} style={{background:"rgba(6,182,212,0.08)",color:"#06b6d4",fontSize:12,fontWeight:500,padding:"4px 10px",borderRadius:6}}>{k}</span>)}</div></div>}
+        {tailor.keywordsAdded?.length>0&&<div style={{marginBottom:16}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.2)",marginBottom:8}}>Keywords to include</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{tailor.keywordsAdded.map((k,i)=><span key={i} style={{background:"rgba(99,102,241,0.08)",color:"#818cf8",fontSize:12,fontWeight:500,padding:"4px 10px",borderRadius:6}}>{k}</span>)}</div></div>}
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.2)",marginBottom:10}}>Tailored bullet points</div>
         {tailor.tailoredBullets?.map((b,i)=>(
           <div key={i} style={{background:"rgba(255,255,255,0.02)",borderRadius:8,padding:14,marginBottom:12,border:"1px solid rgba(255,255,255,0.06)"}}>
             <div style={{fontSize:12,color:"rgba(255,255,255,0.25)",lineHeight:1.5,marginBottom:6}}><span style={{fontSize:9,fontWeight:700,letterSpacing:1,color:"rgba(255,255,255,0.18)",display:"block",marginBottom:2}}>ORIGINAL</span>{b.original}</div>
-            <div style={{fontSize:12,color:"rgba(6,182,212,0.35)",textAlign:"center",margin:"4px 0"}}>↓</div>
+            <div style={{fontSize:12,color:"rgba(99,102,241,0.35)",textAlign:"center",margin:"4px 0"}}>↓</div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,background:"rgba(16,185,129,0.06)",borderRadius:6,padding:"10px 12px"}}>
               <div><span style={{fontSize:9,fontWeight:700,letterSpacing:1,color:"rgba(16,185,129,0.5)",display:"block",marginBottom:2}}>TAILORED</span><span style={{fontSize:13,color:"#10b981",fontWeight:500,lineHeight:1.5}}>{b.tailored}</span></div>
               <button style={{background:"none",border:"none",cursor:"pointer",fontSize:14,opacity:0.5,flexShrink:0,color:"#fff"}} onClick={()=>{navigator.clipboard.writeText(b.tailored);setCopied(i);setTimeout(()=>setCopied(null),2000);}}>{copied===i?"✓":"📋"}</button>
@@ -377,18 +377,18 @@ function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]
   const rejectionRate= totalApplied>0 ? Math.round((sc.Rejected/totalApplied)*100) : 0;
 
   const motivational = (()=>{
-    if(apps.length===0) return { emoji:"🚀", title:"Ready to launch?", body:"Add your first job to the Tracker to start seeing your analytics here.", color:"#06b6d4" };
+    if(apps.length===0) return { emoji:"🚀", title:"Ready to launch?", body:"Add your first job to the Tracker to start seeing your analytics here.", color:"#818cf8" };
     if(sc.Offer>0)       return { emoji:"🎉", title:"You have an offer!", body:`${sc.Offer} offer${sc.Offer>1?"s":""} — you're crushing it. Keep negotiating and don't stop tracking.`, color:"#10b981" };
     if(sc.Interviewing>0)return { emoji:"🎯", title:"Interviews incoming!", body:`${sc.Interviewing} interview${sc.Interviewing>1?"s":""} lined up. Prep hard with the Interview Prep tool and land that offer.`, color:"#f59e0b" };
     if(totalApplied>10&&responseRate===0) return { emoji:"💡", title:"No responses yet — let's fix that.", body:"Try tailoring your resume to each job description. Even small changes improve ATS scores significantly.", color:"#f59e0b" };
-    if(totalApplied>0&&responseRate>0)   return { emoji:"📈", title:`${responseRate}% response rate — keep going!`, body:"You're getting traction. Apply to 5 more jobs today to keep the pipeline full.", color:"#06b6d4" };
-    if(totalApplied>0)  return { emoji:"⚡", title:"Applications sent!", body:"Consistency wins. Aim for 5–10 quality applications per day and use the Match tool to prioritise.", color:"#06b6d4" };
+    if(totalApplied>0&&responseRate>0)   return { emoji:"📈", title:`${responseRate}% response rate — keep going!`, body:"You're getting traction. Apply to 5 more jobs today to keep the pipeline full.", color:"#818cf8" };
+    if(totalApplied>0)  return { emoji:"⚡", title:"Applications sent!", body:"Consistency wins. Aim for 5–10 quality applications per day and use the Match tool to prioritise.", color:"#818cf8" };
     return { emoji:"🔖", title:`${sc.Saved} job${sc.Saved!==1?"s":""} saved — time to apply!`, body:"You've bookmarked jobs. Hit Apply on your top picks and move them to Applied to track your progress.", color:"#94a3b8" };
   })();
 
   const statCards = [
-    { label:"Total Tracked", value:apps.length,        icon:"📋", color:"#06b6d4" },
-    { label:"Applied",       value:totalApplied,        icon:"📤", color:"#06b6d4" },
+    { label:"Total Tracked", value:apps.length,        icon:"📋", color:"#818cf8" },
+    { label:"Applied",       value:totalApplied,        icon:"📤", color:"#818cf8" },
     { label:"Interviewing",  value:sc.Interviewing,     icon:"🎯", color:"#f59e0b" },
     { label:"Offers",        value:sc.Offer,            icon:"🎉", color:"#10b981" },
     { label:"Response Rate", value:`${responseRate}%`,  icon:"📈", color:"#0ea5e9" },
@@ -400,14 +400,14 @@ function AnalyticsView({ apps, savedCount, totalSearched }: { apps: TrackedApp[]
   const funnel = [
     { label:"Jobs Scanned", count:totalSearched, color:"rgba(255,255,255,0.2)" },
     { label:"Bookmarked",   count:savedCount,    color:"#94a3b8" },
-    { label:"Tracked",      count:apps.length,   color:"#06b6d4" },
+    { label:"Tracked",      count:apps.length,   color:"#818cf8" },
     { label:"Applied",      count:totalApplied,  color:"#f59e0b" },
     { label:"Interviewing", count:sc.Interviewing,color:"#a78bfa" },
     { label:"Offers",       count:sc.Offer,      color:"#10b981" },
   ];
   const mx = Math.max(funnel[0].count, 1);
 
-  const sc2: Record<AppStatus,string> = {Saved:"#94a3b8",Applied:"#06b6d4",Interviewing:"#f59e0b",Offer:"#10b981",Rejected:"#ef4444"};
+  const sc2: Record<AppStatus,string> = {Saved:"#94a3b8",Applied:"#818cf8",Interviewing:"#f59e0b",Offer:"#10b981",Rejected:"#ef4444"};
   const sc2icon: Record<AppStatus,string> = {Saved:"🔖",Applied:"📤",Interviewing:"🎯",Offer:"🎉",Rejected:"❌"};
 
   return (
@@ -498,7 +498,7 @@ function AlertPanel({ jobRole, location, jobs }: { jobRole: string; location: st
 
 const TRACKER_COLS: { status: AppStatus; label: string; icon: string; color: string; border: string; bg: string }[] = [
   { status:"Saved",      label:"Saved",       icon:"🔖", color:"#94a3b8", border:"rgba(148,163,184,0.2)", bg:"rgba(148,163,184,0.06)" },
-  { status:"Applied",    label:"Applied",     icon:"📤", color:"#06b6d4", border:"rgba(6,182,212,0.2)",   bg:"rgba(6,182,212,0.05)"   },
+  { status:"Applied",    label:"Applied",     icon:"📤", color:"#818cf8", border:"rgba(99,102,241,0.2)",   bg:"rgba(99,102,241,0.05)"   },
   { status:"Interviewing",label:"Interview",  icon:"🎯", color:"#f59e0b", border:"rgba(245,158,11,0.2)",  bg:"rgba(245,158,11,0.05)"  },
   { status:"Offer",      label:"Offer",       icon:"🎉", color:"#10b981", border:"rgba(16,185,129,0.2)",  bg:"rgba(16,185,129,0.05)"  },
   { status:"Rejected",   label:"Rejected",    icon:"❌", color:"#ef4444", border:"rgba(239,68,68,0.2)",   bg:"rgba(239,68,68,0.05)"   },
@@ -526,7 +526,7 @@ function TrackerCard({ app, onUpdateStatus, onUpdateNotes, onRemove }: { app: Tr
         {next&&<button style={{flex:1,padding:"4px 0",border:`1px solid ${next.border}`,borderRadius:4,fontSize:9,fontWeight:700,cursor:"pointer",background:next.bg,color:next.color,fontFamily:"inherit"}} onClick={()=>onUpdateStatus(next.status)}>{next.label} →</button>}
       </div>
       <textarea style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:6,padding:"5px 8px",fontSize:10,fontFamily:"inherit",resize:"none",outline:"none",color:"rgba(255,255,255,0.4)"}} placeholder="Notes…" value={app.notes} onChange={e=>onUpdateNotes(e.target.value)} rows={2}/>
-      {app.job.job_apply_link&&<a href={app.job.job_apply_link} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#06b6d4",fontWeight:600,textDecoration:"none"}}>View Job →</a>}
+      {app.job.job_apply_link&&<a href={app.job.job_apply_link} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#818cf8",fontWeight:600,textDecoration:"none"}}>View Job →</a>}
     </div>
   );
 }
@@ -613,7 +613,7 @@ function SkillGapModal({ job, result, onClose }: { job: Job; result: SkillGapRes
     if(/linkedin/i.test(p))    return "#0077b5";
     if(/freecodecamp/i.test(p))return "#0a0a23";
     if(/edx/i.test(p))         return "#02262b";
-    return "#06b6d4";
+    return "#818cf8";
   };
   return(
     <div className="overlay" onClick={onClose}>
@@ -725,16 +725,16 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginTop:hot&&earlyBirdMode?18:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer",minWidth:0}} onClick={onClick}>
           <div style={{width:42,height:42,borderRadius:8,border:"1px solid rgba(255,255,255,0.07)",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.03)",flexShrink:0}}>
-            {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:17,fontWeight:700,color:"rgba(6,182,212,0.5)"}}>{job.employer_name?.[0]??"?"}</span>}
+            {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:17,fontWeight:700,color:"rgba(99,102,241,0.5)"}}>{job.employer_name?.[0]??"?"}</span>}
           </div>
           <div style={{minWidth:0}}>
             <h3 style={{fontSize:14,fontWeight:700,color:"#fff",lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title}</h3>
-            <p style={{fontSize:12,color:"#06b6d4",fontWeight:500,marginBottom:1}}>{job.employer_name}</p>
+            <p style={{fontSize:12,color:"#818cf8",fontWeight:500,marginBottom:1}}>{job.employer_name}</p>
             <p style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{job.job_is_remote?"🌐 Remote":loc||"Location not specified"}</p>
           </div>
         </div>
         <button style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.5,flexShrink:0}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill={saved?"#06b6d4":"none"} stroke={saved?"#06b6d4":"rgba(255,255,255,0.3)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":"rgba(255,255,255,0.3)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
         </button>
       </div>
 
@@ -748,8 +748,8 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* MATCH SCORE (if available) */}
       {(job.match||job.matchLoading)&&(
-        <div style={{display:"flex",alignItems:"center",gap:10,borderRadius:8,padding:"8px 12px",border:`1px solid ${job.match?scoreColor(job.match.matchScore)+"22":"rgba(6,182,212,0.15)"}`,background:job.match?scoreColor(job.match.matchScore)+"07":"rgba(6,182,212,0.04)"}}>
-          {job.matchLoading?<><div className="spin-sm"/><span style={{fontSize:11,color:"#06b6d4"}}>Analyzing…</span></>:<><ScoreRing score={job.match!.matchScore}/><div><div style={{fontSize:12,fontWeight:700,color:scoreColor(job.match!.matchScore)}}>{job.match!.matchLabel} Match — {job.match!.matchScore}%</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)",marginTop:1}}>{job.match!.matchedSkills.slice(0,2).join(" · ")}</div></div></>}
+        <div style={{display:"flex",alignItems:"center",gap:10,borderRadius:8,padding:"8px 12px",border:`1px solid ${job.match?scoreColor(job.match.matchScore)+"22":"rgba(99,102,241,0.15)"}`,background:job.match?scoreColor(job.match.matchScore)+"07":"rgba(99,102,241,0.04)"}}>
+          {job.matchLoading?<><div className="spin-sm"/><span style={{fontSize:11,color:"#818cf8"}}>Analyzing…</span></>:<><ScoreRing score={job.match!.matchScore}/><div><div style={{fontSize:12,fontWeight:700,color:scoreColor(job.match!.matchScore)}}>{job.match!.matchLabel} Match — {job.match!.matchScore}%</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)",marginTop:1}}>{job.match!.matchedSkills.slice(0,2).join(" · ")}</div></div></>}
         </div>
       )}
 
@@ -1023,153 +1023,164 @@ export default function Home() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Inter',sans-serif;background:#050810;color:#fff;min-height:100vh}
-        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(6,182,212,0.12);border-radius:4px}
+        body{font-family:'DM Sans',sans-serif;background:#060608;color:#fff;min-height:100vh;overflow-x:hidden}
+        body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.35}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.2);border-radius:4px}
 
         /* TOPBAR */
-        .topbar{background:rgba(5,8,16,0.96);border-bottom:1px solid rgba(6,182,212,0.08);padding:0 24px;height:56px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:200;backdrop-filter:blur(20px)}
-        .topbar-logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:"-0.5px";flex-shrink:0;margin-right:4px;font-family:'Inter',sans-serif}
-        .topbar-logo span{color:#06b6d4}
-        .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:560px}
-        .topbar-input{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:8px 12px;font-size:12px;font-family:inherit;color:#fff;outline:none;transition:all .15s;flex:1}
-        .topbar-input::placeholder{color:rgba(255,255,255,0.18)}
-        .topbar-input:focus{border-color:rgba(6,182,212,0.35);background:rgba(6,182,212,0.04)}
-        .search-btn{background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity .15s;letter-spacing:"0.2px"}
-        .search-btn:hover{opacity:0.88}
-        .search-btn:disabled{opacity:0.35;cursor:not-allowed}
-        .eb-btn{background:rgba(245,158,11,0.08);color:#f59e0b;border:1px solid rgba(245,158,11,0.18);border-radius:7px;padding:8px 16px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s}
-        .eb-btn:hover{background:rgba(245,158,11,0.14)}
-        .eb-btn:disabled{opacity:0.35;cursor:not-allowed}
+        .topbar{background:rgba(6,6,8,0.92);border-bottom:1px solid rgba(255,255,255,0.07);padding:0 28px;height:60px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:200;backdrop-filter:blur(24px)}
+        .topbar-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px;cursor:pointer}
+        .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:580px}
+        .topbar-input{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:9px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;transition:all .2s;flex:1}
+        .topbar-input::placeholder{color:rgba(255,255,255,0.22)}
+        .topbar-input:focus{border-color:rgba(99,102,241,0.45);background:rgba(99,102,241,0.06);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+        .search-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .2s}
+        .search-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(99,102,241,0.3)}
+        .search-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+        .eb-btn{background:rgba(251,191,36,0.08);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:9px 16px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .2s}
+        .eb-btn:hover{background:rgba(251,191,36,0.14);transform:translateY(-1px)}
+        .eb-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
         .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
-        .nav-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:"0.2px"}
-        .pill-eb{background:rgba(245,158,11,0.08);color:#f59e0b;border:1px solid rgba(245,158,11,0.18)}
-        .pill-tracker{background:rgba(6,182,212,0.08);color:#06b6d4;border:1px solid rgba(6,182,212,0.18)}
-        .user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0891b2,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
-        .logout-btn{font-size:11px;font-weight:500;color:rgba(255,255,255,0.25);background:none;border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;transition:all .2s}
-        .logout-btn:hover{color:#ef4444;border-color:rgba(239,68,68,0.25)}
+        .nav-pill{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
+        .pill-eb{background:rgba(251,191,36,0.08);color:#fbbf24;border:1px solid rgba(251,191,36,0.2)}
+        .pill-tracker{background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.2)}
+        .user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+        .logout-btn{font-size:12px;font-weight:500;color:rgba(255,255,255,0.3);background:none;border:1px solid rgba(255,255,255,0.09);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+        .logout-btn:hover{color:#ef4444;border-color:rgba(239,68,68,0.3)}
 
         /* LAYOUT */
-        .app-layout{display:flex;min-height:calc(100vh - 56px)}
-        .sidebar{width:220px;flex-shrink:0;border-right:1px solid rgba(255,255,255,0.05);padding:16px 12px;display:flex;flex-direction:column;gap:10px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
-        .content{flex:1;min-width:0;padding:20px 22px;max-width:calc(100vw - 220px)}
+        .app-layout{display:flex;min-height:calc(100vh - 60px);position:relative;z-index:1}
+        .sidebar{width:232px;flex-shrink:0;border-right:1px solid rgba(255,255,255,0.06);padding:18px 14px;display:flex;flex-direction:column;gap:12px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+        .content{flex:1;min-width:0;padding:24px 26px;max-width:calc(100vw - 232px)}
 
         /* SIDEBAR */
-        .sidebar-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px}
-        .sidebar-card-title{font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:3px;letter-spacing:"0.1px"}
-        .sidebar-card-sub{font-size:10px;color:rgba(255,255,255,0.22);margin-bottom:9px}
-        .resume-drop{border:1.5px dashed rgba(6,182,212,0.18);border-radius:8px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px}
-        .resume-drop:hover,.resume-drop.dragging{border-color:rgba(6,182,212,0.45);background:rgba(6,182,212,0.04)}
-        .dark-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;color:#fff;outline:none;transition:all .2s;margin-bottom:5px}
-        .dark-input::placeholder{color:rgba(255,255,255,0.18)}
-        .dark-input:focus{border-color:rgba(6,182,212,0.35)}
-        .gradient-btn{width:100%;background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s}
-        .gradient-btn:disabled{opacity:0.35;cursor:not-allowed}
-        .ghost-btn{font-size:10px;font-weight:500;color:rgba(255,255,255,0.35);background:none;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit;transition:all .2s}
-        .ghost-btn:hover{color:rgba(255,255,255,0.65);border-color:rgba(255,255,255,0.15)}
-        .filter-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;margin-top:8px}
-        .filter-select{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:7px 10px;font-size:11px;font-family:inherit;color:rgba(255,255,255,0.45);cursor:pointer;outline:none}
-        .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.35);margin-top:8px}
-        .toggle{width:32px;height:18px;background:rgba(255,255,255,0.08);border-radius:9px;position:relative;cursor:pointer;transition:background .2s;border:none;outline:none;flex-shrink:0}
-        .toggle.on{background:linear-gradient(135deg,#0891b2,#06b6d4)}
-        .toggle::after{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s}
-        .toggle.on::after{left:17px}
+        .sidebar-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;transition:border-color .2s}
+        .sidebar-card:hover{border-color:rgba(255,255,255,0.12)}
+        .sidebar-card-title{font-size:12px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:4px;letter-spacing:0.2px}
+        .sidebar-card-sub{font-size:11px;color:rgba(255,255,255,0.28);margin-bottom:10px;line-height:1.5}
+        .resume-drop{border:1.5px dashed rgba(99,102,241,0.25);border-radius:12px;padding:18px 10px;text-align:center;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px}
+        .resume-drop:hover,.resume-drop.dragging{border-color:rgba(99,102,241,0.55);background:rgba(99,102,241,0.06)}
+        .dark-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:9px 12px;font-size:12px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;transition:all .2s;margin-bottom:6px}
+        .dark-input::placeholder{color:rgba(255,255,255,0.2)}
+        .dark-input:focus{border-color:rgba(99,102,241,0.45);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+        .gradient-btn{width:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+        .gradient-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(99,102,241,0.3)}
+        .gradient-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+        .ghost-btn{font-size:11px;font-weight:500;color:rgba(255,255,255,0.4);background:none;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+        .ghost-btn:hover{color:rgba(255,255,255,0.75);border-color:rgba(255,255,255,0.2)}
+        .filter-label{font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;margin-top:10px}
+        .filter-select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:8px 12px;font-size:11px;font-family:'DM Sans',sans-serif;color:rgba(255,255,255,0.55);cursor:pointer;outline:none}
+        .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.4);margin-top:10px}
+        .toggle{width:34px;height:19px;background:rgba(255,255,255,0.1);border-radius:10px;position:relative;cursor:pointer;transition:background .2s;border:none;outline:none;flex-shrink:0}
+        .toggle.on{background:linear-gradient(135deg,#6366f1,#8b5cf6)}
+        .toggle::after{content:'';position:absolute;width:13px;height:13px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+        .toggle.on::after{left:18px}
 
         /* TABS */
-        .tabs-row{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:0}
-        .tab{padding:8px 14px;border:none;border-bottom:2px solid transparent;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,0.28);margin-bottom:-1px;white-space:nowrap;letter-spacing:"0.1px"}
-        .tab.active{color:#fff;border-bottom-color:#06b6d4}
-        .tab.tab-eb.active{color:#f59e0b;border-bottom-color:#f59e0b}
-        .tab.tab-tracker.active{color:#06b6d4;border-bottom-color:#06b6d4}
-        .tab.tab-analytics.active{color:#10b981;border-bottom-color:#10b981}
-        .tab:hover:not(.active){color:rgba(255,255,255,0.55)}
+        .tabs-row{display:flex;gap:2px;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:0}
+        .tab{padding:10px 16px;border:none;border-bottom:2px solid transparent;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,0.3);margin-bottom:-1px;white-space:nowrap;letter-spacing:0.1px}
+        .tab.active{color:#fff;border-bottom-color:#818cf8}
+        .tab.tab-eb.active{color:#fbbf24;border-bottom-color:#fbbf24}
+        .tab.tab-tracker.active{color:#818cf8;border-bottom-color:#818cf8}
+        .tab.tab-analytics.active{color:#34d399;border-bottom-color:#34d399}
+        .tab:hover:not(.active){color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.03);border-radius:6px 6px 0 0}
 
-        /* 2x3 GRID */
-        .jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-        .job-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;cursor:default;transition:all .18s}
-        .job-card:hover{border-color:rgba(6,182,212,0.25);background:rgba(6,182,212,0.025);transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
-        .job-card-hot{border-color:rgba(245,158,11,0.18)!important;background:rgba(245,158,11,0.015)!important}
+        /* JOB GRID */
+        .jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+        .job-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px;cursor:default;transition:all .2s}
+        .job-card:hover{border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.04);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(99,102,241,0.1)}
+        .job-card-hot{border-color:rgba(251,191,36,0.2)!important;background:rgba(251,191,36,0.02)!important}
 
         /* ACTION BUTTONS */
-        .action-card-btn{flex:1;min-width:fit-content;border-radius:6px;padding:7px 8px;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid;transition:all .18s;white-space:nowrap}
+        .action-card-btn{flex:1;min-width:fit-content;border-radius:8px;padding:7px 8px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid;transition:all .2s;white-space:nowrap}
+        .action-card-btn:hover{transform:translateY(-1px)}
 
-        /* MATCH — highlighted with cyan glow */
-        .action-card-btn.match-btn{background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3);color:#06b6d4;box-shadow:0 0 10px rgba(6,182,212,0.08)}
-        .action-card-btn.match-btn:hover{background:rgba(6,182,212,0.18);box-shadow:0 0 16px rgba(6,182,212,0.15)}
-        .action-card-btn.match-btn.done{background:rgba(6,182,212,0.12);border-color:rgba(6,182,212,0.4);color:#06b6d4}
+        /* MATCH */
+        .action-card-btn.match-btn{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.3);color:#818cf8;box-shadow:0 0 12px rgba(99,102,241,0.08)}
+        .action-card-btn.match-btn:hover{background:rgba(99,102,241,0.18);box-shadow:0 0 20px rgba(99,102,241,0.18)}
+        .action-card-btn.match-btn.done{background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.45);color:#a5b4fc}
 
-        /* PREP — highlighted with emerald glow */
-        .action-card-btn.interview-btn{background:rgba(16,185,129,0.09);border-color:rgba(16,185,129,0.28);color:#10b981;box-shadow:0 0 10px rgba(16,185,129,0.06)}
-        .action-card-btn.interview-btn:hover{background:rgba(16,185,129,0.16);box-shadow:0 0 16px rgba(16,185,129,0.12)}
-        .action-card-btn.interview-btn.done{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.35);color:#10b981}
+        /* PREP */
+        .action-card-btn.interview-btn{background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.25);color:#34d399;box-shadow:0 0 10px rgba(52,211,153,0.06)}
+        .action-card-btn.interview-btn:hover{background:rgba(52,211,153,0.15);box-shadow:0 0 18px rgba(52,211,153,0.14)}
+        .action-card-btn.interview-btn.done{background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.35);color:#34d399}
 
-        /* TAILOR — subtle */
+        /* SKILL GAP */
         .action-card-btn.skillgap-btn{background:rgba(139,92,246,0.09);border-color:rgba(139,92,246,0.28);color:#a78bfa}
-        .action-card-btn.skillgap-btn:hover{background:rgba(139,92,246,0.16);box-shadow:0 0 16px rgba(139,92,246,0.12)}
-        .action-card-btn.skillgap-btn.done{background:rgba(139,92,246,0.14);border-color:rgba(139,92,246,0.4);color:#a78bfa}
-        .action-card-btn.cover-btn{background:rgba(236,72,153,0.08);border-color:rgba(236,72,153,0.25);color:#f472b6}
-        .action-card-btn.cover-btn:hover{background:rgba(236,72,153,0.15);box-shadow:0 0 16px rgba(236,72,153,0.12)}
-        .action-card-btn.cover-btn.done{background:rgba(236,72,153,0.13);border-color:rgba(236,72,153,0.4);color:#f472b6}
-        .action-card-btn.tailor-btn{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.09);color:rgba(255,255,255,0.4)}
-        .action-card-btn.tailor-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.65)}
-        .action-card-btn.tailor-btn.done{background:rgba(14,165,233,0.07);border-color:rgba(14,165,233,0.2);color:#0ea5e9}
+        .action-card-btn.skillgap-btn:hover{background:rgba(139,92,246,0.16);box-shadow:0 0 18px rgba(139,92,246,0.14)}
+        .action-card-btn.skillgap-btn.done{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.42);color:#a78bfa}
 
-        /* TRACK — subtle */
-        .action-card-btn.track-btn{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3);flex:0;padding:7px 12px}
-        .action-card-btn.track-btn:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.55)}
-        .action-card-btn.track-btn.tracked{background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);color:#06b6d4}
-        .action-card-btn:disabled{opacity:0.3;cursor:not-allowed}
+        /* COVER */
+        .action-card-btn.cover-btn{background:rgba(236,72,153,0.08);border-color:rgba(236,72,153,0.25);color:#f472b6}
+        .action-card-btn.cover-btn:hover{background:rgba(236,72,153,0.15);box-shadow:0 0 18px rgba(236,72,153,0.14)}
+        .action-card-btn.cover-btn.done{background:rgba(236,72,153,0.14);border-color:rgba(236,72,153,0.42);color:#f472b6}
+
+        /* TAILOR */
+        .action-card-btn.tailor-btn{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.45)}
+        .action-card-btn.tailor-btn:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}
+        .action-card-btn.tailor-btn.done{background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.25);color:#fbbf24}
+
+        /* TRACK */
+        .action-card-btn.track-btn{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.35);flex:0;padding:7px 12px}
+        .action-card-btn.track-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6)}
+        .action-card-btn.track-btn.tracked{background:rgba(52,211,153,0.09);border-color:rgba(52,211,153,0.25);color:#34d399}
+        .action-card-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none!important}
 
         /* BADGES */
-        .badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
-        .badge-type{background:rgba(6,182,212,0.08);color:#06b6d4;border:1px solid rgba(6,182,212,0.12)}
-        .badge-remote{background:rgba(16,185,129,0.08);color:#10b981;border:1px solid rgba(16,185,129,0.12)}
-        .badge-salary{background:rgba(16,185,129,0.06);color:#10b981}
-        .badge-time{background:rgba(245,158,11,0.06);color:rgba(245,158,11,0.65)}
+        .badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px}
+        .badge-type{background:rgba(129,140,248,0.1);color:#a5b4fc;border:1px solid rgba(129,140,248,0.2)}
+        .badge-remote{background:rgba(52,211,153,0.08);color:#34d399;border:1px solid rgba(52,211,153,0.2)}
+        .badge-salary{background:rgba(52,211,153,0.06);color:#34d399;border:1px solid rgba(52,211,153,0.12)}
+        .badge-time{background:rgba(251,191,36,0.06);color:#fbbf24;border:1px solid rgba(251,191,36,0.15)}
 
         /* APPLY */
-        .apply-btn{background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .2s;text-decoration:none;display:block;text-align:center;letter-spacing:"0.2px"}
-        .apply-btn:hover{opacity:0.88}
-        .apply-btn-hot{background:linear-gradient(135deg,#ef4444,#f59e0b)!important}
+        .apply-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;display:block;text-align:center}
+        .apply-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(99,102,241,0.35);opacity:0.92}
+        .apply-btn-hot{background:linear-gradient(135deg,#ef4444,#fbbf24)!important}
 
         /* EB BANNER */
-        .eb-banner{background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.1);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+        .eb-banner{background:rgba(251,191,36,0.04);border:1px solid rgba(251,191,36,0.12);border-radius:16px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
 
         /* PAGINATION */
-        .pagination{display:flex;justify-content:center;align-items:center;gap:5px;margin-top:24px}
-        .page-btn{width:32px;height:32px;border-radius:6px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;color:rgba(255,255,255,0.3);transition:all .18s}
-        .page-btn.active{background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.25);color:#06b6d4}
+        .pagination{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:28px}
+        .page-btn{width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;color:rgba(255,255,255,0.35);transition:all .2s}
+        .page-btn:hover:not(:disabled){background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7)}
+        .page-btn.active{background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.35);color:#818cf8;font-weight:700}
         .page-btn:disabled{opacity:.18;cursor:not-allowed}
 
         /* SKELETON */
-        .skel{background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.055) 50%,rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:5px}
+        .skel{background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:shimmer 1.6s infinite;border-radius:8px}
         @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
         /* SPINNERS */
-        .spin{width:16px;height:16px;border:2px solid rgba(6,182,212,0.2);border-top-color:#06b6d4;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-        .spin-sm{width:11px;height:11px;border:2px solid rgba(255,255,255,0.1);border-top-color:#06b6d4;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+        .spin{width:16px;height:16px;border:2px solid rgba(99,102,241,0.2);border-top-color:#818cf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+        .spin-sm{width:11px;height:11px;border:2px solid rgba(255,255,255,0.1);border-top-color:#818cf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
         @keyframes spin{to{transform:rotate(360deg)}}
 
         /* MODALS */
-        .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(12px);animation:fi .18s}
+        .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(16px);animation:fi .18s}
         @keyframes fi{from{opacity:0}to{opacity:1}}
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .modal{background:#07091a;border:1px solid rgba(255,255,255,0.07);border-radius:14px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:28px;position:relative;animation:su .2s ease;scrollbar-width:thin}
-        @keyframes su{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-        .modal-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:50%;width:28px;height:28px;font-size:12px;cursor:pointer;color:rgba(255,255,255,0.3);transition:all .18s;display:flex;align-items:center;justify-content:center}
-        .modal-close:hover{background:rgba(239,68,68,0.1);color:#ef4444}
-        .modal-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
-        .modal-logo{width:52px;height:52px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);flex-shrink:0}
+        .modal{background:#0a0a10;border:1px solid rgba(255,255,255,0.09);border-radius:20px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:32px;position:relative;animation:su .22s ease;scrollbar-width:thin;box-shadow:0 40px 120px rgba(0,0,0,0.7)}
+        @keyframes su{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+        .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:50%;width:30px;height:30px;font-size:12px;cursor:pointer;color:rgba(255,255,255,0.35);transition:all .2s;display:flex;align-items:center;justify-content:center}
+        .modal-close:hover{background:rgba(239,68,68,0.12);color:#ef4444;border-color:rgba(239,68,68,0.25)}
+        .modal-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.06)}
+        .modal-logo{width:52px;height:52px;border-radius:12px;border:1px solid rgba(255,255,255,0.09);overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);flex-shrink:0}
         .modal-logo img{width:100%;height:100%;object-fit:contain}
-        .modal-title{font-size:18px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:3px}
-        .modal-sub{font-size:13px;color:#06b6d4;font-weight:500}
-        .modal-tabs{display:flex;gap:3px;background:rgba(255,255,255,0.03);border-radius:8px;padding:3px;margin-bottom:14px}
-        .mtab{flex:1;padding:7px;border:none;border-radius:5px;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;color:rgba(255,255,255,0.25);transition:all .18s}
-        .mtab.active{background:rgba(255,255,255,0.07);color:#fff}
-        .btn-tracked{background:rgba(6,182,212,0.08)!important;border-color:rgba(6,182,212,0.2)!important;color:#06b6d4!important}
+        .modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:4px}
+        .modal-sub{font-size:13px;color:#818cf8;font-weight:500}
+        .modal-tabs{display:flex;gap:3px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px;margin-bottom:18px}
+        .mtab{flex:1;padding:8px;border:none;border-radius:7px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:rgba(255,255,255,0.3);transition:all .2s}
+        .mtab.active{background:rgba(99,102,241,0.15);color:#a5b4fc;box-shadow:0 2px 8px rgba(99,102,241,0.15)}
+        .btn-tracked{background:rgba(52,211,153,0.09)!important;border-color:rgba(52,211,153,0.25)!important;color:#34d399!important}
 
-        @media(max-width:900px){.sidebar{display:none}.content{padding:14px;max-width:100%}.jobs-grid{grid-template-columns:1fr}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+        @media(max-width:900px){.sidebar{display:none}.content{padding:16px;max-width:100%}.jobs-grid{grid-template-columns:1fr}}
         @media(max-width:768px){.topbar-search{display:none}.jobs-grid{grid-template-columns:1fr}}
       `}</style>
 
@@ -1197,7 +1208,7 @@ export default function Home() {
           <div className="sidebar-card">
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
               <div className="sidebar-card-title">🎯 AI Resume Match</div>
-              <button onClick={loadResumeHistory} style={{fontSize:10,color:"#06b6d4",background:"none",border:"1px solid rgba(6,182,212,0.2)",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontFamily:"inherit"}}>History</button>
+              <button onClick={loadResumeHistory} style={{fontSize:10,color:"#818cf8",background:"none",border:"1px solid rgba(99,102,241,0.2)",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontFamily:"inherit"}}>History</button>
             </div>
             <div className="sidebar-card-sub">Upload PDF for AI matching & auto-apply</div>
             <ResumePanel
@@ -1217,7 +1228,7 @@ export default function Home() {
                 <button className="gradient-btn" onClick={runResumeMatch} disabled={isMatching}>
                   {isMatching?<><div className="spin"/>Analyzing {matchProgress}%</>:`🚀 Match & Auto-Apply (${earlyBirdJobs.length})`}
                 </button>
-                {isMatching&&<div style={{marginTop:7}}><div style={{height:2,background:"rgba(255,255,255,0.05)",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",background:"linear-gradient(90deg,#0891b2,#06b6d4)",borderRadius:2,width:`${matchProgress}%`,transition:"width .3s"}}/></div></div>}
+                {isMatching&&<div style={{marginTop:7}}><div style={{height:2,background:"rgba(255,255,255,0.05)",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",background:"linear-gradient(90deg,#6366f1,#8b5cf6)",borderRadius:2,width:`${matchProgress}%`,transition:"width .3s"}}/></div></div>}
               </div>
             )}
             {autoOpenDone&&<div style={{fontSize:11,color:"#10b981",textAlign:"center",marginTop:7}}>✓ Opened top matches in new tabs</div>}
@@ -1372,15 +1383,15 @@ export default function Home() {
       {/* ONBOARDING */}
       {showOnboard&&(
         <div style={{position:"fixed",inset:0,background:"rgba(5,8,16,0.98)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(20px)"}}>
-          <div style={{background:"#0a0f1e",border:"1px solid rgba(6,182,212,0.15)",borderRadius:20,padding:36,width:"100%",maxWidth:460,textAlign:"center",boxShadow:"0 0 50px rgba(6,182,212,0.06)"}}>
+          <div style={{background:"#0a0a10",border:"1px solid rgba(99,102,241,0.15)",borderRadius:20,padding:36,width:"100%",maxWidth:460,textAlign:"center",boxShadow:"0 0 50px rgba(99,102,241,0.06)"}}>
             <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:28}}>
-              {[1,2,3].map(s=><div key={s} style={{height:3,borderRadius:3,transition:"all .3s",background:s===onboardStep?"#06b6d4":s<onboardStep?"rgba(6,182,212,0.35)":"rgba(255,255,255,0.07)",width:s===onboardStep?28:8}}/>)}
+              {[1,2,3].map(s=><div key={s} style={{height:3,borderRadius:3,transition:"all .3s",background:s===onboardStep?"#818cf8":s<onboardStep?"rgba(99,102,241,0.35)":"rgba(255,255,255,0.07)",width:s===onboardStep?28:8}}/>)}
             </div>
             {onboardStep===1&&<>
-              <div style={{fontSize:24,fontWeight:800,color:"#fff",marginBottom:8}}>Welcome to <span style={{color:"#06b6d4"}}>Vegaply</span></div>
+              <div style={{fontSize:24,fontWeight:800,color:"#fff",marginBottom:8}}>Welcome to <span style={{color:"#818cf8"}}>Vegaply</span></div>
               <p style={{color:"rgba(255,255,255,0.32)",fontSize:13,marginBottom:24,lineHeight:1.6}}>The AI-powered job search platform built for students. Let's set you up in 60 seconds.</p>
               <input value={onboardRole} onChange={e=>setOnboardRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardStep(2)} placeholder="What role are you looking for? (e.g. Data Analyst)" style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#fff",outline:"none",marginBottom:12,fontFamily:"inherit"}}/>
-              <button onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}} style={{width:"100%",background:"linear-gradient(135deg,#0891b2,#06b6d4)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
+              <button onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
             </>}
             {onboardStep===2&&<>
               <div style={{fontSize:22,fontWeight:800,color:"#fff",marginBottom:8}}>Where are you looking?</div>
@@ -1388,13 +1399,13 @@ export default function Home() {
               <input value={onboardLocation} onChange={e=>setOnboardLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardLocation.trim()&&setOnboardStep(3)} placeholder="e.g. New York, US or Remote" style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#fff",outline:"none",marginBottom:12,fontFamily:"inherit"}}/>
               <div style={{display:"flex",gap:8}}>
                 <button onClick={()=>setOnboardStep(1)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"12px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.35)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>
-                <button onClick={()=>{if(onboardLocation.trim())setOnboardStep(3);}} style={{flex:2,background:"linear-gradient(135deg,#0891b2,#06b6d4)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
+                <button onClick={()=>{if(onboardLocation.trim())setOnboardStep(3);}} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
               </div>
             </>}
             {onboardStep===3&&<>
               <div style={{fontSize:22,fontWeight:800,color:"#fff",marginBottom:8}}>Upload your resume</div>
               <p style={{color:"rgba(255,255,255,0.32)",fontSize:13,marginBottom:20,lineHeight:1.6}}>Upload your PDF for AI matching. You can skip this and add it later.</p>
-              {onboardParsing&&<div style={{color:"#06b6d4",fontSize:12,marginBottom:10}}>⏳ Parsing resume…</div>}
+              {onboardParsing&&<div style={{color:"#818cf8",fontSize:12,marginBottom:10}}>⏳ Parsing resume…</div>}
               <input id="ob-file-input" type="file" accept=".pdf" style={{display:"none"}} onChange={async e=>{
                 const file=e.target.files?.[0];if(!file)return;
                 setOnboardParsing(true);
@@ -1407,7 +1418,7 @@ export default function Home() {
                 }catch(err){console.error(err);}
                 setOnboardParsing(false);completeOnboarding();
               }}/>
-              <button onClick={()=>document.getElementById("ob-file-input")?.click()} disabled={onboardParsing} style={{width:"100%",background:"linear-gradient(135deg,#0891b2,#06b6d4)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginBottom:8}}>
+              <button onClick={()=>document.getElementById("ob-file-input")?.click()} disabled={onboardParsing} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginBottom:8}}>
                 {onboardParsing?"Parsing…":"📎 Upload Resume PDF"}
               </button>
               <div style={{display:"flex",gap:8}}>
@@ -1428,9 +1439,9 @@ export default function Home() {
               <button onClick={()=>setShowResumeHistory(false)} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"50%",width:26,height:26,cursor:"pointer",color:"rgba(255,255,255,0.28)",fontSize:11}}>✕</button>
             </div>
             {resumeHistory.length===0?<p style={{color:"rgba(255,255,255,0.25)",textAlign:"center",padding:"24px 0",fontSize:12}}>No resumes saved yet</p>:resumeHistory.map((r,i)=>(
-              <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${i===0?"rgba(6,182,212,0.25)":"rgba(255,255,255,0.07)"}`,borderRadius:10,padding:14,marginBottom:9,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:3}}>{r.file_name}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>{i===0&&<div style={{fontSize:9,color:"#06b6d4",fontWeight:700,marginTop:3,letterSpacing:"0.3px"}}>ACTIVE</div>}</div>
-                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("applysmart_resume",r.resume_text);lsSet("applysmart_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(6,182,212,0.08)":"linear-gradient(135deg,#0891b2,#06b6d4)",color:i===0?"#06b6d4":"#fff",border:i===0?"1px solid rgba(6,182,212,0.25)":"none",borderRadius:7,padding:"7px 14px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+              <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${i===0?"rgba(99,102,241,0.25)":"rgba(255,255,255,0.07)"}`,borderRadius:10,padding:14,marginBottom:9,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:3}}>{r.file_name}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>{i===0&&<div style={{fontSize:9,color:"#818cf8",fontWeight:700,marginTop:3,letterSpacing:"0.3px"}}>ACTIVE</div>}</div>
+                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("applysmart_resume",r.resume_text);lsSet("applysmart_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(99,102,241,0.08)":"linear-gradient(135deg,#6366f1,#8b5cf6)",color:i===0?"#818cf8":"#fff",border:i===0?"1px solid rgba(99,102,241,0.25)":"none",borderRadius:7,padding:"7px 14px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                   {i===0?"Active":"Use This"}
                 </button>
               </div>
