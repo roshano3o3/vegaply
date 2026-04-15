@@ -1315,7 +1315,8 @@ export default function Home() {
         .tab:hover:not(.active){color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.03);border-radius:6px 6px 0 0}
 
         /* JOB GRID */
-        .jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+        .jobs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+        @media(max-width:1200px){.jobs-grid{grid-template-columns:repeat(2,1fr)}}
         .job-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px;cursor:default;transition:all .2s}
         .job-card:hover{border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.04);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(99,102,241,0.1)}
         .job-card-hot{border-color:rgba(251,191,36,0.2)!important;background:rgba(251,191,36,0.02)!important}
@@ -1463,7 +1464,7 @@ export default function Home() {
         [data-theme="light"] .mobile-sidebar-backdrop{background:rgba(0,0,0,0.4)}
         [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
 
-        @media(max-width:900px){.sidebar{display:none}.content{padding:20px 16px;max-width:100%}.jobs-grid{grid-template-columns:1fr}}
+        @media(max-width:900px){.sidebar{display:none}.content{padding:20px 16px;max-width:100%}}
 
         /* ── MOBILE ── */
         @media(max-width:768px){
