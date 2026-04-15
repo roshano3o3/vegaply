@@ -467,6 +467,17 @@ function TrackerView({ apps, onUpdateStatus, onUpdateNotes, onRemove }: { apps: 
   );
 }
 
+function getDifficultyBadge(title?: string, desc?: string): { label: string; color: string; bg: string; border: string } {
+  const t = (title||"").toLowerCase();
+  const d = (desc||"").toLowerCase();
+  const combined = t + " " + d;
+  if (/entry[\s-]level|no experience|no prior experience|junior|jr\.?|new grad|recent grad|associate/.test(combined))
+    return { label: "🟢 Easy Apply", color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" };
+  if (/\bsenior\b|\bsr\.?\b|\blead\b|\bmanager\b|\bdirector\b|\bhead of\b|\bprincipal\b|\bstaff\b|\b[5-9]\+\s*years?\b|\b1[0-9]\+\s*years?\b/.test(combined))
+    return { label: "🔴 Competitive", color: "#ef4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)" };
+  return { label: "🟡 Medium", color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)" };
+}
+
 function getVisaBadges(desc?: string): { label: string; color: string; bg: string; border: string }[] {
   if (!desc) return [];
   const d = desc.toLowerCase();
@@ -490,6 +501,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, ear
   const hours=getHoursAgo(job.job_posted_at_datetime_utc);
   const comp=getCompetitionLabel(hours);
   const visaBadges=getVisaBadges(job.job_description);
+  const diffBadge=getDifficultyBadge(job.job_title,job.job_description);
 
   return(
     <div className={`job-card${hot&&earlyBirdMode?" job-card-hot":""}`} style={{display:"flex",flexDirection:"column",gap:12,position:"relative"}}>
@@ -541,6 +553,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, ear
         {badge&&<span className="badge badge-type">{badge}</span>}
         {job.job_is_remote&&<span className="badge badge-remote">Remote</span>}
         {(job.job_min_salary||job.job_max_salary)&&<span className="badge badge-salary">💰 {job.job_salary_currency??"$"}{job.job_min_salary?.toLocaleString()}–{job.job_max_salary?.toLocaleString()}</span>}
+        <span style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:diffBadge.bg,color:diffBadge.color,border:`1px solid ${diffBadge.border}`}}>{diffBadge.label}</span>
         {visaBadges.map((vb,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:vb.bg,color:vb.color,border:`1px solid ${vb.border}`}}>{vb.label}</span>)}
       </div>
 
