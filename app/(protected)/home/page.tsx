@@ -1382,55 +1382,168 @@ export default function Home() {
 
       {/* ONBOARDING */}
       {showOnboard&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(5,8,16,0.98)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(20px)"}}>
-          <div style={{background:"#0a0a10",border:"1px solid rgba(99,102,241,0.15)",borderRadius:20,padding:36,width:"100%",maxWidth:460,textAlign:"center",boxShadow:"0 0 50px rgba(99,102,241,0.06)"}}>
-            <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:28}}>
-              {[1,2,3].map(s=><div key={s} style={{height:3,borderRadius:3,transition:"all .3s",background:s===onboardStep?"#818cf8":s<onboardStep?"rgba(99,102,241,0.35)":"rgba(255,255,255,0.07)",width:s===onboardStep?28:8}}/>)}
+        <div style={{position:"fixed",inset:0,background:"#060608",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:24,overflow:"hidden"}}>
+          {/* Glow FX */}
+          <div style={{position:"absolute",top:"-160px",left:"50%",transform:"translateX(-50%)",width:"800px",height:"600px",background:"radial-gradient(ellipse,rgba(99,102,241,0.22) 0%,transparent 65%)",pointerEvents:"none"}}/>
+          <div style={{position:"absolute",bottom:"-120px",left:"20%",width:"500px",height:"400px",background:"radial-gradient(ellipse,rgba(236,72,153,0.13) 0%,transparent 65%)",pointerEvents:"none"}}/>
+          <div style={{position:"absolute",top:"30%",right:"5%",width:"300px",height:"300px",background:"radial-gradient(ellipse,rgba(52,211,153,0.06) 0%,transparent 65%)",pointerEvents:"none"}}/>
+          <style>{`
+            @keyframes ob-fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+            @keyframes ob-chip-in{from{opacity:0;transform:translateY(12px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+            .ob-wrap{animation:ob-fadeUp .55s ease both}
+            .ob-chip{transition:all .18s ease;animation:ob-chip-in .4s ease both}
+            .ob-chip:hover{transform:translateY(-2px)!important;box-shadow:0 6px 20px rgba(99,102,241,0.3)!important}
+            .ob-chip.selected{box-shadow:0 4px 24px rgba(99,102,241,0.45)!important}
+            .ob-btn{transition:all .22s ease}
+            .ob-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 48px rgba(99,102,241,0.38)}
+            .ob-btn:disabled{opacity:0.5;cursor:not-allowed}
+            .ob-input{transition:all .2s}
+            .ob-input:focus{border-color:rgba(129,140,248,0.5)!important;background:rgba(99,102,241,0.06)!important;box-shadow:0 0 0 3px rgba(99,102,241,0.1)!important}
+          `}</style>
+
+          <div className="ob-wrap" style={{width:"100%",maxWidth:520,textAlign:"center",position:"relative",zIndex:1}}>
+            {/* Step dots */}
+            <div style={{display:"flex",justifyContent:"center",gap:7,marginBottom:36}}>
+              {[1,2,3].map(s=>(
+                <div key={s} style={{height:3,borderRadius:3,transition:"all .35s",background:s===onboardStep?"#818cf8":s<onboardStep?"rgba(99,102,241,0.45)":"rgba(255,255,255,0.08)",width:s===onboardStep?32:8}}/>
+              ))}
             </div>
-            {onboardStep===1&&<>
-              <div style={{fontSize:24,fontWeight:800,color:"#fff",marginBottom:8}}>Welcome to <span style={{color:"#818cf8"}}>Vegaply</span></div>
-              <p style={{color:"rgba(255,255,255,0.32)",fontSize:13,marginBottom:24,lineHeight:1.6}}>The AI-powered job search platform built for students. Let's set you up in 60 seconds.</p>
-              <input value={onboardRole} onChange={e=>setOnboardRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardStep(2)} placeholder="What role are you looking for? (e.g. Data Analyst)" style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#fff",outline:"none",marginBottom:14,fontFamily:"inherit"}}/>
-              <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:16,justifyContent:"center"}}>
-                {["Software Engineer","Data Analyst","UX Designer","Product Manager","ML Engineer","Cybersecurity Analyst","Financial Analyst","Cloud Engineer","Marketing Manager","Business Analyst"].map(role=>(
-                  <button key={role} onClick={()=>setOnboardRole(role)} style={{background:onboardRole===role?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",border:`1px solid ${onboardRole===role?"transparent":"rgba(99,102,241,0.22)"}`,borderRadius:100,padding:"5px 13px",fontSize:11,fontWeight:600,color:onboardRole===role?"#fff":"#a5b4fc",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",whiteSpace:"nowrap"}}>{role}</button>
-                ))}
+
+            {onboardStep===1&&(
+              <div key="step1" style={{animation:"ob-fadeUp .45s ease both"}}>
+                {/* Badge */}
+                <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:100,padding:"6px 16px",fontSize:11,fontWeight:600,color:"#a5b4fc",marginBottom:24,letterSpacing:".4px"}}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:"#818cf8",display:"inline-block",flexShrink:0}}/>
+                  Step 1 of 3 · 60-second setup
+                </div>
+                <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(32px,5vw,44px)",fontWeight:900,lineHeight:1.05,letterSpacing:"-1.5px",color:"#fff",marginBottom:12}}>
+                  Welcome to{" "}
+                  <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Vegaply</em>
+                </h1>
+                <p style={{color:"rgba(255,255,255,0.32)",fontSize:14,marginBottom:28,lineHeight:1.7,fontWeight:300}}>The AI job search platform that finds fresh roles, scores your resume, and tracks every application. Let's get you set up.</p>
+
+                <input
+                  className="ob-input"
+                  value={onboardRole}
+                  onChange={e=>setOnboardRole(e.target.value)}
+                  onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardStep(2)}
+                  placeholder="What role are you looking for? e.g. Data Analyst"
+                  style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px 18px",fontSize:14,color:"#fff",outline:"none",marginBottom:16,fontFamily:"inherit"}}
+                />
+
+                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28,justifyContent:"center"}}>
+                  {["Software Engineer","Data Analyst","UX Designer","Product Manager","ML Engineer","Cybersecurity Analyst","Financial Analyst","Cloud Engineer","Marketing Manager","Business Analyst"].map((role,i)=>(
+                    <button
+                      key={role}
+                      className={`ob-chip${onboardRole===role?" selected":""}`}
+                      onClick={()=>setOnboardRole(role)}
+                      style={{
+                        background:onboardRole===role?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",
+                        border:`1px solid ${onboardRole===role?"transparent":"rgba(99,102,241,0.22)"}`,
+                        borderRadius:100,
+                        padding:"6px 15px",
+                        fontSize:12,
+                        fontWeight:600,
+                        color:onboardRole===role?"#fff":"#a5b4fc",
+                        cursor:"pointer",
+                        fontFamily:"inherit",
+                        whiteSpace:"nowrap",
+                        animationDelay:`${i*0.04}s`,
+                      }}
+                    >{role}</button>
+                  ))}
+                </div>
+
+                <button
+                  className="ob-btn"
+                  onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}}
+                  style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",letterSpacing:"-.2px"}}
+                >Continue →</button>
               </div>
-              <button onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
-            </>}
-            {onboardStep===2&&<>
-              <div style={{fontSize:22,fontWeight:800,color:"#fff",marginBottom:8}}>Where are you looking?</div>
-              <p style={{color:"rgba(255,255,255,0.32)",fontSize:13,marginBottom:24,lineHeight:1.6}}>Enter your preferred job location.</p>
-              <input value={onboardLocation} onChange={e=>setOnboardLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardLocation.trim()&&setOnboardStep(3)} placeholder="e.g. New York, US or Remote" style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#fff",outline:"none",marginBottom:12,fontFamily:"inherit"}}/>
-              <div style={{display:"flex",gap:8}}>
-                <button onClick={()=>setOnboardStep(1)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"12px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.35)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>
-                <button onClick={()=>{if(onboardLocation.trim())setOnboardStep(3);}} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
+            )}
+
+            {onboardStep===2&&(
+              <div key="step2" style={{animation:"ob-fadeUp .45s ease both"}}>
+                <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:100,padding:"6px 16px",fontSize:11,fontWeight:600,color:"#a5b4fc",marginBottom:24,letterSpacing:".4px"}}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:"#818cf8",display:"inline-block",flexShrink:0}}/>
+                  Step 2 of 3
+                </div>
+                <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(28px,4vw,38px)",fontWeight:900,lineHeight:1.1,letterSpacing:"-1px",color:"#fff",marginBottom:12}}>
+                  Where are you <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>looking?</em>
+                </h1>
+                <p style={{color:"rgba(255,255,255,0.32)",fontSize:14,marginBottom:28,lineHeight:1.7,fontWeight:300}}>Enter your preferred city, country, or just type "Remote".</p>
+                <input
+                  className="ob-input"
+                  value={onboardLocation}
+                  onChange={e=>setOnboardLocation(e.target.value)}
+                  onKeyDown={e=>e.key==="Enter"&&onboardLocation.trim()&&setOnboardStep(3)}
+                  placeholder="e.g. New York, US or Remote"
+                  style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px 18px",fontSize:14,color:"#fff",outline:"none",marginBottom:16,fontFamily:"inherit"}}
+                />
+                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28,justifyContent:"center"}}>
+                  {["Remote","New York","San Francisco","London","Toronto","Austin","Seattle","Chicago","Los Angeles","Boston"].map((loc,i)=>(
+                    <button
+                      key={loc}
+                      className={`ob-chip${onboardLocation===loc?" selected":""}`}
+                      onClick={()=>setOnboardLocation(loc)}
+                      style={{
+                        background:onboardLocation===loc?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",
+                        border:`1px solid ${onboardLocation===loc?"transparent":"rgba(99,102,241,0.22)"}`,
+                        borderRadius:100,
+                        padding:"6px 15px",
+                        fontSize:12,
+                        fontWeight:600,
+                        color:onboardLocation===loc?"#fff":"#a5b4fc",
+                        cursor:"pointer",
+                        fontFamily:"inherit",
+                        whiteSpace:"nowrap",
+                        animationDelay:`${i*0.04}s`,
+                      }}
+                    >{loc}</button>
+                  ))}
+                </div>
+                <div style={{display:"flex",gap:10}}>
+                  <button className="ob-btn" onClick={()=>setOnboardStep(1)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.35)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>
+                  <button className="ob-btn" onClick={()=>{if(onboardLocation.trim())setOnboardStep(3);}} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
+                </div>
               </div>
-            </>}
-            {onboardStep===3&&<>
-              <div style={{fontSize:22,fontWeight:800,color:"#fff",marginBottom:8}}>Upload your resume</div>
-              <p style={{color:"rgba(255,255,255,0.32)",fontSize:13,marginBottom:20,lineHeight:1.6}}>Upload your PDF for AI matching. You can skip this and add it later.</p>
-              {onboardParsing&&<div style={{color:"#818cf8",fontSize:12,marginBottom:10}}>⏳ Parsing resume…</div>}
-              <input id="ob-file-input" type="file" accept=".pdf" style={{display:"none"}} onChange={async e=>{
-                const file=e.target.files?.[0];if(!file)return;
-                setOnboardParsing(true);
-                try{
-                  if(!(window as any).pdfjsLib){await new Promise<void>((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>res();s.onerror=()=>rej();document.head.appendChild(s);});(window as any).pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}
-                  const ab=await file.arrayBuffer();const pdf=await (window as any).pdfjsLib.getDocument({data:new Uint8Array(ab)}).promise;let text="";
-                  for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();text+=content.items.map((it:any)=>it.str).join(" ")+"\n";}
-                  if(text.trim()){setResumeText(text);setResumeFileName(file.name);lsSet("applysmart_resume",text);lsSet("applysmart_resume_name",file.name);
-                  const{supabase}=await import("@/lib/supabase");const{data:{user}}=await supabase.auth.getUser();if(user)await supabase.from("resumes").insert({user_id:user.id,title:"Resume",file_name:file.name,resume_text:text});}
-                }catch(err){console.error(err);}
-                setOnboardParsing(false);completeOnboarding();
-              }}/>
-              <button onClick={()=>document.getElementById("ob-file-input")?.click()} disabled={onboardParsing} style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginBottom:8}}>
-                {onboardParsing?"Parsing…":"📎 Upload Resume PDF"}
-              </button>
-              <div style={{display:"flex",gap:8}}>
-                <button onClick={()=>setOnboardStep(2)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"12px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.35)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>
-                <button onClick={completeOnboarding} style={{flex:2,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"12px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.3)",cursor:"pointer",fontFamily:"inherit"}}>Skip for now</button>
+            )}
+
+            {onboardStep===3&&(
+              <div key="step3" style={{animation:"ob-fadeUp .45s ease both"}}>
+                <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"6px 16px",fontSize:11,fontWeight:600,color:"#6ee7b7",marginBottom:24,letterSpacing:".4px"}}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:"#34d399",display:"inline-block",flexShrink:0}}/>
+                  Step 3 of 3 · Almost done!
+                </div>
+                <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(28px,4vw,38px)",fontWeight:900,lineHeight:1.1,letterSpacing:"-1px",color:"#fff",marginBottom:12}}>
+                  Upload your <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#34d399,#818cf8)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>resume</em>
+                </h1>
+                <p style={{color:"rgba(255,255,255,0.32)",fontSize:14,marginBottom:24,lineHeight:1.7,fontWeight:300}}>Upload your PDF for instant AI match scoring. We'll remember it for every job. You can skip and add it later.</p>
+                {onboardParsing&&<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,color:"#818cf8",fontSize:13,marginBottom:16}}>
+                  <div className="spin" style={{width:14,height:14}}/>Parsing resume…
+                </div>}
+                <input id="ob-file-input" type="file" accept=".pdf" style={{display:"none"}} onChange={async e=>{
+                  const file=e.target.files?.[0];if(!file)return;
+                  setOnboardParsing(true);
+                  try{
+                    if(!(window as any).pdfjsLib){await new Promise<void>((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>res();s.onerror=()=>rej();document.head.appendChild(s);});(window as any).pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}
+                    const ab=await file.arrayBuffer();const pdf=await (window as any).pdfjsLib.getDocument({data:new Uint8Array(ab)}).promise;let text="";
+                    for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();text+=content.items.map((it:any)=>it.str).join(" ")+"\n";}
+                    if(text.trim()){setResumeText(text);setResumeFileName(file.name);lsSet("applysmart_resume",text);lsSet("applysmart_resume_name",file.name);
+                    const{supabase}=await import("@/lib/supabase");const{data:{user}}=await supabase.auth.getUser();if(user)await supabase.from("resumes").insert({user_id:user.id,title:"Resume",file_name:file.name,resume_text:text});}
+                  }catch(err){console.error(err);}
+                  setOnboardParsing(false);completeOnboarding();
+                }}/>
+                <button className="ob-btn" onClick={()=>document.getElementById("ob-file-input")?.click()} disabled={onboardParsing}
+                  style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginBottom:10}}>
+                  {onboardParsing?"Parsing…":"📎 Upload Resume PDF"}
+                </button>
+                <div style={{display:"flex",gap:10}}>
+                  <button className="ob-btn" onClick={()=>setOnboardStep(2)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.35)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>
+                  <button className="ob-btn" onClick={completeOnboarding} style={{flex:2,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.3)",cursor:"pointer",fontFamily:"inherit"}}>Skip for now</button>
+                </div>
               </div>
-            </>}
+            )}
           </div>
         </div>
       )}
