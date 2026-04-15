@@ -626,7 +626,7 @@ export default function Home() {
       `}</style>
 
       <nav className="navbar">
-        <div className="navbar-logo">Apply<span>Smart</span></div>
+        <div className="navbar-logo">Vega<span>ply</span></div>
         <div className="navbar-right">
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early Bird</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">📋 {trackedApps.length} tracked</span>}

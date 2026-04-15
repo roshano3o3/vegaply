@@ -888,7 +888,7 @@ export default function Home() {
 
       {/* TOPBAR */}
       <nav className="topbar">
-        <div className="topbar-logo">Apply<span>Smart</span></div>
+        <div className="topbar-logo">Vega<span>ply</span></div>
         <div className="topbar-search">
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
