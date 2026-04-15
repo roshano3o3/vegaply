@@ -771,25 +771,29 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* ACTION BUTTONS — Match & Prep highlighted */}
       <div style={{borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:10,display:"flex",gap:5,flexWrap:"wrap"}}>
-        {/* MATCH — PRIMARY HIGHLIGHT */}
+        {/* MATCH */}
         <button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="AI scores your resume vs this job">
-          {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?`✓ ${job.match.matchScore}%`:"🎯 Match"}
+          {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
         </button>
-        {/* PREP — SECONDARY HIGHLIGHT */}
+        {/* PREP */}
         <button className={`action-card-btn interview-btn${job.interview?" done":""}`} onClick={e=>{e.stopPropagation();onInterview();}} disabled={job.interviewLoading} title="AI interview questions for this job">
-          {job.interviewLoading?<><div className="spin-sm"/>Loading…</>:job.interview?"✓ Prep Done":"🤖 Prep"}
+          {job.interviewLoading?<><div className="spin-sm"/>Loading…</>:job.interview?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Prep Done</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Prep</>}
         </button>
+        {/* COVER */}
         <button className={`action-card-btn cover-btn${job.coverLetter?" done":""}`} onClick={e=>{e.stopPropagation();onCoverLetter();}} disabled={job.coverLetterLoading} title="AI generates a cover letter for this job">
-          {job.coverLetterLoading?<><div className="spin-sm"/>Writing…</>:job.coverLetter?"✓ Letter":"✉️ Cover"}
+          {job.coverLetterLoading?<><div className="spin-sm"/>Writing…</>:job.coverLetter?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Letter</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Cover</>}
         </button>
+        {/* SKILLS */}
         <button className={`action-card-btn skillgap-btn${job.skillGap?" done":""}`} onClick={e=>{e.stopPropagation();onSkillGap();}} disabled={job.skillGapLoading} title="See skill gaps and recommended courses">
-          {job.skillGapLoading?<><div className="spin-sm"/>Analyzing…</>:job.skillGap?"✓ Gaps":"🧠 Skills"}
+          {job.skillGapLoading?<><div className="spin-sm"/>Analyzing…</>:job.skillGap?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Gaps</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Skills</>}
         </button>
+        {/* TAILOR */}
         <button className={`action-card-btn tailor-btn${job.tailor?" done":""}`} onClick={e=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="AI tailors your resume bullets">
-          {job.tailorLoading?<><div className="spin-sm"/>Tailoring…</>:job.tailor?"✓ Tailored":"✂️ Tailor"}
+          {job.tailorLoading?<><div className="spin-sm"/>Tailoring…</>:job.tailor?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Tailored</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Tailor</>}
         </button>
+        {/* TRACK */}
         <button className={`action-card-btn track-btn${isTracked?" tracked":""}`} onClick={e=>{e.stopPropagation();onTrack();}} title="Add to application tracker">
-          {isTracked?"✓":"+ Track"}
+          {isTracked?<><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Track</>}
         </button>
       </div>
 
