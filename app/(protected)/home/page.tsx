@@ -629,6 +629,11 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
   const comp=getCompetitionLabel(hours);
   const visaBadges=getVisaBadges(job.job_description);
   const diffBadge=getDifficultyBadge(job.job_title,job.job_description);
+  const baseChance=diffBadge.label.startsWith("🟢")?80:diffBadge.label.startsWith("🔴")?30:55;
+  const successChance=job.match?Math.min(99,Math.round(baseChance*0.4+job.match.matchScore*0.6)):baseChance;
+  const successColor=successChance>=70?"#10b981":successChance>=50?"#f59e0b":"#ef4444";
+  const successBg=successChance>=70?"rgba(16,185,129,0.08)":successChance>=50?"rgba(245,158,11,0.08)":"rgba(239,68,68,0.08)";
+  const successBorder=successChance>=70?"rgba(16,185,129,0.22)":successChance>=50?"rgba(245,158,11,0.22)":"rgba(239,68,68,0.22)";
 
   return(
     <div className={`job-card${hot&&earlyBirdMode?" job-card-hot":""}`} style={{display:"flex",flexDirection:"column",gap:12,position:"relative"}}>
@@ -681,6 +686,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         {job.job_is_remote&&<span className="badge badge-remote">Remote</span>}
         {(job.job_min_salary||job.job_max_salary)&&<span className="badge badge-salary">💰 {job.job_salary_currency??"$"}{job.job_min_salary?.toLocaleString()}–{job.job_max_salary?.toLocaleString()}</span>}
         <span style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:diffBadge.bg,color:diffBadge.color,border:`1px solid ${diffBadge.border}`}}>{diffBadge.label}</span>
+        <span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:4,background:successBg,color:successColor,border:`1px solid ${successBorder}`}}>🎯 {successChance}% Chance</span>
         {visaBadges.map((vb,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:vb.bg,color:vb.color,border:`1px solid ${vb.border}`}}>{vb.label}</span>)}
       </div>
 
