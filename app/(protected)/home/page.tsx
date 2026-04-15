@@ -180,7 +180,7 @@ function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onC
   useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, []);
   const color = matchResult ? scoreColor(matchResult.matchScore) : "#818cf8";
   return (
-    <div className="overlay" onClick={onClose} style={{zIndex:250}}>
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(6,6,8,0.55)",backdropFilter:"blur(4px)",zIndex:250}}>
       <div style={{position:"fixed",top:0,right:0,bottom:0,width:400,background:"#080810",borderLeft:"1px solid rgba(99,102,241,0.12)",padding:24,overflowY:"auto",display:"flex",flexDirection:"column",gap:16,animation:"slideIn .25s ease",zIndex:251}} onClick={e=>e.stopPropagation()}>
         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",paddingBottom:16,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
           <div><div style={{fontSize:14,fontWeight:700,color:"#fff"}}>Resume Analysis</div><div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginTop:2}}>{job.job_title} · {job.employer_name}</div></div>
@@ -690,11 +690,9 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
   if (!desc) return [];
   const d = desc.toLowerCase();
   const badges = [];
-  const hasClearance = /security clearance|clearance required|top secret|ts\/sci|secret clearance/.test(d);
-  const hasCitizenOnly = /must be (a )?us citizen|u\.s\. citizen(s)? only|citizens? only|authorized to work in the (us|united states)|no (h[\-]?1b|sponsorship)|will not sponsor|unable to sponsor/.test(d);
-  const hasH1b = /h[\-]?1b (sponsor|transfer|visa)|sponsor.*h[\-]?1b|visa sponsorship (is )?available|open to sponsorship|will (consider|sponsor).*visa|sponsoring.*visa/.test(d);
+  const hasClearance = /security clearance|clearance required|top secret|ts\/sci|secret clearance|dod clearance|government clearance/.test(d);
+  const hasH1b = /h[\-]?1b (sponsor|transfer|visa)|sponsor.*h[\-]?1b|visa sponsorship (is )?available|open to sponsorship|will (consider|sponsor).*visa|sponsoring.*visa|will sponsor|sponsorship available|visa support|open to all candidates|international candidates welcome|we (support|assist with) (visa|immigration)|relocation (and )?visa|global candidates|candidates from all countries/.test(d);
   if (hasClearance) badges.push({ label: "🔒 Clearance Req.", color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)" });
-  if (hasCitizenOnly) badges.push({ label: "🇺🇸 Citizens Only", color: "#ef4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)" });
   if (hasH1b) badges.push({ label: "✅ H1B Friendly", color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" });
   return badges;
 }
