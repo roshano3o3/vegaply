@@ -8,6 +8,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [resending, setResending] = useState(false);
@@ -30,6 +31,16 @@ export default function SignupPage() {
   const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3;
   const strengthLabel = ["", "Weak", "Good", "Strong"][strength];
   const strengthColor = ["", "#f87171", "#fbbf24", "#34d399"][strength];
+
+  const handleGoogleAuth = async () => {
+    setGoogleLoading(true);
+    setError("");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/home` },
+    });
+    if (error) { setError(error.message); setGoogleLoading(false); }
+  };
 
   const handleSignup = async () => {
     if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
@@ -355,6 +366,12 @@ export default function SignupPage() {
           transition: color 0.2s;
         }
         .form-footer a:hover { color: #a5b4fc; }
+        .google-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.85); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
+        .google-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.22); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+        .google-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+        .or-divider span { font-size: 12px; color: rgba(255,255,255,0.25); font-weight: 400; letter-spacing: 0.5px; text-transform: uppercase; }
 
         .success-box {
           text-align: center;
@@ -473,6 +490,11 @@ export default function SignupPage() {
               <p className="form-subtitle">Join thousands finding jobs smarter.</p>
 
               {error && <div className="form-error">⚠ {error}</div>}
+
+              <button className="google-btn" onClick={handleGoogleAuth} disabled={googleLoading}>
+                {googleLoading ? <><span className="form-spinner"/> Redirecting…</> : <><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>Continue with Google</>}
+              </button>
+              <div className="or-divider"><span>or</span></div>
 
               <div className="form-group">
                 <label className="form-label">Email</label>
