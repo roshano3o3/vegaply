@@ -592,6 +592,13 @@ export default function Home() {
     const savedLocation=localStorage.getItem("applysmart_location");
     if(savedRole)setJobRole(savedRole);
     if(savedLocation)setLocation(savedLocation);
+    if(savedRole&&savedLocation){
+      setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
+      fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:savedRole,location:savedLocation,earlyBird:false})})
+        .then(r=>r.json()).then(data=>setJobs(data?.data||[])).catch(console.error)
+        .finally(()=>setLoading(false));
+      setLoading(true);setJobs([]);
+    }
     import("@/lib/supabase").then(({supabase})=>{
       supabase.auth.getUser().then(({data})=>{
         if(data.user?.email)setUserEmail(data.user.email);
