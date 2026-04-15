@@ -1584,7 +1584,7 @@ export default function Home() {
             </div>
             {onboardStep===1 && (
               <>
-                <div className="ob-title">Welcome to <span style={{background:"linear-gradient(135deg,var(--v),var(--c))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",fontStyle:"italic"}}>ApplySmart</span></div>
+                <div className="ob-title">Welcome to <span style={{background:"linear-gradient(135deg,var(--v),var(--c))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",fontStyle:"italic"}}>Vegaply</span></div>
                 <div className="ob-sub">The AI-powered job search platform. Let's set you up in 60 seconds.</div>
                 <div style={{fontSize:10,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:"var(--text3)",marginBottom:10}}>Popular roles — tap to select</div>
                 <div className="chips-wrap">{roleChips.map(r => <div key={r} className={`chip${onboardRole===r?" sel":""}`} onClick={() => setOnboardRole(onboardRole===r?"":r)}>{r}</div>)}</div>

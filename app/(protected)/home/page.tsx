@@ -1082,7 +1082,7 @@ export default function Home() {
               {[1,2,3].map(s=><div key={s} style={{height:3,borderRadius:3,transition:"all .3s",background:s===onboardStep?"#06b6d4":s<onboardStep?"rgba(6,182,212,0.35)":"rgba(255,255,255,0.07)",width:s===onboardStep?28:8}}/>)}
             </div>
             {onboardStep===1&&<>
-              <div style={{fontSize:24,fontWeight:800,color:"#fff",marginBottom:8}}>Welcome to <span style={{color:"#06b6d4"}}>ApplySmart</span></div>
+              <div style={{fontSize:24,fontWeight:800,color:"#fff",marginBottom:8}}>Welcome to <span style={{color:"#06b6d4"}}>Vegaply</span></div>
               <p style={{color:"rgba(255,255,255,0.32)",fontSize:13,marginBottom:24,lineHeight:1.6}}>The AI-powered job search platform built for students. Let's set you up in 60 seconds.</p>
               <input value={onboardRole} onChange={e=>setOnboardRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardStep(2)} placeholder="What role are you looking for? (e.g. Data Analyst)" style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,padding:"12px 16px",fontSize:14,color:"#fff",outline:"none",marginBottom:12,fontFamily:"inherit"}}/>
               <button onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}} style={{width:"100%",background:"linear-gradient(135deg,#0891b2,#06b6d4)",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
