@@ -865,7 +865,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           <div style={{width:42,height:42,borderRadius:8,border:`1px solid ${t.bd}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:t.bg,flexShrink:0}}>
             {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:<span style={{fontSize:17,fontWeight:700,color:"rgba(99,102,241,0.5)"}}>{job.employer_name?.[0]??"?"}</span>}
           </div>
-          <div style={{minWidth:0}}>
+          <div style={{flex:1,minWidth:0,overflow:"hidden"}}>
             <h3 style={{fontSize:14,fontWeight:700,color:t.t1,lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title}</h3>
             <p style={{fontSize:12,color:"#818cf8",fontWeight:500,marginBottom:1}}>{job.employer_name}</p>
             <p style={{fontSize:10,color:t.t4}}>{job.job_is_remote?"🌐 Remote":loc||"Location not specified"}</p>
@@ -910,7 +910,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       </div>
 
       {/* ACTION BUTTONS — Match & Prep highlighted */}
-      <div style={{borderTop:`1px solid ${t.bd}`,paddingTop:10,display:"flex",gap:5,flexWrap:"wrap"}}>
+      <div className="action-btns" style={{borderTop:`1px solid ${t.bd}`,paddingTop:10,display:"flex",gap:5,flexWrap:"wrap"}}>
         {/* MATCH */}
         <button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="AI scores your resume vs this job">
           {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
@@ -1472,6 +1472,9 @@ export default function Home() {
 
           .search-btn,.eb-btn,.refresh-btn{min-height:44px;padding:10px 14px}
           .action-card-btn{padding:8px 6px;min-height:40px;font-size:10px}
+          .action-btns{display:grid!important;grid-template-columns:repeat(3,1fr);gap:5px}
+          .action-btns .action-card-btn{flex:none;width:100%;justify-content:center}
+          .action-btns .action-card-btn.track-btn{flex:none;padding:8px 6px;width:100%}
           .page-btn{width:38px;height:38px;font-size:13px}
           .apply-btn{padding:12px 18px;min-height:44px;font-size:13px}
 
@@ -1482,8 +1485,9 @@ export default function Home() {
           .mobile-sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:350;display:flex;flex-direction:column;justify-content:flex-end;backdrop-filter:blur(4px)}
           .mobile-sidebar-sheet{background:#0d0d14;border-radius:20px 20px 0 0;padding:16px;max-height:80vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.09)}
           .mob-filters-btn{display:flex!important}
+          .mob-filters-row{display:flex!important}
         }
-        .mob-search-btn,.mob-sidebar-btn,.mob-signout-btn,.mob-eb-btn,.mob-filters-btn{display:none}
+        .mob-search-btn,.mob-sidebar-btn,.mob-signout-btn,.mob-eb-btn,.mob-filters-btn,.mob-filters-row{display:none}
         @media(min-width:769px){.mobile-search-panel{display:none!important}}
         [data-theme="light"] .mobile-search-panel{background:rgba(255,255,255,0.98);border-bottom-color:rgba(0,0,0,0.07)}
         [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
@@ -1508,7 +1512,7 @@ export default function Home() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
           {/* Mobile: early bird quick-access */}
-          <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:13,cursor:"pointer",color:"#fbbf24",display:"none",alignItems:"center",gap:4,minHeight:36}}>⚡</button>
+          <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:13,cursor:"pointer",color:"#fbbf24",alignItems:"center",gap:4,minHeight:36}}>⚡</button>
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
           {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
@@ -1609,13 +1613,13 @@ export default function Home() {
 
         {/* MAIN */}
         <main className="content">
-          {/* Mobile filters row */}
-          <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
-            <button className="mob-filters-btn" onClick={()=>setShowMobileSidebar(true)} style={{background:darkMode?"rgba(99,102,241,0.1)":"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:20,padding:"7px 14px",fontSize:12,fontWeight:600,color:"#818cf8",cursor:"pointer",fontFamily:"inherit",display:"none",alignItems:"center",gap:6,minHeight:36}}>
+          {/* Mobile filters row — hidden on desktop via CSS, shown on mobile */}
+          <div className="mob-filters-row" style={{display:"none",gap:8,marginBottom:14,alignItems:"center"}}>
+            <button className="mob-filters-btn" onClick={()=>setShowMobileSidebar(true)} style={{background:darkMode?"rgba(99,102,241,0.1)":"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:20,padding:"7px 14px",fontSize:12,fontWeight:600,color:"#818cf8",cursor:"pointer",fontFamily:"inherit",alignItems:"center",gap:6,minHeight:36}}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
               Filters{(filterType!=="ALL"||filterDate!=="ANY"||filterRemote)?" ●":""}
             </button>
-            {jobRole&&location&&<span className="mob-filters-btn" style={{fontSize:11,color:darkMode?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.4)",background:"none",border:"none",padding:0,minHeight:"auto",display:"none"}}>{jobRole} · {location}</span>}
+            {jobRole&&location&&<span className="mob-filters-btn" style={{fontSize:11,color:darkMode?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.4)",background:"none",border:"none",padding:0,minHeight:"auto"}}>{jobRole} · {location}</span>}
           </div>
 
           <div className="tabs-row">
