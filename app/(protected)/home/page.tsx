@@ -32,6 +32,7 @@ interface JobWithMatch extends Job {
   tailorLoading?: boolean; interview?: InterviewResult; interviewLoading?: boolean;
   coverLetter?: string; coverLetterLoading?: boolean;
   skillGap?: SkillGapResult; skillGapLoading?: boolean;
+  autoApplying?: boolean;
 }
 type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
@@ -1083,8 +1084,8 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 }
 
 // JOB CARD — 2x3 grid, highlighted Match + Prep
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, lm }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;lm?:boolean;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, isAutoApplied, lm }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;isAutoApplied:boolean;lm?:boolean;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -1181,6 +1182,10 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         <button className={`action-card-btn track-btn${isTracked?" tracked":""}`} onClick={e=>{e.stopPropagation();onTrack();}} title="Add to application tracker">
           {isTracked?<><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Track</>}
         </button>
+        {/* AUTO APPLY */}
+        <button className={`action-card-btn auto-apply-btn${isAutoApplied?" applied":""}`} onClick={e=>{e.stopPropagation();onAutoApply();}} disabled={isAutoApplied||!!job.autoApplying} title="AI generates cover letter, tracks as Applied, and opens job link">
+          {isAutoApplied?"✅ Applied":job.autoApplying?"⏳ Applying…":"⚡ Auto Apply"}
+        </button>
       </div>
 
       {/* APPLY BUTTON */}
@@ -1189,6 +1194,112 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
         </a>
       )}
+    </div>
+  );
+}
+
+interface Preferences {
+  jobTitles: string;
+  minSalary: string;
+  locationTypes: string[];
+  jobTypes: string[];
+}
+const DEFAULT_PREFS: Preferences = { jobTitles:"", minSalary:"", locationTypes:[], jobTypes:[] };
+
+function PreferencesModal({ onClose, lm }: { onClose:()=>void; lm?:boolean }) {
+  const [prefs, setPrefs] = useState<Preferences>(()=>{
+    try { const s=localStorage.getItem("vegaply_preferences"); return s?JSON.parse(s):DEFAULT_PREFS; } catch { return DEFAULT_PREFS; }
+  });
+  const [saved, setSaved] = useState(false);
+  const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.35)":"rgba(255,255,255,0.3)",bd:lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.07)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.025)",inp:lm?"rgba(0,0,0,0.04)":"rgba(255,255,255,0.04)",inpb:lm?"rgba(0,0,0,0.1)":"rgba(255,255,255,0.09)"};
+
+  const toggleArr=(arr:string[], val:string)=>arr.includes(val)?arr.filter(v=>v!==val):[...arr,val];
+
+  const savePrefs=()=>{
+    localStorage.setItem("vegaply_preferences", JSON.stringify(prefs));
+    setSaved(true);
+    setTimeout(()=>setSaved(false), 2000);
+  };
+
+  const label=(txt:string)=>(<div style={{fontSize:11,fontWeight:700,color:t.t2,textTransform:"uppercase",letterSpacing:"0.8px",marginBottom:8}}>{txt}</div>);
+  const checkRow=(arr:string[], val:string, display:string, setter:(v:string[])=>void)=>(
+    <label key={val} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",padding:"6px 10px",borderRadius:8,background:arr.includes(val)?"rgba(99,102,241,0.1)":"transparent",border:`1px solid ${arr.includes(val)?"rgba(99,102,241,0.3)":t.bd}`,transition:"all .15s"}}>
+      <input type="checkbox" checked={arr.includes(val)} onChange={()=>setter(toggleArr(arr,val))} style={{accentColor:"#6366f1",width:14,height:14}}/>
+      <span style={{fontSize:12,fontWeight:500,color:arr.includes(val)?"#a5b4fc":t.t2}}>{display}</span>
+    </label>
+  );
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="modal-head">
+          <div style={{fontSize:28}}>⚙️</div>
+          <div>
+            <h2 className="modal-title">Job Preferences</h2>
+            <p className="modal-sub">Personalize your job search experience</p>
+          </div>
+        </div>
+
+        <div style={{display:"flex",flexDirection:"column",gap:20}}>
+          {/* Desired job titles */}
+          <div>
+            {label("Desired Job Titles")}
+            <input
+              type="text"
+              className="dark-input"
+              placeholder="e.g. Software Engineer, Data Analyst, Product Manager"
+              value={prefs.jobTitles}
+              onChange={e=>setPrefs(p=>({...p,jobTitles:e.target.value}))}
+              style={{width:"100%",boxSizing:"border-box"}}
+            />
+            <div style={{fontSize:10,color:t.t3,marginTop:5}}>Separate multiple titles with commas</div>
+          </div>
+
+          {/* Minimum salary */}
+          <div>
+            {label("Minimum Salary (USD / year)")}
+            <input
+              type="number"
+              className="dark-input"
+              placeholder="e.g. 80000"
+              value={prefs.minSalary}
+              onChange={e=>setPrefs(p=>({...p,minSalary:e.target.value}))}
+              style={{width:"100%",boxSizing:"border-box"}}
+              min={0}
+            />
+          </div>
+
+          {/* Location type */}
+          <div>
+            {label("Preferred Work Location")}
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {checkRow(prefs.locationTypes,"remote","🌐 Remote",v=>setPrefs(p=>({...p,locationTypes:v})))}
+              {checkRow(prefs.locationTypes,"hybrid","🏢 Hybrid",v=>setPrefs(p=>({...p,locationTypes:v})))}
+              {checkRow(prefs.locationTypes,"onsite","📍 On-site",v=>setPrefs(p=>({...p,locationTypes:v})))}
+            </div>
+          </div>
+
+          {/* Job types */}
+          <div>
+            {label("Job Type")}
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {checkRow(prefs.jobTypes,"full-time","⏰ Full-time",v=>setPrefs(p=>({...p,jobTypes:v})))}
+              {checkRow(prefs.jobTypes,"part-time","🕐 Part-time",v=>setPrefs(p=>({...p,jobTypes:v})))}
+              {checkRow(prefs.jobTypes,"contract","📋 Contract",v=>setPrefs(p=>({...p,jobTypes:v})))}
+            </div>
+          </div>
+
+          {/* Save */}
+          <button
+            className="gradient-btn"
+            onClick={savePrefs}
+            style={{marginTop:4}}
+          >
+            {saved?"✅ Preferences Saved!":"Save Preferences"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1224,6 +1335,9 @@ export default function Home() {
   const [showMobileSearch,setShowMobileSearch]=useState(false);
   const [showMobileSidebar,setShowMobileSidebar]=useState(false);
   const [shareToast,setShareToast]=useState(false);
+  const [applyToast,setApplyToast]=useState<{jobTitle:string;company:string}|null>(null);
+  const [appliedJobs,setAppliedJobs]=useState<Set<string>>(new Set());
+  const [showPreferences,setShowPreferences]=useState(false);
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -1377,6 +1491,25 @@ export default function Home() {
 
   const handleInterview=(job:JobWithMatch)=>{
     setInterviewJob(job);
+  };
+
+  const handleAutoApply=async(job:JobWithMatch)=>{
+    if(!resumeText){alert("Upload your resume first to use Auto Apply!");return;}
+    if(appliedJobs.has(job.job_id))return;
+    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const getList=()=>isEb?earlyBirdJobs:jobs;
+    setList(getList().map(j=>j.job_id===job.job_id?{...j,autoApplying:true}:j));
+    // Step 1 — generate cover letter silently
+    try{await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});}catch{}
+    // Step 2 — track as Applied directly
+    setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
+    // Step 3 — open job link
+    if(job.job_apply_link)window.open(job.job_apply_link,"_blank");
+    // Step 4 — toast
+    setApplyToast({jobTitle:job.job_title,company:job.employer_name});
+    setTimeout(()=>setApplyToast(null),4000);
+    // Step 5 — mark applied, clear loading
+    setAppliedJobs(prev=>new Set([...prev,job.job_id]));
+    setList(getList().map(j=>j.job_id===job.job_id?{...j,autoApplying:false}:j));
   };
 
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
@@ -1599,6 +1732,9 @@ export default function Home() {
         .action-card-btn.track-btn{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.35);flex:0;padding:7px 12px}
         .action-card-btn.track-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6)}
         .action-card-btn.track-btn.tracked{background:rgba(52,211,153,0.09);border-color:rgba(52,211,153,0.25);color:#34d399}
+        .action-card-btn.auto-apply-btn{background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.25);color:#fbbf24;font-weight:700}
+        .action-card-btn.auto-apply-btn:hover:not(:disabled){background:rgba(251,191,36,0.16);box-shadow:0 0 18px rgba(251,191,36,0.18)}
+        .action-card-btn.auto-apply-btn.applied{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:#34d399}
         .action-card-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none!important}
 
         /* BADGES */
@@ -1877,6 +2013,15 @@ export default function Home() {
 
           {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
 
+          {/* PREFERENCES */}
+          <div className="sidebar-card" style={{marginTop:4}}>
+            <div className="sidebar-card-title">⚙️ Job Preferences</div>
+            <div className="sidebar-card-sub">Set your ideal job titles, salary & work style</div>
+            <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#818cf8",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(99,102,241,0.15)")} onMouseLeave={e=>(e.currentTarget.style.background="rgba(99,102,241,0.08)")}>
+              ⚙️ Edit Preferences
+            </button>
+          </div>
+
           {/* SHARE VEGAPLY */}
           <div className="sidebar-card" style={{marginTop:4,background:"rgba(99,102,241,0.05)",borderColor:"rgba(99,102,241,0.15)"}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
@@ -1995,6 +2140,8 @@ export default function Home() {
                         resumeReady={!!resumeText}
                         isTracked={!!trackedApps.find(a=>a.job.job_id===job.job_id)}
                         onTrack={()=>addToTracker(job)}
+                        onAutoApply={()=>handleAutoApply(job)}
+                        isAutoApplied={appliedJobs.has(job.job_id)}
                         lm={!darkMode}
                       />
                     ))}
@@ -2278,11 +2425,21 @@ export default function Home() {
       {/* FLOATING HELP */}
       <HelpPanel/>
 
+      {/* PREFERENCES MODAL */}
+      {showPreferences&&<PreferencesModal lm={!darkMode} onClose={()=>setShowPreferences(false)}/>}
+
       {/* REFRESH TOAST */}
       {refreshToast&&(
         <div className="refresh-toast">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           Updated just now — new jobs found
+        </div>
+      )}
+
+      {/* AUTO APPLY TOAST */}
+      {applyToast&&(
+        <div className="refresh-toast" style={{borderColor:"rgba(52,211,153,0.35)",color:"#34d399",bottom:72}}>
+          ✅ Applied to <strong style={{color:"#fff",margin:"0 3px"}}>{applyToast.jobTitle}</strong> at <strong style={{color:"#fff",margin:"0 3px"}}>{applyToast.company}</strong>! Added to your tracker.
         </div>
       )}
     </div>
