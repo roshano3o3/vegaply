@@ -306,8 +306,8 @@ export async function POST(req: Request) {
       return tb - ta;
     });
 
-    // Cap at 500
-    const finalJobs = uniqueJobs.slice(0, 500);
+    // Cap at 2000
+    const finalJobs = uniqueJobs.slice(0, 2000);
 
     console.log('[Jobs] Remotive count:', remotiveJobs.length);
     console.log('[Jobs] Greenhouse count:', greenhouseJobs.length);
