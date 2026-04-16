@@ -8,6 +8,10 @@ export default function LandingPage() {
   const [counters, setCounters] = useState({ jobs: 0, users: 0, rate: 0 });
   const getUrgencyCount = () => Math.floor(30 + (new Date().getHours() * 7) % 40);
   const [urgencyCount, setUrgencyCount] = useState(getUrgencyCount);
+  const [demoSlide, setDemoSlide] = useState(0);
+  const [demoProgress, setDemoProgress] = useState(0);
+  const DEMO_SLIDES = 5;
+  const DEMO_DURATION = 4000;
   const statsRef = useRef<HTMLDivElement>(null);
   const statsAnimated = useRef(false);
 
@@ -28,6 +32,17 @@ export default function LandingPage() {
   useEffect(() => {
     const t = setInterval(() => setUrgencyCount(getUrgencyCount()), 60000);
     return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    setDemoProgress(0);
+    const raf = requestAnimationFrame(() => setDemoProgress(100));
+    const timer = setInterval(() => {
+      setDemoSlide(s => (s + 1) % DEMO_SLIDES);
+      setDemoProgress(0);
+      requestAnimationFrame(() => setDemoProgress(100));
+    }, DEMO_DURATION);
+    return () => { clearInterval(timer); cancelAnimationFrame(raf); };
   }, []);
 
   useEffect(() => {
@@ -248,6 +263,52 @@ export default function LandingPage() {
         @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
         /* STATS */
+        /* DEMO SLIDESHOW */
+        .demo-section{padding:80px 48px;position:relative;z-index:1;text-align:center}
+        .demo-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+        .demo-title{font-family:'Playfair Display',serif;font-size:clamp(28px,3.5vw,42px);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:36px}
+        .demo-browser{max-width:900px;margin:0 auto;background:#0d0d12;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04)}
+        .demo-topbar{background:#111118;border-bottom:1px solid rgba(255,255,255,0.06);padding:12px 16px;display:flex;align-items:center;gap:10px}
+        .demo-dots{display:flex;gap:5px}
+        .demo-dot{width:10px;height:10px;border-radius:50%}
+        .demo-url{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.25);text-align:left;max-width:320px;margin:0 auto}
+        .demo-logo-top{font-family:'Playfair Display',serif;font-size:13px;font-weight:900;color:rgba(255,255,255,0.5)}
+        .demo-logo-top span{background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .demo-progress{height:2px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
+        .demo-progress-bar{height:100%;background:linear-gradient(90deg,#6366f1,#ec4899);transition:none}
+        .demo-progress-bar.animating{transition:width 4s linear}
+        .demo-content{padding:28px 28px 24px;min-height:340px;position:relative;overflow:hidden}
+        .demo-slide{position:absolute;inset:28px 28px 24px;opacity:0;transform:translateY(14px);transition:opacity 0.45s ease,transform 0.45s ease;pointer-events:none}
+        .demo-slide.active{opacity:1;transform:translateY(0);pointer-events:auto}
+        .demo-slide-label{display:inline-block;font-size:10px;font-weight:700;color:#818cf8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.18);border-radius:99px;padding:3px 10px}
+        .demo-slide-title{font-family:'Playfair Display',serif;font-size:clamp(17px,2vw,22px);font-weight:900;color:#fff;margin-bottom:16px;letter-spacing:-.5px;line-height:1.2}
+        .demo-job-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;text-align:left}
+        .demo-job-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid rgba(255,255,255,0.07)}
+        .demo-job-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
+        .demo-job-co{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:6px}
+        .demo-badges{display:flex;gap:5px;flex-wrap:wrap}
+        .demo-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+        .demo-hot{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.2);font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.5px;text-transform:uppercase}
+        .demo-score-big{font-size:13px;font-weight:800;margin-left:auto;flex-shrink:0}
+        .demo-dots-nav{display:flex;gap:7px;justify-content:center;padding:14px 0 4px;position:relative;z-index:2}
+        .demo-nav-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;cursor:pointer;transition:all .25s;padding:0}
+        .demo-nav-dot.active{width:22px;border-radius:99px;background:#6366f1}
+        .demo-kanban-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+        .demo-kanban-col{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px}
+        .demo-kanban-head{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .demo-kanban-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:6px 7px;font-size:10px;margin-bottom:4px}
+        .demo-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+        .demo-stat-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px;text-align:center}
+        .demo-stat-n{font-size:20px;font-weight:800;color:#fff;line-height:1}
+        .demo-stat-l{font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+        .demo-cmp-table{width:100%;border-collapse:collapse;font-size:12px}
+        .demo-cmp-table th,.demo-cmp-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .demo-cmp-table th{font-size:11px;font-weight:700;padding-bottom:10px}
+        .demo-ring-wrap{display:flex;gap:20px;align-items:center}
+        .demo-skill-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+        .demo-skill-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
+        @media(max-width:768px){.demo-section{padding:48px 16px}.demo-content{min-height:420px}.demo-kanban-row{grid-template-columns:repeat(3,1fr)}.demo-stats-row{grid-template-columns:repeat(2,1fr)}.demo-ring-wrap{flex-direction:column;align-items:flex-start}}
+
         /* AS SEEN AT */
         .logos-section{padding:24px 48px;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);position:relative;z-index:1}
         .logos-label{font-size:11px;color:rgba(255,255,255,0.2);text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
@@ -283,7 +344,7 @@ export default function LandingPage() {
         .feature-row-desc{font-size:12px;color:rgba(255,255,255,0.35);line-height:1.6;display:none}
         .feature-row.active .feature-row-desc{display:block}
 
-        .feature-detail-panel{position:sticky;top:100px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:36px;min-height:320px;transition:all .3s}
+        .feature-detail-panel{align-self:start;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:36px;min-height:320px;transition:all .3s}
         .fdp-tag{font-size:10px;font-weight:800;letter-spacing:2px;margin-bottom:12px;opacity:0.8}
         .fdp-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:16px;line-height:1.2;letter-spacing:-.5px}
         .fdp-desc{font-size:14px;color:rgba(255,255,255,0.45);line-height:1.8;margin-bottom:20px}
@@ -542,6 +603,190 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* DEMO SLIDESHOW */}
+      <section className="demo-section">
+        <div className="demo-label">See it in action</div>
+        <h2 className="demo-title">Everything you need to get hired first</h2>
+
+        <div className="demo-browser">
+          {/* Browser topbar */}
+          <div className="demo-topbar">
+            <div className="demo-dots">
+              <div className="demo-dot" style={{background:"#f87171"}}/>
+              <div className="demo-dot" style={{background:"#fbbf24"}}/>
+              <div className="demo-dot" style={{background:"#34d399"}}/>
+            </div>
+            <div className="demo-url">vegaply.com/home</div>
+            <div className="demo-logo-top">Vega<span>ply</span></div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="demo-progress">
+            <div
+              className={`demo-progress-bar${demoProgress===100?" animating":""}`}
+              style={{width:`${demoProgress}%`}}
+            />
+          </div>
+
+          {/* Slides */}
+          <div className="demo-content">
+
+            {/* SLIDE 1 — Early Bird */}
+            <div className={`demo-slide${demoSlide===0?" active":""}`}>
+              <div className="demo-slide-label">Timing Edge</div>
+              <div className="demo-slide-title">Apply before 500 others even see it</div>
+              {[
+                {icon:"🎨",title:"Senior Product Designer",co:"Figma",time:"28min ago",h1b:true,match:91,mc:"#34d399"},
+                {icon:"⚡",title:"Frontend Engineer",co:"Vercel",time:"1h ago",h1b:true,match:76,mc:"#818cf8"},
+              ].map((j,i)=>(
+                <div key={i} className="demo-job-card">
+                  <div className="demo-job-logo" style={{background:`rgba(${i===0?"99,102,241":"52,211,153"},0.1)`}}>{j.icon}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div className="demo-job-title">{j.title}</div>
+                    <div className="demo-job-co">{j.co} · {j.time}</div>
+                    <div className="demo-badges">
+                      <span className="demo-hot">HOT</span>
+                      {j.h1b&&<span className="demo-badge" style={{background:"rgba(52,211,153,0.1)",color:"#34d399",border:"1px solid rgba(52,211,153,0.2)"}}>✅ H1B Friendly</span>}
+                      <span className="demo-badge" style={{background:"rgba(99,102,241,0.1)",color:"#818cf8",border:"1px solid rgba(99,102,241,0.2)"}}>Easy Apply</span>
+                    </div>
+                  </div>
+                  <div className="demo-score-big" style={{color:j.mc}}>{j.match}%</div>
+                </div>
+              ))}
+            </div>
+
+            {/* SLIDE 2 — AI Resume Match */}
+            <div className={`demo-slide${demoSlide===1?" active":""}`}>
+              <div className="demo-slide-label">AI Analysis</div>
+              <div className="demo-slide-title">Know your odds instantly</div>
+              <div className="demo-ring-wrap">
+                <svg width="90" height="90" viewBox="0 0 90 90" style={{flexShrink:0}}>
+                  <circle cx="45" cy="45" r="36" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6"/>
+                  <circle cx="45" cy="45" r="36" fill="none" stroke="#34d399" strokeWidth="6"
+                    strokeDasharray={`${demoSlide===1?2*Math.PI*36*0.91:0} ${2*Math.PI*36}`}
+                    strokeLinecap="round" transform="rotate(-90 45 45)"
+                    style={{transition:"stroke-dasharray 1.2s ease"}}/>
+                  <text x="45" y="51" textAnchor="middle" fontSize="18" fontWeight="800" fill="#34d399" fontFamily="'DM Sans',sans-serif">91%</text>
+                </svg>
+                <div style={{flex:1,textAlign:"left"}}>
+                  <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:3}}>Senior UX Designer · Figma</div>
+                  <div style={{fontSize:12,color:"#34d399",fontWeight:600,marginBottom:8}}>Strong match</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginBottom:5}}>Matched skills</div>
+                  <div className="demo-skill-pills">
+                    {["Figma","Design Systems","Prototyping"].map(s=><span key={s} className="demo-skill-pill" style={{background:"rgba(52,211,153,0.1)",color:"#34d399",border:"1px solid rgba(52,211,153,0.2)"}}>{s}</span>)}
+                    {["Motion Design","Swift UI"].map(s=><span key={s} className="demo-skill-pill" style={{background:"rgba(239,68,68,0.08)",color:"#f87171",border:"1px solid rgba(239,68,68,0.18)"}}>{s}</span>)}
+                  </div>
+                </div>
+              </div>
+              <div style={{marginTop:12,background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:10,padding:"10px 13px",textAlign:"left"}}>
+                <div style={{fontSize:10,fontWeight:700,color:"#818cf8",letterSpacing:1,marginBottom:5}}>AI COVER LETTER PREVIEW</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>"I'm excited to apply for the Senior UX Designer role at Figma. With 4 years crafting design systems at scale and expertise in Figma's own component library..."</div>
+              </div>
+            </div>
+
+            {/* SLIDE 3 — Kanban */}
+            <div className={`demo-slide${demoSlide===2?" active":""}`}>
+              <div className="demo-slide-label">Pipeline Management</div>
+              <div className="demo-slide-title">Your whole pipeline in one view</div>
+              <div className="demo-kanban-row">
+                {[
+                  {label:"SAVED",color:"#94a3b8",cards:[{t:"UX Researcher",co:"Figma",m:82,c:"#34d399"}]},
+                  {label:"APPLIED",color:"#818cf8",cards:[{t:"Sr. Designer",co:"Linear",m:91,c:"#34d399"}],hl:true},
+                  {label:"INTERVIEW",color:"#fbbf24",cards:[{t:"Staff Eng.",co:"Stripe",m:88,c:"#34d399"}]},
+                  {label:"OFFER",color:"#34d399",cards:[{t:"Frontend Lead",co:"Vercel",m:95,c:"#34d399"}],offer:true},
+                  {label:"REJECTED",color:"#ef4444",cards:[{t:"Growth Mgr",co:"Notion",m:48,c:"#f87171"}],rej:true},
+                ].map((col,i)=>(
+                  <div key={i} className="demo-kanban-col" style={col.hl?{borderColor:"rgba(99,102,241,0.35)",background:"rgba(99,102,241,0.05)"}:col.offer?{borderColor:"rgba(52,211,153,0.3)",background:"rgba(52,211,153,0.04)"}:col.rej?{borderColor:"rgba(239,68,68,0.2)"}:{}}>
+                    <div className="demo-kanban-head" style={{color:col.color}}>{col.label}</div>
+                    {col.cards.map((c,j)=>(
+                      <div key={j} className="demo-kanban-card">
+                        <div style={{fontWeight:700,color:"#fff",marginBottom:1}}>{c.t}</div>
+                        <div style={{color:"rgba(255,255,255,0.3)",fontSize:9,marginBottom:3}}>{c.co}</div>
+                        <div style={{color:c.c,fontWeight:700,fontSize:10}}>{c.m}%</div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="demo-stats-row">
+                {[{n:9,l:"Tracked"},{n:4,l:"Applied"},{n:1,l:"Interview"},{n:1,l:"Offer"}].map((s,i)=>(
+                  <div key={i} className="demo-stat-box">
+                    <div className="demo-stat-n" style={{color:i===3?"#34d399":i===2?"#fbbf24":"#fff"}}>{s.n}</div>
+                    <div className="demo-stat-l">{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SLIDE 4 — Comparison */}
+            <div className={`demo-slide${demoSlide===3?" active":""}`}>
+              <div className="demo-slide-label">The Comparison</div>
+              <div className="demo-slide-title">The unfair advantage</div>
+              <table className="demo-cmp-table">
+                <thead>
+                  <tr>
+                    <th style={{textAlign:"left",color:"rgba(255,255,255,0.3)"}}>Feature</th>
+                    <th style={{color:"#a5b4fc",background:"rgba(99,102,241,0.1)",borderRadius:"6px 6px 0 0"}}>Vegaply</th>
+                    <th style={{color:"rgba(255,255,255,0.25)"}}>LinkedIn</th>
+                    <th style={{color:"rgba(255,255,255,0.25)"}}>Indeed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Jobs under 6h",true,false,false],
+                    ["AI Resume Match",true,false,false],
+                    ["H1B Detection",true,false,"~"],
+                    ["Skill Gap Analysis",true,false,false],
+                    ["Interview Simulator",true,false,false],
+                    ["100% Free",true,"~",true],
+                  ].map(([feat,v,li,ind],i)=>(
+                    <tr key={i}>
+                      <td style={{color:"rgba(255,255,255,0.45)",textAlign:"left"}}>{feat as string}</td>
+                      <td style={{textAlign:"center",background:"rgba(99,102,241,0.06)"}}>
+                        {v===true?<span style={{color:"#34d399",fontWeight:700}}>✓</span>:<span style={{color:"#ef4444",opacity:.6}}>✗</span>}
+                      </td>
+                      <td style={{textAlign:"center"}}>
+                        {li===true?<span style={{color:"#34d399",fontWeight:700}}>✓</span>:li==="~"?<span style={{color:"#f59e0b",fontSize:11}}>~</span>:<span style={{color:"#ef4444",opacity:.6}}>✗</span>}
+                      </td>
+                      <td style={{textAlign:"center"}}>
+                        {ind===true?<span style={{color:"#34d399",fontWeight:700}}>✓</span>:ind==="~"?<span style={{color:"#f59e0b",fontSize:11}}>~</span>:<span style={{color:"#ef4444",opacity:.6}}>✗</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* SLIDE 5 — CTA */}
+            <div className={`demo-slide${demoSlide===4?" active":""}`} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:12}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(20px,3vw,30px)",fontWeight:900,color:"#fff",lineHeight:1.15,letterSpacing:"-1px"}}>
+                Stop applying late.<br/>Start winning <em style={{fontStyle:"italic",color:"#ec4899"}}>early.</em>
+              </div>
+              <div style={{fontSize:13,color:"rgba(255,255,255,0.35)"}}>3,800+ job seekers · 4.9/5 rating · Free forever</div>
+              <a href="/signup" style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",textDecoration:"none",borderRadius:12,padding:"11px 28px",fontSize:14,fontWeight:700,display:"inline-block",letterSpacing:.3}}>
+                Get Started Free →
+              </a>
+              <div style={{display:"flex",gap:24,marginTop:6}}>
+                {[{n:"12,400+",l:"Jobs tracked"},{n:"3,800+",l:"Users"},{n:"3×",l:"More interviews"}].map((s,i)=>(
+                  <div key={i} style={{textAlign:"center"}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:800,color:"#fff"}}>{s.n}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:2}}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>{/* demo-content */}
+
+          {/* Dot navigation */}
+          <div className="demo-dots-nav">
+            {Array.from({length:DEMO_SLIDES},(_,i)=>(
+              <button key={i} type="button" className={`demo-nav-dot${demoSlide===i?" active":""}`} onClick={()=>{setDemoSlide(i);setDemoProgress(0);requestAnimationFrame(()=>setDemoProgress(100));}}/>
+            ))}
+          </div>
+        </div>{/* demo-browser */}
+      </section>
+
       {/* AS SEEN AT */}
       <div className="logos-section">
         <div className="logos-label">Vegaply users are getting hired at</div>
@@ -645,6 +890,29 @@ export default function LandingPage() {
       </section>
 
       {/* VISA SECTION */}
+      {/* HOW IT WORKS */}
+      <section className="how-section" id="how">
+        <div className="section-eyebrow">Simple process</div>
+        <h2 className="section-title">
+          From signup to first<br/>
+          <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>application in 5 minutes</em>
+        </h2>
+        <p className="section-sub" style={{marginBottom:80}}>Most users find a matched job and apply within 10 minutes of signing up. The setup is that fast.</p>
+        <div className="how-grid">
+          {steps.map((s,i)=>(
+            <div key={i} className="how-step fade-in">
+              <div className="how-num">
+                <span style={{fontSize:24}}>{s.icon}</span>
+                <div className="how-num-label">{s.num}</div>
+              </div>
+              <div className="how-step-title">{s.title}</div>
+              <div className="how-step-desc">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* H1B / VISA SECTION */}
       <section className="visa-section" id="visa">
         <div className="visa-inner">
           <div>
@@ -673,66 +941,6 @@ export default function LandingPage() {
                 <span style={{fontSize:12,fontWeight:800,color:j.sc,minWidth:30,textAlign:"right"}}>{j.score}%</span>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="how-section" id="how">
-        <div className="section-eyebrow">Simple process</div>
-        <h2 className="section-title">
-          From signup to first<br/>
-          <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>application in 5 minutes</em>
-        </h2>
-        <p className="section-sub" style={{marginBottom:80}}>Most users find a matched job and apply within 10 minutes of signing up. The setup is that fast.</p>
-        <div className="how-grid">
-          {steps.map((s,i)=>(
-            <div key={i} className="how-step fade-in">
-              <div className="how-num">
-                <span style={{fontSize:24}}>{s.icon}</span>
-                <div className="how-num-label">{s.num}</div>
-              </div>
-              <div className="how-step-title">{s.title}</div>
-              <div className="how-step-desc">{s.desc}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* COMPARISON TABLE */}
-      <section className="compare-section">
-        <div className="compare-inner">
-          <div className="compare-label">Why Vegaply</div>
-          <h2 className="compare-title">Why job seekers choose <em>Vegaply</em></h2>
-          <div className="compare-wrap">
-            <table className="compare-table">
-              <thead>
-                <tr>
-                  <th className="col-feature" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>Feature</th>
-                  <th className="col-vegaply-head" style={{borderBottom:"1px solid rgba(99,102,241,0.25)"}}>Vegaply</th>
-                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>LinkedIn</th>
-                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)",borderRadius:"0 10px 0 0"}}>Indeed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { feature:"Jobs under 6h old",       v:true,  li:false,   in:false   },
-                  { feature:"AI Resume Match Score",    v:true,  li:false,   in:false   },
-                  { feature:"H1B / Visa Detection",     v:true,  li:false,   in:"partial"},
-                  { feature:"Skill Gap Analysis",       v:true,  li:false,   in:false   },
-                  { feature:"Interview Simulator",      v:true,  li:false,   in:false   },
-                  { feature:"Application Tracker",      v:true,  li:true,    in:false   },
-                  { feature:"100% Free",                v:true,  li:"partial",in:true   },
-                ].map((row,i)=>(
-                  <tr key={i} className="fade-in">
-                    <td className="col-feature">{row.feature}</td>
-                    <td className="col-vegaply">{row.v===true?<span className="compare-yes">✓</span>:<span className="compare-no">✗</span>}</td>
-                    <td className="col-other">{row.li===true?<span className="compare-yes">✓</span>:row.li==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
-                    <td className="col-other">{row.in===true?<span className="compare-yes">✓</span>:row.in==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </section>
@@ -824,14 +1032,52 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* COMPARISON TABLE */}
+      <section className="compare-section">
+        <div className="compare-inner">
+          <div className="compare-label">Why Vegaply</div>
+          <h2 className="compare-title">Why job seekers choose <em>Vegaply</em></h2>
+          <div className="compare-wrap">
+            <table className="compare-table">
+              <thead>
+                <tr>
+                  <th className="col-feature" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>Feature</th>
+                  <th className="col-vegaply-head" style={{borderBottom:"1px solid rgba(99,102,241,0.25)"}}>Vegaply</th>
+                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>LinkedIn</th>
+                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)",borderRadius:"0 10px 0 0"}}>Indeed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { feature:"Jobs under 6h old",       v:true,  li:false,    in:false    },
+                  { feature:"AI Resume Match Score",    v:true,  li:false,    in:false    },
+                  { feature:"H1B / Visa Detection",     v:true,  li:false,    in:"partial"},
+                  { feature:"Skill Gap Analysis",       v:true,  li:false,    in:false    },
+                  { feature:"Interview Simulator",      v:true,  li:false,    in:false    },
+                  { feature:"Application Tracker",      v:true,  li:true,     in:false    },
+                  { feature:"100% Free",                v:true,  li:"partial", in:true    },
+                ].map((row,i)=>(
+                  <tr key={i} className="fade-in">
+                    <td className="col-feature">{row.feature}</td>
+                    <td className="col-vegaply">{row.v===true?<span className="compare-yes">✓</span>:<span className="compare-no">✗</span>}</td>
+                    <td className="col-other">{row.li===true?<span className="compare-yes">✓</span>:row.li==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
+                    <td className="col-other">{row.in===true?<span className="compare-yes">✓</span>:row.in==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="faq-section">
         <div className="faq-inner">
           <div className="faq-label">FAQ</div>
           <h2 className="faq-title">Questions, answered.</h2>
           {faqs.map((f,i)=>(
-            <div key={i} className={`faq-item fade-in${openFaq===i?" open":""}`}>
-              <button className="faq-q" onClick={()=>setOpenFaq(openFaq===i?null:i)}>
+            <div key={i} className={`faq-item${openFaq===i?" open":""}`}>
+              <button type="button" className="faq-q" onClick={()=>setOpenFaq(openFaq===i?null:i)}>
                 <span className="faq-q-text">{f.q}</span>
                 <span className="faq-icon">{openFaq===i?"−":"+"}</span>
               </button>
