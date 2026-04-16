@@ -147,6 +147,114 @@ async function fetchGreenhouse(): Promise<NormalisedJob[]> {
   }
 }
 
+// ── SOURCE D: Adzuna ─────────────────────────────────────────────────────────
+async function fetchAdzuna(jobRole: string, location: string): Promise<NormalisedJob[]> {
+  try {
+    const appId = process.env.ADZUNA_APP_ID ?? "";
+    const appKey = process.env.ADZUNA_APP_KEY ?? "";
+    if (!appId || !appKey) { console.log("[Adzuna] No credentials, skipping"); return []; }
+    const res = await fetch(
+      `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=50&what=${encodeURIComponent(jobRole)}&where=${encodeURIComponent(location)}&content-type=application/json`,
+      { next: { revalidate: 0 } }
+    );
+    console.log("[Adzuna] HTTP status:", res.status);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const jobs: any[] = data?.results ?? [];
+    console.log("[Adzuna] jobs fetched:", jobs.length);
+    return jobs.map(job => ({
+      job_id: `adzuna-${job.id}`,
+      job_title: job.title,
+      employer_name: job.company?.display_name || "",
+      employer_logo: null,
+      job_city: job.location?.display_name || "",
+      job_country: "US",
+      job_posted_at_timestamp: Math.floor(new Date(job.created).getTime() / 1000),
+      job_posted_at_datetime_utc: job.created,
+      job_apply_link: job.redirect_url,
+      job_description: job.description,
+      job_employment_type: job.contract_time || "",
+      source: "adzuna",
+    }));
+  } catch (err) {
+    console.error("[Adzuna] error:", err);
+    return [];
+  }
+}
+
+// ── SOURCE E: The Muse ────────────────────────────────────────────────────────
+async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
+  try {
+    const res = await fetch(
+      `https://www.themuse.com/api/public/jobs?page=1&descending=true`,
+      { next: { revalidate: 0 } }
+    );
+    console.log("[TheMuse] HTTP status:", res.status);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const jobs: any[] = data?.results ?? [];
+    const roleLower = jobRole.toLowerCase();
+    const filtered = jobs.filter(job => job.name?.toLowerCase().includes(roleLower));
+    console.log("[TheMuse] jobs fetched:", jobs.length, "| matching:", filtered.length);
+    return filtered.map(job => ({
+      job_id: `themuse-${job.id}`,
+      job_title: job.name,
+      employer_name: job.company?.name || "",
+      employer_logo: null,
+      job_city: job.locations?.[0]?.name || "",
+      job_country: "",
+      job_posted_at_timestamp: job.publication_date
+        ? Math.floor(new Date(job.publication_date).getTime() / 1000)
+        : 0,
+      job_posted_at_datetime_utc: job.publication_date ?? null,
+      job_apply_link: job.refs?.landing_page || "",
+      job_description: job.contents ?? "",
+      job_employment_type: job.type ?? "",
+      source: "themuse",
+    }));
+  } catch (err) {
+    console.error("[TheMuse] error:", err);
+    return [];
+  }
+}
+
+// ── SOURCE F: Arbeitnow ───────────────────────────────────────────────────────
+async function fetchArbeitnow(jobRole: string): Promise<NormalisedJob[]> {
+  try {
+    const res = await fetch(
+      `https://www.arbeitnow.com/api/job-board-api`,
+      { next: { revalidate: 0 } }
+    );
+    console.log("[Arbeitnow] HTTP status:", res.status);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const jobs: any[] = data?.data ?? [];
+    const roleLower = jobRole.toLowerCase();
+    const filtered = jobs.filter(job => job.title?.toLowerCase().includes(roleLower));
+    console.log("[Arbeitnow] jobs fetched:", jobs.length, "| matching:", filtered.length);
+    return filtered.map(job => ({
+      job_id: `arbeitnow-${job.slug}`,
+      job_title: job.title,
+      employer_name: job.company_name || "",
+      employer_logo: null,
+      job_city: job.location || "",
+      job_country: "",
+      job_posted_at_timestamp: job.created_at ?? 0,
+      job_posted_at_datetime_utc: job.created_at
+        ? new Date(job.created_at * 1000).toISOString()
+        : null,
+      job_apply_link: job.url || "",
+      job_description: job.description ?? "",
+      job_employment_type: job.job_types?.[0] ?? "",
+      job_is_remote: job.remote ?? false,
+      source: "arbeitnow",
+    }));
+  } catch (err) {
+    console.error("[Arbeitnow] error:", err);
+    return [];
+  }
+}
+
 // ── MAIN HANDLER ─────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
   try {
@@ -157,19 +265,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ data: [], total: 0 });
     }
 
-    // Fetch all 3 sources in parallel; each has its own error boundary
-    const [jsearchJobs, remotiveJobs, greenhouseJobs] = await Promise.all([
+    // Fetch all 6 sources in parallel; each has its own error boundary
+    const [jsearchJobs, remotiveJobs, greenhouseJobs, adzunaJobs, themuseJobs, arbeitnowJobs] = await Promise.all([
       fetchJSearch(jobRole, location, earlyBird),
       fetchRemotive(),
       fetchGreenhouse(),
+      fetchAdzuna(jobRole, location),
+      fetchTheMuse(jobRole),
+      fetchArbeitnow(jobRole),
     ]);
 
     console.log('JSearch jobs:', jsearchJobs.length);
     console.log('Remotive jobs:', remotiveJobs.length);
     console.log('Greenhouse jobs:', greenhouseJobs.length);
+    console.log('Adzuna jobs:', adzunaJobs.length);
+    console.log('TheMuse jobs:', themuseJobs.length);
+    console.log('Arbeitnow jobs:', arbeitnowJobs.length);
 
     // Combine
-    const allJobs: NormalisedJob[] = [...jsearchJobs, ...remotiveJobs, ...greenhouseJobs];
+    const allJobs: NormalisedJob[] = [...jsearchJobs, ...remotiveJobs, ...greenhouseJobs, ...adzunaJobs, ...themuseJobs, ...arbeitnowJobs];
     console.log('Total combined:', allJobs.length);
 
     // Deduplicate by job_id
