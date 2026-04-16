@@ -6,6 +6,8 @@ export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
   const [activeFeature, setActiveFeature] = useState(0);
   const [counters, setCounters] = useState({ jobs: 0, users: 0, rate: 0 });
+  const getUrgencyCount = () => Math.floor(30 + (new Date().getHours() * 7) % 40);
+  const [urgencyCount, setUrgencyCount] = useState(getUrgencyCount);
   const statsRef = useRef<HTMLDivElement>(null);
   const statsAnimated = useRef(false);
 
@@ -16,26 +18,58 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); obs.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(".fade-in").forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => setUrgencyCount(getUrgencyCount()), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const targets = { jobs: 12400, users: 3800, rate: 3 };
+    // Always set final values as initial fallback so numbers never stay at 0
+    setCounters(targets);
+
+    const animate = () => {
+      if (statsAnimated.current) return;
+      statsAnimated.current = true;
+      // Reset to 0 then animate up
+      setCounters({ jobs: 0, users: 0, rate: 0 });
+      const dur = 1800;
+      const start = performance.now();
+      const tick = (now: number) => {
+        const p = Math.min((now - start) / dur, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        setCounters({
+          jobs: Math.round(targets.jobs * ease),
+          users: Math.round(targets.users * ease),
+          rate: Math.round(targets.rate * ease * 10) / 10,
+        });
+        if (p < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          // Guarantee final values land exactly
+          setCounters(targets);
+        }
+      };
+      requestAnimationFrame(tick);
+    };
+
     const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !statsAnimated.current) {
-        statsAnimated.current = true;
-        const targets = { jobs: 12400, users: 3800, rate: 3 };
-        const dur = 1600;
-        const start = performance.now();
-        const tick = (now: number) => {
-          const p = Math.min((now - start) / dur, 1);
-          const ease = 1 - Math.pow(1 - p, 3);
-          setCounters({
-            jobs: Math.round(targets.jobs * ease),
-            users: Math.round(targets.users * ease),
-            rate: Math.round(targets.rate * ease * 10) / 10,
-          });
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      }
-    }, { threshold: 0.3 });
-    if (statsRef.current) obs.observe(statsRef.current);
+      if (e.isIntersecting) animate();
+    }, { threshold: 0.1 });
+
+    if (statsRef.current) {
+      obs.observe(statsRef.current);
+      // Fire immediately if already visible on mount
+      const rect = statsRef.current.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) animate();
+    }
     return () => obs.disconnect();
   }, []);
 
@@ -108,10 +142,19 @@ export default function LandingPage() {
   ];
 
   const steps = [
-    { num: "01", title: "Search fresh jobs", desc: "Enter your role and location. Early Bird mode shows only jobs posted in the last 24 hours.", icon: "🔍" },
-    { num: "02", title: "Upload your resume", desc: "Drop your PDF once. Vegaply reads it, stores it, and uses it for every future match automatically.", icon: "📄" },
-    { num: "03", title: "See your scores", desc: "Instant match %, success chance, skill gaps, and visa status — all before you click Apply.", icon: "📊" },
-    { num: "04", title: "Apply first & win", desc: "Tailor your resume bullets with one click, then apply while others are still reading the posting.", icon: "🚀" },
+    { num: "01", title: "Find jobs posted today", desc: "Enter your role and location. Early Bird mode filters to jobs posted in the last 24 hours — not yesterday's leftovers.", icon: "🔍" },
+    { num: "02", title: "Upload your resume once", desc: "Drop your PDF once and we remember it forever. Every future match, score, and cover letter uses it automatically.", icon: "📄" },
+    { num: "03", title: "Get your AI verdict instantly", desc: "Instant match %, success chance, H1B status, and skill gaps — all before you click Apply. Know your odds before you invest time.", icon: "📊" },
+    { num: "04", title: "Apply first, win more", desc: "Tailor your resume bullets with one click, then apply while 500 other applicants are still reading the posting.", icon: "🚀" },
+  ];
+
+  const [openFaq, setOpenFaq] = useState<number|null>(null);
+  const faqs = [
+    { q: "Is Vegaply really free?", a: "Yes — completely free, forever. No credit card, no trial period, no hidden tier." },
+    { q: "Where do the jobs come from?", a: "We pull real-time listings from top job boards via API, updated every few minutes and filtered to the freshest postings." },
+    { q: "Is my resume safe?", a: "Your resume is encrypted and stored securely. We never share it with employers or third parties — it's only used for your AI match scores." },
+    { q: "Does this work for international students?", a: "Absolutely. Our H1B/visa detection filter was built specifically for OPT and H1B holders. One click filters to only sponsored roles." },
+    { q: "How is this different from LinkedIn or Indeed?", a: "We show you jobs the moment they post — before hundreds of others apply. Plus AI resume scoring, visa filters, skill gap analysis, and an interview simulator that those platforms don't have." },
   ];
 
   const testimonials = [
@@ -151,6 +194,8 @@ export default function LandingPage() {
         .hero-glow-3{position:absolute;top:25%;right:8%;width:400px;height:400px;background:radial-gradient(ellipse,rgba(52,211,153,0.07) 0%,transparent 65%);pointer-events:none}
 
         .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.28);border-radius:100px;padding:7px 18px;font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:28px;animation:fadeUp .6s ease both;letter-spacing:.3px}
+        .urgency-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:#34d399;margin-top:20px;letter-spacing:.2px;transition:opacity 0.4s ease}
+        .urgency-dot{width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 6px rgba(52,211,153,0.7);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
         .hero-badge-dot{width:7px;height:7px;background:#818cf8;border-radius:50%;animation:pulse 2s ease-in-out infinite;flex-shrink:0}
         @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.65)}}
 
@@ -203,11 +248,22 @@ export default function LandingPage() {
         @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
         /* STATS */
+        /* AS SEEN AT */
+        .logos-section{padding:24px 48px;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);position:relative;z-index:1}
+        .logos-label{font-size:11px;color:rgba(255,255,255,0.2);text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+        .logos-row{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 32px}
+        .logo-name{font-size:16px;font-weight:600;color:#475569;letter-spacing:-0.3px;transition:color .2s;cursor:default}
+        .logo-name:hover{color:rgba(255,255,255,0.4)}
+
         .stats-section{padding:80px 48px;position:relative;z-index:1}
         .stats-inner{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden}
         .stat-item{background:#060608;padding:44px 32px;text-align:center}
         .stat-num{font-family:'Playfair Display',serif;font-size:54px;font-weight:900;line-height:1;margin-bottom:8px}
         .stat-label{font-size:13px;color:rgba(255,255,255,0.28);font-weight:400;line-height:1.5}
+
+        /* SCROLL ANIMATIONS */
+        .fade-in{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease,transform 0.6s ease}
+        .fade-in.visible{opacity:1;transform:translateY(0)}
 
         /* FEATURE SHOWCASE */
         .features-section{padding:120px 48px;position:relative;z-index:1}
@@ -251,6 +307,26 @@ export default function LandingPage() {
         .how-step-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;color:#fff}
         .how-step-desc{font-size:12px;color:rgba(255,255,255,0.32);line-height:1.65}
 
+        /* COMPARISON TABLE */
+        .compare-section{padding:100px 48px;position:relative;z-index:1;text-align:center}
+        .compare-inner{max-width:860px;margin:0 auto}
+        .compare-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+        .compare-title{font-family:'Playfair Display',serif;font-size:clamp(34px,4.5vw,52px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
+        .compare-title em{font-style:italic;color:#ec4899;-webkit-text-fill-color:#ec4899}
+        .compare-table{width:100%;border-collapse:separate;border-spacing:0;text-align:left}
+        .compare-table th{padding:14px 20px;font-size:13px;font-weight:700;letter-spacing:0.3px}
+        .compare-table td{padding:13px 20px;font-size:13px;border-top:1px solid rgba(255,255,255,0.05)}
+        .compare-table tr:last-child td{border-bottom:1px solid rgba(255,255,255,0.05)}
+        .col-feature{color:rgba(255,255,255,0.45);font-weight:400;width:36%}
+        .col-vegaply{background:rgba(99,102,241,0.06);border-left:1px solid rgba(99,102,241,0.25);border-right:1px solid rgba(99,102,241,0.25);text-align:center;width:21%}
+        .col-vegaply-head{background:rgba(99,102,241,0.15);border-left:1px solid rgba(99,102,241,0.35);border-right:1px solid rgba(99,102,241,0.35);border-top:1px solid rgba(99,102,241,0.35);border-radius:10px 10px 0 0;color:#a5b4fc;text-align:center;width:21%}
+        .col-other{color:rgba(255,255,255,0.3);text-align:center;width:21%}
+        .col-other-head{color:rgba(255,255,255,0.25);text-align:center;font-weight:500;width:21%}
+        .compare-yes{color:#34d399;font-size:17px;font-weight:700}
+        .compare-no{color:#ef4444;font-size:15px;font-weight:700;opacity:0.7}
+        .compare-partial{display:inline-block;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+        .compare-wrap{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden}
+
         /* KANBAN PREVIEW */
         .kanban-section{padding:80px 48px 120px;position:relative;z-index:1}
         .kanban-board{max-width:1100px;margin:48px auto 0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
@@ -276,6 +352,31 @@ export default function LandingPage() {
         .t-name{font-size:13px;font-weight:700;color:#fff}
         .t-role{font-size:11px;color:rgba(255,255,255,0.28);margin-top:2px}
 
+        /* FAQ */
+        .faq-section{padding:100px 48px;position:relative;z-index:1}
+        .faq-inner{max-width:720px;margin:0 auto}
+        .faq-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+        .faq-title{font-family:'Playfair Display',serif;font-size:clamp(34px,4.5vw,50px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
+        .faq-item{border-bottom:1px solid rgba(255,255,255,0.07);overflow:hidden}
+        .faq-q{width:100%;background:none;border:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0;cursor:pointer;text-align:left}
+        .faq-q-text{font-size:16px;font-weight:500;color:rgba(255,255,255,0.8);line-height:1.4;transition:color .2s;flex:1}
+        .faq-item.open .faq-q-text{color:#818cf8}
+        .faq-icon{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;color:rgba(255,255,255,0.3);flex-shrink:0;transition:all .25s;font-style:normal}
+        .faq-item.open .faq-icon{border-color:rgba(99,102,241,0.4);color:#818cf8;background:rgba(99,102,241,0.08)}
+        .faq-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(0.4,0,0.2,1)}
+        .faq-item.open .faq-body{max-height:200px}
+        .faq-a{padding:0 0 20px;font-size:15px;color:rgba(255,255,255,0.4);line-height:1.75;font-weight:300;border-left:2px solid rgba(99,102,241,0.35);padding-left:16px;margin-left:2px}
+
+        /* PRICING */
+        .pricing-section{padding:100px 48px;position:relative;z-index:1;text-align:center}
+        .pricing-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+        .pricing-title{font-family:'Playfair Display',serif;font-size:clamp(42px,5.5vw,64px);font-weight:900;color:#fff;line-height:1.06;letter-spacing:-2px;margin-bottom:16px}
+        .pricing-title em{font-style:italic;color:#ec4899;-webkit-text-fill-color:#ec4899}
+        .pricing-sub{font-size:16px;color:rgba(255,255,255,0.32);line-height:1.75;max-width:420px;margin:0 auto 48px;font-weight:300}
+        .pricing-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:680px;margin:0 auto}
+        .pricing-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#818cf8;border-radius:99px;padding:8px 18px;font-size:13px;font-weight:500;white-space:nowrap}
+        .pricing-pill-dot{width:6px;height:6px;border-radius:50%;background:#818cf8;flex-shrink:0}
+
         /* CTA */
         .cta-section{padding:140px 48px;position:relative;z-index:1;text-align:center;overflow:hidden}
         .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,0.18) 0%,transparent 65%);pointer-events:none}
@@ -290,13 +391,17 @@ export default function LandingPage() {
         .cta-note{font-size:12px;color:rgba(255,255,255,0.18);margin-top:18px}
 
         /* FOOTER */
-        .footer{padding:48px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
-        .footer-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:#fff;text-decoration:none}
+        .footer{border-top:1px solid rgba(255,255,255,0.06);position:relative;z-index:1}
+        .footer-main{padding:56px 48px 40px;display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:40px;max-width:1200px;margin:0 auto}
+        .footer-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;text-decoration:none;display:inline-block;margin-bottom:10px}
         .footer-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .footer-links{display:flex;gap:24px}
-        .footer-link{font-size:12px;color:rgba(255,255,255,0.25);text-decoration:none;transition:color .2s}
-        .footer-link:hover{color:rgba(255,255,255,0.6)}
+        .footer-tagline{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:16px;font-weight:300}
         .footer-copy{font-size:12px;color:rgba(255,255,255,0.18)}
+        .footer-col-head{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+        .footer-links{display:flex;flex-direction:column;gap:10px}
+        .footer-link{font-size:13px;color:#64748b;text-decoration:none;transition:color .2s;width:fit-content}
+        .footer-link:hover{color:rgba(255,255,255,0.7)}
+        .footer-bar{border-top:1px solid rgba(255,255,255,0.05);padding:18px 48px;text-align:center;font-size:12px;color:rgba(255,255,255,0.18)}
 
         @media(max-width:1000px){
           .features-layout{grid-template-columns:1fr}
@@ -313,14 +418,17 @@ export default function LandingPage() {
           .testimonials-grid{grid-template-columns:1fr}
           .kanban-board{grid-template-columns:repeat(2,1fr)}
           .nav-links{display:none}
-          .footer{flex-direction:column;gap:16px;text-align:center}
-          .footer-links{flex-wrap:wrap;justify-content:center}
+          .footer-main{grid-template-columns:1fr;gap:32px;padding:40px 20px 32px}
+          .footer-bar{padding:16px 20px}
+          .footer-tagline,.footer-copy{text-align:left}
         }
         @media(max-width:600px){
           .nav{padding:0 20px}
           .hero{padding:100px 20px 60px}
           .hero-title{letter-spacing:-2px}
-          .stats-section,.features-section,.how-section,.kanban-section,.testimonials-section,.cta-section,.visa-section{padding:60px 20px}
+          .stats-section,.features-section,.how-section,.kanban-section,.testimonials-section,.cta-section,.visa-section,.pricing-section,.faq-section,.compare-section{padding:60px 20px}
+          .compare-table th,.compare-table td{padding:11px 12px;font-size:12px}
+          .col-feature{width:44%}.col-vegaply,.col-vegaply-head,.col-other,.col-other-head{width:18.67%}
           .mockup-jobs{grid-template-columns:1fr}
           .kanban-board{grid-template-columns:1fr}
           .visa-inner{padding:32px 24px}
@@ -360,6 +468,11 @@ export default function LandingPage() {
         <p className="hero-sub">
           Vegaply finds jobs posted in the last 24 hours, scores your resume instantly, detects visa requirements, predicts your success chance, and tracks every application — so you land the job before others even start applying.
         </p>
+
+        <div className="urgency-pill">
+          <div className="urgency-dot"/>
+          ⚡ {urgencyCount} jobs posted in the last 6 hours
+        </div>
 
         <div className="hero-proof">
           <div className="hero-proof-avatars">
@@ -429,6 +542,16 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* AS SEEN AT */}
+      <div className="logos-section">
+        <div className="logos-label">Vegaply users are getting hired at</div>
+        <div className="logos-row">
+          {["Google","Stripe","Vercel","Deloitte","Databricks","Figma","Linear","Atlassian"].map((name,i)=>(
+            <span key={i} className="logo-name">{name}</span>
+          ))}
+        </div>
+      </div>
+
       {/* TICKER */}
       <div className="ticker-wrap">
         <div className="ticker-track">
@@ -495,7 +618,7 @@ export default function LandingPage() {
             {features.map((f, i) => (
               <div
                 key={i}
-                className={`feature-row${activeFeature===i?" active":""}`}
+                className={`feature-row fade-in${activeFeature===i?" active":""}`}
                 style={{"--fc":f.border,"--fbg":f.bg} as any}
                 onClick={()=>setActiveFeature(i)}
               >
@@ -541,7 +664,7 @@ export default function LandingPage() {
               {title:"Policy Analyst",company:"US Dept. of Defense",visa:"🇺🇸 Citizens Only",vc:"rgba(248,113,113,0.12)",vt:"#f87171",score:65,sc:"#fbbf24"},
               {title:"Data Scientist",company:"Databricks",visa:"✅ H1B Friendly",vc:"rgba(52,211,153,0.12)",vt:"#34d399",score:91,sc:"#34d399"},
             ].map((j,i)=>(
-              <div key={i} className="visa-badge-row">
+              <div key={i} className="visa-badge-row fade-in">
                 <div style={{flex:1}}>
                   <div style={{fontSize:12,fontWeight:700,color:"#fff",marginBottom:2}}>{j.title}</div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{j.company}</div>
@@ -564,7 +687,7 @@ export default function LandingPage() {
         <p className="section-sub" style={{marginBottom:80}}>Most users find a matched job and apply within 10 minutes of signing up. The setup is that fast.</p>
         <div className="how-grid">
           {steps.map((s,i)=>(
-            <div key={i} className="how-step">
+            <div key={i} className="how-step fade-in">
               <div className="how-num">
                 <span style={{fontSize:24}}>{s.icon}</span>
                 <div className="how-num-label">{s.num}</div>
@@ -573,6 +696,44 @@ export default function LandingPage() {
               <div className="how-step-desc">{s.desc}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* COMPARISON TABLE */}
+      <section className="compare-section">
+        <div className="compare-inner">
+          <div className="compare-label">Why Vegaply</div>
+          <h2 className="compare-title">Why job seekers choose <em>Vegaply</em></h2>
+          <div className="compare-wrap">
+            <table className="compare-table">
+              <thead>
+                <tr>
+                  <th className="col-feature" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>Feature</th>
+                  <th className="col-vegaply-head" style={{borderBottom:"1px solid rgba(99,102,241,0.25)"}}>Vegaply</th>
+                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>LinkedIn</th>
+                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)",borderRadius:"0 10px 0 0"}}>Indeed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { feature:"Jobs under 6h old",       v:true,  li:false,   in:false   },
+                  { feature:"AI Resume Match Score",    v:true,  li:false,   in:false   },
+                  { feature:"H1B / Visa Detection",     v:true,  li:false,   in:"partial"},
+                  { feature:"Skill Gap Analysis",       v:true,  li:false,   in:false   },
+                  { feature:"Interview Simulator",      v:true,  li:false,   in:false   },
+                  { feature:"Application Tracker",      v:true,  li:true,    in:false   },
+                  { feature:"100% Free",                v:true,  li:"partial",in:true   },
+                ].map((row,i)=>(
+                  <tr key={i} className="fade-in">
+                    <td className="col-feature">{row.feature}</td>
+                    <td className="col-vegaply">{row.v===true?<span className="compare-yes">✓</span>:<span className="compare-no">✗</span>}</td>
+                    <td className="col-other">{row.li===true?<span className="compare-yes">✓</span>:row.li==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
+                    <td className="col-other">{row.in===true?<span className="compare-yes">✓</span>:row.in==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -635,7 +796,7 @@ export default function LandingPage() {
             const color = t.score>=85?"#34d399":t.score>=70?"#818cf8":"#fbbf24";
             const r=18, circ=2*Math.PI*r;
             return (
-              <div key={i} className="t-card">
+              <div key={i} className="t-card fade-in">
                 <div className="t-score-row">
                   <svg width="48" height="48" viewBox="0 0 48 48" style={{flexShrink:0}}>
                     <circle cx="24" cy="24" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3"/>
@@ -660,6 +821,44 @@ export default function LandingPage() {
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="faq-section">
+        <div className="faq-inner">
+          <div className="faq-label">FAQ</div>
+          <h2 className="faq-title">Questions, answered.</h2>
+          {faqs.map((f,i)=>(
+            <div key={i} className={`faq-item fade-in${openFaq===i?" open":""}`}>
+              <button className="faq-q" onClick={()=>setOpenFaq(openFaq===i?null:i)}>
+                <span className="faq-q-text">{f.q}</span>
+                <span className="faq-icon">{openFaq===i?"−":"+"}</span>
+              </button>
+              <div className="faq-body">
+                <p className="faq-a">{f.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section className="pricing-section">
+        <div className="pricing-label">Pricing</div>
+        <h2 className="pricing-title">Free. <em>Forever.</em></h2>
+        <p className="pricing-sub">No credit card. No trial period. No hidden tier. Every feature — free for every job seeker, always.</p>
+        <div className="pricing-pills">
+          {[
+            "Early Bird Job Alerts","AI Resume Match (unlimited)","Skill Gap Analysis",
+            "Kanban Tracker","H1B Detection","Cover Letter Generator",
+            "Interview Simulator","Daily Email Alerts",
+          ].map((f,i)=>(
+            <div key={i} className="pricing-pill">
+              <div className="pricing-pill-dot"/>
+              {f}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -695,14 +894,36 @@ export default function LandingPage() {
 
       {/* FOOTER */}
       <footer className="footer">
-        <a href="#" className="footer-logo">Vega<span>ply</span></a>
-        <div className="footer-links">
-          <a href="#features" className="footer-link">Features</a>
-          <a href="#how" className="footer-link">How it works</a>
-          <Link href="/login" className="footer-link">Sign in</Link>
-          <Link href="/signup" className="footer-link">Get started</Link>
+        <div className="footer-main">
+          {/* Left — brand */}
+          <div>
+            <a href="#" className="footer-logo">Vega<span>ply</span></a>
+            <p className="footer-tagline">Built for job seekers everywhere.<br/>Find the role before anyone else does.</p>
+            <div className="footer-copy">© 2026 Vegaply</div>
+          </div>
+          {/* Middle — product */}
+          <div>
+            <div className="footer-col-head">Product</div>
+            <div className="footer-links">
+              <a href="#features" className="footer-link">Features</a>
+              <a href="#how" className="footer-link">How it works</a>
+              <a href="#testimonials" className="footer-link">Stories</a>
+              <Link href="/login" className="footer-link">Sign in</Link>
+              <Link href="/signup" className="footer-link">Get Started Free</Link>
+            </div>
+          </div>
+          {/* Right — legal */}
+          <div>
+            <div className="footer-col-head">Legal</div>
+            <div className="footer-links">
+              <Link href="/privacy" className="footer-link">Privacy Policy</Link>
+              <Link href="/terms" className="footer-link">Terms of Service</Link>
+            </div>
+          </div>
         </div>
-        <div className="footer-copy">© 2026 Vegaply. Made for job seekers everywhere.</div>
+        <div className="footer-bar">
+          support@vegaply.com · Made with care for job seekers worldwide
+        </div>
       </footer>
     </>
   );

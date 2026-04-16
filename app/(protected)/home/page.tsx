@@ -1223,6 +1223,7 @@ export default function Home() {
   const [resumeHistory,setResumeHistory]=useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
   const [showMobileSearch,setShowMobileSearch]=useState(false);
   const [showMobileSidebar,setShowMobileSidebar]=useState(false);
+  const [shareToast,setShareToast]=useState(false);
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -1874,6 +1875,34 @@ export default function Home() {
           <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
 
           {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
+
+          {/* SHARE VEGAPLY */}
+          <div className="sidebar-card" style={{marginTop:4,background:"rgba(99,102,241,0.05)",borderColor:"rgba(99,102,241,0.15)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <div className="sidebar-card-title" style={{margin:0,color:"#a5b4fc"}}>Know someone job hunting?</div>
+            </div>
+            <div className="sidebar-card-sub">Share Vegaply — help them apply first</div>
+            <button
+              onClick={async()=>{
+                const shareData={title:"Vegaply",text:"I'm using Vegaply to find jobs before everyone else applies 🚀 Try it free:",url:"https://vegaply.com"};
+                if(typeof navigator.share==="function"&&navigator.canShare&&navigator.canShare(shareData)){
+                  try{await navigator.share(shareData);}catch{}
+                }else{
+                  try{
+                    await navigator.clipboard.writeText("https://vegaply.com");
+                    setShareToast(true);
+                    setTimeout(()=>setShareToast(false),2500);
+                  }catch{}
+                }
+              }}
+              style={{width:"100%",background:"rgba(99,102,241,0.12)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#818cf8",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}
+              onMouseEnter={e=>(e.currentTarget.style.background="rgba(99,102,241,0.2)")}
+              onMouseLeave={e=>(e.currentTarget.style.background="rgba(99,102,241,0.12)")}
+            >
+              {shareToast?"✓ Link copied!":"Share Vegaply →"}
+            </button>
+          </div>
         </aside>
 
         {/* MAIN */}
