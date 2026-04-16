@@ -64,10 +64,10 @@ async function fetchJSearch(jobRole: string, location: string, earlyBird: boolea
 }
 
 // ── SOURCE B: Remotive ───────────────────────────────────────────────────────
-async function fetchRemotive(jobRole: string): Promise<NormalisedJob[]> {
+async function fetchRemotive(): Promise<NormalisedJob[]> {
   try {
     const res = await fetch(
-      `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(jobRole)}&limit=100`,
+      `https://remotive.com/api/remote-jobs?limit=100&category=software-dev`,
       {
         next: { revalidate: 0 },
         headers: {
@@ -104,7 +104,7 @@ async function fetchRemotive(jobRole: string): Promise<NormalisedJob[]> {
 // ── SOURCE C: Greenhouse (5 companies) ──────────────────────────────────────
 const GREENHOUSE_COMPANIES = ["stripe", "figma", "notion", "linear", "vercel"];
 
-async function fetchGreenhouse(jobRole: string): Promise<NormalisedJob[]> {
+async function fetchGreenhouse(): Promise<NormalisedJob[]> {
   try {
     const companyRequests = GREENHOUSE_COMPANIES.map(company =>
       fetch(
@@ -119,11 +119,9 @@ async function fetchGreenhouse(jobRole: string): Promise<NormalisedJob[]> {
     for (const { company, jobs } of results) {
       console.log(`[Greenhouse] ${company}: ${(jobs as any[]).length} jobs`);
     }
-    const words = jobRole.toLowerCase().split(" ");
     const normalised: NormalisedJob[] = [];
     for (const { company, jobs } of results as { company: string; jobs: any[] }[]) {
       for (const job of jobs) {
-        if (!words.some(word => word.length > 2 && job.title?.toLowerCase().includes(word))) continue;
         normalised.push({
           job_id: `${company}-${job.id}`,
           job_title: job.title,
@@ -162,8 +160,8 @@ export async function POST(req: Request) {
     // Fetch all 3 sources in parallel; each has its own error boundary
     const [jsearchJobs, remotiveJobs, greenhouseJobs] = await Promise.all([
       fetchJSearch(jobRole, location, earlyBird),
-      fetchRemotive(jobRole),
-      fetchGreenhouse(jobRole),
+      fetchRemotive(),
+      fetchGreenhouse(),
     ]);
 
     console.log('JSearch jobs:', jsearchJobs.length);
@@ -197,7 +195,9 @@ export async function POST(req: Request) {
     // Cap at 500
     const finalJobs = uniqueJobs.slice(0, 500);
 
-    console.log('[Jobs] Total returned to client:', finalJobs.length);
+    console.log('[Jobs] Remotive count:', remotiveJobs.length);
+    console.log('[Jobs] Greenhouse count:', greenhouseJobs.length);
+    console.log('[Jobs] Final total:', finalJobs.length);
     return NextResponse.json({ data: finalJobs, total: finalJobs.length });
   } catch (error) {
     console.error(error);
