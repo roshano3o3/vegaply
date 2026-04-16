@@ -67,7 +67,7 @@ async function fetchJSearch(jobRole: string, location: string, earlyBird: boolea
 async function fetchRemotive(): Promise<NormalisedJob[]> {
   try {
     const res = await fetch(
-      `https://remotive.com/api/remote-jobs?limit=100&category=software-dev`,
+      `https://remotive.com/api/remote-jobs?limit=300&category=software-dev`,
       {
         next: { revalidate: 0 },
         headers: {
@@ -153,14 +153,20 @@ async function fetchAdzuna(jobRole: string, location: string): Promise<Normalise
     const appId = process.env.ADZUNA_APP_ID ?? "";
     const appKey = process.env.ADZUNA_APP_KEY ?? "";
     if (!appId || !appKey) { console.log("[Adzuna] No credentials, skipping"); return []; }
-    const res = await fetch(
-      `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=50&what=${encodeURIComponent(jobRole)}&where=${encodeURIComponent(location)}&content-type=application/json`,
-      { next: { revalidate: 0 } }
+    const pageRequests = [1, 2, 3, 4, 5].map(page =>
+      fetch(
+        `https://api.adzuna.com/v1/api/jobs/us/search/${page}?app_id=${appId}&app_key=${appKey}&results_per_page=50&what=${encodeURIComponent(jobRole)}&where=${encodeURIComponent(location)}&content-type=application/json`,
+        { next: { revalidate: 0 } }
+      )
+        .then(async r => {
+          if (!r.ok) { console.error(`[Adzuna] page ${page} HTTP ${r.status}`); return []; }
+          const data = await r.json();
+          return data?.results ?? [];
+        })
+        .catch(err => { console.error(`[Adzuna] page ${page} error:`, err); return []; })
     );
-    console.log("[Adzuna] HTTP status:", res.status);
-    if (!res.ok) return [];
-    const data = await res.json();
-    const jobs: any[] = data?.results ?? [];
+    const pages = await Promise.all(pageRequests);
+    const jobs: any[] = pages.flat();
     console.log("[Adzuna] jobs fetched:", jobs.length);
     return jobs.map(job => ({
       job_id: `adzuna-${job.id}`,
@@ -185,14 +191,20 @@ async function fetchAdzuna(jobRole: string, location: string): Promise<Normalise
 // ── SOURCE E: The Muse ────────────────────────────────────────────────────────
 async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
   try {
-    const res = await fetch(
-      `https://www.themuse.com/api/public/jobs?page=1&descending=true`,
-      { next: { revalidate: 0 } }
+    const pageRequests = [0, 1, 2, 3, 4].map(page =>
+      fetch(
+        `https://www.themuse.com/api/public/jobs?page=${page}&descending=true`,
+        { next: { revalidate: 0 } }
+      )
+        .then(async r => {
+          if (!r.ok) { console.error(`[TheMuse] page ${page} HTTP ${r.status}`); return []; }
+          const data = await r.json();
+          return data?.results ?? [];
+        })
+        .catch(err => { console.error(`[TheMuse] page ${page} error:`, err); return []; })
     );
-    console.log("[TheMuse] HTTP status:", res.status);
-    if (!res.ok) return [];
-    const data = await res.json();
-    const jobs: any[] = data?.results ?? [];
+    const pages = await Promise.all(pageRequests);
+    const jobs: any[] = pages.flat();
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.name?.toLowerCase().includes(roleLower));
     console.log("[TheMuse] jobs fetched:", jobs.length, "| matching:", filtered.length);
@@ -221,14 +233,20 @@ async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
 // ── SOURCE F: Arbeitnow ───────────────────────────────────────────────────────
 async function fetchArbeitnow(jobRole: string): Promise<NormalisedJob[]> {
   try {
-    const res = await fetch(
-      `https://www.arbeitnow.com/api/job-board-api`,
-      { next: { revalidate: 0 } }
+    const pageRequests = [1, 2, 3].map(page =>
+      fetch(
+        `https://www.arbeitnow.com/api/job-board-api?page=${page}`,
+        { next: { revalidate: 0 } }
+      )
+        .then(async r => {
+          if (!r.ok) { console.error(`[Arbeitnow] page ${page} HTTP ${r.status}`); return []; }
+          const data = await r.json();
+          return data?.data ?? [];
+        })
+        .catch(err => { console.error(`[Arbeitnow] page ${page} error:`, err); return []; })
     );
-    console.log("[Arbeitnow] HTTP status:", res.status);
-    if (!res.ok) return [];
-    const data = await res.json();
-    const jobs: any[] = data?.data ?? [];
+    const pages = await Promise.all(pageRequests);
+    const jobs: any[] = pages.flat();
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.title?.toLowerCase().includes(roleLower));
     console.log("[Arbeitnow] jobs fetched:", jobs.length, "| matching:", filtered.length);
@@ -306,8 +324,16 @@ export async function POST(req: Request) {
       return tb - ta;
     });
 
-    // Cap at 2000
-    const finalJobs = uniqueJobs.slice(0, 2000);
+    let finalJobs: NormalisedJob[];
+    if (earlyBird) {
+      // Early Bird: only jobs posted in the last 24 hours, no cap
+      const cutoff = Math.floor(Date.now() / 1000) - 86400;
+      finalJobs = uniqueJobs.filter(j => (j.job_posted_at_timestamp ?? 0) > cutoff);
+      console.log('[Jobs] Early Bird — jobs within 24h:', finalJobs.length);
+    } else {
+      // Normal: cap at 2000
+      finalJobs = uniqueJobs.slice(0, 2000);
+    }
 
     console.log('[Jobs] Remotive count:', remotiveJobs.length);
     console.log('[Jobs] Greenhouse count:', greenhouseJobs.length);
