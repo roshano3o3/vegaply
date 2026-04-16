@@ -36,7 +36,7 @@ interface JobWithMatch extends Job {
 type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
 type TabType = "results"|"earlybird"|"saved"|"tracker"|"analytics";
-const JOBS_PER_PAGE = 6;
+const JOBS_PER_PAGE = 50;
 
 function getHoursAgo(d?: string) { return d ? (Date.now() - new Date(d).getTime()) / 3600000 : 999; }
 function timeAgo(d?: string) {
@@ -1238,6 +1238,7 @@ export default function Home() {
     const savedLocation=localStorage.getItem("applysmart_location");
     if(savedRole)setJobRole(savedRole);
     if(savedLocation)setLocation(savedLocation);
+    if(!savedRole||!savedLocation)return;
     if(savedRole&&savedLocation){
       setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
       fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:savedRole,location:savedLocation,earlyBird:false})})

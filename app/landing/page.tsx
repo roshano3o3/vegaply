@@ -187,14 +187,14 @@ export default function LandingPage() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}
-        body{font-family:'DM Sans',sans-serif;background:#060608;color:#fff;min-height:100vh;overflow-x:hidden}
+        body{font-family:var(--font-dm-sans),sans-serif;background:#060608;color:#fff;min-height:100vh;overflow-x:hidden}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
         body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}
 
         /* NAV */
         .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:68px;display:flex;align-items:center;justify-content:space-between;transition:all .3s}
         .nav.scrolled{background:rgba(6,6,8,0.94);border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(24px)}
-        .nav-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.5px;text-decoration:none}
+        .nav-logo{font-family:var(--font-playfair),serif;font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.5px;text-decoration:none}
         .nav-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .nav-links{display:flex;align-items:center;gap:32px}
         .nav-link{font-size:14px;font-weight:500;color:rgba(255,255,255,0.4);text-decoration:none;transition:color .2s}
@@ -214,7 +214,7 @@ export default function LandingPage() {
         .hero-badge-dot{width:7px;height:7px;background:#818cf8;border-radius:50%;animation:pulse 2s ease-in-out infinite;flex-shrink:0}
         @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.65)}}
 
-        .hero-title{font-family:'Playfair Display',serif;font-size:clamp(44px,7.5vw,88px);font-weight:900;line-height:.98;letter-spacing:-3px;margin-bottom:28px;animation:fadeUp .7s .1s ease both;max-width:900px}
+        .hero-title{font-family:var(--font-playfair),serif;font-size:clamp(44px,7.5vw,88px);font-weight:900;line-height:.98;letter-spacing:-3px;margin-bottom:28px;animation:fadeUp .7s .1s ease both;max-width:900px}
         .hero-title em{font-style:italic;background:linear-gradient(135deg,#818cf8 0%,#ec4899 55%,#fbbf24 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
         .hero-sub{font-size:18px;color:rgba(255,255,255,0.38);max-width:560px;line-height:1.75;margin-bottom:20px;font-weight:300;animation:fadeUp .7s .2s ease both}
@@ -266,13 +266,13 @@ export default function LandingPage() {
         /* DEMO SLIDESHOW */
         .demo-section{padding:80px 48px;position:relative;z-index:1;text-align:center}
         .demo-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
-        .demo-title{font-family:'Playfair Display',serif;font-size:clamp(28px,3.5vw,42px);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:36px}
+        .demo-title{font-family:var(--font-playfair),serif;font-size:clamp(28px,3.5vw,42px);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:36px}
         .demo-browser{max-width:900px;margin:0 auto;background:#0d0d12;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04)}
         .demo-topbar{background:#111118;border-bottom:1px solid rgba(255,255,255,0.06);padding:12px 16px;display:flex;align-items:center;gap:10px}
         .demo-dots{display:flex;gap:5px}
         .demo-dot{width:10px;height:10px;border-radius:50%}
         .demo-url{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.25);text-align:left;max-width:320px;margin:0 auto}
-        .demo-logo-top{font-family:'Playfair Display',serif;font-size:13px;font-weight:900;color:rgba(255,255,255,0.5)}
+        .demo-logo-top{font-family:var(--font-playfair),serif;font-size:13px;font-weight:900;color:rgba(255,255,255,0.5)}
         .demo-logo-top span{background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .demo-progress{height:2px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
         .demo-progress-bar{height:100%;background:linear-gradient(90deg,#6366f1,#ec4899);transition:none}
@@ -281,7 +281,7 @@ export default function LandingPage() {
         .demo-slide{position:absolute;inset:28px 28px 24px;opacity:0;transform:translateY(14px);transition:opacity 0.45s ease,transform 0.45s ease;pointer-events:none}
         .demo-slide.active{opacity:1;transform:translateY(0);pointer-events:auto}
         .demo-slide-label{display:inline-block;font-size:10px;font-weight:700;color:#818cf8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.18);border-radius:99px;padding:3px 10px}
-        .demo-slide-title{font-family:'Playfair Display',serif;font-size:clamp(17px,2vw,22px);font-weight:900;color:#fff;margin-bottom:16px;letter-spacing:-.5px;line-height:1.2}
+        .demo-slide-title{font-family:var(--font-playfair),serif;font-size:clamp(17px,2vw,22px);font-weight:900;color:#fff;margin-bottom:16px;letter-spacing:-.5px;line-height:1.2}
         .demo-job-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;text-align:left}
         .demo-job-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid rgba(255,255,255,0.07)}
         .demo-job-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
@@ -319,7 +319,7 @@ export default function LandingPage() {
         .stats-section{padding:80px 48px;position:relative;z-index:1}
         .stats-inner{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden}
         .stat-item{background:#060608;padding:44px 32px;text-align:center}
-        .stat-num{font-family:'Playfair Display',serif;font-size:54px;font-weight:900;line-height:1;margin-bottom:8px}
+        .stat-num{font-family:var(--font-playfair),serif;font-size:54px;font-weight:900;line-height:1;margin-bottom:8px}
         .stat-label{font-size:13px;color:rgba(255,255,255,0.28);font-weight:400;line-height:1.5}
 
         /* SCROLL ANIMATIONS */
@@ -329,7 +329,7 @@ export default function LandingPage() {
         /* FEATURE SHOWCASE */
         .features-section{padding:120px 48px;position:relative;z-index:1}
         .section-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:#818cf8;margin-bottom:16px;text-align:center}
-        .section-title{font-family:'Playfair Display',serif;font-size:clamp(32px,4.5vw,52px);font-weight:900;text-align:center;margin-bottom:16px;line-height:1.1;letter-spacing:-1.5px}
+        .section-title{font-family:var(--font-playfair),serif;font-size:clamp(32px,4.5vw,52px);font-weight:900;text-align:center;margin-bottom:16px;line-height:1.1;letter-spacing:-1.5px}
         .section-sub{font-size:16px;color:rgba(255,255,255,0.3);text-align:center;max-width:500px;margin:0 auto 72px;line-height:1.75}
 
         .features-layout{max-width:1140px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
@@ -340,13 +340,13 @@ export default function LandingPage() {
         .feature-row:not(.active):hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08)}
         .feature-icon-wrap{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:background .25s}
         .feature-tag{font-size:9px;font-weight:800;letter-spacing:1.5px;margin-bottom:4px;opacity:0.7}
-        .feature-row-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;font-family:'Playfair Display',serif}
+        .feature-row-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;font-family:var(--font-playfair),serif}
         .feature-row-desc{font-size:12px;color:rgba(255,255,255,0.35);line-height:1.6;display:none}
         .feature-row.active .feature-row-desc{display:block}
 
         .feature-detail-panel{align-self:start;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:36px;min-height:320px;transition:all .3s}
         .fdp-tag{font-size:10px;font-weight:800;letter-spacing:2px;margin-bottom:12px;opacity:0.8}
-        .fdp-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:16px;line-height:1.2;letter-spacing:-.5px}
+        .fdp-title{font-family:var(--font-playfair),serif;font-size:28px;font-weight:900;margin-bottom:16px;line-height:1.2;letter-spacing:-.5px}
         .fdp-desc{font-size:14px;color:rgba(255,255,255,0.45);line-height:1.8;margin-bottom:20px}
         .fdp-detail{font-size:13px;line-height:1.75;opacity:0.6}
         .fdp-icon{font-size:48px;margin-bottom:20px;display:block}
@@ -365,14 +365,14 @@ export default function LandingPage() {
         .how-step{text-align:center;position:relative;z-index:1}
         .how-num{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;position:relative}
         .how-num-label{position:absolute;top:-7px;right:-7px;background:linear-gradient(135deg,#818cf8,#ec4899);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;letter-spacing:.3px}
-        .how-step-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;color:#fff}
+        .how-step-title{font-family:var(--font-playfair),serif;font-size:16px;font-weight:700;margin-bottom:8px;color:#fff}
         .how-step-desc{font-size:12px;color:rgba(255,255,255,0.32);line-height:1.65}
 
         /* COMPARISON TABLE */
         .compare-section{padding:100px 48px;position:relative;z-index:1;text-align:center}
         .compare-inner{max-width:860px;margin:0 auto}
         .compare-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-        .compare-title{font-family:'Playfair Display',serif;font-size:clamp(34px,4.5vw,52px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
+        .compare-title{font-family:var(--font-playfair),serif;font-size:clamp(34px,4.5vw,52px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
         .compare-title em{font-style:italic;color:#ec4899;-webkit-text-fill-color:#ec4899}
         .compare-table{width:100%;border-collapse:separate;border-spacing:0;text-align:left}
         .compare-table th{padding:14px 20px;font-size:13px;font-weight:700;letter-spacing:0.3px}
@@ -417,7 +417,7 @@ export default function LandingPage() {
         .faq-section{padding:100px 48px;position:relative;z-index:1}
         .faq-inner{max-width:720px;margin:0 auto}
         .faq-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-        .faq-title{font-family:'Playfair Display',serif;font-size:clamp(34px,4.5vw,50px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
+        .faq-title{font-family:var(--font-playfair),serif;font-size:clamp(34px,4.5vw,50px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
         .faq-item{border-bottom:1px solid rgba(255,255,255,0.07);overflow:hidden}
         .faq-q{width:100%;background:none;border:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0;cursor:pointer;text-align:left}
         .faq-q-text{font-size:16px;font-weight:500;color:rgba(255,255,255,0.8);line-height:1.4;transition:color .2s;flex:1}
@@ -431,7 +431,7 @@ export default function LandingPage() {
         /* PRICING */
         .pricing-section{padding:100px 48px;position:relative;z-index:1;text-align:center}
         .pricing-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-        .pricing-title{font-family:'Playfair Display',serif;font-size:clamp(42px,5.5vw,64px);font-weight:900;color:#fff;line-height:1.06;letter-spacing:-2px;margin-bottom:16px}
+        .pricing-title{font-family:var(--font-playfair),serif;font-size:clamp(42px,5.5vw,64px);font-weight:900;color:#fff;line-height:1.06;letter-spacing:-2px;margin-bottom:16px}
         .pricing-title em{font-style:italic;color:#ec4899;-webkit-text-fill-color:#ec4899}
         .pricing-sub{font-size:16px;color:rgba(255,255,255,0.32);line-height:1.75;max-width:420px;margin:0 auto 48px;font-weight:300}
         .pricing-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:680px;margin:0 auto}
@@ -443,7 +443,7 @@ export default function LandingPage() {
         .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,0.18) 0%,transparent 65%);pointer-events:none}
         .cta-glow2{position:absolute;top:60%;left:30%;width:400px;height:300px;background:radial-gradient(ellipse,rgba(236,72,153,0.1) 0%,transparent 65%);pointer-events:none}
         .cta-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
-        .cta-title{font-family:'Playfair Display',serif;font-size:clamp(38px,5.5vw,60px);font-weight:900;line-height:1.08;letter-spacing:-2px;margin-bottom:20px}
+        .cta-title{font-family:var(--font-playfair),serif;font-size:clamp(38px,5.5vw,60px);font-weight:900;line-height:1.08;letter-spacing:-2px;margin-bottom:20px}
         .cta-title em{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .cta-sub{font-size:17px;color:rgba(255,255,255,0.32);margin-bottom:48px;line-height:1.75;max-width:480px;margin-left:auto;margin-right:auto}
         .cta-perks{display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:44px;flex-wrap:wrap}
@@ -454,7 +454,7 @@ export default function LandingPage() {
         /* FOOTER */
         .footer{border-top:1px solid rgba(255,255,255,0.06);position:relative;z-index:1}
         .footer-main{padding:56px 48px 40px;display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:40px;max-width:1200px;margin:0 auto}
-        .footer-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;text-decoration:none;display:inline-block;margin-bottom:10px}
+        .footer-logo{font-family:var(--font-playfair),serif;font-size:22px;font-weight:900;color:#fff;text-decoration:none;display:inline-block;margin-bottom:10px}
         .footer-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .footer-tagline{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:16px;font-weight:300}
         .footer-copy{font-size:12px;color:rgba(255,255,255,0.18)}
@@ -666,7 +666,7 @@ export default function LandingPage() {
                     strokeDasharray={`${demoSlide===1?2*Math.PI*36*0.91:0} ${2*Math.PI*36}`}
                     strokeLinecap="round" transform="rotate(-90 45 45)"
                     style={{transition:"stroke-dasharray 1.2s ease"}}/>
-                  <text x="45" y="51" textAnchor="middle" fontSize="18" fontWeight="800" fill="#34d399" fontFamily="'DM Sans',sans-serif">91%</text>
+                  <text x="45" y="51" textAnchor="middle" fontSize="18" fontWeight="800" fill="#34d399" fontFamily="var(--font-dm-sans),sans-serif">91%</text>
                 </svg>
                 <div style={{flex:1,textAlign:"left"}}>
                   <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:3}}>Senior UX Designer · Figma</div>
@@ -759,7 +759,7 @@ export default function LandingPage() {
 
             {/* SLIDE 5 — CTA */}
             <div className={`demo-slide${demoSlide===4?" active":""}`} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:12}}>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(20px,3vw,30px)",fontWeight:900,color:"#fff",lineHeight:1.15,letterSpacing:"-1px"}}>
+              <div style={{fontFamily:"var(--font-playfair),serif",fontSize:"clamp(20px,3vw,30px)",fontWeight:900,color:"#fff",lineHeight:1.15,letterSpacing:"-1px"}}>
                 Stop applying late.<br/>Start winning <em style={{fontStyle:"italic",color:"#ec4899"}}>early.</em>
               </div>
               <div style={{fontSize:13,color:"rgba(255,255,255,0.35)"}}>3,800+ job seekers · 4.9/5 rating · Free forever</div>
@@ -769,7 +769,7 @@ export default function LandingPage() {
               <div style={{display:"flex",gap:24,marginTop:6}}>
                 {[{n:"12,400+",l:"Jobs tracked"},{n:"3,800+",l:"Users"},{n:"3×",l:"More interviews"}].map((s,i)=>(
                   <div key={i} style={{textAlign:"center"}}>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:800,color:"#fff"}}>{s.n}</div>
+                    <div style={{fontFamily:"var(--font-playfair),serif",fontSize:20,fontWeight:800,color:"#fff"}}>{s.n}</div>
                     <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:2}}>{s.l}</div>
                   </div>
                 ))}
@@ -917,7 +917,7 @@ export default function LandingPage() {
         <div className="visa-inner">
           <div>
             <div className="section-eyebrow" style={{textAlign:"left",color:"#f87171"}}>For international job seekers</div>
-            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(28px,3.5vw,40px)",fontWeight:900,lineHeight:1.15,letterSpacing:"-1px",marginBottom:16}}>Never apply to<br/>a job that won't <em style={{fontStyle:"italic",color:"#f87171"}}>sponsor you</em></h2>
+            <h2 style={{fontFamily:"var(--font-playfair),serif",fontSize:"clamp(28px,3.5vw,40px)",fontWeight:900,lineHeight:1.15,letterSpacing:"-1px",marginBottom:16}}>Never apply to<br/>a job that won't <em style={{fontStyle:"italic",color:"#f87171"}}>sponsor you</em></h2>
             <p style={{fontSize:14,color:"rgba(255,255,255,0.38)",lineHeight:1.8,marginBottom:24,maxWidth:420}}>Vegaply reads every job description for visa language. You'll know instantly if a role is H1B friendly, requires US citizenship, or demands security clearance — before you invest a minute of your time.</p>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               <span style={{background:"rgba(52,211,153,0.12)",color:"#34d399",border:"1px solid rgba(52,211,153,0.25)",fontSize:12,fontWeight:700,padding:"7px 14px",borderRadius:8}}>✅ H1B Friendly</span>
@@ -1011,7 +1011,7 @@ export default function LandingPage() {
                     <circle cx="24" cy="24" r={r} fill="none" stroke={color} strokeWidth="3"
                       strokeDasharray={circ} strokeDashoffset={circ-(t.score/100)*circ}
                       strokeLinecap="round" transform="rotate(-90 24 24)"/>
-                    <text x="24" y="29" textAnchor="middle" fontSize="11" fontWeight="700" fill={color} fontFamily="'DM Sans',sans-serif">{t.score}</text>
+                    <text x="24" y="29" textAnchor="middle" fontSize="11" fontWeight="700" fill={color} fontFamily="var(--font-dm-sans),sans-serif">{t.score}</text>
                   </svg>
                   <div>
                     <div className="t-score-text" style={{color}}>{t.score>=85?"Excellent Match":t.score>=70?"Strong Match":"Good Match"}</div>
