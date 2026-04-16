@@ -32,7 +32,6 @@ interface JobWithMatch extends Job {
   tailorLoading?: boolean; interview?: InterviewResult; interviewLoading?: boolean;
   coverLetter?: string; coverLetterLoading?: boolean;
   skillGap?: SkillGapResult; skillGapLoading?: boolean;
-  autoApplying?: boolean;
 }
 type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
@@ -1084,8 +1083,8 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 }
 
 // JOB CARD — 2x3 grid, highlighted Match + Prep
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, isAutoApplied, lm }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;isAutoApplied:boolean;lm?:boolean;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, isAutoApplying, lm }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;isAutoApplying:boolean;lm?:boolean;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -1182,10 +1181,6 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         <button className={`action-card-btn track-btn${isTracked?" tracked":""}`} onClick={e=>{e.stopPropagation();onTrack();}} title="Add to application tracker">
           {isTracked?<><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Track</>}
         </button>
-        {/* AUTO APPLY */}
-        <button className={`action-card-btn auto-apply-btn${isAutoApplied?" applied":""}`} onClick={e=>{e.stopPropagation();onAutoApply();}} disabled={isAutoApplied||!!job.autoApplying} title="AI generates cover letter, tracks as Applied, and opens job link">
-          {isAutoApplied?"✅ Applied":job.autoApplying?"⏳ Applying…":"⚡ Auto Apply"}
-        </button>
       </div>
 
       {/* APPLY BUTTON */}
@@ -1194,6 +1189,31 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
         </a>
       )}
+
+      {/* AUTO APPLY BUTTON — full width, below Apply Now */}
+      <button
+        onClick={e=>{e.stopPropagation();onAutoApply();}}
+        disabled={isAutoApplying||autoApplyResult==="applied"}
+        title="AI scores your resume, tracks as Applied, and opens the job link"
+        style={{
+          width:"100%",marginTop:6,padding:"9px 0",borderRadius:10,border:"1px solid",fontSize:12,fontWeight:700,cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+          ...(autoApplyResult==="applied"
+            ?{background:"rgba(16,185,129,0.1)",borderColor:"rgba(16,185,129,0.3)",color:"#34d399"}
+            :autoApplyResult==="low_match"
+              ?{background:"rgba(245,158,11,0.08)",borderColor:"rgba(245,158,11,0.3)",color:"#fbbf24"}
+              :isAutoApplying
+                ?{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)"}
+                :{background:"rgba(99,102,241,0.08)",borderColor:"rgba(99,102,241,0.3)",color:"#818cf8"})
+        }}
+      >
+        {isAutoApplying
+          ?<><div className="spin-sm"/>Analyzing match…</>
+          :autoApplyResult==="applied"
+            ?"✅ Applied"
+            :autoApplyResult==="low_match"
+              ?"⚠️ Low Match — Try Again"
+              :"⚡ Auto Apply"}
+      </button>
     </div>
   );
 }
@@ -1335,8 +1355,10 @@ export default function Home() {
   const [showMobileSearch,setShowMobileSearch]=useState(false);
   const [showMobileSidebar,setShowMobileSidebar]=useState(false);
   const [shareToast,setShareToast]=useState(false);
-  const [applyToast,setApplyToast]=useState<{jobTitle:string;company:string}|null>(null);
-  const [appliedJobs,setAppliedJobs]=useState<Set<string>>(new Set());
+  const [autoApplyCount,setAutoApplyCount]=useState(0);
+  const [autoApplying,setAutoApplying]=useState<string|null>(null);
+  const [autoApplyResults,setAutoApplyResults]=useState<Record<string,'applied'|'low_match'>>({});
+  const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
@@ -1348,6 +1370,7 @@ export default function Home() {
     const savedTheme=localStorage.getItem("applysmart_theme");
     if(savedTheme==="light")setDarkMode(false);
     try{const t=localStorage.getItem("applysmart_tracker");if(t)setTrackedApps(JSON.parse(t));}catch{}
+    try{const today=new Date().toISOString().slice(0,10);const c=localStorage.getItem(`vegaply_autoapply_${today}`);if(c)setAutoApplyCount(parseInt(c,10)||0);}catch{}
     const savedRole=localStorage.getItem("applysmart_jobRole");
     const savedLocation=localStorage.getItem("applysmart_location");
     if(savedRole)setJobRole(savedRole);
@@ -1495,21 +1518,31 @@ export default function Home() {
 
   const handleAutoApply=async(job:JobWithMatch)=>{
     if(!resumeText){alert("Upload your resume first to use Auto Apply!");return;}
-    if(appliedJobs.has(job.job_id))return;
-    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const getList=()=>isEb?earlyBirdJobs:jobs;
-    setList(getList().map(j=>j.job_id===job.job_id?{...j,autoApplying:true}:j));
-    // Step 1 — generate cover letter silently
-    try{await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});}catch{}
-    // Step 2 — track as Applied directly
-    setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
-    // Step 3 — open job link
-    if(job.job_apply_link)window.open(job.job_apply_link,"_blank");
-    // Step 4 — toast
-    setApplyToast({jobTitle:job.job_title,company:job.employer_name});
-    setTimeout(()=>setApplyToast(null),4000);
-    // Step 5 — mark applied, clear loading
-    setAppliedJobs(prev=>new Set([...prev,job.job_id]));
-    setList(getList().map(j=>j.job_id===job.job_id?{...j,autoApplying:false}:j));
+    const today=new Date().toISOString().slice(0,10);
+    if(autoApplyCount>=30){
+      setAutoApplyToast("Daily limit reached (30/30). Resets tomorrow!");
+      setTimeout(()=>setAutoApplyToast(null),4000);
+      return;
+    }
+    if(autoApplyResults[job.job_id]==="applied")return;
+    setAutoApplying(job.job_id);
+    let score=0;
+    try{const res=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const data:MatchResult=await res.json();score=data.matchScore??0;}catch{}
+    if(score>=70){
+      setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
+      if(job.job_apply_link)window.open(job.job_apply_link,"_blank");
+      setAutoApplyToast(`✅ Applied to ${job.job_title} at ${job.employer_name}! (Match: ${score}%)`);
+      setTimeout(()=>setAutoApplyToast(null),4000);
+      setAutoApplyResults(prev=>({...prev,[job.job_id]:"applied"}));
+      const newCount=autoApplyCount+1;
+      setAutoApplyCount(newCount);
+      localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
+    }else{
+      setAutoApplyToast(`⚠️ Low match (${score}%) — manual apply recommended`);
+      setTimeout(()=>setAutoApplyToast(null),4000);
+      setAutoApplyResults(prev=>({...prev,[job.job_id]:"low_match"}));
+    }
+    setAutoApplying(null);
   };
 
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
@@ -1732,9 +1765,6 @@ export default function Home() {
         .action-card-btn.track-btn{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.35);flex:0;padding:7px 12px}
         .action-card-btn.track-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6)}
         .action-card-btn.track-btn.tracked{background:rgba(52,211,153,0.09);border-color:rgba(52,211,153,0.25);color:#34d399}
-        .action-card-btn.auto-apply-btn{background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.25);color:#fbbf24;font-weight:700}
-        .action-card-btn.auto-apply-btn:hover:not(:disabled){background:rgba(251,191,36,0.16);box-shadow:0 0 18px rgba(251,191,36,0.18)}
-        .action-card-btn.auto-apply-btn.applied{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:#34d399}
         .action-card-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none!important}
 
         /* BADGES */
@@ -1918,6 +1948,7 @@ export default function Home() {
           <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:13,cursor:"pointer",color:"#fbbf24",alignItems:"center",gap:4,minHeight:36}}>⚡</button>
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
+          {mounted&&autoApplyCount>0&&<span className="nav-pill" style={{background:"rgba(99,102,241,0.1)",color:"#818cf8",border:"1px solid rgba(99,102,241,0.25)"}}>{autoApplyCount}/30 Applied</span>}
           {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
           {mounted&&userEmail&&<span style={{fontSize:11,color:"rgba(255,255,255,0.2)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userEmail}</span>}
           <button className="theme-toggle" onClick={toggleTheme} title={darkMode?"Switch to light mode":"Switch to dark mode"}>
@@ -1971,15 +2002,7 @@ export default function Home() {
               }}
               onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
             />
-            {resumeText&&activeTab==="earlybird"&&earlyBirdJobs.length>0&&(
-              <div style={{marginTop:10}}>
-                <button className="gradient-btn" onClick={runResumeMatch} disabled={isMatching}>
-                  {isMatching?<><div className="spin"/>Analyzing {matchProgress}%</>:`🚀 Match & Auto-Apply (${earlyBirdJobs.length})`}
-                </button>
-                {isMatching&&<div style={{marginTop:7}}><div style={{height:2,background:"rgba(255,255,255,0.05)",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",background:"linear-gradient(90deg,#6366f1,#8b5cf6)",borderRadius:2,width:`${matchProgress}%`,transition:"width .3s"}}/></div></div>}
-              </div>
-            )}
-            {autoOpenDone&&<div style={{fontSize:11,color:"#10b981",textAlign:"center",marginTop:7}}>✓ Opened top matches in new tabs</div>}
+            {autoApplyCount>0&&<div style={{fontSize:11,color:"#818cf8",textAlign:"center",marginTop:7,fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
           </div>
 
           {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
@@ -2141,7 +2164,8 @@ export default function Home() {
                         isTracked={!!trackedApps.find(a=>a.job.job_id===job.job_id)}
                         onTrack={()=>addToTracker(job)}
                         onAutoApply={()=>handleAutoApply(job)}
-                        isAutoApplied={appliedJobs.has(job.job_id)}
+                        autoApplyResult={autoApplyResults[job.job_id]??null}
+                        isAutoApplying={autoApplying===job.job_id}
                         lm={!darkMode}
                       />
                     ))}
@@ -2437,9 +2461,13 @@ export default function Home() {
       )}
 
       {/* AUTO APPLY TOAST */}
-      {applyToast&&(
-        <div className="refresh-toast" style={{borderColor:"rgba(52,211,153,0.35)",color:"#34d399",bottom:72}}>
-          ✅ Applied to <strong style={{color:"#fff",margin:"0 3px"}}>{applyToast.jobTitle}</strong> at <strong style={{color:"#fff",margin:"0 3px"}}>{applyToast.company}</strong>! Added to your tracker.
+      {autoApplyToast&&(
+        <div className="refresh-toast" style={{
+          borderColor:autoApplyToast.startsWith("✅")?"rgba(52,211,153,0.35)":autoApplyToast.startsWith("⚠️")?"rgba(245,158,11,0.35)":"rgba(239,68,68,0.35)",
+          color:autoApplyToast.startsWith("✅")?"#34d399":autoApplyToast.startsWith("⚠️")?"#fbbf24":"#f87171",
+          bottom:72,maxWidth:400
+        }}>
+          {autoApplyToast}
         </div>
       )}
     </div>
