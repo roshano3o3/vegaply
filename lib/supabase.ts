@@ -13,7 +13,7 @@ if (!supabaseUrl) {
   throw new Error('NEXT_PUBLIC_SUPABASE_URL environment variable is missing');
 }
 
-if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
+if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.com')) {
   throw new Error(`NEXT_PUBLIC_SUPABASE_URL is malformed. Expected format: https://[project-ref].supabase.co, got: ${supabaseUrl}`);
 }
 
