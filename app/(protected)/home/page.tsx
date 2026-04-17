@@ -1383,6 +1383,7 @@ export default function Home() {
   const [onboardLocation,setOnboardLocation]=useState("");
   const [onboardParsing,setOnboardParsing]=useState(false);
   const [showOnboard,setShowOnboard]=useState(false);
+  const [obTermLines,setObTermLines]=useState<string[]>([]);
   const [showResumeHistory,setShowResumeHistory]=useState(false);
   const [resumeHistory,setResumeHistory]=useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
   const [showMobileSearch,setShowMobileSearch]=useState(false);
@@ -1416,19 +1417,40 @@ export default function Home() {
         .finally(()=>setLoading(false));
       setLoading(true);setJobs([]);
     }
-    import("@/lib/supabase").then(({supabase})=>{
-      supabase.auth.getUser().then(({data})=>{
-        if(data.user?.email)setUserEmail(data.user.email);
-        const uid=data.user?.id;
-        if(uid){
-          localStorage.setItem("applysmart_user_id",uid);
-          const onboarded=localStorage.getItem(`applysmart_onboarded_${uid}`);
-          if(!onboarded)setShowOnboard(true);
-          // Show welcome tour separately from onboarding
-          const toured=localStorage.getItem(`applysmart_toured_${uid}`);
-          if(!toured)setShowWelcomeTour(false); // will show after onboarding
+    import("@/lib/supabase").then(async({supabase})=>{
+      const{data}=await supabase.auth.getUser();
+      if(data.user?.email)setUserEmail(data.user.email);
+      const uid=data.user?.id;
+      if(uid){
+        localStorage.setItem("applysmart_user_id",uid);
+        // After getting the user session, check Supabase for onboarding status
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('onboarded, resume_text, job_role, location')
+            .eq('id', uid)
+            .single()
+
+          if (error) throw error
+
+          // Show onboarding if:
+          // 1. No profile exists yet, OR
+          // 2. onboarded flag is false, OR
+          // 3. resume_text is empty
+          if (!profile || !profile.onboarded || !profile.resume_text) {
+            setShowOnboard(true)
+            // Pre-fill if they have partial data
+            if (profile?.job_role) setJobRole(profile.job_role)
+            if (profile?.location) setLocation(profile.location)
+          }
+        } catch (e) {
+          // Fallback to localStorage if Supabase fails
+          const onboarded = localStorage.getItem(`applysmart_onboarded_${uid}`)
+          if (!onboarded) setShowOnboard(true)
         }
-      });
+        const toured=localStorage.getItem(`applysmart_toured_${uid}`);
+        if(!toured)setShowWelcomeTour(false);
+      }
     });
     import("@/lib/supabase").then(({supabase})=>{
       supabase.auth.getUser().then(async({data})=>{
@@ -1598,22 +1620,26 @@ export default function Home() {
   const totalSearched=allJobs.length;
 
   const completeOnboarding=async()=>{
-    const uid=localStorage.getItem("applysmart_user_id");
-    if(uid){
-      localStorage.setItem(`applysmart_onboarded_${uid}`,"true");
-      const toured=localStorage.getItem(`applysmart_toured_${uid}`);
-      if(!toured){setShowWelcomeTour(true);}
+    const{data:{user}}=await supabase.auth.getUser();
+    if(user){
+      // Save to Supabase
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        onboarded: true,
+        job_role: jobRole,
+        location: location,
+        resume_text: resumeText,
+        updated_at: new Date().toISOString()
+      })
+      // Keep localStorage as backup
+      localStorage.setItem(`applysmart_onboarded_${user.id}`, 'true')
     }
-    const role=onboardRole||jobRole;const loc=onboardLocation||location;
-    if(role)setJobRole(role);
-    if(loc)setLocation(loc);
     setShowOnboard(false);
-    // Auto-search with the onboarding role/location so user sees results immediately
-    if(role&&loc){
-      localStorage.setItem("applysmart_jobRole",role);
-      localStorage.setItem("applysmart_location",loc);
+    if(onboardRole&&onboardLocation){
+      localStorage.setItem("applysmart_jobRole",onboardRole);
+      localStorage.setItem("applysmart_location",onboardLocation);
       setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
-      await fetchJobs("normal",role,loc);
+      await fetchJobs("normal",onboardRole,onboardLocation);
     }
   };
 
@@ -2293,169 +2319,319 @@ export default function Home() {
 
       {/* ONBOARDING */}
       {showOnboard&&(
-        <div style={{position:"fixed",inset:0,background:"#060608",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:24,overflow:"hidden"}}>
-          {/* Glow FX */}
-          <div style={{position:"absolute",top:"-160px",left:"50%",transform:"translateX(-50%)",width:"800px",height:"600px",background:"radial-gradient(ellipse,rgba(99,102,241,0.22) 0%,transparent 65%)",pointerEvents:"none"}}/>
-          <div style={{position:"absolute",bottom:"-120px",left:"20%",width:"500px",height:"400px",background:"radial-gradient(ellipse,rgba(236,72,153,0.13) 0%,transparent 65%)",pointerEvents:"none"}}/>
-          <div style={{position:"absolute",top:"30%",right:"5%",width:"300px",height:"300px",background:"radial-gradient(ellipse,rgba(52,211,153,0.06) 0%,transparent 65%)",pointerEvents:"none"}}/>
+        <div className="onboard-overlay">
           <style>{`
-            @keyframes ob-fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-            @keyframes ob-chip-in{from{opacity:0;transform:translateY(12px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
-            .ob-wrap{animation:ob-fadeUp .55s ease both}
-            .ob-chip{transition:all .18s ease;animation:ob-chip-in .4s ease both}
-            .ob-chip:hover{transform:translateY(-2px)!important;box-shadow:0 6px 20px rgba(99,102,241,0.3)!important}
-            .ob-chip.selected{box-shadow:0 4px 24px rgba(99,102,241,0.45)!important}
-            .ob-btn{transition:all .22s ease}
-            .ob-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 48px rgba(99,102,241,0.38)}
-            .ob-btn:disabled{opacity:0.5;cursor:not-allowed}
-            .ob-input{transition:all .2s}
-            .ob-input:focus{border-color:rgba(129,140,248,0.5)!important;background:rgba(99,102,241,0.06)!important;box-shadow:0 0 0 3px rgba(99,102,241,0.1)!important}
+            .onboard-overlay{position:fixed;inset:0;z-index:1000;background:#060608;display:flex;flex-direction:column;}
+            .onboard-main{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;}
+            .onboard-left{padding:60px;display:flex;flex-direction:column;justify-content:center;}
+            .onboard-right{background:rgba(99,102,241,0.05);border-left:1px solid rgba(255,255,255,0.06);position:relative;overflow:hidden;}
+            .onboard-step-label{font-size:11px;color:#6366f1;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
+            .onboard-title{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,52px);font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:16px;}
+            .onboard-title em{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+            .onboard-sub{font-size:15px;color:rgba(255,255,255,0.4);font-weight:300;line-height:1.7;margin-bottom:40px;}
+            .onboard-preview{position:relative;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+            .preview-card{position:absolute;width:260px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;animation:floatUp 6s ease-in-out infinite;}
+            .preview-card:nth-child(1){bottom:-100px;left:20px;animation-delay:0s;}
+            .preview-card:nth-child(2){bottom:-100px;left:60px;animation-delay:2s;}
+            .preview-card:nth-child(3){bottom:-100px;left:40px;animation-delay:4s;}
+            @keyframes floatUp{0%{transform:translateY(0);opacity:0;}10%{opacity:1;}80%{opacity:1;}100%{transform:translateY(-600px);opacity:0;}}
+            .ob-terminal{background:#0a0a0f;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;font-family:'Courier New',monospace;font-size:13px;min-height:280px;}
+            .ob-term-line{color:#34d399;line-height:1.9;animation:termFadeIn .3s ease both;}
+            .ob-term-line.dim{color:rgba(255,255,255,0.3);}
+            @keyframes termFadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+            @keyframes drawCircle{to{stroke-dashoffset:0;}}
+            @keyframes drawCheck{to{stroke-dashoffset:0;}}
+            @keyframes ob-fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+            @keyframes slideInFromRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+            @keyframes slideOutToLeft{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-40px)}}
+            @keyframes progressFill{from{width:0%}to{width:${(onboardStep/3)*100}%}}
+            @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+            @keyframes bounceIn{0%{transform:scale(0.3);opacity:0}50%{transform:scale(1.05)}70%{transform:scale(0.9)}100%{transform:scale(1);opacity:1}}
+            @media(max-width:768px){.onboard-main{grid-template-columns:1fr;}.onboard-right{display:none;}.onboard-left{padding:32px 24px;}}
+            .onboard-progress{position:relative;width:100%;height:4px;background:rgba(255,255,255,0.08);overflow:hidden;}
+            .onboard-progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+            .ob-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:12px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;transition:all .2s;margin-bottom:16px;}
+            .ob-input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.1);}
+            .ob-input::placeholder{color:rgba(255,255,255,0.25);}
+            .ob-chip{margin-bottom:8px;}
+            .ob-drop-zone{border:2px dashed rgba(99,102,241,0.3);border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(99,102,241,0.02);position:relative;overflow:hidden;}
+            .ob-drop-zone:hover,.ob-drop-zone.dragging{border-color:#6366f1;background:rgba(99,102,241,0.06);}
+            .ob-drop-zone.dragover{border-color:#10b981;background:rgba(16,185,129,0.06);}
+            .ob-drop-zone::before{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent,rgba(99,102,241,0.03),transparent);transform:translateX(-100%);transition:transform .6s;}
+            .ob-drop-zone:hover::before{transform:translateX(100%);}
+            .ob-success-icon{width:48px;height:48px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:bounceIn .6s ease;}
+            .ob-error{color:#ef4444;font-size:12px;margin-top:8px;}
+            .ob-validation{display:flex;align-items:center;gap:6px;font-size:12px;margin-top:8px;}
+            .ob-validation.valid{color:#10b981;}
+            @keyframes termBlink{0%,100%{opacity:1}50%{opacity:0}}
+            @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+            @keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
           `}</style>
 
-          <div className="ob-wrap" style={{width:"100%",maxWidth:520,textAlign:"center",position:"relative",zIndex:1}}>
-            {/* Step dots */}
-            <div style={{display:"flex",justifyContent:"center",gap:7,marginBottom:36}}>
-              {[1,2,3].map(s=>(
-                <div key={s} style={{height:3,borderRadius:3,transition:"all .35s",background:s===onboardStep?"#818cf8":s<onboardStep?"rgba(99,102,241,0.45)":"rgba(255,255,255,0.08)",width:s===onboardStep?32:8}}/>
-              ))}
-            </div>
-
-            {onboardStep===1&&(
-              <div key="step1" style={{animation:"ob-fadeUp .45s ease both"}}>
-                {/* Badge */}
-                <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:100,padding:"6px 16px",fontSize:11,fontWeight:600,color:"#a5b4fc",marginBottom:24,letterSpacing:".4px"}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:"#818cf8",display:"inline-block",flexShrink:0}}/>
-                  Step 1 of 3 · 60-second setup
-                </div>
-                <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(32px,5vw,44px)",fontWeight:900,lineHeight:1.05,letterSpacing:"-1.5px",color:"#fff",marginBottom:12}}>
-                  Welcome to{" "}
-                  <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Vegaply</em>
-                </h1>
-                <p style={{color:"rgba(255,255,255,0.32)",fontSize:14,marginBottom:28,lineHeight:1.7,fontWeight:300}}>The AI job search platform that finds fresh roles, scores your resume, and tracks every application. Let's get you set up.</p>
-
-                <input
-                  className="ob-input"
-                  value={onboardRole}
-                  onChange={e=>setOnboardRole(e.target.value)}
-                  onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardStep(2)}
-                  placeholder="What role are you looking for? e.g. Data Analyst"
-                  style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px 18px",fontSize:14,color:"#fff",outline:"none",marginBottom:16,fontFamily:"inherit"}}
-                />
-
-                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28,justifyContent:"center"}}>
-                  {["Software Engineer","Data Analyst","UX Designer","Product Manager","ML Engineer","Cybersecurity Analyst","Financial Analyst","Cloud Engineer","Marketing Manager","Business Analyst"].map((role,i)=>(
-                    <button
-                      key={role}
-                      className={`ob-chip${onboardRole===role?" selected":""}`}
-                      onClick={()=>{setOnboardRole(role);setTimeout(()=>setOnboardStep(2),300);}}
-                      style={{
-                        background:onboardRole===role?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",
-                        border:`1px solid ${onboardRole===role?"transparent":"rgba(99,102,241,0.22)"}`,
-                        borderRadius:100,
-                        padding:"6px 15px",
-                        fontSize:12,
-                        fontWeight:600,
-                        color:onboardRole===role?"#fff":"#a5b4fc",
-                        cursor:"pointer",
-                        fontFamily:"inherit",
-                        whiteSpace:"nowrap",
-                        animationDelay:`${i*0.04}s`,
-                      }}
-                    >{role}</button>
-                  ))}
-                </div>
-
-                <button
-                  className="ob-btn"
-                  onClick={()=>{if(onboardRole.trim())setOnboardStep(2);}}
-                  style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",letterSpacing:"-.2px"}}
-                >Continue →</button>
-              </div>
-            )}
-
-            {onboardStep===2&&(
-              <div key="step2" style={{animation:"ob-fadeUp .45s ease both"}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.25)",borderRadius:100,padding:"6px 16px",fontSize:11,fontWeight:600,color:"#a5b4fc",marginBottom:24,letterSpacing:".4px"}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:"#818cf8",display:"inline-block",flexShrink:0}}/>
-                  Step 2 of 3
-                </div>
-                <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(28px,4vw,38px)",fontWeight:900,lineHeight:1.1,letterSpacing:"-1px",color:"#fff",marginBottom:12}}>
-                  Where are you <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>looking?</em>
-                </h1>
-                <p style={{color:"rgba(255,255,255,0.32)",fontSize:14,marginBottom:28,lineHeight:1.7,fontWeight:300}}>Enter your preferred city, country, or just type "Remote".</p>
-                <input
-                  className="ob-input"
-                  value={onboardLocation}
-                  onChange={e=>setOnboardLocation(e.target.value)}
-                  onKeyDown={e=>e.key==="Enter"&&onboardLocation.trim()&&setOnboardStep(3)}
-                  placeholder="e.g. New York, US or Remote"
-                  style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px 18px",fontSize:14,color:"#fff",outline:"none",marginBottom:16,fontFamily:"inherit"}}
-                />
-                <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:28,justifyContent:"center"}}>
-                  {["Remote","New York","San Francisco","London","Toronto","Austin","Seattle","Chicago","Los Angeles","Boston"].map((loc,i)=>(
-                    <button
-                      key={loc}
-                      className={`ob-chip${onboardLocation===loc?" selected":""}`}
-                      onClick={()=>{setOnboardLocation(loc);setTimeout(()=>setOnboardStep(3),300);}}
-                      style={{
-                        background:onboardLocation===loc?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",
-                        border:`1px solid ${onboardLocation===loc?"transparent":"rgba(99,102,241,0.22)"}`,
-                        borderRadius:100,
-                        padding:"6px 15px",
-                        fontSize:12,
-                        fontWeight:600,
-                        color:onboardLocation===loc?"#fff":"#a5b4fc",
-                        cursor:"pointer",
-                        fontFamily:"inherit",
-                        whiteSpace:"nowrap",
-                        animationDelay:`${i*0.04}s`,
-                      }}
-                    >{loc}</button>
-                  ))}
-                </div>
-                <div style={{display:"flex",gap:10}}>
-                  <button className="ob-btn" onClick={()=>setOnboardStep(1)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.35)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>
-                  <button className="ob-btn" onClick={()=>{if(onboardLocation.trim())setOnboardStep(3);}} style={{flex:2,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>Continue →</button>
-                </div>
-              </div>
-            )}
-
-            {onboardStep===3&&(
-              <div key="step3" style={{animation:"ob-fadeUp .45s ease both"}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:100,padding:"6px 16px",fontSize:11,fontWeight:600,color:"#6ee7b7",marginBottom:24,letterSpacing:".4px"}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:"#34d399",display:"inline-block",flexShrink:0}}/>
-                  Step 3 of 3 · Almost done!
-                </div>
-                <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(28px,4vw,38px)",fontWeight:900,lineHeight:1.1,letterSpacing:"-1px",color:"#fff",marginBottom:12}}>
-                  Upload your <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#34d399,#818cf8)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>resume</em>
-                </h1>
-                <p style={{color:"rgba(255,255,255,0.32)",fontSize:14,marginBottom:24,lineHeight:1.7,fontWeight:300}}>Upload your PDF for instant AI match scoring. We'll remember it for every job. You can skip and add it later.</p>
-                {onboardParsing&&<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,color:"#818cf8",fontSize:13,marginBottom:16}}>
-                  <div className="spin" style={{width:14,height:14}}/>Parsing resume…
-                </div>}
-                <input id="ob-file-input" type="file" accept=".pdf" style={{display:"none"}} onChange={async e=>{
-                  const file=e.target.files?.[0];if(!file)return;
-                  setOnboardParsing(true);
-                  try{
-                    if(!(window as any).pdfjsLib){await new Promise<void>((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>res();s.onerror=()=>rej();document.head.appendChild(s);});(window as any).pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}
-                    const ab=await file.arrayBuffer();const pdf=await (window as any).pdfjsLib.getDocument({data:new Uint8Array(ab)}).promise;let text="";
-                    for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();text+=content.items.map((it:any)=>it.str).join(" ")+"\n";}
-                    if(text.trim()){setResumeText(text);setResumeFileName(file.name);lsSet("applysmart_resume",text);lsSet("applysmart_resume_name",file.name);
-                    const{supabase}=await import("@/lib/supabase");const{data:{user}}=await supabase.auth.getUser();if(user)await supabase.from("resumes").insert({user_id:user.id,title:"Resume",file_name:file.name,resume_text:text});}
-                  }catch(err){console.error(err);}
-                  setOnboardParsing(false);completeOnboarding();
-                }}/>
-                <button className="ob-btn" onClick={()=>document.getElementById("ob-file-input")?.click()} disabled={onboardParsing}
-                  style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginBottom:10}}>
-                  {onboardParsing?"Parsing…":"📎 Upload Resume PDF"}
-                </button>
-                <div style={{display:"flex",gap:10}}>
-                  <button className="ob-btn" onClick={()=>setOnboardStep(2)} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.35)",cursor:"pointer",fontFamily:"inherit"}}>← Back</button>
-                  <button className="ob-btn" onClick={completeOnboarding} style={{flex:2,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"14px",fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.3)",cursor:"pointer",fontFamily:"inherit"}}>Skip for now</button>
-                </div>
-              </div>
-            )}
+          {/* Progress bar at top */}
+          <div className="onboard-progress">
+            <div className="onboard-progress-fill" style={{width:`${(onboardStep/3)*100}%`, animation: onboardStep > 1 ? 'progressFill 0.6s ease' : 'none'}}/>
           </div>
+
+          {onboardStep<3?(
+            <div className="onboard-main">
+              {/* LEFT PANEL */}
+              <div className="onboard-left">
+                {onboardStep===1&&(
+                  <div key="step1" style={{animation:"slideInFromRight .5s ease both"}}>
+                    <div className="onboard-step-label">Step 1 of 3 · Quick setup</div>
+                    <h1 className="onboard-title">
+                      Welcome to <em>Vegaply</em>
+                    </h1>
+                    <p className="onboard-sub">The AI job search platform that finds fresh roles, scores your resume, and helps you apply first. Let's get you set up in under 2 minutes.</p>
+
+                    <div style={{marginBottom: 32}}>
+                      <label style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.4)",letterSpacing:1,textTransform:"uppercase",marginBottom:8,display:"block"}}>What role are you looking for?</label>
+                      <input className="ob-input" value={onboardRole} onChange={e=>setOnboardRole(e.target.value)}
+                        onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&setOnboardLocation(onboardLocation||'Remote')&&setOnboardStep(2)}
+                        placeholder="e.g. Data Analyst, Software Engineer"/>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:0}}>
+                        {["Software Engineer","Data Analyst","UX Designer","Product Manager","ML Engineer","Cloud Engineer","Marketing Manager","Business Analyst"].map((role,i)=>(
+                          <button key={role} className={`ob-chip${onboardRole===role?" selected":""}`}
+                            onClick={()=>setOnboardRole(role)}
+                            style={{background:onboardRole===role?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",border:`1px solid ${onboardRole===role?"transparent":"rgba(99,102,241,0.22)"}`,borderRadius:100,padding:"5px 13px",fontSize:12,fontWeight:600,color:onboardRole===role?"#fff":"#a5b4fc",cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",transition:"all .2s",transform:onboardRole===role?"scale(1.05)":"scale(1)"}}>
+                            {role}
+                          </button>
+                        ))}
+                      </div>
+                      {onboardRole.trim() && <div className="ob-validation valid"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>Great choice!</div>}
+                    </div>
+
+                    <div style={{marginBottom: 40}}>
+                      <label style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.4)",letterSpacing:1,textTransform:"uppercase",marginBottom:8,display:"block"}}>Preferred location</label>
+                      <input className="ob-input" value={onboardLocation} onChange={e=>setOnboardLocation(e.target.value)}
+                        onKeyDown={e=>e.key==="Enter"&&onboardRole.trim()&&onboardLocation.trim()&&setOnboardStep(2)}
+                        placeholder="e.g. Remote, New York, San Francisco"/>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:0}}>
+                        {["Remote","New York","San Francisco","London","Toronto","Austin","Seattle","Chicago"].map((loc,i)=>(
+                          <button key={loc} className={`ob-chip${onboardLocation===loc?" selected":""}`}
+                            onClick={()=>setOnboardLocation(loc)}
+                            style={{background:onboardLocation===loc?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(99,102,241,0.08)",border:`1px solid ${onboardLocation===loc?"transparent":"rgba(99,102,241,0.22)"}`,borderRadius:100,padding:"5px 13px",fontSize:12,fontWeight:600,color:onboardLocation===loc?"#fff":"#a5b4fc",cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",transition:"all .2s",transform:onboardLocation===loc?"scale(1.05)":"scale(1)"}}>
+                            {loc}
+                          </button>
+                        ))}
+                      </div>
+                      {onboardLocation.trim() && <div className="ob-validation valid"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>Perfect location!</div>}
+                    </div>
+
+                    <button className="ob-btn" disabled={!onboardRole.trim()||!onboardLocation.trim()}
+                      onClick={()=>{if(onboardRole.trim()&&onboardLocation.trim()){setObTermLines([]);setOnboardStep(2);}}}
+                      style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"15px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",letterSpacing:"-.2px",transition:"all .2s",transform:!onboardRole.trim()||!onboardLocation.trim()?"scale(1)":"scale(1.02)",boxShadow:!onboardRole.trim()||!onboardLocation.trim()?"none":"0 8px 24px rgba(99,102,241,0.3)"}}>
+                      Continue — Upload Resume →
+                    </button>
+                  </div>
+                )}
+
+                {onboardStep===2&&(
+                  <div key="step2" style={{animation:"slideInFromRight .5s ease both"}}>
+                    <div className="onboard-step-label">Step 2 of 3 · Upload resume</div>
+                    <h1 className="onboard-title">
+                      Upload your <em>resume</em>
+                    </h1>
+                    <p className="onboard-sub">Upload your PDF once. We'll use AI to score every job match, write tailored cover letters, and fill applications automatically.</p>
+
+                    {/* Enhanced Resume Upload */}
+                    <div className={`ob-drop-zone${onboardParsing?" dragging":""}`}
+                      onDragOver={e=>{e.preventDefault();}}
+                      onDragLeave={e=>{e.preventDefault();}}
+                      onDrop={async(e)=>{
+                        e.preventDefault();
+                        const file = e.dataTransfer.files[0];
+                        if (!file || !file.name.endsWith('.pdf')) return;
+                        setOnboardParsing(true);
+                        try {
+                          if (!(window as any).pdfjsLib) {
+                            await new Promise<void>((res, rej) => {
+                              const s = document.createElement("script");
+                              s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+                              s.onload = () => res();
+                              s.onerror = () => rej();
+                              document.head.appendChild(s);
+                            });
+                            (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+                          }
+                          const ab = await file.arrayBuffer();
+                          const pdf = await (window as any).pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
+                          let text = "";
+                          for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            text += content.items.map((it: any) => it.str).join(" ") + "\n";
+                          }
+                          if (!text.trim()) throw new Error("No text found");
+                          setResumeText(text);
+                          setResumeFileName(file.name);
+                          lsSet("applysmart_resume", text);
+                          lsSet("applysmart_resume_name", file.name);
+                          setOnboardStep(3);
+                        } catch (err) {
+                          console.error(err);
+                        }
+                        setOnboardParsing(false);
+                      }}
+                      onClick={()=>{
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.pdf';
+                        input.onchange = async(e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          setOnboardParsing(true);
+                          try {
+                            if (!(window as any).pdfjsLib) {
+                              await new Promise<void>((res, rej) => {
+                                const s = document.createElement("script");
+                                s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+                                s.onload = () => res();
+                                s.onerror = () => rej();
+                                document.head.appendChild(s);
+                              });
+                              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+                            }
+                            const ab = await file.arrayBuffer();
+                            const pdf = await (window as any).pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
+                            let text = "";
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                              const page = await pdf.getPage(i);
+                              const content = await page.getTextContent();
+                              text += content.items.map((it: any) => it.str).join(" ") + "\n";
+                            }
+                            if (!text.trim()) throw new Error("No text found");
+                            setResumeText(text);
+                            setResumeFileName(file.name);
+                            lsSet("applysmart_resume", text);
+                            lsSet("applysmart_resume_name", file.name);
+                            setOnboardStep(3);
+                          } catch (err) {
+                            console.error(err);
+                          }
+                          setOnboardParsing(false);
+                        };
+                        input.click();
+                      }}
+                    >
+                      {onboardParsing ? (
+                        <div style={{textAlign:"center"}}>
+                          <div className="spin" style={{marginBottom:16}}/>
+                          <div style={{fontSize:16,fontWeight:600,color:"#818cf8",marginBottom:8}}>Analyzing your resume...</div>
+                          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Extracting text and skills</div>
+                        </div>
+                      ) : resumeText ? (
+                        <div style={{textAlign:"center"}}>
+                          <div className="ob-success-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                          </div>
+                          <div style={{fontSize:16,fontWeight:600,color:"#10b981",marginBottom:8}}>Resume uploaded!</div>
+                          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginBottom:16}}>{resumeFileName}</div>
+                          <button className="ob-btn" onClick={(e)=>{e.stopPropagation();setOnboardStep(3);}}
+                            style={{background:"linear-gradient(135deg,#10b981,#34d399)",border:"none",borderRadius:10,padding:"12px 24px",fontSize:14,fontWeight:600,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>
+                            Continue →
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{textAlign:"center"}}>
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{marginBottom:16}}>
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                          </svg>
+                          <div style={{fontSize:16,fontWeight:600,color:"rgba(255,255,255,0.8)",marginBottom:8}}>Drop your resume PDF here</div>
+                          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginBottom:16}}>or click to browse • We support PDF files only</div>
+                          <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+                            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",background:"rgba(255,255,255,0.05)",padding:"4px 8px",borderRadius:6}}>✓ AI Analysis</div>
+                            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",background:"rgba(255,255,255,0.05)",padding:"4px 8px",borderRadius:6}}>✓ Auto Apply</div>
+                            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",background:"rgba(255,255,255,0.05)",padding:"4px 8px",borderRadius:6}}>✓ Cover Letters</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{marginTop:20,textAlign:"center"}}>
+                      <button className="ob-btn" onClick={()=>{setResumeText("");setResumeFileName("");setOnboardStep(3);}}
+                        style={{background:"transparent",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.4)",cursor:"pointer",fontFamily:"inherit"}}>
+                        Skip for now →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT PANEL */}
+              <div className="onboard-right">
+                <div className="onboard-preview">
+                  {onboardStep===1&&(
+                    <div style={{textAlign:"center",color:"rgba(255,255,255,0.6)"}}>
+                      <div style={{fontSize:48,marginBottom:16}}>🎯</div>
+                      <div style={{fontSize:18,fontWeight:600,marginBottom:8}}>Smart Job Matching</div>
+                      <div style={{fontSize:14,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>
+                        Our AI analyzes your resume against job descriptions to find the perfect matches and calculate your success chances.
+                      </div>
+                    </div>
+                  )}
+                  {onboardStep===2&&(
+                    <div className="ob-terminal">
+                      <div style={{color:"rgba(255,255,255,0.4)",marginBottom:12,fontSize:11}}>vegaply:~ user$ ./analyze-resume</div>
+                      {obTermLines.map((line,i)=>(
+                        <div key={i} className={`ob-term-line${i<obTermLines.length-1?" dim":""}`} style={{animationDelay:`${i*0.1}s`}}>
+                          {line}
+                        </div>
+                      ))}
+                      <div className="ob-term-line" style={{animationDelay:"4s",opacity:0,animationFillMode:"forwards"}}>
+                        <span style={{display:"inline-block",width:8,height:14,background:"#34d399",verticalAlign:"text-bottom",animation:"termBlink 1s ease infinite"}}/>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ):(
+            /* STEP 3 — Success */
+            <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+              <div style={{textAlign:"center",animation:"ob-fadeUp .5s ease both",maxWidth:480}}>
+                {/* Animated checkmark */}
+                <div style={{marginBottom:32}}>
+                  <svg width="96" height="96" viewBox="0 0 96 96">
+                    <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(52,211,153,0.15)" strokeWidth="3"/>
+                    <circle cx="48" cy="48" r="42" fill="none" stroke="#34d399" strokeWidth="3"
+                      style={{strokeDasharray:264,strokeDashoffset:264,animation:"drawCircle 0.9s cubic-bezier(.34,1,.64,1) .1s forwards"}}/>
+                    <path d="M 28 48 L 42 62 L 68 34" fill="none" stroke="#34d399" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
+                      style={{strokeDasharray:68,strokeDashoffset:68,animation:"drawCheck 0.5s cubic-bezier(.34,1,.64,1) 0.9s forwards"}}/>
+                  </svg>
+                </div>
+
+                <div style={{fontSize:11,color:"#34d399",letterSpacing:2,textTransform:"uppercase",fontWeight:600,marginBottom:12}}>Setup complete!</div>
+                <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(32px,5vw,48px)",fontWeight:900,letterSpacing:"-1.5px",lineHeight:1.05,color:"#fff",marginBottom:12}}>
+                  Ready to apply <em>first.</em>
+                </h1>
+                <p style={{fontSize:15,color:"rgba(255,255,255,0.35)",fontWeight:300,lineHeight:1.75,marginBottom:32}}>
+                  Your profile is ready. We'll show you jobs posted in the last 24 hours, scored by how well they match your resume.
+                </p>
+
+                {/* Summary pills */}
+                <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:36}}>
+                  {[
+                    {icon:"🎯",label:onboardRole||jobRole||"Your role"},
+                    {icon:"📍",label:onboardLocation||location||"Your location"},
+                    {icon:"📄",label:resumeText?"Resume uploaded":"No resume yet"},
+                  ].map((item,i)=>(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:100,padding:"7px 14px",fontSize:12,color:"rgba(255,255,255,0.6)",fontWeight:500,animation:`bounceIn .6s ease ${i*0.1}s both`}}>
+                      <span>{item.icon}</span>{item.label}
+                    </div>
+                  ))}
+                </div>
+
+                <button className="ob-btn" onClick={completeOnboarding}
+                  style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:14,padding:"16px 48px",fontSize:16,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",letterSpacing:"-.2px",animation:"pulse 2s ease-in-out infinite"}}>
+                  Find My Jobs →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

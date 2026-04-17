@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
@@ -10,15 +10,71 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [envMissing, setEnvMissing] = useState(false);
+
+  useEffect(() => {
+    // Debug logging for Supabase configuration
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    console.log('🔍 [DEBUG] Supabase Configuration:');
+    console.log('🔍 - URL:', supabaseUrl);
+    console.log('🔍 - URL exists:', !!supabaseUrl);
+    console.log('🔍 - Anon key exists:', !!supabaseAnonKey);
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ [ERROR] Missing Supabase configuration');
+      if (process.env.NODE_ENV === 'development') {
+        setEnvMissing(true);
+      }
+    }
+  }, []);
 
   const handleGoogleAuth = async () => {
     setGoogleLoading(true);
     setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/home` },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) { setError(error.message); setGoogleLoading(false); }
+  };
+
+  const checkOnboardingAndRedirect = async () => {
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error('Auth check failed:', authError);
+        router.push("/");
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('onboarded')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        // If profile doesn't exist, redirect to signup for onboarding
+        router.push("/signup");
+        return;
+      }
+
+      if (!profile || profile.onboarded !== true) {
+        // User exists but not onboarded, redirect to complete onboarding
+        router.push("/signup");
+        return;
+      }
+
+      // User is onboarded, redirect to home
+      router.push("/home");
+    } catch (error) {
+      console.error('Unexpected error during onboarding check:', error);
+      router.push("/");
+    }
   };
 
   const handleLogin = async () => {
@@ -27,10 +83,11 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
+      setLoading(false);
     } else {
-      router.push("/home");
+      // Check onboarding status before redirecting
+      await checkOnboardingAndRedirect();
     }
-    setLoading(false);
   };
 
   return (
@@ -123,6 +180,24 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="auth-right">
+          {envMissing && process.env.NODE_ENV === 'development' && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px',
+              fontSize: '13px',
+              color: '#fca5a5',
+              lineHeight: '1.5'
+            }}>
+              <strong>⚠️ Development Debug:</strong><br />
+              Missing Supabase environment variables:<br />
+              • NEXT_PUBLIC_SUPABASE_URL<br />
+              • NEXT_PUBLIC_SUPABASE_ANON_KEY<br />
+              Check your .env.local file.
+            </div>
+          )}
           <div className="form-enter">
             <div className="form-tag">Welcome back</div>
             <h2 className="form-title">Sign in</h2>
@@ -144,6 +219,7 @@ export default function LoginPage() {
               {loading ? <span className="form-loading"><span className="form-spinner"/> Signing in…</span> : "Sign In →"}
             </button>
             <div className="form-footer">Don't have an account? <a href="/signup">Create one free</a></div>
+          </div>
           </div>
         </div>
       </div>
