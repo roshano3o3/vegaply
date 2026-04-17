@@ -1384,6 +1384,7 @@ export default function Home() {
   const [onboardParsing,setOnboardParsing]=useState(false);
   const [showOnboard,setShowOnboard]=useState(false);
   const [obTermLines,setObTermLines]=useState<string[]>([]);
+  const [obTermItems,setObTermItems]=useState<{text:string;color:string}[]>([]);
   const [showResumeHistory,setShowResumeHistory]=useState(false);
   const [resumeHistory,setResumeHistory]=useState<{id:string;file_name:string;created_at:string;resume_text:string}[]>([]);
   const [showMobileSearch,setShowMobileSearch]=useState(false);
@@ -1673,6 +1674,33 @@ export default function Home() {
     }catch(err){console.error("handleRefresh error:",err);}
     setIsRefreshing(false);
   };
+
+  useEffect(()=>{
+    if(onboardStep!==2)return;
+    const TERM_LINES:{text:string;color:string}[]=[
+      {text:"vegaply:~ user$ ./analyze-resume",color:"#fff"},
+      {text:"▸ Scanning resume...",color:"#39ff14"},
+      {text:"✔ Python · React · SQL detected",color:"#39ff14"},
+      {text:"✔ 4 years experience",color:"#39ff14"},
+      {text:"✔ Calculating match scores...",color:"#39ff14"},
+      {text:"✔ 847 jobs matched",color:"#fbbf24"},
+      {text:"▸ Top match: Google ML Engineer",color:"#818cf8"},
+      {text:"✔ Match Score: 94% — Strong Match",color:"#39ff14"},
+      {text:"Ready. Let's get you hired. ✓",color:"#fff"},
+    ];
+    const delays=[0,1000,2000,3000,4000,5000,6000,7000,8000];
+    const allTimeouts:ReturnType<typeof setTimeout>[]=[];
+    const runSequence=()=>{
+      setObTermItems([]);
+      delays.forEach((d,i)=>{
+        const t=setTimeout(()=>setObTermItems(prev=>[...prev,TERM_LINES[i]]),d);
+        allTimeouts.push(t);
+      });
+    };
+    runSequence();
+    const loop=setInterval(runSequence,12000);
+    return()=>{allTimeouts.forEach(clearTimeout);clearInterval(loop);};
+  },[onboardStep]);
 
   const jobRoleRef=useRef(jobRole);const locationRef=useRef(location);const activeTabRef=useRef(activeTab);const hasSearchedRef=useRef(hasSearched);
   useEffect(()=>{jobRoleRef.current=jobRole;locationRef.current=location;activeTabRef.current=activeTab;hasSearchedRef.current=hasSearched;});
@@ -1987,7 +2015,23 @@ export default function Home() {
 
       {/* TOPBAR */}
       <nav className="topbar">
-        <div className="topbar-logo">Vega<span>ply</span></div>
+        <div className="topbar-logo" style={{display:"flex",alignItems:"center"}}>
+          <svg width="28" height="28" viewBox="0 0 200 200" style={{marginRight:8,verticalAlign:"middle",flexShrink:0}}>
+            <rect width="200" height="200" rx="44" fill="#0e0b2e"/>
+            <path d="M100,76 L34,118 L66,113 Z" fill="#4f46e5"/>
+            <path d="M100,76 L166,118 L134,113 Z" fill="#7c3aed"/>
+            <ellipse cx="100" cy="92" rx="9" ry="18" fill="#4f46e5"/>
+            <circle cx="100" cy="74" r="8" fill="#4f46e5"/>
+            <polygon points="100,65 107,61 100,60" fill="#fbbf24"/>
+            <circle cx="103" cy="73" r="2.2" fill="white" opacity="0.9"/>
+            <line x1="96" y1="108" x2="88" y2="128" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
+            <line x1="100" y1="110" x2="100" y2="131" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
+            <line x1="104" y1="108" x2="112" y2="128" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
+            <path d="M80,148 A20,20 0 0,1 120,148" fill="#f59e0b" opacity="0.6"/>
+            <line x1="34" y1="148" x2="166" y2="148" stroke="#f59e0b" strokeWidth="1" opacity="0.2"/>
+          </svg>
+          Vega<span>ply</span>
+        </div>
         <div className="topbar-search">
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
@@ -2322,18 +2366,20 @@ export default function Home() {
         <div className="onboard-overlay">
           <style>{`
             .onboard-overlay{position:fixed;inset:0;z-index:1000;background:#060608;display:flex;flex-direction:column;}
-            .onboard-main{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;}
-            .onboard-left{padding:60px;display:flex;flex-direction:column;justify-content:center;}
-            .onboard-right{background:rgba(99,102,241,0.05);border-left:1px solid rgba(255,255,255,0.06);position:relative;overflow:hidden;}
-            .onboard-step-label{font-size:11px;color:#6366f1;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
+            .onboard-main{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;align-items:start;}
+            .onboard-left{padding:60px;overflow-y:auto;min-height:0;}
+            .onboard-right{background:rgba(99,102,241,0.05);border-left:1px solid rgba(255,255,255,0.06);position:sticky;top:0;height:calc(100vh - 4px);overflow:hidden;}
+            .onboard-step-label{font-size:11px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
             .onboard-title{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,52px);font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:16px;}
             .onboard-title em{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
             .onboard-sub{font-size:15px;color:rgba(255,255,255,0.4);font-weight:300;line-height:1.7;margin-bottom:40px;}
             .onboard-preview{position:relative;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-            .preview-card{position:absolute;width:260px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;animation:floatUp 6s ease-in-out infinite;}
-            .preview-card:nth-child(1){bottom:-100px;left:20px;animation-delay:0s;}
-            .preview-card:nth-child(2){bottom:-100px;left:60px;animation-delay:2s;}
-            .preview-card:nth-child(3){bottom:-100px;left:40px;animation-delay:4s;}
+            .preview-card{position:absolute;width:280px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;backdrop-filter:blur(12px);animation:obCardFloat 8s ease-in-out infinite;left:50%;transform:translateX(-50%);bottom:-140px;}
+            .preview-card:nth-child(1){animation-delay:0s;}
+            .preview-card:nth-child(2){animation-delay:2s;}
+            .preview-card:nth-child(3){animation-delay:4s;}
+            .preview-card:nth-child(4){animation-delay:6s;}
+            @keyframes obCardFloat{0%{transform:translateX(-50%) translateY(0);opacity:0;}8%{opacity:1;}80%{opacity:1;}100%{transform:translateX(-50%) translateY(-700px);opacity:0;}}
             @keyframes floatUp{0%{transform:translateY(0);opacity:0;}10%{opacity:1;}80%{opacity:1;}100%{transform:translateY(-600px);opacity:0;}}
             .ob-terminal{background:#0a0a0f;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;font-family:'Courier New',monospace;font-size:13px;min-height:280px;}
             .ob-term-line{color:#34d399;line-height:1.9;animation:termFadeIn .3s ease both;}
@@ -2420,8 +2466,8 @@ export default function Home() {
                     </div>
 
                     <button className="ob-btn" disabled={!onboardRole.trim()||!onboardLocation.trim()}
-                      onClick={()=>{if(onboardRole.trim()&&onboardLocation.trim()){setObTermLines([]);setOnboardStep(2);}}}
-                      style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"15px",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit",letterSpacing:"-.2px",transition:"all .2s",transform:!onboardRole.trim()||!onboardLocation.trim()?"scale(1)":"scale(1.02)",boxShadow:!onboardRole.trim()||!onboardLocation.trim()?"none":"0 8px 24px rgba(99,102,241,0.3)"}}>
+                      onClick={()=>{if(onboardRole.trim()&&onboardLocation.trim()){setObTermLines([]);setObTermItems([]);setOnboardStep(2);}}}
+                      style={{width:"100%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"14px 40px",fontSize:15,fontWeight:700,color:"#fff",cursor:!onboardRole.trim()||!onboardLocation.trim()?"not-allowed":"pointer",fontFamily:"inherit",letterSpacing:"-.2px",transition:"all .2s",opacity:!onboardRole.trim()||!onboardLocation.trim()?0.45:1,boxShadow:!onboardRole.trim()||!onboardLocation.trim()?"none":"0 8px 24px rgba(99,102,241,0.35)"}}>
                       Continue — Upload Resume →
                     </button>
                   </div>
@@ -2565,24 +2611,55 @@ export default function Home() {
               <div className="onboard-right">
                 <div className="onboard-preview">
                   {onboardStep===1&&(
-                    <div style={{textAlign:"center",color:"rgba(255,255,255,0.6)"}}>
-                      <div style={{fontSize:48,marginBottom:16}}>🎯</div>
-                      <div style={{fontSize:18,fontWeight:600,marginBottom:8}}>Smart Job Matching</div>
-                      <div style={{fontSize:14,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>
-                        Our AI analyzes your resume against job descriptions to find the perfect matches and calculate your success chances.
+                    <div style={{width:"100%",height:"100%",position:"relative",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      {/* Radial glow */}
+                      <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:420,height:420,background:"radial-gradient(circle,rgba(99,102,241,0.13),transparent 70%)",pointerEvents:"none"}}/>
+                      {/* Floating job cards */}
+                      {[
+                        {init:"G",color:"linear-gradient(135deg,#6366f1,#8b5cf6)",title:"Senior ML Engineer",company:"Google",time:"2m ago",hot:true},
+                        {init:"A",color:"linear-gradient(135deg,#ec4899,#f43f5e)",title:"Product Designer",company:"Airbnb",time:"5m ago",hot:false},
+                        {init:"S",color:"linear-gradient(135deg,#10b981,#34d399)",title:"Staff Engineer",company:"Stripe",time:"8m ago",hot:true},
+                        {init:"F",color:"linear-gradient(135deg,#f59e0b,#d97706)",title:"Data Scientist",company:"Figma",time:"12m ago",hot:false},
+                      ].map((card,i)=>(
+                        <div key={i} className="preview-card" style={{animationDelay:`${i*2}s`}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                            <div style={{width:36,height:36,borderRadius:10,background:card.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,color:"#fff",flexShrink:0}}>{card.init}</div>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{card.title}</div>
+                              <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{card.company}</div>
+                            </div>
+                            {card.hot&&<div style={{fontSize:10,fontWeight:700,background:"rgba(249,115,22,0.15)",color:"#f97316",border:"1px solid rgba(249,115,22,0.3)",borderRadius:100,padding:"2px 8px",flexShrink:0}}>HOT</div>}
+                          </div>
+                          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                            <div style={{fontSize:10,fontWeight:600,background:"rgba(52,211,153,0.1)",color:"#34d399",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"3px 8px"}}>{card.time}</div>
+                            <div style={{fontSize:10,fontWeight:600,background:"rgba(52,211,153,0.1)",color:"#34d399",border:"1px solid rgba(52,211,153,0.2)",borderRadius:100,padding:"3px 8px"}}>~3 applicants</div>
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{position:"absolute",bottom:24,left:0,right:0,textAlign:"center",fontSize:11,color:"rgba(255,255,255,0.2)",letterSpacing:"0.3px"}}>
+                        750+ fresh jobs · Updated every 3 minutes
                       </div>
                     </div>
                   )}
                   {onboardStep===2&&(
-                    <div className="ob-terminal">
-                      <div style={{color:"rgba(255,255,255,0.4)",marginBottom:12,fontSize:11}}>vegaply:~ user$ ./analyze-resume</div>
-                      {obTermLines.map((line,i)=>(
-                        <div key={i} className={`ob-term-line${i<obTermLines.length-1?" dim":""}`} style={{animationDelay:`${i*0.1}s`}}>
-                          {line}
-                        </div>
-                      ))}
-                      <div className="ob-term-line" style={{animationDelay:"4s",opacity:0,animationFillMode:"forwards"}}>
-                        <span style={{display:"inline-block",width:8,height:14,background:"#34d399",verticalAlign:"text-bottom",animation:"termBlink 1s ease infinite"}}/>
+                    <div style={{width:360,background:"#0d1117",borderRadius:14,overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.6)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                      {/* macOS title bar */}
+                      <div style={{background:"#161b22",padding:"10px 14px",display:"flex",alignItems:"center",gap:6,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                        <div style={{width:12,height:12,borderRadius:"50%",background:"#ff5f56",flexShrink:0}}/>
+                        <div style={{width:12,height:12,borderRadius:"50%",background:"#ffbd2e",flexShrink:0}}/>
+                        <div style={{width:12,height:12,borderRadius:"50%",background:"#27c93f",flexShrink:0}}/>
+                        <div style={{flex:1,textAlign:"center",fontSize:11,color:"rgba(255,255,255,0.3)",fontFamily:"'Courier New',monospace",letterSpacing:"0.2px"}}>vegaply — analyze-resume</div>
+                      </div>
+                      {/* Terminal output */}
+                      <div style={{padding:"16px 18px",fontFamily:"'Courier New',monospace",fontSize:12,lineHeight:1.85,minHeight:260}}>
+                        {obTermItems.map((item,i)=>(
+                          <div key={i} style={{color:item.color,animation:"termFadeIn .3s ease both",animationDelay:`${i*0.05}s`,opacity:0,animationFillMode:"forwards",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                            {item.text}
+                          </div>
+                        ))}
+                        {obTermItems.length<9&&(
+                          <span style={{display:"inline-block",width:8,height:14,background:"#39ff14",verticalAlign:"text-bottom",animation:"termBlink 1s ease infinite"}}/>
+                        )}
                       </div>
                     </div>
                   )}
