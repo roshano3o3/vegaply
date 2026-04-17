@@ -177,7 +177,7 @@ function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onC
     } catch {}
     setLoading(false);
   };
-  useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, []);
+  useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, [resumeText, matchResult, loading]);
   const color = matchResult ? scoreColor(matchResult.matchScore) : "#818cf8";
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(6,6,8,0.55)",backdropFilter:"blur(4px)",zIndex:250}}>
@@ -364,6 +364,8 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [allQA, setAllQA] = useState<SimQA[]>([]);
+  const [questionError, setQuestionError] = useState<string | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SimSummary|null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -377,11 +379,18 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
       try{
         const res=await fetch("/api/interview-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"start",job})});
         const data=await res.json();
-        const qs:SimQuestion[]=data.questions??[];
+        const qs:SimQuestion[]=Array.isArray(data.questions)?data.questions:[];
+        if (!qs.length) {
+          setQuestionError("Unable to load interview questions right now. Please try again in a moment.");
+          setPhase("chat");
+          setMessages([{role:"ai",content:"Sorry, I couldn't load your questions. Please close and try again."}]);
+          return;
+        }
         setQuestions(qs);
         setPhase("chat");
-        setMessages([{role:"ai",content:`Welcome to your mock interview for ${job.job_title} at ${job.employer_name}.\n\nI'll ask you 5 questions — a mix of behavioral and technical. Take your time with each answer. Ready?\n\nQuestion 1 of 5 · ${qs[0]?.type} · ${qs[0]?.focus}\n\n${qs[0]?.question}`}]);
+        setMessages([{role:"ai",content:`Welcome to your mock interview for ${job.job_title} at ${job.employer_name}.\n\nI'll ask you 5 questions — a mix of behavioral and technical. Take your time with each answer. Ready?\n\nQuestion 1 of ${qs.length} · ${qs[0]?.type} · ${qs[0]?.focus}\n\n${qs[0]?.question}`}]);
       }catch{
+        setQuestionError("Unable to load interview questions right now. Please try again in a moment.");
         setPhase("chat");
         setMessages([{role:"ai",content:"Sorry, I couldn't load your questions. Please close and try again."}]);
       }
@@ -389,10 +398,14 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
   },[]);
 
   const sendAnswer=async()=>{
-    if(!input.trim()||isTyping)return;
+    if(!input.trim()||isTyping||questionError)return;
+    const q=questions[currentQ];
+    if(!q){
+      setQuestionError("No interview question is available right now. Please close and try again.");
+      return;
+    }
     const answer=input.trim();
     setInput("");
-    const q=questions[currentQ];
     setMessages(prev=>[...prev,{role:"user",content:answer}]);
     setIsTyping(true);
     try{
@@ -407,7 +420,12 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
       const nextQ=currentQ+1;
       if(nextQ<questions.length){
         setTimeout(()=>{
-          setMessages(prev=>[...prev,{role:"ai",content:`Question ${nextQ+1} of 5 · ${questions[nextQ].type} · ${questions[nextQ].focus}\n\n${questions[nextQ].question}`}]);
+          const nextQuestion = questions[nextQ];
+          if (!nextQuestion) {
+            setQuestionError("Unable to load the next question. Please close and try again.");
+            return;
+          }
+          setMessages(prev=>[...prev,{role:"ai",content:`Question ${nextQ+1} of ${questions.length} · ${nextQuestion.type} · ${nextQuestion.focus}\n\n${nextQuestion.question}`}]);
           setCurrentQ(nextQ);
           inputRef.current?.focus();
         },600);
@@ -417,8 +435,10 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
           try{
             const sr=await fetch("/api/interview-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"summary",job,allQA:newAllQA.map(qa=>({question:qa.question.question,type:qa.question.type,score:qa.feedback.score}))})});
             const sd=await sr.json();
-            setSummary(sd.summary);
-          }catch{}
+            setSummary(sd.summary ?? sd);
+          }catch{
+            setSummaryError("Unable to generate the interview summary right now. Please try again later.");
+          }
           setSummaryLoading(false);
           setPhase("summary");
         },800);
@@ -482,6 +502,11 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
                   {msg.role==="feedback"&&msg.feedback&&<SimFeedbackCard feedback={msg.feedback}/>}
                 </div>
               ))}
+              {questionError&&(
+                <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.18)",borderRadius:12,padding:"12px 14px",color:"#f87171",fontSize:12,lineHeight:1.5}}>
+                  {questionError}
+                </div>
+              )}
               {isTyping&&(
                 <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                   <div style={{width:28,height:28,background:"rgba(99,102,241,0.12)",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>🤖</div>
@@ -504,21 +529,21 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
                     value={input}
                     onChange={e=>setInput(e.target.value)}
                     onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAnswer();}}}
-                    placeholder="Type your answer… (Enter to send · Shift+Enter for new line)"
+                    placeholder={questionError ? questionError : "Type your answer… (Enter to send · Shift+Enter for new line)"}
                     rows={2}
-                    disabled={isTyping}
+                    disabled={isTyping || !!questionError}
                     style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",borderRadius:12,padding:"10px 14px",fontSize:13,fontFamily:"inherit",color:"#fff",resize:"none",minHeight:50,maxHeight:120,outline:"none",lineHeight:1.55,transition:"border-color 0.2s"}}
                   />
                   <button
                     onClick={sendAnswer}
-                    disabled={!input.trim()||isTyping}
-                    style={{width:42,height:42,background:input.trim()&&!isTyping?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(255,255,255,0.06)",border:"none",borderRadius:11,cursor:input.trim()&&!isTyping?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}
+                    disabled={!input.trim()||isTyping||!!questionError}
+                    style={{width:42,height:42,background:input.trim()&&!isTyping&& !questionError?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(255,255,255,0.06)",border:"none",borderRadius:11,cursor:input.trim()&&!isTyping&& !questionError?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                   </button>
                 </div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.18)",marginTop:5,textAlign:"right"}}>
-                  Q{Math.min(currentQ+1,questions.length||5)} of {questions.length||5} · {questions[currentQ]?.type??""} · {questions[currentQ]?.focus??""}
+                  Q{questions.length>0?Math.min(currentQ+1,questions.length):0} of {questions.length||0} · {questions[currentQ]?.type??""} · {questions[currentQ]?.focus??""}
                 </div>
               </div>
             ):summaryLoading?(
@@ -532,6 +557,14 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
 
         {/* ── SUMMARY ── */}
         {phase==="summary"&&summary&&<SimSummaryScreen summary={summary} allQA={allQA} onClose={onClose}/>}
+        {phase==="summary"&&!summary&&summaryError&&(
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,gap:12,color:"rgba(255,255,255,0.8)",textAlign:"center"}}>
+            <div style={{fontSize:24}}>⚠️</div>
+            <div style={{fontSize:16,fontWeight:700}}>Summary unavailable</div>
+            <div style={{maxWidth:420,fontSize:13,color:"rgba(255,255,255,0.55)"}}>{summaryError}</div>
+            <button onClick={onClose} style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",border:"none",borderRadius:12,padding:"12px 20px",fontSize:14,fontWeight:700,color:"#fff",cursor:"pointer"}}>Close</button>
+          </div>
+        )}
       </div>
     </div>
   );

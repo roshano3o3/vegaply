@@ -14,14 +14,38 @@ async function callClaude(prompt: string, maxTokens: number) {
       messages: [{ role: "user", content: prompt }],
     }),
   });
+
   const data = await response.json();
-  return data?.content?.[0]?.text ?? "";
+  return (
+    data?.completion ??
+    data?.output_text ??
+    data?.text ??
+    data?.content?.[0]?.text ??
+    data?.message?.content ??
+    ""
+  );
+}
+
+function parseJsonPayload<T>(text: string): T | null {
+  if (!text) return null;
+  const candidate = text.trim();
+  const jsonMatch = candidate.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+  if (!jsonMatch) return null;
+  try {
+    return JSON.parse(jsonMatch[0]);
+  } catch (e) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      return null;
+    }
+  }
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { action, job, resumeText, question, questionType, answer, allQA } = body;
+    const { action, job, question, questionType, answer, allQA } = body;
 
     // ── Generate 5 questions ──────────────────────────────────────────────
     if (action === "start") {
@@ -39,8 +63,7 @@ Return ONLY valid JSON array (no markdown):
 ]`;
 
       const text = await callClaude(prompt, 800);
-      const match = text.match(/\[[\s\S]*\]/);
-      const questions = match ? JSON.parse(match[0]) : [];
+      const questions = parseJsonPayload<any[]>(text) ?? [];
       return NextResponse.json({ questions });
     }
 
@@ -66,16 +89,19 @@ Return ONLY valid JSON (no markdown):
 Scoring guide: 9-10=exceptional, 7-8=solid, 5-6=adequate, 3-4=weak, 1-2=missing the point.`;
 
       const text = await callClaude(prompt, 600);
-      const match = text.match(/\{[\s\S]*\}/);
-      const feedback = match
-        ? JSON.parse(match[0])
-        : { score: 5, verdict: "Answer received.", strengths: [], improvements: ["Provide more specific examples."], betterAnswer: "Add a concrete example with measurable results." };
+      const feedback = parseJsonPayload<any>(text) ?? {
+        score: 5,
+        verdict: "Answer received.",
+        strengths: [],
+        improvements: ["Provide more specific examples."],
+        betterAnswer: "Add a concrete example with measurable results.",
+      };
       return NextResponse.json({ feedback });
     }
 
     // ── Generate overall summary ──────────────────────────────────────────
     if (action === "summary") {
-      const avgScore = allQA.reduce((s: number, qa: any) => s + qa.score, 0) / allQA.length;
+      const avgScore = allQA.reduce((s: number, qa: any) => s + (Number(qa.score) || 0), 0) / Math.max(allQA.length, 1);
       const scoreList = allQA.map((qa: any, i: number) => `Q${i + 1} (${qa.type}): ${qa.score}/10`).join(", ");
 
       const prompt = `You are summarizing a mock interview for a ${job.job_title} role at ${job.employer_name}.
@@ -93,16 +119,13 @@ Generate a brief, honest post-interview summary. Return ONLY valid JSON (no mark
 }`;
 
       const text = await callClaude(prompt, 500);
-      const match = text.match(/\{[\s\S]*\}/);
-      const summary = match
-        ? JSON.parse(match[0])
-        : {
-            overallScore: Math.round(avgScore * 10),
-            verdict: "Interview complete.",
-            strengths: ["Completed all questions"],
-            improvements: ["Continue practicing"],
-            recommendation: "Needs More Prep",
-          };
+      const summary = parseJsonPayload<any>(text) ?? {
+        overallScore: Math.round(avgScore * 10),
+        verdict: "Interview complete.",
+        strengths: ["Completed all questions"],
+        improvements: ["Continue practicing"],
+        recommendation: "Needs More Prep",
+      };
       return NextResponse.json({ summary });
     }
 
