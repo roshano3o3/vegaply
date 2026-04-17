@@ -1,11 +1,16 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 
 export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
   const [activeFeature, setActiveFeature] = useState(0);
   const [counters, setCounters] = useState({ jobs: 0, users: 0, rate: 0 });
+  const { scrollYProgress } = useScroll();
+  const heroGlowScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.08]);
+  const typeText = "Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience...";
+  const [typedText, setTypedText] = useState("");
   const getUrgencyCount = () => Math.floor(30 + (new Date().getHours() * 7) % 40);
   const [urgencyCount, setUrgencyCount] = useState(getUrgencyCount);
   const [demoSlide, setDemoSlide] = useState(0);
@@ -14,6 +19,13 @@ export default function LandingPage() {
   const DEMO_DURATION = 4000;
   const statsRef = useRef<HTMLDivElement>(null);
   const statsAnimated = useRef(false);
+  const [mouse, setMouse] = useState({ x: -500, y: -500 });
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => setMouse({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", h);
+    return () => window.removeEventListener("mousemove", h);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -33,6 +45,21 @@ export default function LandingPage() {
     const t = setInterval(() => setUrgencyCount(getUrgencyCount()), 60000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    let index = 0;
+    let current = "";
+    const interval = setInterval(() => {
+      if (index <= typeText.length) {
+        current = typeText.slice(0, index);
+        setTypedText(current);
+        index += 1;
+      } else {
+        clearInterval(interval);
+      }
+    }, 40);
+    return () => clearInterval(interval);
+  }, [typeText]);
 
   useEffect(() => {
     setDemoProgress(0);
@@ -183,6 +210,21 @@ export default function LandingPage() {
 
   return (
     <>
+      {/* Cursor glow */}
+      <div style={{
+        position: "fixed",
+        left: mouse.x - 200,
+        top: mouse.y - 200,
+        width: 400,
+        height: 400,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)",
+        pointerEvents: "none",
+        zIndex: 2,
+        transition: "left 0.15s ease, top 0.15s ease",
+      }} />
+      {/* Noise texture overlay */}
+      <div className="noise-overlay" />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -190,6 +232,28 @@ export default function LandingPage() {
         body{font-family:var(--font-dm-sans),sans-serif;background:#060608;color:#fff;min-height:100vh;overflow-x:hidden}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
         body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}
+        .noise-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");background-size:200px 200px}
+        .orb-1{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%);top:-200px;left:-200px;animation:orbFloat1 8s ease-in-out infinite;filter:blur(40px);pointer-events:none;z-index:0}
+        .orb-2{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.12),transparent 70%);top:50%;right:-150px;animation:orbFloat2 10s ease-in-out infinite;filter:blur(50px);pointer-events:none;z-index:0}
+        .orb-3{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(236,72,153,0.1),transparent 70%);bottom:-100px;left:40%;animation:orbFloat3 12s ease-in-out infinite;filter:blur(60px);pointer-events:none;z-index:0}
+        @keyframes orbFloat1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}66%{transform:translate(-20px,20px) scale(0.95)}}
+        @keyframes orbFloat2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,-20px)}}
+        @keyframes orbFloat3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-30px) scale(1.08)}}
+        .card-stack{position:relative;width:380px;height:220px;margin:60px auto 0;}
+        .stack-card{position:absolute;width:340px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px;backdrop-filter:blur(20px);box-shadow:0 40px 80px rgba(0,0,0,0.35);pointer-events:auto}
+        .stack-card:nth-child(1){transform:rotate(-4deg) translateX(-20px);z-index:1;top:20px}
+        .stack-card:nth-child(2){transform:rotate(0deg);z-index:3;top:0;left:20px;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.06)}
+        .stack-card:nth-child(3){transform:rotate(4deg) translateX(20px);z-index:1;top:20px;left:40px}
+        .activity-feed{max-width:760px;margin:28px auto 0;padding:18px 20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:22px;backdrop-filter:blur(22px);overflow:hidden;position:relative}
+        .activity-track{display:flex;flex-direction:column;gap:12px;animation:feedScroll 20s linear infinite}
+        .activity-item{font-size:13px;color:rgba(255,255,255,0.72);line-height:1.6;white-space:nowrap;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05)}
+        @keyframes feedScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+        .btn-primary{position:relative;overflow:hidden}
+        .btn-primary::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:shimmer 3s ease infinite;pointer-events:none}
+        @keyframes shimmer{0%{left:-100%}50%,100%{left:150%}}
+        .mockup-job{backdrop-filter:blur(12px);border:1px solid transparent;border-image:linear-gradient(135deg,rgba(99,102,241,0.35),rgba(236,72,153,0.2)) 1;border-radius:18px;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;box-shadow:inset 0 0 15px rgba(255,255,255,0.03)}
+        .mockup-job:hover{transform:scale(1.01);box-shadow:0 24px 50px rgba(0,0,0,0.15);border-color:rgba(255,255,255,0.12)}
+        .mockup-ribbon{box-shadow:0 0 20px rgba(251,191,36,0.18)}
 
         /* NAV */
         .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:68px;display:flex;align-items:center;justify-content:space-between;transition:all .3s}
@@ -512,23 +576,52 @@ export default function LandingPage() {
 
       {/* HERO */}
       <section className="hero">
-        <div className="hero-glow-1"/>
-        <div className="hero-glow-2"/>
-        <div className="hero-glow-3"/>
+        <motion.div className="hero-glow-1 orb-1" style={{ scale: heroGlowScale }}/>
+        <div className="hero-glow-2 orb-2"/>
+        <div className="hero-glow-3 orb-3"/>
 
-        <div className="hero-badge">
+        <motion.div className="hero-badge" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6, type: "spring", stiffness: 120 }}>
           <div className="hero-badge-dot"/>
           AI-Powered · Real-Time Jobs · 6 Unfair Advantages
-        </div>
+        </motion.div>
 
         <h1 className="hero-title">
-          Stop applying late.<br/>
-          Start winning <em>early.</em>
+          {(["Stop", "applying", "late."] as const).map((word, i) => (
+            <motion.span
+              key={word}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.15, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: "inline-block", marginRight: "0.28em" }}
+            >
+              {word}
+            </motion.span>
+          ))}
+          <br />
+          {(["Start", "winning"] as const).map((word, i) => (
+            <motion.span
+              key={word}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 + i * 0.15, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: "inline-block", marginRight: "0.28em" }}
+            >
+              {word}
+            </motion.span>
+          ))}
+          <motion.em
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ display: "inline-block" }}
+          >
+            early.
+          </motion.em>
         </h1>
 
-        <p className="hero-sub">
+        <motion.p className="hero-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.6, type: "spring", stiffness: 120 }}>
           Vegaply finds jobs posted in the last 24 hours, scores your resume instantly, detects visa requirements, predicts your success chance, and tracks every application — so you land the job before others even start applying.
-        </p>
+        </motion.p>
 
         <div className="urgency-pill">
           <div className="urgency-dot"/>
@@ -549,10 +642,89 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="hero-actions">
+        <motion.div className="hero-actions" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75, duration: 0.7, type: "spring", stiffness: 120 }}>
           <Link href="/signup" className="btn-primary">Start for Free — No Card Required →</Link>
           <Link href="/login" className="btn-secondary">I already have an account</Link>
+        </motion.div>
+
+        <div className="card-stack">
+          <motion.div className="stack-card" whileHover={{ y: -8, scale: 1.02 }} transition={{ type: "spring", stiffness: 220 }}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+              <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.75)",letterSpacing:"1px"}}>Job Match Result</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#34d399",background:"rgba(52,211,153,0.12)",padding:"6px 10px",borderRadius:999,boxShadow:"0 0 18px rgba(52,211,153,0.18)"}}>HOT</div>
+            </div>
+            <div style={{display:"flex",gap:16,alignItems:"center"}}>
+              <div style={{width:78,height:78,position:"relative"}}>
+                <svg width="78" height="78" viewBox="0 0 78 78">
+                  <circle cx="39" cy="39" r="33" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
+                  <circle cx="39" cy="39" r="33" fill="none" stroke="#6366f1" strokeWidth="6" strokeDasharray="207.35" strokeDashoffset="12" strokeLinecap="round" transform="rotate(-90 39 39)" />
+                </svg>
+                <div style={{position:"absolute",inset:0,display:"grid",placeItems:"center",fontSize:18,fontWeight:800,color:"#fff"}}>94%</div>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:6}}>Senior ML Engineer</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",marginBottom:10}}>Google · Remote · 2h ago</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.35)",lineHeight:1.6}}><strong>Match confidence</strong> is excellent — resume score beats 95% of applicants.</div>
+              </div>
+            </div>
+          </motion.div>
+          <motion.div className="stack-card" whileHover={{ y: -8, scale: 1.02 }} transition={{ type: "spring", stiffness: 220 }}>
+            <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.75)",letterSpacing:"1px",marginBottom:14}}>AI COVER LETTER PREVIEW</div>
+            <div style={{minHeight:88,fontSize:12,color:"rgba(255,255,255,0.65)",lineHeight:1.7,whiteSpace:"pre-wrap",overflow:"hidden"}}>
+              <AnimatePresence mode="wait">
+                <motion.div key={typedText} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+                  {typedText || "Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience..."}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:16}}>
+              <span style={{fontSize:10,color:"rgba(255,255,255,0.38)"}}>Tailored in real time</span>
+              <span style={{fontSize:10,color:"rgba(129,140,248,0.9)"}}>Typing...</span>
+            </div>
+          </motion.div>
+          <motion.div className="stack-card" whileHover={{ y: -8, scale: 1.02 }} transition={{ type: "spring", stiffness: 220 }}>
+            <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.75)",letterSpacing:"1px",marginBottom:14}}>Pipeline Overview</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+              {[
+                {label:"Saved",value:5,color:"#818cf8"},
+                {label:"Applied",value:2,color:"#34d399"},
+                {label:"Interview",value:1,color:"#fbbf24"},
+              ].map((item,i)=>(
+                <div key={i} style={{background:"rgba(255,255,255,0.03)",borderRadius:12,padding:10,border:`1px solid ${item.color}22`}}>
+                  <div style={{fontSize:22,fontWeight:800,color:item.color,marginBottom:6}}>{item.value}</div>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",textTransform:"uppercase",letterSpacing:"0.7px"}}>{item.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:14,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"rgba(255,255,255,0.45)",marginBottom:8}}><span>Review notes</span><span>3 new</span></div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.66)",lineHeight:1.6}}>- Adjusted bullet point for Python/TensorFlow experience.<br/>- Added hiring manager focus on ML production systems.<br/>- Highlighted global compliance and collaboration.</div>
+            </div>
+          </motion.div>
         </div>
+
+        <div className="activity-feed">
+          <div className="activity-track">
+            {[
+              "🔥 Someone in Austin applied to ML Engineer at Stripe · 2m ago",
+              "✅ Someone in NYC got an interview at Figma · 5m ago",
+              "⚡ Someone in Seattle found H1B role at Microsoft · 8m ago",
+              "🚀 Someone in Toronto saved a Director role at Square · 11m ago",
+              "💼 Someone in Austin updated their resume for a Google role · 14m ago",
+              "✨ Someone in London landed a product job at Shopify · 17m ago",
+            ].concat([
+              "🔥 Someone in Austin applied to ML Engineer at Stripe · 2m ago",
+              "✅ Someone in NYC got an interview at Figma · 5m ago",
+              "⚡ Someone in Seattle found H1B role at Microsoft · 8m ago",
+              "🚀 Someone in Toronto saved a Director role at Square · 11m ago",
+              "💼 Someone in Austin updated their resume for a Google role · 14m ago",
+              "✨ Someone in London landed a product job at Shopify · 17m ago",
+            ]).map((text,i)=>(
+              <div key={i} className="activity-item">{text}</div>
+            ))}
+          </div>
+        </div>
+
         <div className="hero-note">Free forever · Set up in 60 seconds · No spam</div>
 
         {/* App Mockup */}
@@ -861,10 +1033,12 @@ export default function LandingPage() {
         <div className="features-layout">
           <div className="features-list">
             {features.map((f, i) => (
-              <div
+              <motion.div
                 key={i}
                 className={`feature-row fade-in${activeFeature===i?" active":""}`}
                 style={{"--fc":f.border,"--fbg":f.bg} as any}
+                whileHover={{ y: -8, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 220, damping: 18 }}
                 onClick={()=>setActiveFeature(i)}
               >
                 <div className="feature-icon-wrap" style={{background:activeFeature===i?f.bg:"rgba(255,255,255,0.04)"}}>
@@ -875,7 +1049,7 @@ export default function LandingPage() {
                   <div className="feature-row-title">{f.title}</div>
                   <div className="feature-row-desc" style={{color:"rgba(255,255,255,0.38)"}}>{f.desc}</div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -999,12 +1173,12 @@ export default function LandingPage() {
         <div className="section-eyebrow">Real results</div>
         <h2 className="section-title">People are getting hired</h2>
         <p className="section-sub" style={{marginBottom:64}}>Early applicants are 3× more likely to get an interview. Here's what they say after using every feature.</p>
-        <div className="testimonials-grid">
+        <motion.div className="testimonials-grid" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
           {testimonials.map((t,i)=>{
             const color = t.score>=85?"#34d399":t.score>=70?"#818cf8":"#fbbf24";
             const r=18, circ=2*Math.PI*r;
             return (
-              <div key={i} className="t-card fade-in">
+              <motion.div key={i} className="t-card" initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.55, ease: "easeOut" }} whileHover={{ y: -6 }}>
                 <div className="t-score-row">
                   <svg width="48" height="48" viewBox="0 0 48 48" style={{flexShrink:0}}>
                     <circle cx="24" cy="24" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3"/>
@@ -1026,10 +1200,10 @@ export default function LandingPage() {
                     <div className="t-role">{t.role} · {t.company}</div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </section>
 
       {/* COMPARISON TABLE */}

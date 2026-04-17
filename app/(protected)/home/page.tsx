@@ -38,26 +38,6 @@ interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: 
 type TabType = "results"|"earlybird"|"saved"|"tracker"|"analytics";
 const JOBS_PER_PAGE = 50;
 
-const H1B_SPONSORS = new Set([
-  'google','amazon','microsoft','apple','meta','stripe',
-  'figma','notion','linear','vercel','databricks','airbnb',
-  'uber','lyft','twitter','netflix','salesforce','oracle',
-  'ibm','intel','qualcomm','nvidia','amd','cisco','adobe',
-  'vmware','workday','servicenow','snowflake','datadog',
-  'mongodb','elastic','confluent','hashicorp','gitlab',
-  'github','atlassian','slack','zoom','dropbox','box',
-  'palantir','splunk','okta','crowdstrike','palo alto networks',
-  'deloitte','accenture','cognizant','infosys','tata',
-  'wipro','capgemini','hcl','tech mahindra','mindtree',
-  'jpmorgan','goldman sachs','morgan stanley','bank of america',
-  'wells fargo','citigroup','bloomberg','visa','mastercard',
-  'paypal','square','robinhood','coinbase','kraken',
-  'tesla','spacex','boeing','lockheed martin','raytheon',
-  'johnson & johnson','pfizer','moderna','abbvie','merck',
-]);
-
-function isH1bSponsor(employerName:string){if(!employerName)return false;const name=employerName.toLowerCase();return Array.from(H1B_SPONSORS).some(s=>name.includes(s)||s.includes(name));}
-
 function getHoursAgo(d?: string) { return d ? (Date.now() - new Date(d).getTime()) / 3600000 : 999; }
 function timeAgo(d?: string) {
   if (!d) return "Recently";
@@ -1143,14 +1123,9 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       </div>
 
       {/* COMPETITION + TIME ROW */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
-        <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
-          <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 9px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
-            <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
-          </div>
-          {isH1bSponsor(job.employer_name)&&<div style={{display:"flex",alignItems:"center",gap:4,padding:"4px 8px",borderRadius:6,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.22)"}}>
-            <span style={{fontSize:10,fontWeight:700,color:"#34d399"}}>✅ H1B Sponsor</span>
-          </div>}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 9px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
+          <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
         </div>
         <span style={{fontSize:10,color:t.t4}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
       </div>
@@ -1362,7 +1337,7 @@ export default function Home() {
   const [skillGapJob,setSkillGapJob]=useState<JobWithMatch|null>(null);
   const [activeTab,setActiveTab]=useState<TabType>("results");const [currentPage,setCurrentPage]=useState(1);
   const [hasSearched,setHasSearched]=useState(false);const [filterType,setFilterType]=useState("ALL");
-  const [filterRemote,setFilterRemote]=useState(false);const [filterDate,setFilterDate]=useState("ANY");const [h1bOnly,setH1bOnly]=useState(false);
+  const [filterRemote,setFilterRemote]=useState(false);const [filterDate,setFilterDate]=useState("ANY");
   const [resumeText,setResumeText]=useState("");const [resumeFileName,setResumeFileName]=useState("");
   const [isMatching,setIsMatching]=useState(false);const [matchProgress,setMatchProgress]=useState(0);
   const [autoOpenDone,setAutoOpenDone]=useState(false);const [trackedApps,setTrackedApps]=useState<TrackedApp[]>([]);
@@ -1580,8 +1555,7 @@ export default function Home() {
   });
 
   const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
-  const baseDisplayJobs=activeTab==="results"?filterJobs(jobs):activeTab==="earlybird"?earlyBirdJobs:allSaved;
-  const displayJobs=h1bOnly?baseDisplayJobs.filter(j=>isH1bSponsor(j.employer_name)):baseDisplayJobs;
+  const displayJobs=activeTab==="results"?filterJobs(jobs):activeTab==="earlybird"?earlyBirdJobs:allSaved;
   const isEbMode=activeTab==="earlybird";
   const hotCount=earlyBirdJobs.filter(j=>isHot(j.job_posted_at_datetime_utc)).length;
   const totalPages=Math.ceil(displayJobs.length/JOBS_PER_PAGE);
@@ -1960,7 +1934,6 @@ export default function Home() {
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <button className="search-btn" onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</button>
           <button className="eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading}>{ebLoading?"Scanning…":"⚡ Early Bird"}</button>
-          <button onClick={()=>{setH1bOnly(v=>!v);setCurrentPage(1);}} style={{background:h1bOnly?"rgba(52,211,153,0.12)":"rgba(255,255,255,0.04)",color:h1bOnly?"#34d399":"rgba(255,255,255,0.4)",border:`1px solid ${h1bOnly?"rgba(52,211,153,0.35)":"rgba(255,255,255,0.1)"}`,borderRadius:10,padding:"9px 14px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",transition:"all .2s"}} title="Show only known H1B sponsors">{h1bOnly?"🌐 H1B ON":"🌐 H1B"}</button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             {isRefreshing?"Refreshing…":"Refresh"}
@@ -2169,7 +2142,6 @@ export default function Home() {
 
               {!currentLoading&&paginatedJobs.length>0&&(
                 <>
-                  {h1bOnly&&<div style={{display:"flex",alignItems:"center",gap:8,padding:"9px 14px",borderRadius:10,background:"rgba(52,211,153,0.07)",border:"1px solid rgba(52,211,153,0.2)",marginBottom:12,fontSize:12,fontWeight:600,color:"#34d399"}}>🌐 Showing {displayJobs.length} H1B sponsor jobs</div>}
                   <div style={{fontSize:11,color:darkMode?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.4)",marginBottom:14}}>
                     Showing <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{(currentPage-1)*JOBS_PER_PAGE+1}–{Math.min(currentPage*JOBS_PER_PAGE,displayJobs.length)}</strong> of <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{displayJobs.length}</strong> jobs
                     {isEbMode&&<span style={{color:"#f59e0b",fontWeight:600}}> · ⚡ All posted today</span>}
