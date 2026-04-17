@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgbox" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e0b2e"/>
+      <stop offset="100%" stop-color="#1a1245"/>
+    </linearGradient>
+    <linearGradient id="wingL" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="wingR" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="bodygrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="sunrise" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="200" height="200" rx="44" fill="url(#bgbox)"/>
+  <rect x="8" y="8" width="184" height="184" rx="36" fill="none" stroke="#4f46e5" stroke-width="1" opacity="0.2"/>
+  <ellipse cx="100" cy="148" rx="60" ry="14" fill="#f59e0b" opacity="0.1"/>
+  <ellipse cx="100" cy="148" rx="40" ry="9" fill="#fbbf24" opacity="0.09"/>
+  <line x1="34" y1="148" x2="166" y2="148" stroke="#f59e0b" stroke-width="1" opacity="0.25"/>
+  <path d="M80,148 A20,20 0 0,1 120,148" fill="url(#sunrise)" opacity="0.65"/>
+  <path d="M100,76 L34,118 L66,113 Z" fill="url(#wingL)"/>
+  <path d="M100,76 L56,115 L66,113 Z" fill="#1e1b6e" opacity="0.45"/>
+  <line x1="34" y1="118" x2="44" y2="107" stroke="#4f46e5" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/>
+  <line x1="39" y1="120" x2="47" y2="110" stroke="#4f46e5" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+  <line x1="44" y1="121" x2="51" y2="113" stroke="#4f46e5" stroke-width="0.9" stroke-linecap="round" opacity="0.2"/>
+  <path d="M100,76 L166,118 L134,113 Z" fill="url(#wingR)"/>
+  <path d="M100,76 L144,115 L134,113 Z" fill="#3b1f8c" opacity="0.45"/>
+  <line x1="166" y1="118" x2="156" y2="107" stroke="#6d28d9" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/>
+  <line x1="161" y1="120" x2="153" y2="110" stroke="#6d28d9" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+  <line x1="156" y1="121" x2="149" y2="113" stroke="#6d28d9" stroke-width="0.9" stroke-linecap="round" opacity="0.2"/>
+  <ellipse cx="100" cy="92" rx="9" ry="18" fill="url(#bodygrad)"/>
+  <circle cx="100" cy="74" r="8" fill="#4f46e5"/>
+  <polygon points="100,65 107,61 100,60" fill="#fbbf24"/>
+  <circle cx="103" cy="73" r="2.2" fill="white" opacity="0.92"/>
+  <circle cx="103.8" cy="73" r="1.1" fill="#0e0b2e"/>
+  <line x1="96" y1="108" x2="88" y2="128" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>
+  <line x1="100" y1="110" x2="100" y2="131" stroke="#5b21b6" stroke-width="2" stroke-linecap="round" opacity="0.65"/>
+  <line x1="104" y1="108" x2="112" y2="128" stroke="#6d28d9" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>
+  <line x1="28" y1="80" x2="44" y2="80" stroke="#6366f1" stroke-width="2" stroke-linecap="round" opacity="0.28"/>
+  <line x1="24" y1="91" x2="42" y2="91" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" opacity="0.18"/>
+  <line x1="29" y1="102" x2="43" y2="102" stroke="#6366f1" stroke-width="1" stroke-linecap="round" opacity="0.12"/>
+</svg>

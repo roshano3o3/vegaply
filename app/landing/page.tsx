@@ -468,7 +468,7 @@ export default function LandingPage() {
       <div className="wrap">
         {/* NAV */}
         <nav>
-          <Link href="/" className="logo">Vega<span>ply</span></Link>
+          <Link href="/" className="logo"><img src="/vegaply-icon.svg" width="30" height="30" style={{borderRadius:'8px', marginRight:'8px', verticalAlign:'middle'}} />Vega<span>ply</span></Link>
           <ul className="nav-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#how">How it works</a></li>

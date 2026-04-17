@@ -31,6 +31,10 @@ export const metadata: Metadata = {
   description:
     "Find jobs posted in the last 24 hours, get AI resume match scores, detect H1B sponsorship, and track every application. Get hired faster with Vegaply.",
   robots: { index: true, follow: true },
+  icons: {
+    icon: '/vegaply-icon.svg',
+    apple: '/vegaply-icon.svg',
+  },
   openGraph: {
     title: "Vegaply – AI Job Search | Apply Before Everyone Else",
     description:
