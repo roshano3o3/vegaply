@@ -1,1357 +1,740 @@
-"use client";
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+'use client'
+import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 export default function LandingPage() {
-  const [scrollY, setScrollY] = useState(0);
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [counters, setCounters] = useState({ jobs: 0, users: 0, rate: 0 });
-  const { scrollYProgress } = useScroll();
-  const heroGlowScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.08]);
-  const fullText = "Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role. My 4 years of Python and TensorFlow experience aligns perfectly...";
-  const [typedText, setTypedText] = useState("");
-  const getUrgencyCount = () => Math.floor(30 + (new Date().getHours() * 7) % 40);
-  const [urgencyCount, setUrgencyCount] = useState(getUrgencyCount);
-  const [demoSlide, setDemoSlide] = useState(0);
-  const [demoProgress, setDemoProgress] = useState(0);
-  const DEMO_SLIDES = 5;
-  const DEMO_DURATION = 4000;
-  const statsRef = useRef<HTMLDivElement>(null);
-  const statsAnimated = useRef(false);
-  const [mouse, setMouse] = useState({ x: -500, y: -500 });
-  const heroTextContainer = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.18 } },
-  };
-  const heroWordItem = {
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 140, damping: 18 } },
-  };
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [mouse, setMouse] = useState({ x: -500, y: -500 })
+  const [typedText, setTypedText] = useState('')
+  const [morphWord, setMorphWord] = useState('late.')
+  const [countersStarted, setCountersStarted] = useState(false)
+  const [c1, setC1] = useState('0')
+  const [c2, setC2] = useState('0')
+  const [c3, setC3] = useState('0×')
 
-  useEffect(() => {
-    const h = (e: MouseEvent) => setMouse({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", h);
-    return () => window.removeEventListener("mousemove", h);
-  }, []);
+  const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
+  const morphWords = ['late.', 'slow.', 'blindly.', 'losing.']
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&'
 
+  // Mouse tracking
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    const h = (e: MouseEvent) => setMouse({ x: e.clientX, y: e.clientY })
+    window.addEventListener('mousemove', h)
+    return () => window.removeEventListener('mousemove', h)
+  }, [])
 
+  // Typing animation
   useEffect(() => {
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); obs.unobserve(e.target); } });
-    }, { threshold: 0.1 });
-    document.querySelectorAll(".fade-in").forEach(el => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const t = setInterval(() => setUrgencyCount(getUrgencyCount()), 60000);
-    return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    let i = 0;
-    let resetPending = false;
+    let i = 0
+    let resetting = false
     const interval = setInterval(() => {
-      if (i < fullText.length) {
-        setTypedText(fullText.slice(0, i + 1));
-        i++;
-      } else if (!resetPending) {
-        resetPending = true;
-        setTimeout(() => {
-          i = 0;
-          resetPending = false;
-          setTypedText("");
-        }, 2000);
+      if (resetting) return
+      if (i < fullCoverText.length) {
+        setTypedText(fullCoverText.slice(0, i + 1))
+        i++
+      } else {
+        resetting = true
+        setTimeout(() => { i = 0; setTypedText(''); resetting = false }, 2000)
       }
-    }, 35);
-    return () => clearInterval(interval);
-  }, []);
+    }, 35)
+    return () => clearInterval(interval)
+  }, [])
 
+  // Morphing word
   useEffect(() => {
-    setDemoProgress(0);
-    const raf = requestAnimationFrame(() => setDemoProgress(100));
-    const timer = setInterval(() => {
-      setDemoSlide(s => (s + 1) % DEMO_SLIDES);
-      setDemoProgress(0);
-      requestAnimationFrame(() => setDemoProgress(100));
-    }, DEMO_DURATION);
-    return () => { clearInterval(timer); cancelAnimationFrame(raf); };
-  }, []);
-
-  useEffect(() => {
-    const targets = { jobs: 12400, users: 3800, rate: 3 };
-    // Always set final values as initial fallback so numbers never stay at 0
-    setCounters(targets);
-
-    const animate = () => {
-      if (statsAnimated.current) return;
-      statsAnimated.current = true;
-      // Reset to 0 then animate up
-      setCounters({ jobs: 0, users: 0, rate: 0 });
-      const dur = 1800;
-      const start = performance.now();
-      const tick = (now: number) => {
-        const p = Math.min((now - start) / dur, 1);
-        const ease = 1 - Math.pow(1 - p, 3);
-        setCounters({
-          jobs: Math.round(targets.jobs * ease),
-          users: Math.round(targets.users * ease),
-          rate: Math.round(targets.rate * ease * 10) / 10,
-        });
-        if (p < 1) {
-          requestAnimationFrame(tick);
-        } else {
-          // Guarantee final values land exactly
-          setCounters(targets);
-        }
-      };
-      requestAnimationFrame(tick);
-    };
-
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) animate();
-    }, { threshold: 0.1 });
-
-    if (statsRef.current) {
-      obs.observe(statsRef.current);
-      // Fire immediately if already visible on mount
-      const rect = statsRef.current.getBoundingClientRect();
-      if (rect.top < window.innerHeight && rect.bottom > 0) animate();
+    let idx = 0
+    const morph = async () => {
+      idx = (idx + 1) % morphWords.length
+      const next = morphWords[idx]
+      for (let i = 0; i < 9; i++) {
+        setMorphWord(next.split('').map((c, k) =>
+          k < Math.floor(i / 9 * next.length) ? c : chars[Math.floor(Math.random() * chars.length)]
+        ).join(''))
+        await new Promise(r => setTimeout(r, 38))
+      }
+      setMorphWord(next)
     }
-    return () => obs.disconnect();
-  }, []);
+    const interval = setInterval(morph, 2800)
+    return () => clearInterval(interval)
+  }, [])
 
+  // Star canvas
   useEffect(() => {
-    const t = setInterval(() => setActiveFeature(f => (f + 1) % 6), 3000);
-    return () => clearInterval(t);
-  }, []);
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')!
+    let W = canvas.width = window.innerWidth
+    let H = canvas.height = window.innerHeight
+    let mx = W / 2, my = H / 2
+    const onResize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight }
+    const onMouse = (e: MouseEvent) => { mx = e.clientX; my = e.clientY }
+    window.addEventListener('resize', onResize)
+    window.addEventListener('mousemove', onMouse)
+    const stars = Array.from({ length: 200 }, () => ({
+      x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+      ox: 0, t: Math.random() * Math.PI * 2,
+      tw: Math.random() * 0.006 + 0.002, wamp: Math.random() * 0.5 + 0.15,
+      sp: Math.random() * 0.18 + 0.04, r: Math.random() * 0.85 + 0.15,
+      o: Math.random() * 0.55 + 0.12,
+      h: [240, 260, 280, 310][Math.floor(Math.random() * 4)]
+    }))
+    stars.forEach(s => { s.ox = s.x })
+    let raf: number
+    const loop = () => {
+      ctx.clearRect(0, 0, W, H)
+      stars.forEach(s => {
+        s.t += s.tw; s.x = s.ox + Math.sin(s.t) * s.wamp; s.y -= s.sp
+        if (s.y < -5) { s.y = H + 5; s.ox = s.x = Math.random() * W }
+        ctx.beginPath(); ctx.arc(s.x % W, s.y, s.r, 0, Math.PI * 2)
+        ctx.fillStyle = `hsla(${s.h},75%,72%,${s.o})`; ctx.fill()
+      })
+      for (let i = 0; i < stars.length; i++) {
+        for (let j = i + 1; j < stars.length; j++) {
+          const dx = stars[i].x - stars[j].x, dy = stars[i].y - stars[j].y
+          const d = Math.sqrt(dx * dx + dy * dy)
+          if (d < 85) {
+            ctx.beginPath(); ctx.moveTo(stars[i].x, stars[i].y); ctx.lineTo(stars[j].x, stars[j].y)
+            ctx.strokeStyle = `rgba(130,120,255,${(1 - d / 85) * 0.07})`; ctx.lineWidth = 0.4; ctx.stroke()
+          }
+        }
+      }
+      stars.forEach(s => {
+        const dx = s.x - mx, dy = s.y - my, d = Math.sqrt(dx * dx + dy * dy)
+        if (d < 120) {
+          ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(mx, my)
+          ctx.strokeStyle = `rgba(99,102,241,${(1 - d / 120) * 0.22})`; ctx.lineWidth = 0.5; ctx.stroke()
+        }
+      })
+      raf = requestAnimationFrame(loop)
+    }
+    loop()
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); window.removeEventListener('mousemove', onMouse) }
+  }, [])
 
-  const features = [
-    {
-      icon: "⚡",
-      tag: "TIMING EDGE",
-      title: "Early Bird Mode",
-      desc: "See only jobs posted in the last 24 hours — before hundreds of applicants pile on. Apply when the hiring manager is still actively reviewing.",
-      detail: "Early applicants are 3× more likely to get an interview. Vegaply surfaces fresh jobs the moment they go live.",
-      color: "#fbbf24",
-      bg: "rgba(251,191,36,0.06)",
-      border: "rgba(251,191,36,0.18)",
-    },
-    {
-      icon: "🎯",
-      tag: "AI ANALYSIS",
-      title: "Resume Match Score",
-      desc: "Instant AI-powered match between your resume and any job posting. Know your real fit percentage before you spend an hour applying.",
-      detail: "Our AI reads both documents like a recruiter would — skills, seniority, domain, language — and tells you exactly where you stand.",
-      color: "#818cf8",
-      bg: "rgba(129,140,248,0.06)",
-      border: "rgba(129,140,248,0.18)",
-    },
-    {
-      icon: "📊",
-      tag: "SKILL INTELLIGENCE",
-      title: "Skill Gap Analysis",
-      desc: "See exactly which skills you're missing for each role, which ones you already ace, and get course recommendations to close every gap.",
-      detail: "Missing AWS? We'll show you the top Coursera course. Weak on SQL? Here's a freeCodeCamp path. No guessing — just a clear upgrade roadmap.",
-      color: "#34d399",
-      bg: "rgba(52,211,153,0.06)",
-      border: "rgba(52,211,153,0.18)",
-    },
-    {
-      icon: "🏆",
-      tag: "WIN PROBABILITY",
-      title: "Success Predictor",
-      desc: "A single percentage that tells you your real chance of getting this job — based on difficulty level, your match score, and competition signals.",
-      detail: "We combine job seniority, competition age, and your match score into one honest number. Stop wasting time on 20% chances when 80% ones exist.",
-      color: "#ec4899",
-      bg: "rgba(236,72,153,0.06)",
-      border: "rgba(236,72,153,0.18)",
-    },
-    {
-      icon: "🇺🇸",
-      tag: "VISA INTELLIGENCE",
-      title: "H1B & Visa Detection",
-      desc: "Every job card shows visa status instantly: H1B Friendly, Citizens Only, or Security Clearance Required — before you waste time applying.",
-      detail: "We scan job descriptions for sponsorship language, clearance requirements, and citizenship mandates so international candidates never hit a wall.",
-      color: "#f87171",
-      bg: "rgba(248,113,113,0.06)",
-      border: "rgba(248,113,113,0.18)",
-    },
-    {
-      icon: "📋",
-      tag: "PIPELINE MANAGEMENT",
-      title: "Kanban Job Tracker",
-      desc: "Track every application through a 5-column kanban board: Saved → Applied → Interviewing → Offer → Rejected. Your whole job search in one view.",
-      detail: "See your response rate, application funnel, and motivational progress — so you always know exactly where each opportunity stands.",
-      color: "#a78bfa",
-      bg: "rgba(167,139,250,0.06)",
-      border: "rgba(167,139,250,0.18)",
-    },
-  ];
+  // Counter animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !countersStarted) {
+        setCountersStarted(true)
+        const animCount = (setter: (v: string) => void, target: number, suffix = '', dur = 2000) => {
+          let start: number | null = null
+          const step = (ts: number) => {
+            if (!start) start = ts
+            const p = Math.min((ts - start) / dur, 1), ease = 1 - Math.pow(1 - p, 4)
+            setter(Math.round(ease * target).toLocaleString() + suffix)
+            if (p < 1) requestAnimationFrame(step)
+          }
+          requestAnimationFrame(step)
+        }
+        animCount(setC1, 12400)
+        animCount(setC2, 3800)
+        animCount(setC3, 3, '×')
+      }
+    }, { threshold: 0.3 })
+    const el = document.getElementById('counters-section')
+    if (el) observer.observe(el)
+    return () => observer.disconnect()
+  }, [countersStarted])
 
-  const steps = [
-    { num: "01", title: "Find jobs posted today", desc: "Enter your role and location. Early Bird mode filters to jobs posted in the last 24 hours — not yesterday's leftovers.", icon: "🔍" },
-    { num: "02", title: "Upload your resume once", desc: "Drop your PDF once and we remember it forever. Every future match, score, and cover letter uses it automatically.", icon: "📄" },
-    { num: "03", title: "Get your AI verdict instantly", desc: "Instant match %, success chance, H1B status, and skill gaps — all before you click Apply. Know your odds before you invest time.", icon: "📊" },
-    { num: "04", title: "Apply first, win more", desc: "Tailor your resume bullets with one click, then apply while 500 other applicants are still reading the posting.", icon: "🚀" },
-  ];
+  // Score ring animation
+  useEffect(() => {
+    setTimeout(() => {
+      document.querySelectorAll('.arc').forEach((a: Element) => {
+        const el = a as SVGElement
+        const t = parseFloat(el.dataset.t || '50')
+        el.style.transition = 'stroke-dashoffset 1.8s cubic-bezier(.34,1,.64,1)'
+        el.style.strokeDashoffset = String(t)
+      })
+    }, 1300)
+  }, [])
 
-  const [openFaq, setOpenFaq] = useState<number|null>(null);
-  const faqs = [
-    { q: "Is Vegaply really free?", a: "Yes — completely free, forever. No credit card, no trial period, no hidden tier." },
-    { q: "Where do the jobs come from?", a: "We pull real-time listings from top job boards via API, updated every few minutes and filtered to the freshest postings." },
-    { q: "Is my resume safe?", a: "Your resume is encrypted and stored securely. We never share it with employers or third parties — it's only used for your AI match scores." },
-    { q: "Does this work for international students?", a: "Absolutely. Our H1B/visa detection filter was built specifically for OPT and H1B holders. One click filters to only sponsored roles." },
-    { q: "How is this different from LinkedIn or Indeed?", a: "We show you jobs the moment they post — before hundreds of others apply. Plus AI resume scoring, visa filters, skill gap analysis, and an interview simulator that those platforms don't have." },
-  ];
+  // Scroll reveal
+  useEffect(() => {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target) } })
+    }, { threshold: 0.1 })
+    document.querySelectorAll('.reveal').forEach(r => io.observe(r))
+    return () => io.disconnect()
+  }, [])
 
-  const testimonials = [
-    { name: "Sarah K.", role: "Data Analyst", company: "Hired at Deloitte", text: "Applied 2 hours after the job posted. Vegaply showed 84% match. Got an interview the next morning. This is the unfair advantage I didn't know existed.", score: 84, avatar: "S" },
-    { name: "Marcus T.", role: "Software Engineer", company: "Series B startup", text: "Was getting ghosted until I used the Skill Gap tool. Fixed my resume for 3 missing keywords. Response rate jumped from 5% to 40% in two weeks.", score: 91, avatar: "M" },
-    { name: "Priya M.", role: "Product Manager", company: "Joined Google", text: "Found my job 1 hour after it posted. The Success Predictor showed 78% — I trusted it, customized my cover letter, and got the call same day.", score: 78, avatar: "P" },
-    { name: "James L.", role: "UX Designer", company: "Now at Figma", text: "The H1B detection saved me hours. I'm on an OPT and used to apply blindly. Now I only see roles that actually sponsor. Game-changing for international job seekers.", score: 82, avatar: "J" },
-    { name: "Aisha R.", role: "Data Scientist", company: "Hired at Databricks", text: "The kanban tracker kept me sane. Applying to 30+ jobs is chaos without it. Seeing my funnel helped me realize I needed more top-of-pipeline volume.", score: 88, avatar: "A" },
-    { name: "Ryan C.", role: "Backend Engineer", company: "Joined Vercel", text: "Early Bird mode is real. I got to 3 jobs before they even had 10 applicants. The hiring manager literally said I was 'one of the first to apply.'", score: 76, avatar: "R" },
-  ];
+  // Feature card glow
+  useEffect(() => {
+    const feats = document.querySelectorAll('.feat')
+    feats.forEach(f => {
+      f.addEventListener('mousemove', (e: Event) => {
+        const me = e as MouseEvent
+        const r = (f as HTMLElement).getBoundingClientRect()
+        ;(f as HTMLElement).style.setProperty('--fx', ((me.clientX - r.left) / r.width * 100) + '%')
+        ;(f as HTMLElement).style.setProperty('--fy', ((me.clientY - r.top) / r.height * 100) + '%')
+      })
+    })
+  }, [])
+
+  // 3D tilt cards
+  useEffect(() => {
+    const cards = document.querySelectorAll('[data-card]')
+    cards.forEach(card => {
+      const el = card as HTMLElement
+      const glare = el.querySelector('.tilt-glare') as HTMLElement
+      let raf: number | null = null
+      let targetRX = 0, targetRY = 0, currentRX = 0, currentRY = 0
+      let isHovered = false
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+      const animate = () => {
+        currentRX = lerp(currentRX, targetRX, 0.1)
+        currentRY = lerp(currentRY, targetRY, 0.1)
+        el.style.transform = `perspective(1200px) rotateX(${currentRX}deg) rotateY(${currentRY}deg) scale(${isHovered ? 1.035 : 1})`
+        if (isHovered || Math.abs(currentRX) > 0.05 || Math.abs(currentRY) > 0.05) {
+          raf = requestAnimationFrame(animate)
+        } else {
+          el.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1)'
+          raf = null
+        }
+      }
+      el.addEventListener('mousemove', e => {
+        const me = e as MouseEvent
+        const rect = el.getBoundingClientRect()
+        targetRY = ((me.clientX - rect.left - rect.width / 2) / (rect.width / 2)) * 12
+        targetRX = -((me.clientY - rect.top - rect.height / 2) / (rect.height / 2)) * 10
+        const gx = ((me.clientX - rect.left) / rect.width * 100).toFixed(1)
+        const gy = ((me.clientY - rect.top) / rect.height * 100).toFixed(1)
+        if (glare) { glare.style.setProperty('--gx', gx + '%'); glare.style.setProperty('--gy', gy + '%') }
+        if (!raf) raf = requestAnimationFrame(animate)
+      })
+      el.addEventListener('mouseenter', () => {
+        isHovered = true
+        el.style.boxShadow = '0 40px 80px rgba(0,0,0,.55), 0 0 40px rgba(99,102,241,.15)'
+        if (!raf) raf = requestAnimationFrame(animate)
+      })
+      el.addEventListener('mouseleave', () => {
+        isHovered = false; targetRX = 0; targetRY = 0; el.style.boxShadow = ''
+        if (!raf) raf = requestAnimationFrame(animate)
+      })
+    })
+  }, [])
+
+  const tickData = [
+    { n: 'Sarah K.', t: 'Got 3 interviews in one week using Early Bird mode' },
+    { n: 'Marcus T.', t: 'Cover letter generator is absolutely insane quality' },
+    { n: 'Priya R.', t: 'Landed a $140k role — applied within 2 hours of posting' },
+    { n: 'James L.', t: 'Resume match saved me from 50 bad-fit applications' },
+    { n: 'Aisha M.', t: 'Interview sim gave me exact questions I was asked IRL' },
+    { n: 'Leo C.', t: 'From zero callbacks to 5 offers in a single month' },
+  ]
+
+  const activityItems = [
+    '🔥 Someone in Austin applied to ML Engineer at Stripe · 2m ago',
+    '✅ Someone in NYC got an interview at Figma · 5m ago',
+    '⚡ Someone in Seattle found H1B role at Microsoft · 8m ago',
+    '🎉 Someone in Boston received an offer · 12m ago',
+    '🔥 Someone in Chicago applied to Data Scientist · 15m ago',
+    '✅ Someone in LA got interview at Notion · 18m ago',
+  ]
 
   return (
     <>
-      {/* Cursor glow */}
-      <div style={{
-        position: "fixed",
-        left: mouse.x - 200,
-        top: mouse.y - 200,
-        width: 400,
-        height: 400,
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)",
-        pointerEvents: "none",
-        zIndex: 2,
-        transition: "left 0.15s ease, top 0.15s ease",
-      }} />
-      {/* Noise texture overlay */}
-      <div className="noise-overlay" />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        html{scroll-behavior:smooth}
-        body{font-family:var(--font-dm-sans),sans-serif;background:#060608;color:#fff;min-height:100vh;overflow-x:hidden}
-        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
-        body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}
-        .noise-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");background-size:200px 200px}
-        .orb-1{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.18),transparent 70%);top:-200px;left:-200px;filter:blur(80px);pointer-events:none;animation:orbFloat1 8s ease-in-out infinite}
-        .orb-2{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);top:30%;right:-150px;filter:blur(70px);pointer-events:none;animation:orbFloat2 10s ease-in-out infinite}
-        .orb-3{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(236,72,153,0.12),transparent 70%);bottom:-100px;left:40%;filter:blur(90px);pointer-events:none;animation:orbFloat3 12s ease-in-out infinite}
-        @keyframes orbFloat1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}66%{transform:translate(-20px,20px) scale(0.95)}}
-        @keyframes orbFloat2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,-20px)}}
-        @keyframes orbFloat3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-30px) scale(1.08)}}
-        .card-stack{position:relative;width:420px;height:240px;margin:64px auto 0}
-        .stack-card{position:absolute;width:340px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:22px;backdrop-filter:blur(20px)}
-        .stack-card:nth-child(1){transform:rotate(-5deg) translateX(-10px);z-index:1;top:24px;left:0}
-        .stack-card:nth-child(2){transform:rotate(0deg);z-index:3;top:0;left:40px;border-color:rgba(99,102,241,0.35);background:rgba(99,102,241,0.07);box-shadow:0 20px 60px rgba(99,102,241,0.2)}
-        .stack-card:nth-child(3){transform:rotate(5deg) translateX(10px);z-index:1;top:24px;left:80px}
-        .stack-card:hover{transform:rotate(0deg) translateY(-8px) scale(1.02)!important;z-index:10!important;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1)}
-        .activity-feed{max-width:600px;margin:0 auto;height:120px;overflow:hidden;position:relative}
-        .activity-feed::before{content:'';position:absolute;top:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(180deg,#060608,transparent)}
-        .activity-feed::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(0deg,#060608,transparent)}
-        .activity-inner{display:flex;flex-direction:column;gap:10px;animation:feedScroll 12s linear infinite}
-        .activity-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:100px;padding:8px 16px;font-size:12px;color:rgba(255,255,255,0.45);white-space:nowrap}
-        .activity-dot{width:6px;height:6px;border-radius:50%;background:#34d399;flex-shrink:0;animation:pulse 2s ease infinite}
-        @keyframes feedScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        .btn-primary{position:relative;overflow:hidden}
-        .btn-primary::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:shimmer 3.5s ease infinite;pointer-events:none}
-        @keyframes shimmer{0%{left:-100%}50%,100%{left:160%}}
-        .mockup-job{backdrop-filter:blur(12px);border:1px solid transparent;border-image:linear-gradient(135deg,rgba(99,102,241,0.35),rgba(236,72,153,0.2)) 1;border-radius:18px;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;box-shadow:inset 0 0 15px rgba(255,255,255,0.03)}
-        .mockup-job:hover{transform:scale(1.01);box-shadow:0 24px 50px rgba(0,0,0,0.15);border-color:rgba(255,255,255,0.12)}
-        .mockup-ribbon{box-shadow:0 0 20px rgba(251,191,36,0.18)}
-        .float-card{backdrop-filter:blur(16px)!important;box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08)!important}
-        .float-card:hover{transform:scale(1.05)!important;border-color:rgba(99,102,241,0.3)!important;transition:all 0.3s ease!important}
-
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+        body{background:#060608;font-family:'DM Sans',sans-serif;color:#fff;overflow-x:hidden;}
+        canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+        .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");background-size:200px 200px;}
+        .wrap{position:relative;z-index:10;}
+        
         /* NAV */
-        .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:68px;display:flex;align-items:center;justify-content:space-between;transition:all .3s}
-        .nav.scrolled{background:rgba(6,6,8,0.94);border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(24px)}
-        .nav-logo{font-family:var(--font-playfair),serif;font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.5px;text-decoration:none}
-        .nav-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .nav-links{display:flex;align-items:center;gap:32px}
-        .nav-link{font-size:14px;font-weight:500;color:rgba(255,255,255,0.4);text-decoration:none;transition:color .2s}
-        .nav-link:hover{color:#fff}
-        .nav-cta{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;text-decoration:none;border-radius:10px;padding:9px 22px;font-size:14px;font-weight:600;transition:all .2s;white-space:nowrap}
-        .nav-cta:hover{opacity:0.9;transform:translateY(-1px)}
+        nav{display:flex;align-items:center;justify-content:space-between;padding:22px 52px;background:rgba(6,6,8,0.55);backdrop-filter:blur(28px);border-bottom:1px solid rgba(255,255,255,0.04);position:sticky;top:0;z-index:100;}
+        .logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;letter-spacing:-0.5px;text-decoration:none;color:#fff;}
+        .logo span{background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .nav-links{display:flex;gap:32px;list-style:none;}
+        .nav-links a{font-size:13px;color:rgba(255,255,255,0.38);text-decoration:none;transition:color .3s;}
+        .nav-links a:hover{color:#fff;}
+        .nav-right{display:flex;gap:12px;align-items:center;}
+        .nav-signin{font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;transition:color .3s;padding:8px 16px;}
+        .nav-signin:hover{color:#fff;}
+        .nav-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .3s,box-shadow .3s;text-decoration:none;display:inline-block;}
+        .nav-btn:hover{transform:scale(1.06);box-shadow:0 0 32px rgba(99,102,241,.5);}
 
         /* HERO */
-        .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 24px 80px;text-align:center;overflow:hidden}
-        .hero-glow-1{position:absolute;top:-180px;left:50%;transform:translateX(-50%);width:1000px;height:700px;background:radial-gradient(ellipse,rgba(99,102,241,0.2) 0%,transparent 65%);pointer-events:none}
-        .hero-glow-2{position:absolute;bottom:-100px;left:15%;width:500px;height:400px;background:radial-gradient(ellipse,rgba(236,72,153,0.12) 0%,transparent 65%);pointer-events:none}
-        .hero-glow-3{position:absolute;top:25%;right:8%;width:400px;height:400px;background:radial-gradient(ellipse,rgba(52,211,153,0.07) 0%,transparent 65%);pointer-events:none}
+        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 60px;position:relative;overflow:hidden;}
+        .orb-1{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.18),transparent 70%);top:-200px;left:-200px;filter:blur(80px);pointer-events:none;animation:orbFloat1 8s ease-in-out infinite;}
+        .orb-2{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);top:30%;right:-150px;filter:blur(70px);pointer-events:none;animation:orbFloat2 10s ease-in-out infinite;}
+        .orb-3{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(236,72,153,0.12),transparent 70%);bottom:-100px;left:40%;filter:blur(90px);pointer-events:none;animation:orbFloat3 12s ease-in-out infinite;}
+        @keyframes orbFloat1{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-30px) scale(1.05);}66%{transform:translate(-20px,20px) scale(0.95);}}
+        @keyframes orbFloat2{0%,100%{transform:translate(0,0);}50%{transform:translate(-40px,-20px);}}
+        @keyframes orbFloat3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-30px) scale(1.08);}}
+        
+        .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.22);border-radius:100px;padding:6px 18px;font-size:12px;font-weight:500;color:#a5b4fc;letter-spacing:.4px;margin-bottom:36px;}
+        .pdot{width:7px;height:7px;background:#6366f1;border-radius:50%;animation:pdotAnim 1.8s ease infinite;}
+        @keyframes pdotAnim{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(.5);opacity:.3;}}
 
-        .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.28);border-radius:100px;padding:7px 18px;font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:28px;animation:fadeUp .6s ease both;letter-spacing:.3px}
-        .urgency-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:#34d399;margin-top:20px;letter-spacing:.2px;transition:opacity 0.4s ease}
-        .urgency-dot{width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 6px rgba(52,211,153,0.7);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
-        .hero-badge-dot{width:7px;height:7px;background:#818cf8;border-radius:50%;animation:pulse 2s ease-in-out infinite;flex-shrink:0}
-        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.65)}}
+        .hero-h1{font-family:'Playfair Display',serif;font-size:clamp(52px,8.5vw,100px);font-weight:900;line-height:.95;letter-spacing:-4px;max-width:940px;}
+        .grad-word{display:inline-block;background:linear-gradient(135deg,#818cf8 0%,#c084fc 40%,#ec4899 75%,#fb7185 100%);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gflow 5s linear infinite;}
+        @keyframes gflow{0%{background-position:0% 50%;}100%{background-position:300% 50%;}}
+        
+        .hero-sub{font-size:17px;font-weight:300;color:rgba(255,255,255,.42);max-width:490px;margin:26px auto 0;line-height:1.75;}
+        .hero-btns{display:flex;align-items:center;gap:14px;margin-top:42px;flex-wrap:wrap;justify-content:center;}
+        
+        .btn-primary{position:relative;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:15px 36px;border-radius:100px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;overflow:hidden;transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;box-shadow:0 4px 40px rgba(99,102,241,.35);text-decoration:none;display:inline-block;}
+        .btn-primary::after{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:sheen 3.5s 1.5s ease infinite;}
+        @keyframes sheen{0%{left:-100%;}45%,100%{left:160%;}}
+        .btn-primary:hover{transform:scale(1.07) translateY(-2px);box-shadow:0 8px 60px rgba(99,102,241,.55);}
+        
+        .btn-ghost{background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);padding:15px 28px;border-radius:100px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .3s;text-decoration:none;display:inline-block;}
+        .btn-ghost:hover{border-color:rgba(255,255,255,.28);color:#fff;}
+        
+        .av-row{display:flex;align-items:center;gap:14px;margin-top:46px;flex-wrap:wrap;justify-content:center;}
+        .av-stack{display:flex;}
+        .av{width:33px;height:33px;border-radius:50%;border:2px solid #060608;margin-left:-8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+        .av:first-child{margin-left:0;}
+        .a1{background:linear-gradient(135deg,#6366f1,#8b5cf6);}
+        .a2{background:linear-gradient(135deg,#ec4899,#f43f5e);}
+        .a3{background:linear-gradient(135deg,#10b981,#059669);}
+        .a4{background:linear-gradient(135deg,#f59e0b,#d97706);}
+        .av-txt{font-size:13px;color:rgba(255,255,255,.38);}
+        .av-txt strong{color:rgba(255,255,255,.72);font-weight:500;}
+        .stars{color:#fbbf24;font-size:12px;display:block;}
 
-        .hero-title{font-family:var(--font-playfair),serif;font-size:clamp(44px,7.5vw,88px);font-weight:900;line-height:.98;letter-spacing:-3px;margin-bottom:28px;animation:fadeUp .7s .1s ease both;max-width:900px}
-        .hero-title em{font-style:italic;background:linear-gradient(135deg,#818cf8 0%,#ec4899 55%,#fbbf24 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        /* CARD STACK */
+        .card-stack{position:relative;width:420px;height:200px;margin:64px auto 0;}
+        .stack-card{position:absolute;width:340px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:22px;backdrop-filter:blur(20px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .stack-card:nth-child(1){transform:rotate(-5deg) translateX(-10px);z-index:1;top:24px;left:0;}
+        .stack-card:nth-child(2){transform:rotate(0deg);z-index:3;top:0;left:40px;border-color:rgba(99,102,241,0.35);background:rgba(99,102,241,0.07);box-shadow:0 20px 60px rgba(99,102,241,0.2);}
+        .stack-card:nth-child(3){transform:rotate(5deg) translateX(10px);z-index:1;top:24px;left:80px;}
+        .stack-card:hover{transform:rotate(0deg) translateY(-8px) scale(1.02)!important;z-index:10!important;}
 
-        .hero-sub{font-size:18px;color:rgba(255,255,255,0.38);max-width:560px;line-height:1.75;margin-bottom:20px;font-weight:300;animation:fadeUp .7s .2s ease both}
+        /* COUNTERS */
+        .counters{display:flex;gap:18px;margin-top:56px;flex-wrap:wrap;justify-content:center;}
+        .ctr{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:22px 28px;text-align:center;position:relative;overflow:hidden;transition:transform .4s ease,border-color .3s;min-width:120px;}
+        .ctr:hover{transform:translateY(-4px);border-color:rgba(99,102,241,.28);}
+        .ctr::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.45),transparent);}
+        .ctr-n{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;background:linear-gradient(135deg,#fff,rgba(255,255,255,.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block;}
+        .ctr-l{font-size:11px;color:rgba(255,255,255,.28);margin-top:4px;letter-spacing:.3px;}
 
-        .hero-proof{display:flex;align-items:center;gap:20px;justify-content:center;margin-bottom:44px;animation:fadeUp .7s .25s ease both;flex-wrap:wrap}
-        .hero-proof-avatars{display:flex}
-        .hero-proof-av{width:30px;height:30px;border-radius:50%;border:2px solid #060608;margin-left:-8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
-        .hero-proof-av:first-child{margin-left:0}
-        .hero-proof-text{font-size:13px;color:rgba(255,255,255,0.35);font-weight:400}
-        .hero-proof-text strong{color:rgba(255,255,255,0.7);font-weight:600}
+        /* TICKER */
+        .ticker-wrap{overflow:hidden;padding:13px 0;border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);position:relative;}
+        .ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:100px;z-index:2;pointer-events:none;}
+        .ticker-wrap::before{left:0;background:linear-gradient(90deg,#060608,transparent);}
+        .ticker-wrap::after{right:0;background:linear-gradient(270deg,#060608,transparent);}
+        .ticker-inner{display:flex;width:max-content;animation:tick 35s linear infinite;}
+        @keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+        .t-item{display:flex;align-items:center;gap:10px;padding:0 28px;font-size:13px;color:rgba(255,255,255,.32);white-space:nowrap;font-weight:300;}
+        .t-name{color:rgba(255,255,255,.68);font-weight:500;}
+        .t-dot{width:4px;height:4px;border-radius:50%;background:#6366f1;flex-shrink:0;}
 
-        .hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp .7s .3s ease both;margin-bottom:12px}
-        .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;text-decoration:none;border-radius:12px;padding:15px 36px;font-size:16px;font-weight:700;font-family:inherit;transition:all .25s;display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;letter-spacing:-.2px}
-        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 60px rgba(99,102,241,0.4)}
-        .btn-secondary{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.65);text-decoration:none;border-radius:12px;padding:15px 36px;font-size:16px;font-weight:600;font-family:inherit;transition:all .2s;border:1px solid rgba(255,255,255,0.1);cursor:pointer}
-        .btn-secondary:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2);color:#fff}
-        .hero-note{font-size:12px;color:rgba(255,255,255,0.2);animation:fadeUp .7s .35s ease both}
+        /* ACTIVITY FEED */
+        .activity-feed{max-width:600px;margin:0 auto;height:140px;overflow:hidden;position:relative;}
+        .activity-feed::before{content:'';position:absolute;top:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(180deg,#060608,transparent);}
+        .activity-feed::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(0deg,#060608,transparent);}
+        .activity-inner{display:flex;flex-direction:column;gap:10px;animation:feedScroll 14s linear infinite;}
+        @keyframes feedScroll{0%{transform:translateY(0);}100%{transform:translateY(-50%);}}
+        .activity-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:100px;padding:8px 16px;font-size:12px;color:rgba(255,255,255,0.45);white-space:nowrap;}
+        .activity-dot{width:6px;height:6px;border-radius:50%;background:#34d399;flex-shrink:0;animation:pulse 2s ease infinite;}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);}}
 
-        @keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+        /* SECTIONS */
+        .section{padding:100px 52px;max-width:1200px;margin:0 auto;}
+        .eyebrow{font-size:11px;font-weight:600;letter-spacing:3px;color:#6366f1;text-transform:uppercase;margin-bottom:14px;}
+        .sec-title{font-family:'Playfair Display',serif;font-size:clamp(36px,5vw,60px);font-weight:700;line-height:1.05;letter-spacing:-1.5px;}
+        .sec-title em{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
-        /* HERO MOCKUP */
-        .hero-mockup{margin-top:64px;position:relative;max-width:920px;width:100%;animation:fadeUp .9s .45s ease both}
-        .mockup-card{background:rgba(10,10,16,0.95);border:1px solid rgba(255,255,255,0.09);border-radius:20px;padding:20px;backdrop-filter:blur(20px);box-shadow:0 48px 140px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.03)}
-        .mockup-bar{display:flex;align-items:center;gap:6px;margin-bottom:16px}
-        .mockup-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-        .mockup-url{flex:1;display:flex;justify-content:center}
-        .mockup-url-pill{background:rgba(255,255,255,0.04);border-radius:6px;padding:3px 24px;font-size:11px;color:rgba(255,255,255,0.25)}
-        .mockup-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-        .mockup-tab{font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;white-space:nowrap}
-        .mockup-jobs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-        .mockup-job{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:13px;position:relative;overflow:hidden;transition:border-color .2s}
-        .mockup-job-hot{border-color:rgba(251,191,36,0.22)!important}
-        .mockup-ribbon{background:linear-gradient(90deg,rgba(248,113,113,0.7),rgba(251,191,36,0.7));color:#fff;font-size:9px;font-weight:800;padding:3px 10px;margin:-13px -13px 10px;letter-spacing:.3px}
-        .mockup-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
-        .mockup-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px}
-        .mockup-score-row{display:flex;align-items:center;gap:7px;margin-top:8px}
-        .mockup-bar-bg{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
-        .mockup-bar-fill{height:100%;border-radius:4px;animation:grow 1.4s .9s ease both}
-        @keyframes grow{from{width:0}to{width:var(--w)}}
+        /* 3D TILT CARDS */
+        .cards-scene{display:flex;gap:22px;margin-top:58px;perspective:1200px;flex-wrap:wrap;}
+        .tilt-card{flex:1;min-width:260px;position:relative;border-radius:22px;transform-style:preserve-3d;transform:perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1);transition:box-shadow .3s ease;cursor:pointer;will-change:transform;}
+        .tilt-inner{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:22px;padding:30px;position:relative;overflow:hidden;height:100%;transition:border-color .3s,background .3s;}
+        .tilt-glare{position:absolute;inset:0;border-radius:22px;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.12) 0%,rgba(255,255,255,.04) 30%,transparent 65%);pointer-events:none;opacity:0;transition:opacity .25s;}
+        .tilt-card:hover .tilt-glare{opacity:1;}
+        .tilt-card:hover .tilt-inner{border-color:rgba(99,102,241,.32);background:rgba(99,102,241,.05);}
+        .tilt-card::after{content:'';position:absolute;inset:-1px;border-radius:23px;background:linear-gradient(135deg,rgba(99,102,241,.4),rgba(236,72,153,.2),transparent 60%);opacity:0;transition:opacity .3s;z-index:-1;filter:blur(8px);}
+        .tilt-card:hover::after{opacity:.6;}
+        .hot-badge{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;letter-spacing:.5px;}
+        .co-logo{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;margin-bottom:14px;}
+        .cl1{background:linear-gradient(135deg,rgba(99,102,241,.25),rgba(139,92,246,.15));color:#818cf8;}
+        .cl2{background:linear-gradient(135deg,rgba(236,72,153,.2),rgba(244,63,94,.1));color:#f472b6;}
+        .cl3{background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(16,185,129,.1));color:#34d399;}
+        .j-title{font-size:17px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px;}
+        .j-co{font-size:13px;color:rgba(255,255,255,.35);margin-bottom:16px;font-weight:300;}
+        .badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+        .b{font-size:10px;font-weight:600;padding:4px 10px;border-radius:100px;letter-spacing:.3px;}
+        .ba{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
+        .bg{background:rgba(52,211,153,.1);color:#34d399;border:1px solid rgba(52,211,153,.2);}
+        .bi{background:rgba(99,102,241,.1);color:#a5b4fc;border:1px solid rgba(99,102,241,.2);}
+        .match-row{display:flex;align-items:center;gap:14px;}
+        .mpct{font-size:20px;font-weight:800;font-family:'Playfair Display',serif;}
+        .mlbl{font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;}
+        .float-label{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:#a5b4fc;font-size:11px;padding:5px 14px;border-radius:100px;white-space:nowrap;opacity:0;transition:opacity .3s,bottom .3s;}
+        .tilt-card:hover .float-label{opacity:1;bottom:-20px;}
 
-        /* SOCIAL PROOF TICKER */
-        .ticker-wrap{overflow:hidden;padding:0 0 0;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.015);position:relative;z-index:1}
-        .ticker-track{display:flex;gap:0;animation:ticker 28s linear infinite;width:max-content}
-        .ticker-item{padding:12px 48px;font-size:12px;color:rgba(255,255,255,0.28);white-space:nowrap;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,0.05)}
-        .ticker-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-        @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-        /* STATS */
-        /* DEMO SLIDESHOW */
-        .demo-section{padding:80px 48px;position:relative;z-index:1;text-align:center}
-        .demo-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
-        .demo-title{font-family:var(--font-playfair),serif;font-size:clamp(28px,3.5vw,42px);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-1px;margin-bottom:36px}
-        .demo-browser{max-width:900px;margin:0 auto;background:#0d0d12;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04)}
-        .demo-topbar{background:#111118;border-bottom:1px solid rgba(255,255,255,0.06);padding:12px 16px;display:flex;align-items:center;gap:10px}
-        .demo-dots{display:flex;gap:5px}
-        .demo-dot{width:10px;height:10px;border-radius:50%}
-        .demo-url{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.25);text-align:left;max-width:320px;margin:0 auto}
-        .demo-logo-top{font-family:var(--font-playfair),serif;font-size:13px;font-weight:900;color:rgba(255,255,255,0.5)}
-        .demo-logo-top span{background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .demo-progress{height:2px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
-        .demo-progress-bar{height:100%;background:linear-gradient(90deg,#6366f1,#ec4899);transition:none}
-        .demo-progress-bar.animating{transition:width 4s linear}
-        .demo-content{padding:28px 28px 24px;min-height:340px;position:relative;overflow:hidden}
-        .demo-slide{position:absolute;inset:28px 28px 24px;opacity:0;transform:translateY(14px);transition:opacity 0.45s ease,transform 0.45s ease;pointer-events:none}
-        .demo-slide.active{opacity:1;transform:translateY(0);pointer-events:auto}
-        .demo-slide-label{display:inline-block;font-size:10px;font-weight:700;color:#818cf8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.18);border-radius:99px;padding:3px 10px}
-        .demo-slide-title{font-family:var(--font-playfair),serif;font-size:clamp(17px,2vw,22px);font-weight:900;color:#fff;margin-bottom:16px;letter-spacing:-.5px;line-height:1.2}
-        .demo-job-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;text-align:left}
-        .demo-job-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid rgba(255,255,255,0.07)}
-        .demo-job-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
-        .demo-job-co{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:6px}
-        .demo-badges{display:flex;gap:5px;flex-wrap:wrap}
-        .demo-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
-        .demo-hot{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.2);font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.5px;text-transform:uppercase}
-        .demo-score-big{font-size:13px;font-weight:800;margin-left:auto;flex-shrink:0}
-        .demo-dots-nav{display:flex;gap:7px;justify-content:center;padding:14px 0 4px;position:relative;z-index:2}
-        .demo-nav-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;cursor:pointer;transition:all .25s;padding:0}
-        .demo-nav-dot.active{width:22px;border-radius:99px;background:#6366f1}
-        .demo-kanban-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
-        .demo-kanban-col{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px}
-        .demo-kanban-head{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.05)}
-        .demo-kanban-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:6px 7px;font-size:10px;margin-bottom:4px}
-        .demo-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
-        .demo-stat-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px;text-align:center}
-        .demo-stat-n{font-size:20px;font-weight:800;color:#fff;line-height:1}
-        .demo-stat-l{font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
-        .demo-cmp-table{width:100%;border-collapse:collapse;font-size:12px}
-        .demo-cmp-table th,.demo-cmp-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.05)}
-        .demo-cmp-table th{font-size:11px;font-weight:700;padding-bottom:10px}
-        .demo-ring-wrap{display:flex;gap:20px;align-items:center}
-        .demo-skill-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-        .demo-skill-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px}
-        @media(max-width:768px){.demo-section{padding:48px 16px}.demo-content{min-height:420px}.demo-kanban-row{grid-template-columns:repeat(3,1fr)}.demo-stats-row{grid-template-columns:repeat(2,1fr)}.demo-ring-wrap{flex-direction:column;align-items:flex-start}}
-
-        /* AS SEEN AT */
-        .logos-section{padding:24px 48px;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);position:relative;z-index:1}
-        .logos-label{font-size:11px;color:rgba(255,255,255,0.2);text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
-        .logos-row{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 32px}
-        .logo-name{font-size:16px;font-weight:600;color:#475569;letter-spacing:-0.3px;transition:color .2s;cursor:default}
-        .logo-name:hover{color:rgba(255,255,255,0.4)}
-
-        .stats-section{padding:80px 48px;position:relative;z-index:1}
-        .stats-inner{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden}
-        .stat-item{background:#060608;padding:44px 32px;text-align:center}
-        .stat-num{font-family:var(--font-playfair),serif;font-size:54px;font-weight:900;line-height:1;margin-bottom:8px}
-        .stat-label{font-size:13px;color:rgba(255,255,255,0.28);font-weight:400;line-height:1.5}
-
-        /* SCROLL ANIMATIONS */
-        .fade-in{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease,transform 0.6s ease}
-        .fade-in.visible{opacity:1;transform:translateY(0)}
-
-        /* FEATURE SHOWCASE */
-        .features-section{padding:120px 48px;position:relative;z-index:1}
-        .section-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:#818cf8;margin-bottom:16px;text-align:center}
-        .section-title{font-family:var(--font-playfair),serif;font-size:clamp(32px,4.5vw,52px);font-weight:900;text-align:center;margin-bottom:16px;line-height:1.1;letter-spacing:-1.5px}
-        .section-sub{font-size:16px;color:rgba(255,255,255,0.3);text-align:center;max-width:500px;margin:0 auto 72px;line-height:1.75}
-
-        .features-layout{max-width:1140px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
-        .features-list{display:flex;flex-direction:column;gap:6px}
-        .feature-row{border-radius:14px;padding:18px 20px;border:1px solid transparent;cursor:pointer;transition:all .25s;display:flex;gap:14px;align-items:flex-start}
-        .feature-row.active{border-color:var(--fc);background:var(--fbg)}
-        .feature-row:not(.active){border-color:rgba(255,255,255,0.05);background:rgba(255,255,255,0.02)}
-        .feature-row:not(.active):hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08)}
-        .feature-icon-wrap{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:background .25s}
-        .feature-tag{font-size:9px;font-weight:800;letter-spacing:1.5px;margin-bottom:4px;opacity:0.7}
-        .feature-row-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;font-family:var(--font-playfair),serif}
-        .feature-row-desc{font-size:12px;color:rgba(255,255,255,0.35);line-height:1.6;display:none}
-        .feature-row.active .feature-row-desc{display:block}
-
-        .feature-detail-panel{align-self:start;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:36px;min-height:320px;transition:all .3s}
-        .fdp-tag{font-size:10px;font-weight:800;letter-spacing:2px;margin-bottom:12px;opacity:0.8}
-        .fdp-title{font-family:var(--font-playfair),serif;font-size:28px;font-weight:900;margin-bottom:16px;line-height:1.2;letter-spacing:-.5px}
-        .fdp-desc{font-size:14px;color:rgba(255,255,255,0.45);line-height:1.8;margin-bottom:20px}
-        .fdp-detail{font-size:13px;line-height:1.75;opacity:0.6}
-        .fdp-icon{font-size:48px;margin-bottom:20px;display:block}
-
-        /* VISA SECTION */
-        .visa-section{padding:80px 48px;position:relative;z-index:1}
-        .visa-inner{max-width:1000px;margin:0 auto;background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.15);border-radius:24px;padding:56px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-        .visa-badges-demo{display:flex;flex-direction:column;gap:12px}
-        .visa-badge-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px}
-        .vbadge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;white-space:nowrap}
-
-        /* HOW IT WORKS */
-        .how-section{padding:100px 48px;position:relative;z-index:1}
-        .how-grid{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;position:relative}
-        .how-grid::before{content:'';position:absolute;top:32px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(129,140,248,0.35),rgba(236,72,153,0.35),transparent);z-index:0}
-        .how-step{text-align:center;position:relative;z-index:1}
-        .how-num{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;position:relative}
-        .how-num-label{position:absolute;top:-7px;right:-7px;background:linear-gradient(135deg,#818cf8,#ec4899);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;letter-spacing:.3px}
-        .how-step-title{font-family:var(--font-playfair),serif;font-size:16px;font-weight:700;margin-bottom:8px;color:#fff}
-        .how-step-desc{font-size:12px;color:rgba(255,255,255,0.32);line-height:1.65}
-
-        /* COMPARISON TABLE */
-        .compare-section{padding:100px 48px;position:relative;z-index:1;text-align:center}
-        .compare-inner{max-width:860px;margin:0 auto}
-        .compare-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-        .compare-title{font-family:var(--font-playfair),serif;font-size:clamp(34px,4.5vw,52px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
-        .compare-title em{font-style:italic;color:#ec4899;-webkit-text-fill-color:#ec4899}
-        .compare-table{width:100%;border-collapse:separate;border-spacing:0;text-align:left}
-        .compare-table th{padding:14px 20px;font-size:13px;font-weight:700;letter-spacing:0.3px}
-        .compare-table td{padding:13px 20px;font-size:13px;border-top:1px solid rgba(255,255,255,0.05)}
-        .compare-table tr:last-child td{border-bottom:1px solid rgba(255,255,255,0.05)}
-        .col-feature{color:rgba(255,255,255,0.45);font-weight:400;width:36%}
-        .col-vegaply{background:rgba(99,102,241,0.06);border-left:1px solid rgba(99,102,241,0.25);border-right:1px solid rgba(99,102,241,0.25);text-align:center;width:21%}
-        .col-vegaply-head{background:rgba(99,102,241,0.15);border-left:1px solid rgba(99,102,241,0.35);border-right:1px solid rgba(99,102,241,0.35);border-top:1px solid rgba(99,102,241,0.35);border-radius:10px 10px 0 0;color:#a5b4fc;text-align:center;width:21%}
-        .col-other{color:rgba(255,255,255,0.3);text-align:center;width:21%}
-        .col-other-head{color:rgba(255,255,255,0.25);text-align:center;font-weight:500;width:21%}
-        .compare-yes{color:#34d399;font-size:17px;font-weight:700}
-        .compare-no{color:#ef4444;font-size:15px;font-weight:700;opacity:0.7}
-        .compare-partial{display:inline-block;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
-        .compare-wrap{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden}
-
-        /* KANBAN PREVIEW */
-        .kanban-section{padding:80px 48px 120px;position:relative;z-index:1}
-        .kanban-board{max-width:1100px;margin:48px auto 0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-        .kanban-col{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px}
-        .kanban-col-header{font-size:10px;font-weight:800;letter-spacing:1.5px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between}
-        .kanban-count{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px}
-        .kanban-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px;margin-bottom:8px}
-        .kanban-card-title{font-size:11px;font-weight:700;color:#fff;margin-bottom:3px}
-        .kanban-card-co{font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:7px}
-        .kanban-card-score{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600}
+        /* FEATURES */
+        .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:52px;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.06);}
+        .feat{background:#060608;padding:38px 32px;position:relative;overflow:hidden;cursor:default;transition:background .35s;}
+        .feat-glow{position:absolute;inset:0;background:radial-gradient(circle at var(--fx,50%) var(--fy,50%),rgba(99,102,241,.09),transparent 55%);opacity:0;transition:opacity .4s;pointer-events:none;}
+        .feat:hover .feat-glow{opacity:1;}
+        .feat-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:18px;}
+        .i1{background:rgba(99,102,241,.14);}
+        .i2{background:rgba(236,72,153,.14);}
+        .i3{background:rgba(52,211,153,.14);}
+        .i4{background:rgba(251,191,36,.14);}
+        .i5{background:rgba(167,139,250,.14);}
+        .i6{background:rgba(248,113,113,.14);}
+        .feat-name{font-size:15px;font-weight:600;margin-bottom:8px;color:rgba(255,255,255,.88);}
+        .feat-desc{font-size:13px;font-weight:300;color:rgba(255,255,255,.35);line-height:1.72;}
+        .feat-tag{display:inline-block;margin-top:13px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.18);color:#a5b4fc;font-size:11px;padding:3px 10px;border-radius:100px;font-weight:500;}
 
         /* TESTIMONIALS */
-        .testimonials-section{padding:100px 48px;position:relative;z-index:1}
-        .testimonials-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-        .t-card{background:rgba(255,255,255,0.028);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:26px;transition:all .3s;display:flex;flex-direction:column;gap:16px}
-        .t-card:hover{border-color:rgba(129,140,248,0.22);transform:translateY(-4px);background:rgba(255,255,255,0.04)}
-        .t-score-row{display:flex;align-items:center;gap:10px}
-        .t-score-text{font-size:12px;font-weight:700}
-        .t-score-sub{font-size:10px;color:rgba(255,255,255,0.25);margin-top:2px}
-        .t-quote{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.75;font-style:italic;flex:1}
-        .t-author{display:flex;align-items:center;gap:10px}
-        .t-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
-        .t-name{font-size:13px;font-weight:700;color:#fff}
-        .t-role{font-size:11px;color:rgba(255,255,255,0.28);margin-top:2px}
-
-        /* FAQ */
-        .faq-section{padding:100px 48px;position:relative;z-index:1}
-        .faq-inner{max-width:720px;margin:0 auto}
-        .faq-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-        .faq-title{font-family:var(--font-playfair),serif;font-size:clamp(34px,4.5vw,50px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-1.5px;margin-bottom:48px}
-        .faq-item{border-bottom:1px solid rgba(255,255,255,0.07);overflow:hidden}
-        .faq-q{width:100%;background:none;border:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0;cursor:pointer;text-align:left}
-        .faq-q-text{font-size:16px;font-weight:500;color:rgba(255,255,255,0.8);line-height:1.4;transition:color .2s;flex:1}
-        .faq-item.open .faq-q-text{color:#818cf8}
-        .faq-icon{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;color:rgba(255,255,255,0.3);flex-shrink:0;transition:all .25s;font-style:normal}
-        .faq-item.open .faq-icon{border-color:rgba(99,102,241,0.4);color:#818cf8;background:rgba(99,102,241,0.08)}
-        .faq-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(0.4,0,0.2,1)}
-        .faq-item.open .faq-body{max-height:200px}
-        .faq-a{padding:0 0 20px;font-size:15px;color:rgba(255,255,255,0.4);line-height:1.75;font-weight:300;border-left:2px solid rgba(99,102,241,0.35);padding-left:16px;margin-left:2px}
-
-        /* PRICING */
-        .pricing-section{padding:100px 48px;position:relative;z-index:1;text-align:center}
-        .pricing-label{display:inline-block;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-        .pricing-title{font-family:var(--font-playfair),serif;font-size:clamp(42px,5.5vw,64px);font-weight:900;color:#fff;line-height:1.06;letter-spacing:-2px;margin-bottom:16px}
-        .pricing-title em{font-style:italic;color:#ec4899;-webkit-text-fill-color:#ec4899}
-        .pricing-sub{font-size:16px;color:rgba(255,255,255,0.32);line-height:1.75;max-width:420px;margin:0 auto 48px;font-weight:300}
-        .pricing-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:680px;margin:0 auto}
-        .pricing-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#818cf8;border-radius:99px;padding:8px 18px;font-size:13px;font-weight:500;white-space:nowrap}
-        .pricing-pill-dot{width:6px;height:6px;border-radius:50%;background:#818cf8;flex-shrink:0}
+        .testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px;}
+        .testi-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:28px;transition:transform .3s,border-color .3s;}
+        .testi-card:hover{transform:translateY(-4px);border-color:rgba(99,102,241,.25);}
+        .testi-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:16px;}
+        .testi-quote{font-size:14px;color:rgba(255,255,255,.55);line-height:1.7;font-weight:300;margin-bottom:16px;}
+        .testi-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);}
+        .testi-role{font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;}
+        .testi-stars{color:#fbbf24;font-size:12px;margin-bottom:12px;}
 
         /* CTA */
-        .cta-section{padding:140px 48px;position:relative;z-index:1;text-align:center;overflow:hidden}
-        .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,0.18) 0%,transparent 65%);pointer-events:none}
-        .cta-glow2{position:absolute;top:60%;left:30%;width:400px;height:300px;background:radial-gradient(ellipse,rgba(236,72,153,0.1) 0%,transparent 65%);pointer-events:none}
-        .cta-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
-        .cta-title{font-family:var(--font-playfair),serif;font-size:clamp(38px,5.5vw,60px);font-weight:900;line-height:1.08;letter-spacing:-2px;margin-bottom:20px}
-        .cta-title em{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .cta-sub{font-size:17px;color:rgba(255,255,255,0.32);margin-bottom:48px;line-height:1.75;max-width:480px;margin-left:auto;margin-right:auto}
-        .cta-perks{display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:44px;flex-wrap:wrap}
-        .cta-perk{display:flex;align-items:center;gap:7px;font-size:13px;color:rgba(255,255,255,0.35)}
-        .cta-perk-dot{width:16px;height:16px;border-radius:50%;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
-        .cta-note{font-size:12px;color:rgba(255,255,255,0.18);margin-top:18px}
+        .cta-wrap{text-align:center;padding:110px 52px;position:relative;}
+        .cta-radial{position:absolute;width:900px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,.09) 0%,transparent 68%);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
+        .cta-h{font-family:'Playfair Display',serif;font-size:clamp(40px,6vw,76px);font-weight:900;letter-spacing:-2.5px;line-height:1.0;max-width:700px;margin:0 auto 28px;}
+        .cta-h em{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .cta-sub{font-size:16px;color:rgba(255,255,255,.38);font-weight:300;max-width:440px;margin:0 auto 38px;line-height:1.75;}
+        .cta-trust{font-size:12px;color:rgba(255,255,255,.2);margin-top:20px;letter-spacing:.3px;}
 
         /* FOOTER */
-        .footer{border-top:1px solid rgba(255,255,255,0.06);position:relative;z-index:1}
-        .footer-main{padding:56px 48px 40px;display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:40px;max-width:1200px;margin:0 auto}
-        .footer-logo{font-family:var(--font-playfair),serif;font-size:22px;font-weight:900;color:#fff;text-decoration:none;display:inline-block;margin-bottom:10px}
-        .footer-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .footer-tagline{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:16px;font-weight:300}
-        .footer-copy{font-size:12px;color:rgba(255,255,255,0.18)}
-        .footer-col-head{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
-        .footer-links{display:flex;flex-direction:column;gap:10px}
-        .footer-link{font-size:13px;color:#64748b;text-decoration:none;transition:color .2s;width:fit-content}
-        .footer-link:hover{color:rgba(255,255,255,0.7)}
-        .footer-bar{border-top:1px solid rgba(255,255,255,0.05);padding:18px 48px;text-align:center;font-size:12px;color:rgba(255,255,255,0.18)}
+        footer{border-top:1px solid rgba(255,255,255,.04);padding:34px 52px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+        .fc{font-size:13px;color:rgba(255,255,255,.18);}
+        .fl{display:flex;gap:22px;}
+        .fl a{font-size:13px;color:rgba(255,255,255,.18);text-decoration:none;transition:color .3s;}
+        .fl a:hover{color:rgba(255,255,255,.55);}
 
-        @media(max-width:1000px){
-          .features-layout{grid-template-columns:1fr}
-          .feature-detail-panel{display:none}
-          .feature-row.active .feature-row-desc{display:block}
-          .kanban-board{grid-template-columns:repeat(3,1fr)}
-          .visa-inner{grid-template-columns:1fr}
-          .testimonials-grid{grid-template-columns:repeat(2,1fr)}
-        }
+        /* GLOW LINE */
+        .glow-line{height:1px;max-width:1200px;margin:0 auto;background:linear-gradient(90deg,transparent,rgba(99,102,241,.3),transparent);}
+        
+        /* REVEAL */
+        .reveal{opacity:0;transform:translateY(32px);transition:opacity .85s ease,transform .85s cubic-bezier(.34,1.3,.64,1);}
+        .reveal.in{opacity:1;transform:none;}
+        
+        /* BLINK */
+        @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:none;}}
+
+        /* MOBILE */
         @media(max-width:768px){
-          .how-grid{grid-template-columns:repeat(2,1fr)}
-          .how-grid::before{display:none}
-          .stats-inner{grid-template-columns:1fr;gap:1px}
-          .testimonials-grid{grid-template-columns:1fr}
-          .kanban-board{grid-template-columns:repeat(2,1fr)}
-          .nav-links{display:none}
-          .footer-main{grid-template-columns:1fr;gap:32px;padding:40px 20px 32px}
-          .footer-bar{padding:16px 20px}
-          .footer-tagline,.footer-copy{text-align:left}
-        }
-        @media(max-width:600px){
-          .nav{padding:0 20px}
-          .hero{padding:100px 20px 60px}
-          .hero-title{letter-spacing:-2px}
-          .stats-section,.features-section,.how-section,.kanban-section,.testimonials-section,.cta-section,.visa-section,.pricing-section,.faq-section,.compare-section{padding:60px 20px}
-          .compare-table th,.compare-table td{padding:11px 12px;font-size:12px}
-          .col-feature{width:44%}.col-vegaply,.col-vegaply-head,.col-other,.col-other-head{width:18.67%}
-          .mockup-jobs{grid-template-columns:1fr}
-          .kanban-board{grid-template-columns:1fr}
-          .visa-inner{padding:32px 24px}
+          nav{padding:16px 20px;}
+          .nav-links{display:none;}
+          .section{padding:60px 20px;}
+          .feat-grid{grid-template-columns:1fr;}
+          .testi-grid{grid-template-columns:1fr;}
+          .cards-scene{flex-direction:column;}
+          .card-stack{width:100%;max-width:340px;}
+          .counters{gap:12px;}
+          footer{padding:24px 20px;}
+          .cta-wrap{padding:60px 20px;}
         }
       `}</style>
 
-      {/* NAV */}
-      <nav className={`nav${scrollY > 20 ? " scrolled" : ""}`}>
-        <a href="#" className="nav-logo">Vega<span>ply</span></a>
-        <div className="nav-links">
-          <a href="#features" className="nav-link">Features</a>
-          <a href="#how" className="nav-link">How it works</a>
-          <a href="#testimonials" className="nav-link">Stories</a>
-        </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <Link href="/login" className="nav-link" style={{ fontSize: 14 }}>Sign in</Link>
-          <Link href="/signup" className="nav-cta">Get Started Free →</Link>
-        </div>
-      </nav>
+      {/* Canvas background */}
+      <canvas ref={canvasRef} id="bg" />
+      
+      {/* Noise overlay */}
+      <div className="noise" />
+      
+      {/* Cursor glow */}
+      <div style={{
+        position: 'fixed', left: mouse.x - 200, top: mouse.y - 200,
+        width: 400, height: 400, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)',
+        pointerEvents: 'none', zIndex: 2,
+        transition: 'left 0.15s ease, top 0.15s ease'
+      }} />
 
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-glow-1"/>
-        <div className="hero-glow-2"/>
-        <div className="hero-glow-3"/>
-        <div className="orb-1"/>
-        <div className="orb-2"/>
-        <div className="orb-3"/>
+      <div className="wrap">
+        {/* NAV */}
+        <nav>
+          <Link href="/" className="logo">Vega<span>ply</span></Link>
+          <ul className="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how">How it works</a></li>
+            <li><a href="#stories">Stories</a></li>
+          </ul>
+          <div className="nav-right">
+            <Link href="/login" className="nav-signin">Sign in</Link>
+            <Link href="/signup" className="nav-btn">Get Started Free →</Link>
+          </div>
+        </nav>
 
-        <motion.div className="hero-badge" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6, type: "spring", stiffness: 120 }}>
-          <div className="hero-badge-dot"/>
-          AI-Powered · Real-Time Jobs · 6 Unfair Advantages
-        </motion.div>
+        {/* HERO */}
+        <div className="hero">
+          <div className="orb-1" /><div className="orb-2" /><div className="orb-3" />
+          
+          <motion.div className="pill" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.6}}>
+            <span className="pdot" />
+            AI-powered · Now live at vegaply.com
+          </motion.div>
 
-        <motion.div variants={heroTextContainer} initial="hidden" animate="visible">
-          <h1 className="hero-title">
-            {(["Stop", "applying", "late."] as const).map((word) => (
-              <motion.span
-                key={word}
-                variants={heroWordItem}
-                style={{ display: "inline-block", marginRight: "0.28em" }}
-              >
+          <h1 className="hero-h1">
+            {['Stop', 'applying'].map((word, i) => (
+              <motion.span key={i} style={{display:'inline-block', marginRight:'0.25em'}}
+                initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
+                transition={{delay:i*0.15+0.3, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
                 {word}
               </motion.span>
             ))}
             <br />
-            {(["Start", "winning"] as const).map((word) => (
-              <motion.span
-                key={word}
-                variants={heroWordItem}
-                style={{ display: "inline-block", marginRight: "0.28em" }}
-              >
-                {word}
-              </motion.span>
-            ))}
-            <motion.em variants={heroWordItem} style={{ display: "inline-block" }}>
-              early.
-            </motion.em>
+            <motion.span className="grad-word" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
+              transition={{delay:0.6, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
+              {morphWord}
+            </motion.span>
+            <br />
+            <motion.span style={{fontStyle:'italic',color:'rgba(255,255,255,0.82)'}}
+              initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
+              transition={{delay:0.75, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
+              Start winning.
+            </motion.span>
           </h1>
-        </motion.div>
 
-        <motion.p className="hero-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.72, duration: 0.7, type: "spring", stiffness: 120 }}>
-          Vegaply finds jobs posted in the last 24 hours, scores your resume instantly, detects visa requirements, predicts your success chance, and tracks every application — so you land the job before others even start applying.
-        </motion.p>
+          <motion.p className="hero-sub" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
+            transition={{delay:0.9, duration:0.6}}>
+            Vegaply finds fresh jobs, matches your resume, writes your cover letter, and preps your interview — all in seconds.
+          </motion.p>
 
-        <div className="urgency-pill">
-          <div className="urgency-dot"/>
-          ⚡ {urgencyCount} jobs posted in the last 6 hours
-        </div>
+          <motion.div className="hero-btns" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
+            transition={{delay:1.05, duration:0.6}}>
+            <Link href="/signup" className="btn-primary">Find jobs now — it&apos;s free</Link>
+            <Link href="/login" className="btn-ghost">Sign in →</Link>
+          </motion.div>
 
-        <div className="hero-proof">
-          <div className="hero-proof-avatars">
-            {["S","M","P","J","A"].map((l,i)=>(
-              <div key={i} className="hero-proof-av" style={{background:`hsl(${220+i*30},60%,45%)`}}>{l}</div>
-            ))}
-          </div>
-          <div className="hero-proof-text"><strong>3,800+ job seekers</strong> applied earlier this month</div>
-          <div style={{width:1,height:16,background:"rgba(255,255,255,0.1)"}}/>
-          <div className="hero-proof-text" style={{display:"flex",alignItems:"center",gap:5}}>
-            <span style={{color:"#34d399"}}>★★★★★</span>
-            <strong>4.9/5</strong> avg rating
-          </div>
-        </div>
-
-        <motion.div className="hero-actions" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75, duration: 0.7, type: "spring", stiffness: 120 }}>
-          <Link href="/signup" className="btn-primary">Start for Free — No Card Required →</Link>
-          <Link href="/login" className="btn-secondary">I already have an account</Link>
-        </motion.div>
-
-        <div className="card-stack">
-          {/* Card 1 — AI Cover Letter with typing animation */}
-          <div className="stack-card">
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginBottom:8}}>✉️ AI COVER LETTER</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.55)",lineHeight:1.6,minHeight:60}}>
-              {typedText}
-              <span style={{
-                display:"inline-block",width:2,height:14,
-                background:"#6366f1",marginLeft:2,verticalAlign:"text-bottom",
-                animation:"blink 1s ease infinite",
-              }}/>
+          <motion.div className="av-row" initial={{opacity:0}} animate={{opacity:1}}
+            transition={{delay:1.2, duration:0.6}}>
+            <div className="av-stack">
+              <div className="av a1">AK</div><div className="av a2">SR</div>
+              <div className="av a3">MJ</div><div className="av a4">PL</div>
             </div>
-          </div>
-          {/* Card 2 — Match Score (front) */}
-          <div className="stack-card">
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-              <div style={{width:36,height:36,borderRadius:"50%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700}}>94%</div>
-              <div>
-                <div style={{fontSize:13,fontWeight:600}}>Strong Match</div>
-                <div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>Senior ML Engineer · Google</div>
+            <div className="av-txt">
+              <span className="stars">★★★★★</span>
+              Trusted by <strong>3,800+ job seekers</strong> · 4.9/5
+            </div>
+          </motion.div>
+
+          {/* Card Stack */}
+          <motion.div className="card-stack" initial={{opacity:0,y:30}} animate={{opacity:1,y:0}}
+            transition={{delay:1.35, duration:0.8, ease:[0.34,1.56,0.64,1]}}>
+            <div className="stack-card">
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginBottom:8}}>✉️ AI COVER LETTER</div>
+              <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',lineHeight:1.6,minHeight:60}}>
+                {typedText}
+                <span style={{display:'inline-block',width:2,height:14,background:'#6366f1',marginLeft:2,animation:'blink 1s ease infinite'}}/>
               </div>
             </div>
-            <div style={{height:4,background:"rgba(255,255,255,0.06)",borderRadius:99}}>
-              <div style={{width:"94%",height:"100%",background:"linear-gradient(90deg,#6366f1,#34d399)",borderRadius:99}}/>
-            </div>
-          </div>
-          {/* Card 3 — Kanban */}
-          <div className="stack-card">
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginBottom:8}}>KANBAN TRACKER</div>
-            <div style={{display:"flex",gap:6}}>
-              {(["Saved","Applied","Interview","Offer"] as const).map((s,i) => (
-                <div key={i} style={{flex:1,background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"6px 4px",textAlign:"center",fontSize:9,color:"rgba(255,255,255,0.4)"}}>
-                  {s}
-                  <div style={{fontSize:13,fontWeight:700,color:i===2?"#34d399":"rgba(255,255,255,0.7)",marginTop:2}}>{[3,8,2,1][i]}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="hero-note">Free forever · Set up in 60 seconds · No spam</div>
-
-        {/* App Mockup */}
-        <div className="hero-mockup">
-          <div className="mockup-card">
-            <div className="mockup-bar">
-              <div className="mockup-dot" style={{background:"#f87171"}}/>
-              <div className="mockup-dot" style={{background:"#fbbf24"}}/>
-              <div className="mockup-dot" style={{background:"#34d399"}}/>
-              <div className="mockup-url">
-                <div className="mockup-url-pill">vegaply.com/home</div>
-              </div>
-            </div>
-            <div className="mockup-tabs">
-              <div className="mockup-tab" style={{background:"rgba(129,140,248,0.1)",color:"#818cf8",border:"1px solid rgba(129,140,248,0.2)"}}>All Jobs (48)</div>
-              <div className="mockup-tab" style={{background:"linear-gradient(135deg,rgba(248,113,113,0.12),rgba(251,191,36,0.12))",color:"#fbbf24",border:"1px solid rgba(251,191,36,0.2)"}}>⚡ Early Bird (31)</div>
-              <div className="mockup-tab" style={{background:"rgba(255,255,255,0.03)",color:"rgba(255,255,255,0.3)",border:"1px solid rgba(255,255,255,0.07)"}}>📋 Tracker (7)</div>
-              <div className="mockup-tab" style={{background:"rgba(255,255,255,0.03)",color:"rgba(255,255,255,0.3)",border:"1px solid rgba(255,255,255,0.07)"}}>📊 Analytics</div>
-            </div>
-            <div className="mockup-jobs">
-              {[
-                { title:"Senior Product Designer", company:"Linear", loc:"Remote", hot:true, score:91, color:"#34d399", time:"28m ago", visa:"✅ H1B Friendly", visaColor:"rgba(52,211,153,0.15)", visaText:"#34d399", diff:"🟢 Easy Apply", success:88 },
-                { title:"Staff Data Scientist", company:"Stripe", loc:"San Francisco, CA", hot:true, score:76, color:"#818cf8", time:"1h ago", visa:"🔒 Clearance Req.", visaColor:"rgba(248,113,113,0.15)", visaText:"#f87171", diff:"🔴 Competitive", success:52 },
-                { title:"Frontend Engineer", company:"Vercel", loc:"Remote", hot:false, score:68, color:"#fbbf24", time:"3h ago", visa:"✅ H1B Friendly", visaColor:"rgba(52,211,153,0.15)", visaText:"#34d399", diff:"🟡 Medium", success:71 },
-                { title:"Growth Marketing Mgr", company:"Notion", loc:"New York, NY", hot:false, score:58, color:"#f87171", time:"5h ago", visa:"🇺🇸 Citizens Only", visaColor:"rgba(248,113,113,0.15)", visaText:"#f87171", diff:"🔴 Competitive", success:38 },
-              ].map((job, i) => (
-                <div key={i} className={`mockup-job${job.hot?" mockup-job-hot":""}`}>
-                  {job.hot&&<div className="mockup-ribbon">🔥 HOT — posted under 2 hours ago</div>}
-                  <div style={{marginTop:job.hot?0:0}}>
-                    <div style={{fontSize:12,fontWeight:700,color:"#fff",marginBottom:2}}>{job.title}</div>
-                    <div style={{fontSize:11,color:"#818cf8",fontWeight:500,marginBottom:1}}>{job.company}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,0.28)",marginBottom:8}}>{job.loc}</div>
-                    <div className="mockup-badges">
-                      <span className="mockup-badge" style={{background:job.visaColor,color:job.visaText}}>{job.visa}</span>
-                      <span className="mockup-badge" style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.4)"}}>{job.diff}</span>
-                      <span className="mockup-badge" style={{background:"rgba(99,102,241,0.12)",color:"#a5b4fc"}}>🎯 {job.success}% chance</span>
-                    </div>
-                    <div className="mockup-score-row">
-                      <span style={{fontSize:11,fontWeight:800,color:job.color,minWidth:28}}>{job.score}%</span>
-                      <div className="mockup-bar-bg"><div className="mockup-bar-fill" style={{background:job.color,"--w":`${job.score}%`} as any}/></div>
-                      <span style={{fontSize:9,color:"rgba(255,255,255,0.22)"}}>{job.time}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* DEMO SLIDESHOW */}
-      <section className="demo-section">
-        <div className="demo-label">See it in action</div>
-        <h2 className="demo-title">Everything you need to get hired first</h2>
-
-        <div className="demo-browser">
-          {/* Browser topbar */}
-          <div className="demo-topbar">
-            <div className="demo-dots">
-              <div className="demo-dot" style={{background:"#f87171"}}/>
-              <div className="demo-dot" style={{background:"#fbbf24"}}/>
-              <div className="demo-dot" style={{background:"#34d399"}}/>
-            </div>
-            <div className="demo-url">vegaply.com/home</div>
-            <div className="demo-logo-top">Vega<span>ply</span></div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="demo-progress">
-            <div
-              className={`demo-progress-bar${demoProgress===100?" animating":""}`}
-              style={{width:`${demoProgress}%`}}
-            />
-          </div>
-
-          {/* Slides */}
-          <div className="demo-content">
-
-            {/* SLIDE 1 — Early Bird */}
-            <div className={`demo-slide${demoSlide===0?" active":""}`}>
-              <div className="demo-slide-label">Timing Edge</div>
-              <div className="demo-slide-title">Apply before 500 others even see it</div>
-              {[
-                {icon:"🎨",title:"Senior Product Designer",co:"Figma",time:"28min ago",h1b:true,match:91,mc:"#34d399"},
-                {icon:"⚡",title:"Frontend Engineer",co:"Vercel",time:"1h ago",h1b:true,match:76,mc:"#818cf8"},
-              ].map((j,i)=>(
-                <div key={i} className="demo-job-card">
-                  <div className="demo-job-logo" style={{background:`rgba(${i===0?"99,102,241":"52,211,153"},0.1)`}}>{j.icon}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div className="demo-job-title">{j.title}</div>
-                    <div className="demo-job-co">{j.co} · {j.time}</div>
-                    <div className="demo-badges">
-                      <span className="demo-hot">HOT</span>
-                      {j.h1b&&<span className="demo-badge" style={{background:"rgba(52,211,153,0.1)",color:"#34d399",border:"1px solid rgba(52,211,153,0.2)"}}>✅ H1B Friendly</span>}
-                      <span className="demo-badge" style={{background:"rgba(99,102,241,0.1)",color:"#818cf8",border:"1px solid rgba(99,102,241,0.2)"}}>Easy Apply</span>
-                    </div>
-                  </div>
-                  <div className="demo-score-big" style={{color:j.mc}}>{j.match}%</div>
-                </div>
-              ))}
-            </div>
-
-            {/* SLIDE 2 — AI Resume Match */}
-            <div className={`demo-slide${demoSlide===1?" active":""}`}>
-              <div className="demo-slide-label">AI Analysis</div>
-              <div className="demo-slide-title">Know your odds instantly</div>
-              <div className="demo-ring-wrap">
-                <svg width="90" height="90" viewBox="0 0 90 90" style={{flexShrink:0}}>
-                  <circle cx="45" cy="45" r="36" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6"/>
-                  <circle cx="45" cy="45" r="36" fill="none" stroke="#34d399" strokeWidth="6"
-                    strokeDasharray={`${demoSlide===1?2*Math.PI*36*0.91:0} ${2*Math.PI*36}`}
-                    strokeLinecap="round" transform="rotate(-90 45 45)"
-                    style={{transition:"stroke-dasharray 1.2s ease"}}/>
-                  <text x="45" y="51" textAnchor="middle" fontSize="18" fontWeight="800" fill="#34d399" fontFamily="var(--font-dm-sans),sans-serif">91%</text>
-                </svg>
-                <div style={{flex:1,textAlign:"left"}}>
-                  <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:3}}>Senior UX Designer · Figma</div>
-                  <div style={{fontSize:12,color:"#34d399",fontWeight:600,marginBottom:8}}>Strong match</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginBottom:5}}>Matched skills</div>
-                  <div className="demo-skill-pills">
-                    {["Figma","Design Systems","Prototyping"].map(s=><span key={s} className="demo-skill-pill" style={{background:"rgba(52,211,153,0.1)",color:"#34d399",border:"1px solid rgba(52,211,153,0.2)"}}>{s}</span>)}
-                    {["Motion Design","Swift UI"].map(s=><span key={s} className="demo-skill-pill" style={{background:"rgba(239,68,68,0.08)",color:"#f87171",border:"1px solid rgba(239,68,68,0.18)"}}>{s}</span>)}
-                  </div>
+            <div className="stack-card">
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
+                <div style={{width:42,height:42,borderRadius:'50%',background:'linear-gradient(135deg,#6366f1,#34d399)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:800}}>94%</div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600}}>Strong Match</div>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,0.35)'}}>Senior ML Engineer · Google</div>
                 </div>
               </div>
-              <div style={{marginTop:12,background:"rgba(99,102,241,0.06)",border:"1px solid rgba(99,102,241,0.15)",borderRadius:10,padding:"10px 13px",textAlign:"left"}}>
-                <div style={{fontSize:10,fontWeight:700,color:"#818cf8",letterSpacing:1,marginBottom:5}}>AI COVER LETTER PREVIEW</div>
-                <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>"I'm excited to apply for the Senior UX Designer role at Figma. With 4 years crafting design systems at scale and expertise in Figma's own component library..."</div>
+              <div style={{height:4,background:'rgba(255,255,255,0.06)',borderRadius:99}}>
+                <div style={{width:'94%',height:'100%',background:'linear-gradient(90deg,#6366f1,#34d399)',borderRadius:99}}/>
               </div>
             </div>
-
-            {/* SLIDE 3 — Kanban */}
-            <div className={`demo-slide${demoSlide===2?" active":""}`}>
-              <div className="demo-slide-label">Pipeline Management</div>
-              <div className="demo-slide-title">Your whole pipeline in one view</div>
-              <div className="demo-kanban-row">
-                {[
-                  {label:"SAVED",color:"#94a3b8",cards:[{t:"UX Researcher",co:"Figma",m:82,c:"#34d399"}]},
-                  {label:"APPLIED",color:"#818cf8",cards:[{t:"Sr. Designer",co:"Linear",m:91,c:"#34d399"}],hl:true},
-                  {label:"INTERVIEW",color:"#fbbf24",cards:[{t:"Staff Eng.",co:"Stripe",m:88,c:"#34d399"}]},
-                  {label:"OFFER",color:"#34d399",cards:[{t:"Frontend Lead",co:"Vercel",m:95,c:"#34d399"}],offer:true},
-                  {label:"REJECTED",color:"#ef4444",cards:[{t:"Growth Mgr",co:"Notion",m:48,c:"#f87171"}],rej:true},
-                ].map((col,i)=>(
-                  <div key={i} className="demo-kanban-col" style={col.hl?{borderColor:"rgba(99,102,241,0.35)",background:"rgba(99,102,241,0.05)"}:col.offer?{borderColor:"rgba(52,211,153,0.3)",background:"rgba(52,211,153,0.04)"}:col.rej?{borderColor:"rgba(239,68,68,0.2)"}:{}}>
-                    <div className="demo-kanban-head" style={{color:col.color}}>{col.label}</div>
-                    {col.cards.map((c,j)=>(
-                      <div key={j} className="demo-kanban-card">
-                        <div style={{fontWeight:700,color:"#fff",marginBottom:1}}>{c.t}</div>
-                        <div style={{color:"rgba(255,255,255,0.3)",fontSize:9,marginBottom:3}}>{c.co}</div>
-                        <div style={{color:c.c,fontWeight:700,fontSize:10}}>{c.m}%</div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <div className="demo-stats-row">
-                {[{n:9,l:"Tracked"},{n:4,l:"Applied"},{n:1,l:"Interview"},{n:1,l:"Offer"}].map((s,i)=>(
-                  <div key={i} className="demo-stat-box">
-                    <div className="demo-stat-n" style={{color:i===3?"#34d399":i===2?"#fbbf24":"#fff"}}>{s.n}</div>
-                    <div className="demo-stat-l">{s.l}</div>
+            <div className="stack-card">
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginBottom:8}}>📋 KANBAN TRACKER</div>
+              <div style={{display:'flex',gap:6}}>
+                {['Saved','Applied','Interview','Offer'].map((s,i) => (
+                  <div key={i} style={{flex:1,background:'rgba(255,255,255,0.04)',borderRadius:8,padding:'6px 4px',textAlign:'center',fontSize:9,color:'rgba(255,255,255,0.4)'}}>
+                    {s}<div style={{fontSize:13,fontWeight:700,color:i===2?'#34d399':'rgba(255,255,255,0.7)',marginTop:2}}>{[3,8,2,1][i]}</div>
                   </div>
                 ))}
               </div>
             </div>
+          </motion.div>
 
-            {/* SLIDE 4 — Comparison */}
-            <div className={`demo-slide${demoSlide===3?" active":""}`}>
-              <div className="demo-slide-label">The Comparison</div>
-              <div className="demo-slide-title">The unfair advantage</div>
-              <table className="demo-cmp-table">
-                <thead>
-                  <tr>
-                    <th style={{textAlign:"left",color:"rgba(255,255,255,0.3)"}}>Feature</th>
-                    <th style={{color:"#a5b4fc",background:"rgba(99,102,241,0.1)",borderRadius:"6px 6px 0 0"}}>Vegaply</th>
-                    <th style={{color:"rgba(255,255,255,0.25)"}}>LinkedIn</th>
-                    <th style={{color:"rgba(255,255,255,0.25)"}}>Indeed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Jobs under 6h",true,false,false],
-                    ["AI Resume Match",true,false,false],
-                    ["H1B Detection",true,false,"~"],
-                    ["Skill Gap Analysis",true,false,false],
-                    ["Interview Simulator",true,false,false],
-                    ["100% Free",true,"~",true],
-                  ].map(([feat,v,li,ind],i)=>(
-                    <tr key={i}>
-                      <td style={{color:"rgba(255,255,255,0.45)",textAlign:"left"}}>{feat as string}</td>
-                      <td style={{textAlign:"center",background:"rgba(99,102,241,0.06)"}}>
-                        {v===true?<span style={{color:"#34d399",fontWeight:700}}>✓</span>:<span style={{color:"#ef4444",opacity:.6}}>✗</span>}
-                      </td>
-                      <td style={{textAlign:"center"}}>
-                        {li===true?<span style={{color:"#34d399",fontWeight:700}}>✓</span>:li==="~"?<span style={{color:"#f59e0b",fontSize:11}}>~</span>:<span style={{color:"#ef4444",opacity:.6}}>✗</span>}
-                      </td>
-                      <td style={{textAlign:"center"}}>
-                        {ind===true?<span style={{color:"#34d399",fontWeight:700}}>✓</span>:ind==="~"?<span style={{color:"#f59e0b",fontSize:11}}>~</span>:<span style={{color:"#ef4444",opacity:.6}}>✗</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* SLIDE 5 — CTA */}
-            <div className={`demo-slide${demoSlide===4?" active":""}`} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:12}}>
-              <div style={{fontFamily:"var(--font-playfair),serif",fontSize:"clamp(20px,3vw,30px)",fontWeight:900,color:"#fff",lineHeight:1.15,letterSpacing:"-1px"}}>
-                Stop applying late.<br/>Start winning <em style={{fontStyle:"italic",color:"#ec4899"}}>early.</em>
-              </div>
-              <div style={{fontSize:13,color:"rgba(255,255,255,0.35)"}}>3,800+ job seekers · 4.9/5 rating · Free forever</div>
-              <Link href="/signup" style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",textDecoration:"none",borderRadius:12,padding:"11px 28px",fontSize:14,fontWeight:700,display:"inline-block",letterSpacing:.3}}>
-                Get Started Free →
-              </Link>
-              <div style={{display:"flex",gap:24,marginTop:6}}>
-                {[{n:"12,400+",l:"Jobs tracked"},{n:"3,800+",l:"Users"},{n:"3×",l:"More interviews"}].map((s,i)=>(
-                  <div key={i} style={{textAlign:"center"}}>
-                    <div style={{fontFamily:"var(--font-playfair),serif",fontSize:20,fontWeight:800,color:"#fff"}}>{s.n}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:2}}>{s.l}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>{/* demo-content */}
-
-          {/* Dot navigation */}
-          <div className="demo-dots-nav">
-            {Array.from({length:DEMO_SLIDES},(_,i)=>(
-              <button key={i} type="button" className={`demo-nav-dot${demoSlide===i?" active":""}`} onClick={()=>{setDemoSlide(i);setDemoProgress(0);requestAnimationFrame(()=>setDemoProgress(100));}}/>
-            ))}
-          </div>
-        </div>{/* demo-browser */}
-      </section>
-
-      {/* AS SEEN AT */}
-      <div className="logos-section">
-        <div className="logos-label">Vegaply users are getting hired at</div>
-        <div className="logos-row">
-          {["Google","Stripe","Vercel","Deloitte","Databricks","Figma","Linear","Atlassian"].map((name,i)=>(
-            <span key={i} className="logo-name">{name}</span>
-          ))}
+          <motion.div className="counters" id="counters-section"
+            initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1.5, duration:0.6}}>
+            <div className="ctr"><span className="ctr-n">{c1}</span><div className="ctr-l">Jobs tracked live</div></div>
+            <div className="ctr"><span className="ctr-n">{c2}</span><div className="ctr-l">Active users</div></div>
+            <div className="ctr"><span className="ctr-n">{c3}</span><div className="ctr-l">More interviews</div></div>
+          </motion.div>
         </div>
-      </div>
 
-      {/* TICKER */}
-      <div className="ticker-wrap">
-        <div className="ticker-track">
-          {[
-            {text:"Sarah got hired at Deloitte — applied 2h after posting",color:"#34d399"},
-            {text:"Marcus increased response rate from 5% → 40% with Skill Gap",color:"#818cf8"},
-            {text:"Priya joined Google — found the job 1h after it went live",color:"#ec4899"},
-            {text:"James filtered to H1B-friendly roles and got 3 offers",color:"#fbbf24"},
-            {text:"Ryan got to a Vercel job before it had 10 applicants",color:"#34d399"},
-            {text:"Aisha tracked 34 applications and landed Databricks",color:"#818cf8"},
-            {text:"David used Success Predictor to focus on 80%+ roles only",color:"#f87171"},
-            {text:"Sarah got hired at Deloitte — applied 2h after posting",color:"#34d399"},
-            {text:"Marcus increased response rate from 5% → 40% with Skill Gap",color:"#818cf8"},
-            {text:"Priya joined Google — found the job 1h after it went live",color:"#ec4899"},
-            {text:"James filtered to H1B-friendly roles and got 3 offers",color:"#fbbf24"},
-            {text:"Ryan got to a Vercel job before it had 10 applicants",color:"#34d399"},
-            {text:"Aisha tracked 34 applications and landed Databricks",color:"#818cf8"},
-            {text:"David used Success Predictor to focus on 80%+ roles only",color:"#f87171"},
-          ].map((item,i)=>(
-            <div key={i} className="ticker-item">
-              <div className="ticker-dot" style={{background:item.color}}/>
-              {item.text}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* LIVE ACTIVITY FEED */}
-      <div style={{padding:"40px 24px",textAlign:"center"}}>
-        <div style={{fontSize:11,color:"rgba(255,255,255,0.25)",letterSpacing:2,marginBottom:20,textTransform:"uppercase"}}>
-          Live activity
-        </div>
-        <div className="activity-feed">
-          <div className="activity-inner">
-            {[
-              "🔥 Someone in Austin applied to ML Engineer at Stripe · 2m ago",
-              "✅ Someone in NYC got an interview at Figma · 5m ago",
-              "⚡ Someone in Seattle found H1B role · 8m ago",
-              "🎉 Someone in Boston received an offer · 12m ago",
-              "🔥 Someone in Chicago applied to Data Scientist · 15m ago",
-              "✅ Someone in LA got interview at Notion · 18m ago",
-              "🔥 Someone in Austin applied to ML Engineer at Stripe · 2m ago",
-              "✅ Someone in NYC got an interview at Figma · 5m ago",
-              "⚡ Someone in Seattle found H1B role · 8m ago",
-              "🎉 Someone in Boston received an offer · 12m ago",
-              "🔥 Someone in Chicago applied to Data Scientist · 15m ago",
-              "✅ Someone in LA got interview at Notion · 18m ago",
-            ].map((item, i) => (
-              <div key={i} className="activity-item">
-                <div className="activity-dot" />
-                {item}
-              </div>
+        {/* TICKER */}
+        <div className="ticker-wrap">
+          <div className="ticker-inner">
+            {[...tickData, ...tickData].map((d, i) => (
+              <span key={i} className="t-item">
+                <span className="t-dot"/><span className="t-name">{d.n}</span> · {d.t}
+              </span>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* STATS */}
-      <section className="stats-section" ref={statsRef}>
-        <div className="stats-inner">
-          <div className="stat-item">
-            <div className="stat-num" style={{background:"linear-gradient(135deg,#fbbf24,#f87171)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>
-              {counters.jobs.toLocaleString()}+
-            </div>
-            <div className="stat-label">Fresh jobs tracked in the past 24 hours</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num" style={{background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>
-              {counters.users.toLocaleString()}+
-            </div>
-            <div className="stat-label">Job seekers who applied earlier this month</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num" style={{background:"linear-gradient(135deg,#34d399,#818cf8)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>
-              {counters.rate}×
-            </div>
-            <div className="stat-label">More likely to interview as an early applicant*</div>
-          </div>
-        </div>
-        <div style={{textAlign:"center",marginTop:14,fontSize:11,color:"rgba(255,255,255,0.15)"}}>*LinkedIn Talent Insights research on application timing and interview rates</div>
-      </section>
-
-      {/* FEATURES */}
-      <section className="features-section" id="features">
-        <div className="section-eyebrow">Six unfair advantages</div>
-        <h2 className="section-title">
-          Every tool you need<br/>
-          <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>to get hired first</em>
-        </h2>
-        <p className="section-sub">Each feature gives you an edge that most applicants simply don't have. Together, they make you unstoppable.</p>
-
-        <div className="features-layout">
-          <div className="features-list">
-            {features.map((f, i) => (
-              <motion.div
-                key={i}
-                className={`feature-row fade-in${activeFeature===i?" active":""}`}
-                style={{"--fc":f.border,"--fbg":f.bg} as any}
-                whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 220, damping: 18 }}
-                onClick={()=>setActiveFeature(i)}
-              >
-                <div className="feature-icon-wrap" style={{background:activeFeature===i?f.bg:"rgba(255,255,255,0.04)"}}>
-                  <span style={{fontSize:18}}>{f.icon}</span>
-                </div>
-                <div style={{flex:1}}>
-                  <div className="feature-tag" style={{color:f.color}}>{f.tag}</div>
-                  <div className="feature-row-title">{f.title}</div>
-                  <div className="feature-row-desc" style={{color:"rgba(255,255,255,0.38)"}}>{f.desc}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="feature-detail-panel" style={{borderColor:features[activeFeature].border,background:features[activeFeature].bg}}>
-            <span className="fdp-icon">{features[activeFeature].icon}</span>
-            <div className="fdp-tag" style={{color:features[activeFeature].color}}>{features[activeFeature].tag}</div>
-            <div className="fdp-title">{features[activeFeature].title}</div>
-            <div className="fdp-desc">{features[activeFeature].desc}</div>
-            <div className="fdp-detail" style={{color:features[activeFeature].color}}>{features[activeFeature].detail}</div>
-          </div>
-        </div>
-      </section>
-
-      {/* VISA SECTION */}
-      {/* HOW IT WORKS */}
-      <section className="how-section" id="how">
-        <div className="section-eyebrow">Simple process</div>
-        <h2 className="section-title">
-          From signup to first<br/>
-          <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>application in 5 minutes</em>
-        </h2>
-        <p className="section-sub" style={{marginBottom:80}}>Most users find a matched job and apply within 10 minutes of signing up. The setup is that fast.</p>
-        <div className="how-grid">
-          {steps.map((s,i)=>(
-            <div key={i} className="how-step fade-in">
-              <div className="how-num">
-                <span style={{fontSize:24}}>{s.icon}</span>
-                <div className="how-num-label">{s.num}</div>
-              </div>
-              <div className="how-step-title">{s.title}</div>
-              <div className="how-step-desc">{s.desc}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* H1B / VISA SECTION */}
-      <section className="visa-section" id="visa">
-        <div className="visa-inner">
-          <div>
-            <div className="section-eyebrow" style={{textAlign:"left",color:"#f87171"}}>For international job seekers</div>
-            <h2 style={{fontFamily:"var(--font-playfair),serif",fontSize:"clamp(28px,3.5vw,40px)",fontWeight:900,lineHeight:1.15,letterSpacing:"-1px",marginBottom:16}}>Never apply to<br/>a job that won't <em style={{fontStyle:"italic",color:"#f87171"}}>sponsor you</em></h2>
-            <p style={{fontSize:14,color:"rgba(255,255,255,0.38)",lineHeight:1.8,marginBottom:24,maxWidth:420}}>Vegaply reads every job description for visa language. You'll know instantly if a role is H1B friendly, requires US citizenship, or demands security clearance — before you invest a minute of your time.</p>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-              <span style={{background:"rgba(52,211,153,0.12)",color:"#34d399",border:"1px solid rgba(52,211,153,0.25)",fontSize:12,fontWeight:700,padding:"7px 14px",borderRadius:8}}>✅ H1B Friendly</span>
-              <span style={{background:"rgba(248,113,113,0.12)",color:"#f87171",border:"1px solid rgba(248,113,113,0.25)",fontSize:12,fontWeight:700,padding:"7px 14px",borderRadius:8}}>🇺🇸 Citizens Only</span>
-              <span style={{background:"rgba(251,191,36,0.12)",color:"#fbbf24",border:"1px solid rgba(251,191,36,0.25)",fontSize:12,fontWeight:700,padding:"7px 14px",borderRadius:8}}>🔒 Clearance Required</span>
-            </div>
-          </div>
-          <div className="visa-badges-demo">
-            {[
-              {title:"Senior ML Engineer",company:"OpenAI",visa:"✅ H1B Friendly",vc:"rgba(52,211,153,0.12)",vt:"#34d399",score:88,sc:"#34d399"},
-              {title:"Security Architect",company:"Lockheed Martin",visa:"🔒 Clearance Required",vc:"rgba(251,191,36,0.12)",vt:"#fbbf24",score:72,sc:"#818cf8"},
-              {title:"Policy Analyst",company:"US Dept. of Defense",visa:"🇺🇸 Citizens Only",vc:"rgba(248,113,113,0.12)",vt:"#f87171",score:65,sc:"#fbbf24"},
-              {title:"Data Scientist",company:"Databricks",visa:"✅ H1B Friendly",vc:"rgba(52,211,153,0.12)",vt:"#34d399",score:91,sc:"#34d399"},
-            ].map((j,i)=>(
-              <div key={i} className="visa-badge-row fade-in">
-                <div style={{flex:1}}>
-                  <div style={{fontSize:12,fontWeight:700,color:"#fff",marginBottom:2}}>{j.title}</div>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{j.company}</div>
-                </div>
-                <span className="vbadge" style={{background:j.vc,color:j.vt,border:`1px solid ${j.vt}33`}}>{j.visa}</span>
-                <span style={{fontSize:12,fontWeight:800,color:j.sc,minWidth:30,textAlign:"right"}}>{j.score}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* KANBAN PREVIEW */}
-      <section className="kanban-section" id="tracker">
-        <div className="section-eyebrow">Application tracker</div>
-        <h2 className="section-title">
-          Your entire job search,<br/>
-          <em style={{fontStyle:"italic",background:"linear-gradient(135deg,#a78bfa,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>on one board</em>
-        </h2>
-        <p className="section-sub">Stop losing track of applications in a spreadsheet. Vegaply's kanban board shows your full pipeline at a glance — with response rates, progress stats, and motivational nudges built in.</p>
-
-        <div className="kanban-board">
-          {[
-            {label:"SAVED",color:"#94a3b8",count:4,cards:[
-              {title:"UX Researcher",co:"Figma",score:82,sc:"#34d399"},
-              {title:"Design Lead",co:"Atlassian",score:71,sc:"#818cf8"},
-            ]},
-            {label:"APPLIED",color:"#818cf8",count:3,cards:[
-              {title:"Sr. Designer",co:"Linear",score:91,sc:"#34d399"},
-              {title:"Product Designer",co:"Loom",score:74,sc:"#818cf8"},
-            ]},
-            {label:"INTERVIEWING",color:"#fbbf24",count:2,cards:[
-              {title:"Staff Engineer",co:"Stripe",score:88,sc:"#34d399"},
-            ]},
-            {label:"OFFER",color:"#34d399",count:1,cards:[
-              {title:"Frontend Lead",co:"Vercel",score:95,sc:"#34d399"},
-            ]},
-            {label:"REJECTED",color:"#ef4444",count:1,cards:[
-              {title:"Growth Mgr",co:"Notion",score:48,sc:"#f87171"},
-            ]},
-          ].map((col,i)=>(
-            <div key={i} className="kanban-col">
-              <div className="kanban-col-header" style={{color:col.color}}>
-                {col.label}
-                <span className="kanban-count">{col.count}</span>
-              </div>
-              {col.cards.map((c,j)=>(
-                <div key={j} className="kanban-card">
-                  <div className="kanban-card-title">{c.title}</div>
-                  <div className="kanban-card-co">{c.co}</div>
-                  <div className="kanban-card-score" style={{color:c.sc}}>
-                    <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="none" stroke={c.sc} strokeWidth="1.5" strokeDasharray={`${c.score*0.251} 100`} strokeLinecap="round"/></svg>
-                    {c.score}% match
-                  </div>
+        {/* ACTIVITY FEED */}
+        <div style={{padding:'40px 24px',textAlign:'center'}}>
+          <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',letterSpacing:2,marginBottom:20,textTransform:'uppercase'}}>Live activity</div>
+          <div className="activity-feed">
+            <div className="activity-inner">
+              {[...activityItems,...activityItems].map((item,i) => (
+                <div key={i} className="activity-item">
+                  <div className="activity-dot"/>{item}
                 </div>
               ))}
             </div>
-          ))}
+          </div>
         </div>
-      </section>
 
-      {/* TESTIMONIALS */}
-      <section className="testimonials-section" id="testimonials">
-        <div className="section-eyebrow">Real results</div>
-        <h2 className="section-title">People are getting hired</h2>
-        <p className="section-sub" style={{marginBottom:64}}>Early applicants are 3× more likely to get an interview. Here's what they say after using every feature.</p>
-        <motion.div className="testimonials-grid" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
-          {testimonials.map((t,i)=>{
-            const color = t.score>=85?"#34d399":t.score>=70?"#818cf8":"#fbbf24";
-            const r=18, circ=2*Math.PI*r;
-            return (
-              <motion.div key={i} className="t-card" initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08, duration: 0.55, ease: "easeOut" }} whileHover={{ y: -6 }}>
-                <div className="t-score-row">
-                  <svg width="48" height="48" viewBox="0 0 48 48" style={{flexShrink:0}}>
-                    <circle cx="24" cy="24" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3"/>
-                    <circle cx="24" cy="24" r={r} fill="none" stroke={color} strokeWidth="3"
-                      strokeDasharray={circ} strokeDashoffset={circ-(t.score/100)*circ}
-                      strokeLinecap="round" transform="rotate(-90 24 24)"/>
-                    <text x="24" y="29" textAnchor="middle" fontSize="11" fontWeight="700" fill={color} fontFamily="var(--font-dm-sans),sans-serif">{t.score}</text>
+        {/* 3D TILT CARDS */}
+        <div className="section reveal" id="features">
+          <div className="eyebrow">Live job feed</div>
+          <h2 className="sec-title">Jobs that are <em>actually</em> fresh.</h2>
+          <div className="cards-scene">
+            <div className="tilt-card" data-card>
+              <div className="tilt-inner">
+                <div className="tilt-glare"/>
+                <div className="hot-badge">🔥 HOT</div>
+                <div className="co-logo cl1">G</div>
+                <div className="j-title">Senior ML Engineer</div>
+                <div className="j-co">Google · Mountain View, CA</div>
+                <div className="badges">
+                  <span className="b ba">2h ago — still early!</span>
+                  <span className="b bg">H1B Friendly</span>
+                  <span className="b bi">$180k–220k</span>
+                </div>
+                <div className="match-row">
+                  <svg width="44" height="44" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="16" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3"/>
+                    <circle className="arc" cx="22" cy="22" r="16" fill="none" stroke="#34d399" strokeWidth="3"
+                      strokeLinecap="round" transform="rotate(-90 22 22)"
+                      strokeDasharray="100.5" strokeDashoffset="100.5" data-t="6"/>
                   </svg>
-                  <div>
-                    <div className="t-score-text" style={{color}}>{t.score>=85?"Excellent Match":t.score>=70?"Strong Match":"Good Match"}</div>
-                    <div className="t-score-sub">Resume match score</div>
-                  </div>
+                  <div><div className="mpct" style={{color:'#34d399'}}>94%</div><div className="mlbl">Resume match</div></div>
                 </div>
-                <p className="t-quote">"{t.text}"</p>
-                <div className="t-author">
-                  <div className="t-avatar" style={{background:`linear-gradient(135deg,hsl(${220+i*30},60%,40%),hsl(${250+i*30},60%,55%))`}}>{t.avatar}</div>
-                  <div>
-                    <div className="t-name">{t.name}</div>
-                    <div className="t-role">{t.role} · {t.company}</div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </section>
-
-      {/* COMPARISON TABLE */}
-      <section className="compare-section">
-        <div className="compare-inner">
-          <div className="compare-label">Why Vegaply</div>
-          <h2 className="compare-title">Why job seekers choose <em>Vegaply</em></h2>
-          <div className="compare-wrap">
-            <table className="compare-table">
-              <thead>
-                <tr>
-                  <th className="col-feature" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>Feature</th>
-                  <th className="col-vegaply-head" style={{borderBottom:"1px solid rgba(99,102,241,0.25)"}}>Vegaply</th>
-                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>LinkedIn</th>
-                  <th className="col-other-head" style={{background:"rgba(255,255,255,0.02)",borderBottom:"1px solid rgba(255,255,255,0.07)",borderRadius:"0 10px 0 0"}}>Indeed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { feature:"Jobs under 6h old",       v:true,  li:false,    in:false    },
-                  { feature:"AI Resume Match Score",    v:true,  li:false,    in:false    },
-                  { feature:"H1B / Visa Detection",     v:true,  li:false,    in:"partial"},
-                  { feature:"Skill Gap Analysis",       v:true,  li:false,    in:false    },
-                  { feature:"Interview Simulator",      v:true,  li:false,    in:false    },
-                  { feature:"Application Tracker",      v:true,  li:true,     in:false    },
-                  { feature:"100% Free",                v:true,  li:"partial", in:true    },
-                ].map((row,i)=>(
-                  <tr key={i} className="fade-in">
-                    <td className="col-feature">{row.feature}</td>
-                    <td className="col-vegaply">{row.v===true?<span className="compare-yes">✓</span>:<span className="compare-no">✗</span>}</td>
-                    <td className="col-other">{row.li===true?<span className="compare-yes">✓</span>:row.li==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
-                    <td className="col-other">{row.in===true?<span className="compare-yes">✓</span>:row.in==="partial"?<span className="compare-partial">Partial</span>:<span className="compare-no">✗</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="faq-section">
-        <div className="faq-inner">
-          <div className="faq-label">FAQ</div>
-          <h2 className="faq-title">Questions, answered.</h2>
-          {faqs.map((f,i)=>(
-            <div key={i} className={`faq-item${openFaq===i?" open":""}`}>
-              <button type="button" className="faq-q" onClick={()=>setOpenFaq(openFaq===i?null:i)}>
-                <span className="faq-q-text">{f.q}</span>
-                <span className="faq-icon">{openFaq===i?"−":"+"}</span>
-              </button>
-              <div className="faq-body">
-                <p className="faq-a">{f.a}</p>
               </div>
+              <div className="float-label">Apply in 1 click →</div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* PRICING */}
-      <section className="pricing-section">
-        <div className="pricing-label">Pricing</div>
-        <h2 className="pricing-title">Free. <em>Forever.</em></h2>
-        <p className="pricing-sub">No credit card. No trial period. No hidden tier. Every feature — free for every job seeker, always.</p>
-        <div className="pricing-pills">
-          {[
-            "Early Bird Job Alerts","AI Resume Match (unlimited)","Skill Gap Analysis",
-            "Kanban Tracker","H1B Detection","Cover Letter Generator",
-            "Interview Simulator","Daily Email Alerts",
-          ].map((f,i)=>(
-            <div key={i} className="pricing-pill">
-              <div className="pricing-pill-dot"/>
-              {f}
+            <div className="tilt-card" data-card>
+              <div className="tilt-inner">
+                <div className="tilt-glare"/>
+                <div className="co-logo cl2">A</div>
+                <div className="j-title">Product Designer</div>
+                <div className="j-co">Airbnb · Remote</div>
+                <div className="badges">
+                  <span className="b bg">Easy Apply</span>
+                  <span className="b bi">$130k–160k</span>
+                </div>
+                <div className="match-row">
+                  <svg width="44" height="44" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="16" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3"/>
+                    <circle className="arc" cx="22" cy="22" r="16" fill="none" stroke="#818cf8" strokeWidth="3"
+                      strokeLinecap="round" transform="rotate(-90 22 22)"
+                      strokeDasharray="100.5" strokeDashoffset="100.5" data-t="25"/>
+                  </svg>
+                  <div><div className="mpct" style={{color:'#818cf8'}}>76%</div><div className="mlbl">Resume match</div></div>
+                </div>
+              </div>
+              <div className="float-label">View full match →</div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="cta-section">
-        <div className="cta-glow"/>
-        <div className="cta-glow2"/>
-        <div className="cta-inner">
-          <div className="hero-badge" style={{margin:"0 auto 32px",display:"inline-flex"}}>
-            <div className="hero-badge-dot"/>
-            Join 3,800+ job seekers already using Vegaply
+            <div className="tilt-card" data-card>
+              <div className="tilt-inner">
+                <div className="tilt-glare"/>
+                <div className="hot-badge">🔥 HOT</div>
+                <div className="co-logo cl3">S</div>
+                <div className="j-title">Staff Frontend Eng.</div>
+                <div className="j-co">Stripe · New York, NY</div>
+                <div className="badges">
+                  <span className="b ba">4h ago — still early!</span>
+                  <span className="b bi">$160k–200k</span>
+                </div>
+                <div className="match-row">
+                  <svg width="44" height="44" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="16" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3"/>
+                    <circle className="arc" cx="22" cy="22" r="16" fill="none" stroke="#34d399" strokeWidth="3"
+                      strokeLinecap="round" transform="rotate(-90 22 22)"
+                      strokeDasharray="100.5" strokeDashoffset="100.5" data-t="12"/>
+                  </svg>
+                  <div><div className="mpct" style={{color:'#34d399'}}>88%</div><div className="mlbl">Resume match</div></div>
+                </div>
+              </div>
+              <div className="float-label">Prep interview →</div>
+            </div>
           </div>
-          <h2 className="cta-title">
-            The job you want<br/>was posted <em>today.</em>
-          </h2>
-          <p className="cta-sub">
-            500 people are about to apply. You can be first — with the right resume, the right score, and the right timing. Set up takes 60 seconds.
-          </p>
-          <div className="cta-perks">
-            {["Free forever","No credit card","60-second setup","Resume stored securely","Cancel anytime"].map((p,i)=>(
-              <div key={i} className="cta-perk">
-                <div className="cta-perk-dot">✓</div>
-                {p}
+        </div>
+
+        <div className="glow-line"/>
+
+        {/* FEATURES */}
+        <div className="section reveal">
+          <div className="eyebrow">Everything you need</div>
+          <h2 className="sec-title">Six tools. One <em>unfair</em> advantage.</h2>
+          <div className="feat-grid">
+            {[
+              {icon:'⚡',cls:'i1',name:'Early Bird Detection',desc:'Get alerts the moment a job posts. Beat hundreds by applying in the first hour.',tag:'HOT · Under 6h'},
+              {icon:'🎯',cls:'i2',name:'AI Resume Match',desc:'Claude AI scores your resume against every listing — with gaps clearly highlighted.',tag:'94% accuracy'},
+              {icon:'✍️',cls:'i3',name:'Cover Letter Gen.',desc:'Personalized, compelling letters written in seconds for every application.',tag:'1-click · Instant'},
+              {icon:'🎤',cls:'i4',name:'Interview Simulator',desc:'AI asks real questions from the job listing. Get scored feedback after every answer.',tag:'Chat-based'},
+              {icon:'🌐',cls:'i5',name:'H1B Sponsor Filter',desc:'One toggle shows only verified H1B sponsoring companies. Built for international students.',tag:'500+ sponsors'},
+              {icon:'🗂️',cls:'i6',name:'Kanban Tracker',desc:'Drag jobs across a 5-stage board. Never lose track of any application again.',tag:'5-stage board'},
+            ].map((f,i) => (
+              <div key={i} className="feat">
+                <div className="feat-glow"/>
+                <div className={`feat-icon ${f.cls}`}>{f.icon}</div>
+                <div className="feat-name">{f.name}</div>
+                <div className="feat-desc">{f.desc}</div>
+                <span className="feat-tag">{f.tag}</span>
               </div>
             ))}
           </div>
-          <Link href="/signup" className="btn-primary" style={{fontSize:17,padding:"17px 52px"}}>
-            Get Started — It's Free →
-          </Link>
-          <div className="cta-note">No spam · Unsubscribe anytime · Built for job seekers, not recruiters</div>
         </div>
-      </section>
 
-      {/* FOOTER */}
-      <footer className="footer">
-        <div className="footer-main">
-          {/* Left — brand */}
-          <div>
-            <a href="#" className="footer-logo">Vega<span>ply</span></a>
-            <p className="footer-tagline">Built for job seekers everywhere.<br/>Find the role before anyone else does.</p>
-            <div className="footer-copy">© 2026 Vegaply</div>
-          </div>
-          {/* Middle — product */}
-          <div>
-            <div className="footer-col-head">Product</div>
-            <div className="footer-links">
-              <a href="#features" className="footer-link">Features</a>
-              <a href="#how" className="footer-link">How it works</a>
-              <a href="#testimonials" className="footer-link">Stories</a>
-              <Link href="/login" className="footer-link">Sign in</Link>
-              <Link href="/signup" className="footer-link">Get Started Free</Link>
-            </div>
-          </div>
-          {/* Right — legal */}
-          <div>
-            <div className="footer-col-head">Legal</div>
-            <div className="footer-links">
-              <Link href="/privacy" className="footer-link">Privacy Policy</Link>
-              <Link href="/terms" className="footer-link">Terms of Service</Link>
-            </div>
+        <div className="glow-line"/>
+
+        {/* TESTIMONIALS */}
+        <div className="section reveal" id="stories">
+          <div className="eyebrow">Real results</div>
+          <h2 className="sec-title">People are getting hired <em>faster.</em></h2>
+          <div className="testi-grid">
+            {[
+              {init:'R',bg:'linear-gradient(135deg,#6366f1,#8b5cf6)',name:'Ravi M.',role:'MS Data Science',quote:'Got my H1B sponsor job at Deloitte in 11 days. Applied within 2 hours of posting. Never would have found it otherwise.'},
+              {init:'P',bg:'linear-gradient(135deg,#ec4899,#f43f5e)',name:'Priya K.',role:'Software Engineer',quote:'The AI match score saved me so much time. I only applied to jobs above 80%. Got 3 interviews in 2 weeks.'},
+              {init:'J',bg:'linear-gradient(135deg,#10b981,#059669)',name:'James L.',role:'Career Changer',quote:'As a career changer, the skill gap analysis showed me exactly what to learn. Got hired at a top startup.'},
+              {init:'A',bg:'linear-gradient(135deg,#f59e0b,#d97706)',name:'Ananya S.',role:'OPT Student',quote:'OPT student here. The H1B filter is literally a lifesaver. Found 3 sponsor jobs I never knew existed.'},
+              {init:'M',bg:'linear-gradient(135deg,#8b5cf6,#6366f1)',name:'Marcus T.',role:'Product Manager',quote:'Applied to 8 jobs in one morning using Smart Apply. Got 2 callbacks same day. Incredible tool.'},
+              {init:'S',bg:'linear-gradient(135deg,#34d399,#10b981)',name:'Sofia R.',role:'UX Designer',quote:'The interview simulator is scary good. It asked me exactly the questions I got in my real interview.'},
+            ].map((t,i) => (
+              <div key={i} className="testi-card">
+                <div className="testi-avatar" style={{background:t.bg}}>{t.init}</div>
+                <div className="testi-stars">★★★★★</div>
+                <div className="testi-quote">&ldquo;{t.quote}&rdquo;</div>
+                <div className="testi-name">{t.name}</div>
+                <div className="testi-role">{t.role}</div>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="footer-bar">
-          support@vegaply.com · Made with care for job seekers worldwide
+
+        {/* CTA */}
+        <div className="cta-wrap reveal">
+          <div className="cta-radial"/>
+          <h2 className="cta-h">Your dream job is being posted <em>right now.</em></h2>
+          <p className="cta-sub">Don&apos;t let someone else get there first. 3,800+ people already apply smarter with Vegaply.</p>
+          <Link href="/signup" className="btn-primary" style={{fontSize:16,padding:'17px 48px'}}>
+            Start free — no credit card
+          </Link>
+          <p className="cta-trust">✓ Free forever · ✓ No credit card · ✓ 750+ fresh jobs daily</p>
         </div>
-      </footer>
+
+        {/* FOOTER */}
+        <footer>
+          <div className="fc">© 2026 Vegaply · Built with Claude AI</div>
+          <div className="fl">
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+            <a href="mailto:support@vegaply.com">Contact</a>
+          </div>
+        </footer>
+      </div>
     </>
-  );
+  )
 }
