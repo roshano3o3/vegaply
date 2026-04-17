@@ -20,6 +20,14 @@ export default function LandingPage() {
   const statsRef = useRef<HTMLDivElement>(null);
   const statsAnimated = useRef(false);
   const [mouse, setMouse] = useState({ x: -500, y: -500 });
+  const heroTextContainer = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15, delayChildren: 0.18 } },
+  };
+  const heroWordItem = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 140, damping: 18 } },
+  };
 
   useEffect(() => {
     const h = (e: MouseEvent) => setMouse({ x: e.clientX, y: e.clientY });
@@ -239,14 +247,15 @@ export default function LandingPage() {
         @keyframes orbFloat1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}66%{transform:translate(-20px,20px) scale(0.95)}}
         @keyframes orbFloat2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,-20px)}}
         @keyframes orbFloat3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-30px) scale(1.08)}}
-        .card-stack{position:relative;width:380px;height:220px;margin:60px auto 0;}
-        .stack-card{position:absolute;width:340px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px;backdrop-filter:blur(20px);box-shadow:0 40px 80px rgba(0,0,0,0.35);pointer-events:auto}
-        .stack-card:nth-child(1){transform:rotate(-4deg) translateX(-20px);z-index:1;top:20px}
-        .stack-card:nth-child(2){transform:rotate(0deg);z-index:3;top:0;left:20px;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.06)}
-        .stack-card:nth-child(3){transform:rotate(4deg) translateX(20px);z-index:1;top:20px;left:40px}
-        .activity-feed{max-width:760px;margin:28px auto 0;padding:18px 20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:22px;backdrop-filter:blur(22px);overflow:hidden;position:relative}
-        .activity-track{display:flex;flex-direction:column;gap:12px;animation:feedScroll 20s linear infinite}
-        .activity-item{font-size:13px;color:rgba(255,255,255,0.72);line-height:1.6;white-space:nowrap;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05)}
+        .card-stack{position:relative;width:420px;min-height:320px;margin:60px auto 0;display:flex;justify-content:center;align-items:center}
+        .stack-card{position:absolute;width:360px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:26px;padding:24px;backdrop-filter:blur(24px);box-shadow:0 60px 120px rgba(0,0,0,0.35);pointer-events:auto;transition:transform .25s ease,box-shadow .25s ease}
+        .stack-card:nth-child(1){transform:rotate(-5deg) translateX(-18px);z-index:1;top:24px}
+        .stack-card:nth-child(2){transform:rotate(0deg);z-index:3;top:0;left:24px;border-color:rgba(99,102,241,0.35);background:rgba(99,102,241,0.08);border-image:linear-gradient(135deg,rgba(99,102,241,0.35),rgba(236,72,153,0.24)) 1}
+        .stack-card:nth-child(3){transform:rotate(5deg) translateX(18px);z-index:2;top:22px;left:42px}
+        .stack-card:hover{box-shadow:0 60px 120px rgba(0,0,0,0.4)}
+        .activity-feed{max-width:820px;margin:38px auto 0;padding:18px 18px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:24px;backdrop-filter:blur(24px);overflow:hidden;position:relative;height:172px}
+        .activity-track{display:flex;flex-direction:column;gap:12px;animation:feedScroll 22s linear infinite}
+        .activity-item{font-size:13px;color:rgba(255,255,255,0.82);line-height:1.7;white-space:nowrap;padding:12px 16px;border-radius:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);box-shadow:inset 0 0 10px rgba(255,255,255,0.03)}
         @keyframes feedScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
         .btn-primary{position:relative;overflow:hidden}
         .btn-primary::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);animation:shimmer 3s ease infinite;pointer-events:none}
@@ -585,41 +594,34 @@ export default function LandingPage() {
           AI-Powered · Real-Time Jobs · 6 Unfair Advantages
         </motion.div>
 
-        <h1 className="hero-title">
-          {(["Stop", "applying", "late."] as const).map((word, i) => (
-            <motion.span
-              key={word}
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.15, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ display: "inline-block", marginRight: "0.28em" }}
-            >
-              {word}
-            </motion.span>
-          ))}
-          <br />
-          {(["Start", "winning"] as const).map((word, i) => (
-            <motion.span
-              key={word}
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 + i * 0.15, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ display: "inline-block", marginRight: "0.28em" }}
-            >
-              {word}
-            </motion.span>
-          ))}
-          <motion.em
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.75, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ display: "inline-block" }}
-          >
-            early.
-          </motion.em>
-        </h1>
+        <motion.div variants={heroTextContainer} initial="hidden" animate="visible">
+          <h1 className="hero-title">
+            {(["Stop", "applying", "late."] as const).map((word) => (
+              <motion.span
+                key={word}
+                variants={heroWordItem}
+                style={{ display: "inline-block", marginRight: "0.28em" }}
+              >
+                {word}
+              </motion.span>
+            ))}
+            <br />
+            {(["Start", "winning"] as const).map((word) => (
+              <motion.span
+                key={word}
+                variants={heroWordItem}
+                style={{ display: "inline-block", marginRight: "0.28em" }}
+              >
+                {word}
+              </motion.span>
+            ))}
+            <motion.em variants={heroWordItem} style={{ display: "inline-block" }}>
+              early.
+            </motion.em>
+          </h1>
+        </motion.div>
 
-        <motion.p className="hero-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.6, type: "spring", stiffness: 120 }}>
+        <motion.p className="hero-sub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.72, duration: 0.7, type: "spring", stiffness: 120 }}>
           Vegaply finds jobs posted in the last 24 hours, scores your resume instantly, detects visa requirements, predicts your success chance, and tracks every application — so you land the job before others even start applying.
         </motion.p>
 
