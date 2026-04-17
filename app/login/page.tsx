@@ -41,40 +41,7 @@ export default function LoginPage() {
   };
 
   const checkOnboardingAndRedirect = async () => {
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        console.error('Auth check failed:', authError);
-        router.push("/");
-        return;
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('onboarded')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
-        // If profile doesn't exist, redirect to signup for onboarding
-        router.push("/signup");
-        return;
-      }
-
-      if (!profile || profile.onboarded !== true) {
-        // User exists but not onboarded, redirect to complete onboarding
-        router.push("/signup");
-        return;
-      }
-
-      // User is onboarded, redirect to home
-      router.push("/home");
-    } catch (error) {
-      console.error('Unexpected error during onboarding check:', error);
-      router.push("/");
-    }
+    router.push("/home")
   };
 
   const handleLogin = async () => {
