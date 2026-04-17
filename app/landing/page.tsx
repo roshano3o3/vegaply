@@ -127,9 +127,9 @@ export default function LandingPage() {
           }
           requestAnimationFrame(step)
         }
-        animCount(setC1, 12400)
-        animCount(setC2, 3800)
-        animCount(setC3, 3, '×')
+        animCount(setC1, 750)
+        animCount(setC2, 24, 'h')
+        animCount(setC3, 3, 'min')
       }
     }, { threshold: 0.3 })
     const el = document.getElementById('counters-section')
@@ -529,7 +529,7 @@ export default function LandingPage() {
             </div>
             <div className="av-txt">
               <span className="stars">★★★★★</span>
-              Trusted by <strong>3,800+ job seekers</strong> · 4.9/5
+              Early access open · Be among the first to apply
             </div>
           </motion.div>
 
@@ -569,9 +569,9 @@ export default function LandingPage() {
 
           <motion.div className="counters" id="counters-section"
             initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1.5, duration:0.6}}>
-            <div className="ctr"><span className="ctr-n">{c1}</span><div className="ctr-l">Jobs tracked live</div></div>
-            <div className="ctr"><span className="ctr-n">{c2}</span><div className="ctr-l">Active users</div></div>
-            <div className="ctr"><span className="ctr-n">{c3}</span><div className="ctr-l">More interviews</div></div>
+            <div className="ctr"><span className="ctr-n">{c1}</span><div className="ctr-l">Fresh jobs every day</div></div>
+            <div className="ctr"><span className="ctr-n">{c2}</span><div className="ctr-l">Before anyone else sees it</div></div>
+            <div className="ctr"><span className="ctr-n">{c3}</span><div className="ctr-l">To get your AI match score</div></div>
           </motion.div>
         </div>
 
@@ -794,7 +794,7 @@ export default function LandingPage() {
         <div className="cta-wrap reveal">
           <div className="cta-radial"/>
           <h2 className="cta-h">Your dream job is being posted <em>right now.</em></h2>
-          <p className="cta-sub">Don&apos;t let someone else get there first. 3,800+ people already apply smarter with Vegaply.</p>
+          <p className="cta-sub">Join early access — free forever. No credit card needed.</p>
           <Link href="/signup" className="btn-primary" style={{fontSize:16,padding:'17px 48px'}}>
             Start free — no credit card
           </Link>
@@ -803,7 +803,7 @@ export default function LandingPage() {
 
         {/* FOOTER */}
         <footer>
-          <div className="fc">© 2026 Vegaply · Built with Claude AI</div>
+          <div className="fc">© 2026 Vegaply</div>
           <div className="fl">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
