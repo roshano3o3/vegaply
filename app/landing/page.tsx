@@ -392,6 +392,23 @@ export default function LandingPage() {
         .testi-role{font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;}
         .testi-stars{color:#fbbf24;font-size:12px;margin-bottom:12px;}
 
+        /* PRICING */
+        .pricing-section{padding:100px 52px;max-width:1200px;margin:0 auto;text-align:center;}
+        .pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:52px;max-width:800px;margin-left:auto;margin-right:auto;}
+        .pricing-card{border-radius:24px;padding:40px;text-align:left;position:relative;overflow:hidden;}
+        .pricing-free{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);}
+        .pricing-pro{background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.1));border:1px solid rgba(99,102,241,0.4);box-shadow:0 20px 60px rgba(99,102,241,0.15);}
+        .pricing-pro::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,0.8),transparent);}
+        .pricing-badge{display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:10px;font-weight:700;padding:4px 12px;border-radius:100px;letter-spacing:1px;margin-bottom:20px;}
+        .pricing-price{font-family:'Playfair Display',serif;font-size:52px;font-weight:900;line-height:1;margin-bottom:4px;}
+        .pricing-period{font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:24px;}
+        .pricing-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
+        .pricing-features li{font-size:13px;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:10px;font-weight:300;}
+        .pricing-features li span{color:#34d399;font-size:15px;flex-shrink:0;}
+        .pricing-features li.locked{color:rgba(255,255,255,0.25);}
+        .pricing-features li.locked span{color:rgba(255,255,255,0.2);}
+        @media(max-width:768px){.pricing-grid{grid-template-columns:1fr;}.pricing-section{padding:60px 20px;}}
+
         /* CTA */
         .cta-wrap{text-align:center;padding:110px 52px;position:relative;}
         .cta-radial{position:absolute;width:900px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,.09) 0%,transparent 68%);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
@@ -711,6 +728,65 @@ export default function LandingPage() {
                 <div className="testi-role">{t.role}</div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* PRICING */}
+        <div className="pricing-section reveal">
+          <div className="eyebrow">Pricing</div>
+          <h2 className="sec-title">Simple. <em>Transparent.</em></h2>
+          <p style={{fontSize:16,color:"rgba(255,255,255,0.35)",fontWeight:300,marginTop:16,maxWidth:480,margin:"16px auto 0"}}>
+            Start free forever. Upgrade when you want to apply on autopilot.
+          </p>
+          <div className="pricing-grid">
+
+            {/* FREE CARD */}
+            <div className="pricing-card pricing-free">
+              <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:16,fontWeight:500}}>FREE FOREVER</div>
+              <div className="pricing-price">$0</div>
+              <div className="pricing-period">No credit card · No expiry</div>
+              <ul className="pricing-features">
+                <li><span>✓</span> 750+ fresh jobs daily</li>
+                <li><span>✓</span> Early Bird mode (24h jobs)</li>
+                <li><span>✓</span> AI Resume Match score</li>
+                <li><span>✓</span> Cover letter generator</li>
+                <li><span>✓</span> Skill gap analysis</li>
+                <li><span>✓</span> Interview simulator</li>
+                <li><span>✓</span> H1B sponsor filter</li>
+                <li><span>✓</span> Kanban job tracker</li>
+                <li className="locked"><span>✗</span> Smart Apply (auto-prep)</li>
+                <li className="locked"><span>✗</span> Under 10 applicants tab</li>
+                <li className="locked"><span>✗</span> 30 auto-applies per day</li>
+                <li className="locked"><span>✗</span> Priority job alerts</li>
+              </ul>
+              <Link href="/signup" className="btn-ghost" style={{width:"100%",textAlign:"center",display:"block"}}>
+                Get Started Free
+              </Link>
+            </div>
+
+            {/* PRO CARD */}
+            <div className="pricing-card pricing-pro">
+              <div className="pricing-badge">⚡ PRO</div>
+              <div className="pricing-price" style={{background:"linear-gradient(135deg,#818cf8,#ec4899)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>$9.99</div>
+              <div className="pricing-period">per month · Cancel anytime</div>
+              <ul className="pricing-features">
+                <li><span>✓</span> Everything in Free</li>
+                <li><span>✓</span> <strong style={{color:"rgba(255,255,255,0.8)"}}>Smart Apply</strong> — AI preps full application</li>
+                <li><span>✓</span> <strong style={{color:"rgba(255,255,255,0.8)"}}>Under 10 applicants</strong> tab</li>
+                <li><span>✓</span> <strong style={{color:"rgba(255,255,255,0.8)"}}>30 auto-applies</strong> per day</li>
+                <li><span>✓</span> Competition radar per job</li>
+                <li><span>✓</span> Priority email alerts</li>
+                <li><span>✓</span> Resume version manager</li>
+                <li><span>✓</span> Early access to new features</li>
+              </ul>
+              <Link href="/signup" className="btn-primary" style={{width:"100%",textAlign:"center",display:"block"}}>
+                Start Pro — $9.99/mo
+              </Link>
+              <p style={{fontSize:11,color:"rgba(255,255,255,0.2)",textAlign:"center",marginTop:12}}>
+                Coming soon · Join waitlist now
+              </p>
+            </div>
+
           </div>
         </div>
 
