@@ -1230,14 +1230,14 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         disabled={isAutoApplying||autoApplyResult==="applied"}
         title="AI scores your resume, tracks as Applied, and opens the job link"
         style={{
-          width:"100%",marginTop:6,padding:"9px 0",borderRadius:10,border:"1px solid",fontSize:12,fontWeight:700,cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+          width:"100%",marginTop:6,padding:"13px 0",borderRadius:12,border:"1px solid",fontSize:13,fontWeight:600,cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:6,
           ...(autoApplyResult==="applied"
             ?{background:"rgba(16,185,129,0.1)",borderColor:"rgba(16,185,129,0.3)",color:"#34d399"}
             :autoApplyResult==="low_match"
               ?{background:"rgba(245,158,11,0.08)",borderColor:"rgba(245,158,11,0.3)",color:"#fbbf24"}
               :isAutoApplying
                 ?{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)"}
-                :{background:"rgba(99,102,241,0.08)",borderColor:"rgba(99,102,241,0.3)",color:"#818cf8"})
+                :{background:"transparent",borderColor:"rgba(99,102,241,0.25)",color:"#818cf8"})
         }}
       >
         {isAutoApplying
@@ -1827,7 +1827,7 @@ export default function Home() {
         .job-card-hot{border-color:rgba(251,191,36,0.15)!important}
 
         /* ACTION BUTTONS — unified ghost style */
-        .action-card-btn{flex:1;min-width:fit-content;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.5);transition:all .2s;white-space:nowrap}
+        .action-card-btn{flex:1;min-width:fit-content;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.5);transition:all .2s;white-space:nowrap}
         .action-card-btn:hover{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.28);color:#a5b4fc}
         .action-card-btn.match-btn{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5)}
         .action-card-btn.match-btn:hover{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.28);color:#a5b4fc}
@@ -2012,8 +2012,8 @@ export default function Home() {
 
       {/* TOPBAR */}
       <nav className="topbar">
-        <div className="topbar-logo" style={{display:"flex",alignItems:"center"}}>
-          <svg width="28" height="28" viewBox="0 0 200 200" style={{marginRight:8,verticalAlign:"middle",flexShrink:0}}>
+        <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer'}} onClick={()=>window.location.href='/'}>
+          <svg width="30" height="30" viewBox="0 0 200 200">
             <rect width="200" height="200" rx="44" fill="#0e0b2e"/>
             <path d="M100,76 L34,118 L66,113 Z" fill="#4f46e5"/>
             <path d="M100,76 L166,118 L134,113 Z" fill="#7c3aed"/>
@@ -2021,13 +2021,12 @@ export default function Home() {
             <circle cx="100" cy="74" r="8" fill="#4f46e5"/>
             <polygon points="100,65 107,61 100,60" fill="#fbbf24"/>
             <circle cx="103" cy="73" r="2.2" fill="white" opacity="0.9"/>
-            <line x1="96" y1="108" x2="88" y2="128" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
-            <line x1="100" y1="110" x2="100" y2="131" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
-            <line x1="104" y1="108" x2="112" y2="128" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round" opacity="0.8"/>
+            <line x1="96" y1="108" x2="88" y2="128" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="100" y1="110" x2="100" y2="131" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="104" y1="108" x2="112" y2="128" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round"/>
             <path d="M80,148 A20,20 0 0,1 120,148" fill="#f59e0b" opacity="0.6"/>
-            <line x1="34" y1="148" x2="166" y2="148" stroke="#f59e0b" strokeWidth="1" opacity="0.2"/>
           </svg>
-          Vega<span>ply</span>
+          <span style={{fontFamily:'Georgia,serif', fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.5px'}}>Vega<span style={{fontStyle:'italic', background:'linear-gradient(135deg,#818cf8,#ec4899)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text'}}>ply</span></span>
         </div>
         <div className="topbar-search">
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
