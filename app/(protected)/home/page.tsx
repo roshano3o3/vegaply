@@ -1758,7 +1758,7 @@ export default function Home() {
         .topbar-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px;cursor:pointer;display:flex;align-items:center}
         .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:560px}
-        .topbar-input{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0 14px;height:38px;font-size:13px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;transition:border-color .2s,background .2s;flex:1}
+        .topbar-input{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0 14px;height:38px;font-size:13px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;transition:border-color .2s,background .2s;flex:1}
         .topbar-input::placeholder{color:rgba(255,255,255,0.25)}
         .topbar-input:focus{border-color:rgba(99,102,241,0.4);background:rgba(99,102,241,0.04)}
         .search-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;height:38px;padding:0 20px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:opacity .2s;flex-shrink:0}
@@ -2281,11 +2281,32 @@ export default function Home() {
               )}
 
               {!currentLoading&&paginatedJobs.length===0&&(
-                <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
-                  <div style={{fontSize:36,marginBottom:12}}>{activeTab==="saved"?"🔖":activeTab==="earlybird"?"⚡":"🔍"}</div>
-                  <h3 style={{fontSize:16,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>{activeTab==="saved"?"No saved jobs":activeTab==="earlybird"?"No early bird jobs yet":"Start your search"}</h3>
-                  <p style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)"}}>{activeTab==="saved"?"Bookmark jobs to see them here":activeTab==="earlybird"?"Click ⚡ Early Bird to find freshly posted jobs":"Enter a job role and location above to find opportunities"}</p>
-                </div>
+                activeTab==="saved"?(
+                  <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
+                    <div style={{fontSize:36,marginBottom:12}}>🔖</div>
+                    <h3 style={{fontSize:16,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>No saved jobs</h3>
+                    <p style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)"}}>Bookmark jobs to see them here</p>
+                  </div>
+                ):activeTab==="earlybird"?(
+                  <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
+                    <div style={{fontSize:36,marginBottom:12}}>⚡</div>
+                    <h3 style={{fontSize:16,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>No early bird jobs yet</h3>
+                    <p style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)"}}>Click ⚡ Early Bird to find freshly posted jobs</p>
+                  </div>
+                ):(
+                  <div style={{textAlign:'center', padding:'80px 20px'}}>
+                    <div style={{fontSize:48, marginBottom:16, opacity:0.3}}>⚡</div>
+                    <div style={{fontSize:18, fontWeight:700, color:'rgba(255,255,255,0.7)', marginBottom:8}}>Find your next role</div>
+                    <div style={{fontSize:14, color:'rgba(255,255,255,0.3)', marginBottom:32}}>750+ fresh jobs from Google, Stripe, Figma and more</div>
+                    <div style={{display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap'}}>
+                      {['Software Engineer','Data Scientist','Product Manager','UX Designer','ML Engineer'].map(role => (
+                        <button key={role} onClick={() => setJobRole(role)} style={{background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:'100px', padding:'8px 16px', fontSize:'12px', color:'#a5b4fc', cursor:'pointer', fontFamily:'inherit'}}>
+                          {role}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
               )}
             </>
           )}
