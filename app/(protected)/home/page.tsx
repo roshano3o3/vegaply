@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 interface Job {
@@ -1359,6 +1360,7 @@ function PreferencesModal({ onClose, lm }: { onClose:()=>void; lm?:boolean }) {
 
 export default function Home() {
   const [jobRole,setJobRole]=useState("");const [location,setLocation]=useState("");
+  const searchParams = useSearchParams();
   const [jobs,setJobs]=useState<JobWithMatch[]>([]);const [earlyBirdJobs,setEarlyBirdJobs]=useState<JobWithMatch[]>([]);
   const [loading,setLoading]=useState(false);const [ebLoading,setEbLoading]=useState(false);
   const [savedJobs,setSavedJobs]=useState<Set<string>>(new Set());
@@ -1424,6 +1426,13 @@ export default function Home() {
       const uid=data.user?.id;
       if(uid){
         localStorage.setItem("applysmart_user_id",uid);
+        // Force onboarding if ?onboard=true in URL
+        const forceOnboard = searchParams.get('onboard') === 'true'
+        if (forceOnboard) {
+          localStorage.removeItem(`applysmart_onboarded_${uid}`)
+          setShowOnboard(true)
+          return
+        }
         // After getting the user session, check Supabase for onboarding status
         try {
           const { data: profile, error } = await supabase
