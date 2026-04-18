@@ -1148,7 +1148,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       {/* TOP GRADIENT LINE */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)',pointerEvents:'none'}}/>
       {/* HOT BANNER */}
-      {hot&&earlyBirdMode&&<div style={{position:"absolute",top:0,left:0,right:0,background:"linear-gradient(135deg,rgba(239,68,68,0.65),rgba(245,158,11,0.65))",color:"#fff",fontSize:10,fontWeight:700,padding:"3px 12px",textAlign:"center",letterSpacing:".3px"}}>🔥 HOT — under 6h old</div>}
+      {hot&&earlyBirdMode&&<div style={{position:"absolute",top:0,left:0,right:0,background:"linear-gradient(135deg,rgba(239,68,68,0.65),rgba(245,158,11,0.65))",color:"#fff",fontSize:11,fontWeight:700,padding:"3px 12px",textAlign:"center",letterSpacing:".3px",boxShadow:"0 0 8px rgba(249,115,22,0.4)"}}>🔥 HOT — under 6h old</div>}
 
       {/* HEADER */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginTop:hot&&earlyBirdMode?18:0}}>
@@ -1799,9 +1799,10 @@ export default function Home() {
         .search-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;height:38px;padding:0 20px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:opacity .2s;flex-shrink:0}
         .search-btn:hover{opacity:0.88}
         .search-btn:disabled{opacity:0.35;cursor:not-allowed}
-        .eb-btn{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);border-radius:10px;height:38px;padding:0 14px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:background .2s;flex-shrink:0}
+        @keyframes ebPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.4)}50%{box-shadow:0 0 0 8px rgba(251,191,36,0)}}
+        .eb-btn{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);border-radius:10px;height:38px;padding:0 20px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:background .2s;flex-shrink:0;animation:ebPulse 2s ease infinite}
         .eb-btn:hover{background:rgba(251,191,36,0.18)}
-        .eb-btn:disabled{opacity:0.35;cursor:not-allowed}
+        .eb-btn:disabled{opacity:0.35;cursor:not-allowed;animation:none}
         .refresh-btn{background:transparent;border:none;border-radius:8px;padding:8px;font-size:13px;color:rgba(255,255,255,0.35);cursor:pointer;transition:color .2s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;font-family:'DM Sans',sans-serif}
         .refresh-btn:hover{color:rgba(255,255,255,0.65)}
         .refresh-btn:disabled{opacity:0.35;cursor:not-allowed}
@@ -2244,7 +2245,11 @@ export default function Home() {
               {activeTab==="results"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#6366f1,#8b5cf6)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-eb${activeTab==="earlybird"?" active":""}`} onClick={()=>{setActiveTab("earlybird");setCurrentPage(1);}}>
-              ⚡ Early Bird {earlyBirdJobs.length>0&&<span style={{background:'rgba(251,191,36,0.12)',color:'#fbbf24',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{earlyBirdJobs.length}</span>}
+              <span style={{display:"inline-flex",alignItems:"center",gap:6}}>
+                <span style={{width:7,height:7,borderRadius:"50%",background:"#34d399",boxShadow:"0 0 6px rgba(52,211,153,0.8)",display:"inline-block",animation:"pulse-dot 2s ease-in-out infinite",flexShrink:0}}/>
+                ⚡ Early Bird
+              </span>
+              {earlyBirdJobs.length>0&&<span style={{background:'rgba(251,191,36,0.2)',color:'#fbbf24',fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:100,marginLeft:6,border:'1px solid rgba(251,191,36,0.35)'}}>{earlyBirdJobs.length}</span>}
               {activeTab==="earlybird"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#fbbf24,#f97316)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab${activeTab==="saved"?" active":""}`} onClick={()=>{setActiveTab("saved");setCurrentPage(1);}}>
@@ -2271,17 +2276,23 @@ export default function Home() {
           {(activeTab==="results"||activeTab==="earlybird"||activeTab==="saved")&&(
             <>
               {activeTab==="earlybird"&&earlyBirdJobs.length>0&&!ebLoading&&(
-                <div className="eb-banner">
-                  <div>
-                    <div style={{fontSize:14,fontWeight:700,color:"#f59e0b",marginBottom:2}}>⚡ Early Bird Mode Active</div>
-                    <div style={{fontSize:11,color:"rgba(245,158,11,0.4)"}}>Jobs posted in the last 24 hours — minimal competition</div>
+                <>
+                  <div style={{background:'linear-gradient(135deg,rgba(251,191,36,0.08),rgba(249,115,22,0.06))',border:'1px solid rgba(251,191,36,0.15)',borderRadius:12,padding:'10px 20px',margin:'0 0 12px 0',display:'flex',alignItems:'center',gap:10,fontSize:13,color:'#fbbf24'}}>
+                    <span style={{fontSize:16}}>⚡</span>
+                    <span>You&apos;re seeing jobs posted in the last 24 hours — <strong>apply now before hundreds of others do</strong></span>
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:18}}>
-                    <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:darkMode?"#fff":"#111"}}>{earlyBirdJobs.length}</div><div style={{fontSize:10,color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>Fresh Jobs</div></div>
-                    <div style={{width:1,height:28,background:darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}}/>
-                    <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:"#ef4444"}}>{hotCount}</div><div style={{fontSize:10,color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>🔥 Under 6h</div></div>
+                  <div className="eb-banner">
+                    <div>
+                      <div style={{fontSize:14,fontWeight:700,color:"#f59e0b",marginBottom:2}}>⚡ Early Bird Mode Active</div>
+                      <div style={{fontSize:11,color:"rgba(245,158,11,0.4)"}}>Jobs posted in the last 24 hours — minimal competition</div>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:18}}>
+                      <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:darkMode?"#fff":"#111"}}>{earlyBirdJobs.length}</div><div style={{fontSize:10,color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>Fresh Jobs</div></div>
+                      <div style={{width:1,height:28,background:darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}}/>
+                      <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:800,color:"#ef4444"}}>{hotCount}</div><div style={{fontSize:10,color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>🔥 Under 6h</div></div>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {autoOpenDone&&<div style={{background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:12,fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:8}}>🚀 Opened top 3 matches in new tabs!</div>}
