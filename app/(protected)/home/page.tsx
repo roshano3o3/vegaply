@@ -40,6 +40,48 @@ interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: 
 type TabType = "results"|"earlybird"|"saved"|"tracker"|"analytics";
 const JOBS_PER_PAGE = 50;
 
+const H1B_SPONSORS = new Set([
+  'google','alphabet','microsoft','apple','meta','amazon','netflix','uber','lyft',
+  'twitter','x','airbnb','stripe','figma','notion','linear','vercel','databricks',
+  'snowflake','datadog','confluent','hashicorp','gitlab','github','atlassian',
+  'slack','zoom','dropbox','box','okta','crowdstrike','palo alto','splunk',
+  'elastic','mongodb','redis','twilio','sendgrid','segment','mixpanel',
+  'cognizant','infosys','tata','tcs','wipro','hcl','tech mahindra','mindtree',
+  'mphasis','hexaware','ltimindtree','persistent','coforge','mastech',
+  'igate','patni','niit','kpit','cyient','zensar','birlasoft',
+  'deloitte','accenture','capgemini','ibm','oracle','sap','pwc',
+  'ernst','kpmg','mckinsey','bain','bcg','booz allen','leidos',
+  'mantech','saic','caci','unisys','dxc','atos',
+  'jpmorgan','goldman sachs','morgan stanley','bank of america','wells fargo',
+  'citigroup','citibank','bloomberg','visa','mastercard','paypal','square',
+  'robinhood','coinbase','fidelity','blackrock','vanguard','charles schwab',
+  'ameriprise','raymond james','pnc','us bank','td bank','hsbc','barclays',
+  'johnson','pfizer','moderna','abbvie','merck','eli lilly','bristol','amgen',
+  'genentech','roche','novartis','astrazeneca','biogen','regeneron','gilead',
+  'unitedhealth','anthem','cigna','aetna','humana','cvs','walgreens',
+  'intel','nvidia','amd','qualcomm','broadcom','texas instruments','applied materials',
+  'lam research','kla','micron','western digital','seagate','marvell','xilinx',
+  'boeing','lockheed martin','raytheon','northrop','general dynamics','l3harris',
+  'spacex','blue origin','general electric','honeywell','3m',
+  'tesla','ford','general motors','gm','waymo','cruise','argo','rivian','lucid',
+  'walmart','target','costco','home depot','lowes','best buy','chewy','wayfair',
+  'att','verizon','t-mobile','comcast','charter','dish',
+  'salesforce','workday','servicenow','adobe','vmware','dell','hp','cisco',
+  'juniper','f5','fortinet','checkpoint','rapid7','tenable','sailpoint',
+  'ping identity','duo','cyberark','varonis','vectra','darktrace',
+  'palantir','c3ai','datarobot','alteryx','talend','informatica','mulesoft',
+  'boomi','jitterbit','tibco','opentext','micro focus','bmc','ca technologies',
+  'rocket software','precisely','syncsort','ibi','sisense',
+  'tableau','qlik','microstrategy','domo','looker','thoughtspot','incorta',
+  'sigma','mode','hex','deepnote','domino','dataiku','h2o',
+  'sas','spss','stata','mathworks','ansys','dassault','ptc','siemens',
+]);
+function isH1bSponsor(name?: string): boolean {
+  if (!name) return false;
+  const n = name.toLowerCase();
+  return [...H1B_SPONSORS].some(s => n.includes(s) || s.includes(n.split(' ')[0]));
+}
+
 function getHoursAgo(d?: string) { return d ? (Date.now() - new Date(d).getTime()) / 3600000 : 999; }
 function timeAgo(d?: string) {
   if (!d) return "Recently";
@@ -1198,6 +1240,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         <span style={{fontSize:11,fontWeight:500,padding:"3px 10px",borderRadius:100,background:diffBadge.label.includes("Easy")||diffBadge.label.includes("Very Low")?"rgba(52,211,153,0.08)":diffBadge.label.includes("Competitive")||diffBadge.label.includes("High")?"rgba(239,68,68,0.08)":"rgba(251,191,36,0.08)",color:diffBadge.label.includes("Easy")||diffBadge.label.includes("Very Low")?"#34d399":diffBadge.label.includes("Competitive")||diffBadge.label.includes("High")?"#f87171":"#fbbf24",border:diffBadge.label.includes("Easy")||diffBadge.label.includes("Very Low")?"1px solid rgba(52,211,153,0.15)":diffBadge.label.includes("Competitive")||diffBadge.label.includes("High")?"1px solid rgba(239,68,68,0.15)":"1px solid rgba(251,191,36,0.15)"}}>{diffBadge.label.replace(/^[🟢🔴🟡]\s*/u,"")}</span>
         <span style={{fontSize:11,fontWeight:500,padding:"3px 10px",borderRadius:100,background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.35)",border:"1px solid rgba(255,255,255,0.08)"}}>🎯 {successChance}%</span>
         {visaBadges.map((vb,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:vb.bg,color:vb.color,border:`1px solid ${vb.border}`}}>{vb.label}</span>)}
+        {isH1bSponsor(job.employer_name)&&<span style={{background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.2)',color:'#34d399',fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:100,letterSpacing:0.3}}>✓ H1B</span>}
       </div>
 
       {/* ACTION BUTTONS — unified ghost style */}
@@ -1425,6 +1468,7 @@ export default function Home() {
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
+  const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'>('all');
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -1653,8 +1697,13 @@ export default function Home() {
     return true;
   });
 
+  const modeFilteredJobs=activeMode==='earlybird'
+    ?jobs.filter(job=>getHoursAgo(job.job_posted_at_datetime_utc)<=24)
+    :activeMode==='h1b'
+    ?jobs.filter(job=>isH1bSponsor(job.employer_name))
+    :jobs;
   const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
-  const displayJobs=activeTab==="results"?filterJobs(jobs):activeTab==="earlybird"?earlyBirdJobs:allSaved;
+  const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?earlyBirdJobs:allSaved;
   const isEbMode=activeTab==="earlybird";
   const hotCount=earlyBirdJobs.filter(j=>isHot(j.job_posted_at_datetime_utc)).length;
   const totalPages=Math.ceil(displayJobs.length/JOBS_PER_PAGE);
@@ -2077,7 +2126,8 @@ export default function Home() {
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <motion.button className="search-btn" whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
-          <motion.button className="eb-btn" whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={handleEarlyBirdSearch} disabled={ebLoading}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
+          <motion.button className="eb-btn" whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>setActiveMode(m=>m==='earlybird'?'all':'earlybird')} style={{opacity:activeMode==='earlybird'?1:undefined,background:activeMode==='earlybird'?'rgba(251,191,36,0.2)':undefined,borderColor:activeMode==='earlybird'?'rgba(251,191,36,0.5)':undefined}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
+          <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>setActiveMode(m=>m==='h1b'?'all':'h1b')} style={{background:activeMode==='h1b'?'rgba(52,211,153,0.15)':'rgba(52,211,153,0.06)',border:activeMode==='h1b'?'1px solid rgba(52,211,153,0.5)':'1px solid rgba(52,211,153,0.15)',borderRadius:10,height:38,padding:'0 16px',color:'#34d399',fontSize:13,fontWeight:activeMode==='h1b'?600:500,cursor:'pointer',fontFamily:'inherit',flexShrink:0,boxShadow:activeMode==='h1b'?'0 0 20px rgba(52,211,153,0.2)':'none',transition:'all 0.2s'}}>🌐 H1B</motion.button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             {isRefreshing?"Refreshing…":"Refresh"}
@@ -2241,7 +2291,7 @@ export default function Home() {
 
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
-              Results {jobs.length>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{filterJobs(jobs).length}</span>}
+              Results {modeFilteredJobs.length>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{filterJobs(modeFilteredJobs).length}</span>}
               {activeTab==="results"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#6366f1,#8b5cf6)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-eb${activeTab==="earlybird"?" active":""}`} onClick={()=>{setActiveTab("earlybird");setCurrentPage(1);}}>
@@ -2275,6 +2325,16 @@ export default function Home() {
 
           {(activeTab==="results"||activeTab==="earlybird"||activeTab==="saved")&&(
             <>
+              {activeTab==="results"&&activeMode==='h1b'&&hasSearched&&(
+                <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} style={{background:'linear-gradient(135deg,rgba(52,211,153,0.06),rgba(16,185,129,0.04))',border:'1px solid rgba(52,211,153,0.12)',borderRadius:12,padding:'10px 20px',marginBottom:12,display:'flex',alignItems:'center',gap:10,fontSize:13,color:'#34d399'}}>
+                  🌐 Showing only verified H1B sponsoring companies · <strong style={{color:'#34d399'}}>{modeFilteredJobs.length} jobs found</strong>
+                </motion.div>
+              )}
+              {activeTab==="results"&&activeMode==='earlybird'&&hasSearched&&(
+                <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} style={{background:'linear-gradient(135deg,rgba(251,191,36,0.06),rgba(249,115,22,0.04))',border:'1px solid rgba(251,191,36,0.12)',borderRadius:12,padding:'10px 20px',marginBottom:12,display:'flex',alignItems:'center',gap:10,fontSize:13,color:'#fbbf24'}}>
+                  ⚡ Jobs posted in the last 24 hours · Apply before hundreds of others · <strong>{modeFilteredJobs.length} fresh jobs</strong>
+                </motion.div>
+              )}
               {activeTab==="earlybird"&&earlyBirdJobs.length>0&&!ebLoading&&(
                 <>
                   <div style={{background:'linear-gradient(135deg,rgba(251,191,36,0.08),rgba(249,115,22,0.06))',border:'1px solid rgba(251,191,36,0.15)',borderRadius:12,padding:'10px 20px',margin:'0 0 12px 0',display:'flex',alignItems:'center',gap:10,fontSize:13,color:'#fbbf24'}}>
@@ -2353,7 +2413,13 @@ export default function Home() {
               )}
 
               {!currentLoading&&paginatedJobs.length===0&&(
-                activeTab==="saved"?(
+                activeTab==="results"&&activeMode==='h1b'&&hasSearched?(
+                  <div style={{textAlign:'center',padding:'60px 20px'}}>
+                    <div style={{fontSize:40,marginBottom:16}}>🌐</div>
+                    <div style={{fontSize:18,fontWeight:700,color:'rgba(255,255,255,0.7)',marginBottom:8}}>No H1B sponsors found for this search</div>
+                    <div style={{fontSize:14,color:'rgba(255,255,255,0.3)'}}>Try searching &quot;Software Engineer&quot; or &quot;Data Scientist&quot; — most H1B sponsors hire for tech roles</div>
+                  </div>
+                ):activeTab==="saved"?(
                   <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
                     <div style={{fontSize:36,marginBottom:12}}>🔖</div>
                     <h3 style={{fontSize:16,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>No saved jobs</h3>
