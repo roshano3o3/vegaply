@@ -1286,7 +1286,7 @@ interface Preferences {
 }
 const DEFAULT_PREFS: Preferences = { jobTitles:"", minSalary:"", locationTypes:[], jobTypes:[] };
 
-function PreferencesModal({ onClose, lm }: { onClose:()=>void; lm?:boolean }) {
+function PreferencesModal({ onClose, lm, onSave }: { onClose:()=>void; lm?:boolean; onSave?:(p:Preferences)=>void }) {
   const [prefs, setPrefs] = useState<Preferences>(()=>{
     try { const s=localStorage.getItem("vegaply_preferences"); return s?JSON.parse(s):DEFAULT_PREFS; } catch { return DEFAULT_PREFS; }
   });
@@ -1297,6 +1297,7 @@ function PreferencesModal({ onClose, lm }: { onClose:()=>void; lm?:boolean }) {
 
   const savePrefs=()=>{
     localStorage.setItem("vegaply_preferences", JSON.stringify(prefs));
+    onSave?.(prefs);
     setSaved(true);
     setTimeout(()=>setSaved(false), 2000);
   };
@@ -1423,6 +1424,7 @@ export default function Home() {
   const [autoApplyResults,setAutoApplyResults]=useState<Record<string,'applied'|'low_match'>>({});
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
+  const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -1436,8 +1438,12 @@ export default function Home() {
     try{const today=new Date().toISOString().slice(0,10);const c=localStorage.getItem(`vegaply_autoapply_${today}`);if(c)setAutoApplyCount(parseInt(c,10)||0);}catch{}
     const savedRole=localStorage.getItem("applysmart_jobRole");
     const savedLocation=localStorage.getItem("applysmart_location");
+    let loadedPrefs=DEFAULT_PREFS;
+    try{const s=localStorage.getItem("vegaply_preferences");if(s)loadedPrefs=JSON.parse(s);}catch{}
+    setSavedPrefs(loadedPrefs);
     if(savedRole)setJobRole(savedRole);
     if(savedLocation)setLocation(savedLocation);
+    if(!savedRole&&loadedPrefs.jobTitles){const titles=loadedPrefs.jobTitles.split(',').map((t:string)=>t.trim()).filter(Boolean);if(titles.length>0)setJobRole(titles[0]);}
     if(!savedRole||!savedLocation)return;
     if(savedRole&&savedLocation){
       setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
@@ -1638,10 +1644,12 @@ export default function Home() {
 
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
   const toggleSave=(jobId:string)=>setSavedJobs(prev=>{const n=new Set(prev);n.has(jobId)?n.delete(jobId):n.add(jobId);return n;});
+  const prefTitles=savedPrefs.jobTitles.split(',').map(t=>t.trim()).filter(Boolean);
   const filterJobs=(list:JobWithMatch[])=>list.filter(job=>{
     if(filterType!=="ALL"&&job.job_employment_type!==filterType)return false;
     if(filterRemote&&!job.job_is_remote)return false;
     if(filterDate!=="ANY"&&job.job_posted_at_datetime_utc){const days=(Date.now()-new Date(job.job_posted_at_datetime_utc).getTime())/86400000;if(filterDate==="TODAY"&&days>1)return false;if(filterDate==="WEEK"&&days>7)return false;if(filterDate==="MONTH"&&days>30)return false;}
+    if(prefTitles.length>0&&!prefTitles.some(t=>job.job_title.toLowerCase().includes(t.toLowerCase())))return false;
     return true;
   });
 
@@ -2084,6 +2092,7 @@ export default function Home() {
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
           {mounted&&autoApplyCount>0&&<span className="nav-pill" style={{background:"rgba(99,102,241,0.1)",color:"#818cf8",border:"1px solid rgba(99,102,241,0.25)"}}>{autoApplyCount}/30 Applied</span>}
+          {mounted&&prefTitles.length>0&&<span className="nav-pill" style={{background:"rgba(99,102,241,0.1)",color:"#818cf8",border:"1px solid rgba(99,102,241,0.25)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}} onClick={()=>setShowPreferences(true)}><span style={{width:6,height:6,borderRadius:"50%",background:"#818cf8",display:"inline-block",flexShrink:0}}/>Prefs active</span>}
           {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
           {mounted&&userEmail&&<span style={{fontSize:11,color:"rgba(255,255,255,0.2)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userEmail}</span>}
           <button className="theme-toggle" onClick={toggleTheme} title={darkMode?"Switch to light mode":"Switch to dark mode"}>
@@ -2174,7 +2183,16 @@ export default function Home() {
           {/* PREFERENCES */}
           <div className="sidebar-card" style={{marginTop:4}}>
             <div className="sidebar-card-title">⚙️ Job Preferences</div>
-            <div className="sidebar-card-sub">Set your ideal job titles, salary & work style</div>
+            <div className="sidebar-card-sub">Active filters for your job search</div>
+            {mounted&&prefTitles.length>0?(
+              <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:10}}>
+                {prefTitles.map((t,i)=>(
+                  <span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:20,background:"rgba(99,102,241,0.12)",color:"#a5b4fc",border:"1px solid rgba(99,102,241,0.25)"}}>{t}</span>
+                ))}
+              </div>
+            ):(
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.25)",marginBottom:10}}>No preferences set</div>
+            )}
             <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#818cf8",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(99,102,241,0.15)")} onMouseLeave={e=>(e.currentTarget.style.background="rgba(99,102,241,0.08)")}>
               ⚙️ Edit Preferences
             </button>
@@ -2810,7 +2828,7 @@ export default function Home() {
       <HelpPanel/>
 
       {/* PREFERENCES MODAL */}
-      {showPreferences&&<PreferencesModal lm={!darkMode} onClose={()=>setShowPreferences(false)}/>}
+      {showPreferences&&<PreferencesModal lm={!darkMode} onClose={()=>setShowPreferences(false)} onSave={(p)=>setSavedPrefs(p)}/>}
 
       {/* REFRESH TOAST */}
       {refreshToast&&(
