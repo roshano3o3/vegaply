@@ -11,6 +11,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [envMissing, setEnvMissing] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotMsg, setForgotMsg] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   useEffect(() => {
     // Debug logging for Supabase configuration
@@ -42,6 +47,22 @@ export default function LoginPage() {
 
   const checkOnboardingAndRedirect = async () => {
     router.push("/home")
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+    setForgotError("");
+    setForgotMsg("");
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: "https://vegaply.com/reset-password",
+    });
+    if (error) {
+      setForgotError(error.message);
+    } else {
+      setForgotMsg("Check your email for the reset link ✓");
+    }
+    setForgotLoading(false);
   };
 
   const handleLogin = async () => {
@@ -148,16 +169,7 @@ export default function LoginPage() {
         </div>
         <div className="auth-right">
           {envMissing && process.env.NODE_ENV === 'development' && (
-            <div style={{
-              background: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '24px',
-              fontSize: '13px',
-              color: '#fca5a5',
-              lineHeight: '1.5'
-            }}>
+            <div style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.4)',borderRadius:'12px',padding:'16px',marginBottom:'24px',fontSize:'13px',color:'#fca5a5',lineHeight:'1.5'}}>
               <strong>⚠️ Development Debug:</strong><br />
               Missing Supabase environment variables:<br />
               • NEXT_PUBLIC_SUPABASE_URL<br />
@@ -165,28 +177,49 @@ export default function LoginPage() {
               Check your .env.local file.
             </div>
           )}
-          <div className="form-enter">
-            <div className="form-tag">Welcome back</div>
-            <h2 className="form-title">Sign in</h2>
-            <p className="form-subtitle">Your next opportunity is waiting.</p>
-            {error && <div className="form-error">⚠ {error}</div>}
-            <button className="google-btn" onClick={handleGoogleAuth} disabled={googleLoading}>
-              {googleLoading ? <><span className="form-spinner"/> Redirecting…</> : <><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>Continue with Google</>}
-            </button>
-            <div className="or-divider"><span>or</span></div>
-            <div className="form-group">
-              <label className="form-label">Email</label>
-              <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
+          {forgotMode ? (
+            <div className="form-enter">
+              <div className="form-tag">Account recovery</div>
+              <h2 className="form-title">Reset your password</h2>
+              <p className="form-subtitle">Enter your email and we&apos;ll send you a reset link</p>
+              {forgotError && <div className="form-error">⚠ {forgotError}</div>}
+              {forgotMsg && <div style={{background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:10,padding:"12px 16px",fontSize:13,color:"#6ee7b7",marginBottom:20}}>{forgotMsg}</div>}
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input className="form-input" type="email" placeholder="you@example.com" value={forgotEmail} onChange={(e)=>setForgotEmail(e.target.value)} onKeyDown={(e)=>e.key==="Enter"&&handleForgotPassword()}/>
+              </div>
+              <button className="form-btn" onClick={handleForgotPassword} disabled={forgotLoading||!!forgotMsg}>
+                {forgotLoading ? <span className="form-loading"><span className="form-spinner"/> Sending…</span> : "Send Reset Link →"}
+              </button>
+              <div className="form-footer"><span onClick={()=>{setForgotMode(false);setForgotMsg("");setForgotError("");}} style={{color:"#818cf8",cursor:"pointer"}}>← Back to login</span></div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <input className="form-input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
+          ) : (
+            <div className="form-enter">
+              <div className="form-tag">Welcome back</div>
+              <h2 className="form-title">Sign in</h2>
+              <p className="form-subtitle">Your next opportunity is waiting.</p>
+              {error && <div className="form-error">⚠ {error}</div>}
+              <button className="google-btn" onClick={handleGoogleAuth} disabled={googleLoading}>
+                {googleLoading ? <><span className="form-spinner"/> Redirecting…</> : <><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>Continue with Google</>}
+              </button>
+              <div className="or-divider"><span>or</span></div>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input className="form-input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
+                <div style={{textAlign:"right",marginTop:6}}>
+                  <span onClick={()=>setForgotMode(true)} style={{fontSize:12,color:"rgba(255,255,255,0.3)",cursor:"pointer"}} onMouseEnter={e=>(e.currentTarget.style.color="#818cf8")} onMouseLeave={e=>(e.currentTarget.style.color="rgba(255,255,255,0.3)")}>Forgot password?</span>
+                </div>
+              </div>
+              <button className="form-btn" onClick={handleLogin} disabled={loading}>
+                {loading ? <span className="form-loading"><span className="form-spinner"/> Signing in…</span> : "Sign In →"}
+              </button>
+              <div className="form-footer">Don&apos;t have an account? <a href="/signup">Create one free</a></div>
             </div>
-            <button className="form-btn" onClick={handleLogin} disabled={loading}>
-              {loading ? <span className="form-loading"><span className="form-spinner"/> Signing in…</span> : "Sign In →"}
-            </button>
-            <div className="form-footer">Don't have an account? <a href="/signup">Create one free</a></div>
-          </div>
+          )}
         </div>
       </div>
     </>
