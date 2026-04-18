@@ -863,63 +863,183 @@ function analyzeResume(text: string): { score: number; checks: StrengthCheck[] }
   return { score, checks };
 }
 
+interface AiResumeScore {
+  atsScore: number; overallScore: number;
+  breakdown: Record<string, { score: number; passed: boolean; feedback: string }>;
+  strengths: string[]; improvements: string[]; redFlags: string[];
+  atsKeywordsFound: string[]; atsKeywordsMissing: string[];
+  estimatedExperience: string; recommendedRoles: string[];
+}
+
 function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: boolean }) {
   const { score, checks } = analyzeResume(resumeText);
-  const color = score >= 71 ? "#10b981" : score >= 41 ? "#f59e0b" : "#ef4444";
-  const label = score >= 71 ? "Strong" : score >= 41 ? "Fair" : "Weak";
-  const r = 28, circ = 2 * Math.PI * r;
-  const offset = circ - (score / 100) * circ;
-  const failing = checks.filter(c => !c.pass);
-  const passing = checks.filter(c => c.pass);
+  const [aiResult, setAiResult] = useState<AiResumeScore | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const cachedTextRef = useRef<string>("");
   const t2 = lm ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.4)";
   const t3 = lm ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.28)";
-  const bd = lm ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.06)";
   const bg = lm ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.02)";
 
+  useEffect(() => {
+    const key = resumeText.slice(0, 80);
+    if (key === cachedTextRef.current || !resumeText) return;
+    cachedTextRef.current = key;
+    setAiLoading(true);
+    setAiResult(null);
+    fetch("/api/resumescore", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeText }) })
+      .then(r => r.json())
+      .then(d => { if (!d.error) setAiResult(d); })
+      .catch(() => {})
+      .finally(() => setAiLoading(false));
+  }, [resumeText]);
+
+  const BREAKDOWN_LABELS: Record<string, string> = {
+    contactInfo: "Contact Info", workExperience: "Work Experience", education: "Education",
+    skills: "Skills", achievements: "Achievements", length: "Length",
+    actionVerbs: "Action Verbs", keywords: "Keywords",
+  };
+
+  const miniRing = (sc: number, ringColor: string, ringLabel: string) => {
+    const rr = 22, cc = 2 * Math.PI * rr, off = cc - (sc / 100) * cc;
+    return (
+      <div style={{textAlign:"center"}}>
+        <svg width="58" height="58" viewBox="0 0 58 58">
+          <circle cx="29" cy="29" r={rr} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
+          <circle cx="29" cy="29" r={rr} fill="none" stroke={ringColor} strokeWidth="4"
+            strokeDasharray={cc} strokeDashoffset={off} strokeLinecap="round" transform="rotate(-90 29 29)"
+            style={{transition:"stroke-dashoffset .8s ease"}}/>
+          <text x="29" y="34" textAnchor="middle" fontSize="13" fontWeight="800" fill={ringColor} fontFamily="'DM Sans',sans-serif">{sc}</text>
+        </svg>
+        <div style={{fontSize:9,fontWeight:600,color:t3,marginTop:2,letterSpacing:"0.3px"}}>{ringLabel}</div>
+      </div>
+    );
+  };
+
+  if (aiLoading) return (
+    <div className="sidebar-card" style={{marginTop:0}}>
+      <div className="sidebar-card-title">📈 Resume Strength</div>
+      <div style={{display:"flex",alignItems:"center",gap:8,padding:"16px 0",fontSize:12,color:"#818cf8"}}>
+        <div className="spin-sm"/>AI analyzing your resume…
+      </div>
+    </div>
+  );
+
+  if (aiResult) {
+    const atsColor = aiResult.atsScore >= 70 ? "#60a5fa" : aiResult.atsScore >= 45 ? "#f59e0b" : "#ef4444";
+    const ovColor  = aiResult.overallScore >= 70 ? "#818cf8" : aiResult.overallScore >= 45 ? "#f59e0b" : "#ef4444";
+    return (
+      <div className="sidebar-card" style={{marginTop:0}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:2}}>
+          <div className="sidebar-card-title" style={{margin:0}}>📈 Resume Strength</div>
+          {aiResult.estimatedExperience&&<span style={{fontSize:10,color:t3,background:bg,padding:"2px 7px",borderRadius:20,border:"1px solid rgba(255,255,255,0.07)"}}>{aiResult.estimatedExperience}</span>}
+        </div>
+        <div className="sidebar-card-sub" style={{marginBottom:12}}>AI-powered ATS analysis</div>
+
+        {/* Dual rings */}
+        <div style={{display:"flex",gap:16,justifyContent:"center",marginBottom:14}}>
+          {miniRing(aiResult.atsScore, atsColor,
+            <><span title="How well your resume passes automated filters" style={{cursor:"help",borderBottom:"1px dashed rgba(255,255,255,0.2)"}}>ATS Score</span></> as unknown as string
+          )}
+          {miniRing(aiResult.overallScore, ovColor, "Overall")}
+        </div>
+
+        {/* Breakdown bars */}
+        <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:14}}>
+          <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:2}}>Breakdown</div>
+          {Object.entries(BREAKDOWN_LABELS).map(([key, labelText]) => {
+            const item = aiResult.breakdown[key];
+            if (!item) return null;
+            const barColor = item.score >= 70 ? "#10b981" : item.score >= 45 ? "#f59e0b" : "#ef4444";
+            return (
+              <div key={key} title={item.feedback}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                  <span style={{fontSize:10,color:item.passed?t2:"rgba(239,68,68,0.8)",fontWeight:500}}>{item.passed?"✓":"✗"} {labelText}</span>
+                  <span style={{fontSize:10,fontWeight:600,color:barColor}}>{item.score}</span>
+                </div>
+                <div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:99,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${item.score}%`,background:barColor,borderRadius:99,transition:"width .8s ease"}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Red flags */}
+        {aiResult.redFlags.length > 0 && (
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:"rgba(239,68,68,0.7)",marginBottom:5}}>⚠ Red Flags</div>
+            {aiResult.redFlags.map((f,i) => (
+              <div key={i} style={{fontSize:11,color:"#fca5a5",padding:"4px 8px",background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:6,marginBottom:4,lineHeight:1.4}}>{f}</div>
+            ))}
+          </div>
+        )}
+
+        {/* Missing keywords */}
+        {aiResult.atsKeywordsMissing.length > 0 && (
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:5}}>Top Missing Keywords</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+              {aiResult.atsKeywordsMissing.slice(0,8).map((kw,i) => (
+                <span key={i} style={{fontSize:10,padding:"2px 7px",borderRadius:20,background:"rgba(239,68,68,0.06)",color:"#fca5a5",border:"1px solid rgba(239,68,68,0.15)"}}>{kw}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recommended roles */}
+        {aiResult.recommendedRoles.length > 0 && (
+          <div>
+            <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:5}}>Recommended Roles</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+              {aiResult.recommendedRoles.map((role,i) => (
+                <span key={i} style={{fontSize:10,padding:"3px 8px",borderRadius:20,background:"rgba(99,102,241,0.08)",color:"#a5b4fc",border:"1px solid rgba(99,102,241,0.15)"}}>{role}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback: basic synchronous analysis while AI hasn't responded
+  const r = 28, circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  const fbColor = score >= 71 ? "#10b981" : score >= 41 ? "#f59e0b" : "#ef4444";
+  const fbLabel = score >= 71 ? "Strong" : score >= 41 ? "Fair" : "Weak";
+  const failing = checks.filter(c => !c.pass);
+  const passing = checks.filter(c => c.pass);
   return (
     <div className="sidebar-card" style={{marginTop:0}}>
       <div className="sidebar-card-title">📈 Resume Strength</div>
       <div className="sidebar-card-sub">Analysis based on your uploaded resume</div>
-
-      {/* Circle meter */}
       <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
         <svg width="72" height="72" viewBox="0 0 72 72" style={{flexShrink:0}}>
           <circle cx="36" cy="36" r={r} fill="none" stroke={lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.07)"} strokeWidth="5"/>
-          <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="5"
-            strokeDasharray={circ} strokeDashoffset={offset}
-            strokeLinecap="round" transform="rotate(-90 36 36)"
+          <circle cx="36" cy="36" r={r} fill="none" stroke={fbColor} strokeWidth="5"
+            strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 36 36)"
             style={{transition:"stroke-dashoffset .8s ease"}}/>
-          <text x="36" y="33" textAnchor="middle" fontSize="16" fontWeight="800" fill={color} fontFamily="'DM Sans',sans-serif">{score}</text>
-          <text x="36" y="46" textAnchor="middle" fontSize="8" fontWeight="600" fill={color} fontFamily="'DM Sans',sans-serif" opacity="0.8">{label.toUpperCase()}</text>
+          <text x="36" y="33" textAnchor="middle" fontSize="16" fontWeight="800" fill={fbColor} fontFamily="'DM Sans',sans-serif">{score}</text>
+          <text x="36" y="46" textAnchor="middle" fontSize="8" fontWeight="600" fill={fbColor} fontFamily="'DM Sans',sans-serif" opacity="0.8">{fbLabel.toUpperCase()}</text>
         </svg>
         <div style={{flex:1}}>
-          <div style={{fontSize:13,fontWeight:700,color:color,marginBottom:4}}>{label} Resume</div>
-          <div style={{fontSize:11,color:t3,lineHeight:1.5}}>
-            {passing.length}/{checks.length} checks passed
-          </div>
+          <div style={{fontSize:13,fontWeight:700,color:fbColor,marginBottom:4}}>{fbLabel} Resume</div>
+          <div style={{fontSize:11,color:t3,lineHeight:1.5}}>{passing.length}/{checks.length} checks passed</div>
           <div style={{marginTop:7,height:4,background:bg,borderRadius:99,overflow:"hidden"}}>
-            <div style={{height:"100%",width:`${score}%`,background:`linear-gradient(90deg,${color},${color}bb)`,borderRadius:99,transition:"width .8s ease"}}/>
+            <div style={{height:"100%",width:`${score}%`,background:`linear-gradient(90deg,${fbColor},${fbColor}bb)`,borderRadius:99,transition:"width .8s ease"}}/>
           </div>
         </div>
       </div>
-
-      {/* Issues to fix */}
       {failing.length > 0 && (
         <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8}}>
           <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:2}}>Fix these</div>
           {failing.map((c,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:7,background:`rgba(239,68,68,0.06)`,border:`1px solid rgba(239,68,68,0.15)`,borderRadius:7,padding:"6px 9px"}}>
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:7,background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:7,padding:"6px 9px"}}>
               <span style={{fontSize:10,color:"#ef4444",flexShrink:0,marginTop:1}}>✗</span>
-              <div>
-                <div style={{fontSize:10,fontWeight:700,color:"#ef4444",marginBottom:1}}>{c.label}</div>
-                <div style={{fontSize:10,color:t2,lineHeight:1.4}}>{c.tip}</div>
-              </div>
+              <div><div style={{fontSize:10,fontWeight:700,color:"#ef4444",marginBottom:1}}>{c.label}</div><div style={{fontSize:10,color:t2,lineHeight:1.4}}>{c.tip}</div></div>
             </div>
           ))}
         </div>
       )}
-
-      {/* Passing checks */}
       {passing.length > 0 && (
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
           <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:2}}>Looking good</div>
@@ -2536,7 +2656,7 @@ export default function Home() {
           <style>{`
             .onboard-overlay{position:fixed;inset:0;z-index:1000;background:#060608;display:flex;flex-direction:column;}
             .onboard-main{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;align-items:start;}
-            .onboard-left{padding:60px;overflow-y:auto;min-height:0;}
+            .onboard-left{padding:60px;padding-bottom:120px;overflow-y:auto;min-height:0;height:100%;}
             .onboard-right{background:rgba(99,102,241,0.05);border-left:1px solid rgba(255,255,255,0.06);position:sticky;top:0;height:calc(100vh - 4px);overflow:hidden;}
             .onboard-step-label{font-size:11px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
             .onboard-title{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,52px);font-weight:900;line-height:1.05;letter-spacing:-1.5px;margin-bottom:16px;}
@@ -2562,7 +2682,7 @@ export default function Home() {
             @keyframes progressFill{from{width:0%}to{width:${(onboardStep/3)*100}%}}
             @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
             @keyframes bounceIn{0%{transform:scale(0.3);opacity:0}50%{transform:scale(1.05)}70%{transform:scale(0.9)}100%{transform:scale(1);opacity:1}}
-            @media(max-width:768px){.onboard-main{grid-template-columns:1fr;}.onboard-right{display:none;}.onboard-left{padding:32px 24px;}}
+            @media(max-width:768px){.onboard-main{grid-template-columns:1fr;}.onboard-right{display:none!important;}.onboard-left{padding:32px 24px;padding-bottom:120px;}}
             .onboard-progress{position:relative;width:100%;height:4px;background:rgba(255,255,255,0.08);overflow:hidden;}
             .onboard-progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
             .ob-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:12px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:#fff;outline:none;transition:all .2s;margin-bottom:16px;}
