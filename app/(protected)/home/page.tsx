@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
 interface Job {
@@ -1117,8 +1118,8 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 }
 
 // JOB CARD — 2x3 grid, highlighted Match + Prep
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, isAutoApplying, lm }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;isAutoApplying:boolean;lm?:boolean;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, isAutoApplying, lm, index }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;isAutoApplying:boolean;lm?:boolean;index?:number;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -1135,7 +1136,17 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
   const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.3)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.06)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.03)"};
 
   return(
-    <div className={`job-card${hot&&earlyBirdMode?" job-card-hot":""}`} style={{display:"flex",flexDirection:"column",gap:12,position:"relative"}}>
+    <motion.div
+      className={`job-card${hot&&earlyBirdMode?" job-card-hot":""}`}
+      layout
+      initial={{ opacity:0, y:20, scale:0.98 }}
+      animate={{ opacity:1, y:0, scale:1 }}
+      exit={{ opacity:0, scale:0.96 }}
+      transition={{ duration:0.35, delay:(index??0)*0.05, ease:[0.34,1.56,0.64,1] }}
+      style={{display:"flex",flexDirection:"column",gap:12,position:"relative",overflow:"hidden"}}
+    >
+      {/* TOP GRADIENT LINE */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)',pointerEvents:'none'}}/>
       {/* HOT BANNER */}
       {hot&&earlyBirdMode&&<div style={{position:"absolute",top:0,left:0,right:0,background:"linear-gradient(135deg,rgba(239,68,68,0.65),rgba(245,158,11,0.65))",color:"#fff",fontSize:10,fontWeight:700,padding:"3px 12px",textAlign:"center",letterSpacing:".3px"}}>🔥 HOT — under 6h old</div>}
 
@@ -1189,55 +1200,70 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         {visaBadges.map((vb,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:vb.bg,color:vb.color,border:`1px solid ${vb.border}`}}>{vb.label}</span>)}
       </div>
 
-      {/* ACTION BUTTONS — Match & Prep highlighted */}
+      {/* ACTION BUTTONS — unified ghost style */}
       <div className="action-btns" style={{borderTop:`1px solid ${t.bd}`,paddingTop:10,display:"flex",gap:5,flexWrap:"wrap"}}>
         {/* MATCH */}
-        <button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="AI scores your resume vs this job">
+        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="AI scores your resume vs this job" style={{background:job.match?'rgba(99,102,241,0.08)':'rgba(255,255,255,0.04)',border:`1px solid ${job.match?'rgba(99,102,241,0.22)':'rgba(255,255,255,0.07)'}`,borderRadius:8,padding:'6px 11px',fontSize:11,fontWeight:500,color:job.match?'#818cf8':'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
           {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
-        </button>
+        </motion.button>
         {/* PREP */}
-        <button className={`action-card-btn interview-btn${job.interview?" done":""}`} onClick={e=>{e.stopPropagation();onInterview();}} disabled={job.interviewLoading} title="AI interview questions for this job">
+        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onInterview();}} disabled={job.interviewLoading} title="AI interview questions for this job" style={{background:job.interview?'rgba(52,211,153,0.07)':'rgba(255,255,255,0.04)',border:`1px solid ${job.interview?'rgba(52,211,153,0.18)':'rgba(255,255,255,0.07)'}`,borderRadius:8,padding:'6px 11px',fontSize:11,fontWeight:500,color:job.interview?'#34d399':'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
           {job.interviewLoading?<><div className="spin-sm"/>Loading…</>:job.interview?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Prep Done</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Prep</>}
-        </button>
+        </motion.button>
         {/* COVER */}
-        <button className={`action-card-btn cover-btn${job.coverLetter?" done":""}`} onClick={e=>{e.stopPropagation();onCoverLetter();}} disabled={job.coverLetterLoading} title="AI generates a cover letter for this job">
+        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onCoverLetter();}} disabled={job.coverLetterLoading} title="AI generates a cover letter for this job" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 11px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
           {job.coverLetterLoading?<><div className="spin-sm"/>Writing…</>:job.coverLetter?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Letter</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Cover</>}
-        </button>
+        </motion.button>
         {/* SKILLS */}
-        <button className={`action-card-btn skillgap-btn${job.skillGap?" done":""}`} onClick={e=>{e.stopPropagation();onSkillGap();}} disabled={job.skillGapLoading} title="See skill gaps and recommended courses">
+        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onSkillGap();}} disabled={job.skillGapLoading} title="See skill gaps and recommended courses" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 11px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
           {job.skillGapLoading?<><div className="spin-sm"/>Analyzing…</>:job.skillGap?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Gaps</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Skills</>}
-        </button>
+        </motion.button>
         {/* TAILOR */}
-        <button className={`action-card-btn tailor-btn${job.tailor?" done":""}`} onClick={e=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="AI tailors your resume bullets">
+        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="AI tailors your resume bullets" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 11px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
           {job.tailorLoading?<><div className="spin-sm"/>Tailoring…</>:job.tailor?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Tailored</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Tailor</>}
-        </button>
+        </motion.button>
         {/* TRACK */}
-        <button className={`action-card-btn track-btn${isTracked?" tracked":""}`} onClick={e=>{e.stopPropagation();onTrack();}} title="Add to application tracker">
+        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onTrack();}} title="Add to application tracker" style={{background:isTracked?'rgba(52,211,153,0.07)':'rgba(255,255,255,0.04)',border:`1px solid ${isTracked?'rgba(52,211,153,0.18)':'rgba(255,255,255,0.07)'}`,borderRadius:8,padding:'6px 11px',fontSize:11,fontWeight:500,color:isTracked?'#34d399':'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap'}}>
           {isTracked?<><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Track</>}
-        </button>
+        </motion.button>
       </div>
 
       {/* APPLY BUTTON */}
       {job.job_apply_link&&(
-        <a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" className={`apply-btn${hot&&earlyBirdMode?" apply-btn-hot":""}`} style={{textDecoration:"none",textAlign:"center",display:"block",fontSize:12}} onClick={e=>e.stopPropagation()}>
+        <motion.a
+          href={job.job_apply_link} target="_blank" rel="noopener noreferrer"
+          whileHover={{scale:1.02,boxShadow:'0 8px 32px rgba(99,102,241,0.35)'}}
+          whileTap={{scale:0.98}}
+          style={{
+            width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6366f1,#8b5cf6)',
+            border:'none',borderRadius:12,padding:'12px',color:'#fff',fontSize:13,fontWeight:600,
+            cursor:'pointer',fontFamily:'inherit',marginTop:12,letterSpacing:'-0.2px',
+            textDecoration:'none',textAlign:'center',display:'block'
+          }}
+          onClick={e=>e.stopPropagation()}
+        >
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
-        </a>
+        </motion.a>
       )}
 
-      {/* AUTO APPLY BUTTON — full width, below Apply Now */}
-      <button
+      {/* AUTO APPLY BUTTON */}
+      <motion.button
         onClick={e=>{e.stopPropagation();onAutoApply();}}
         disabled={isAutoApplying||autoApplyResult==="applied"}
         title="AI scores your resume, tracks as Applied, and opens the job link"
+        whileHover={autoApplyResult!=="applied"&&!isAutoApplying?{backgroundColor:'rgba(99,102,241,0.1)',borderColor:'rgba(99,102,241,0.4)'}:{}}
+        whileTap={{scale:0.98}}
         style={{
-          width:"100%",marginTop:6,padding:"13px 0",borderRadius:12,border:"1px solid",fontSize:13,fontWeight:600,cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:"inherit",transition:"all .2s",display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+          width:"100%",marginTop:6,padding:"10px",borderRadius:12,border:"1px solid",fontSize:12,fontWeight:500,
+          cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:"inherit",
+          display:"flex",alignItems:"center",justifyContent:"center",gap:6,
           ...(autoApplyResult==="applied"
             ?{background:"rgba(16,185,129,0.1)",borderColor:"rgba(16,185,129,0.3)",color:"#34d399"}
             :autoApplyResult==="low_match"
               ?{background:"rgba(245,158,11,0.08)",borderColor:"rgba(245,158,11,0.3)",color:"#fbbf24"}
               :isAutoApplying
                 ?{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)"}
-                :{background:"transparent",borderColor:"rgba(99,102,241,0.25)",color:"#818cf8"})
+                :{background:"transparent",borderColor:"rgba(99,102,241,0.2)",color:"#818cf8"})
         }}
       >
         {isAutoApplying
@@ -1247,8 +1273,8 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
             :autoApplyResult==="low_match"
               ?"⚠️ Low Match — Try Again"
               :"⚡ Auto Apply"}
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
 
@@ -1750,8 +1776,9 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'DM Sans',sans-serif;background:#060608;color:#fff;min-height:100vh;overflow-x:hidden}
-        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.18);border-radius:4px}
+        body{font-family:'DM Sans',sans-serif;background:#080810;color:#fff;min-height:100vh;overflow-x:hidden}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.3);border-radius:99px}
+        @keyframes ambientPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:0.5}}
 
         /* TOPBAR */
         .topbar{background:rgba(6,6,8,0.85);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 24px;height:60px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:200;backdrop-filter:blur(24px)}
@@ -1811,12 +1838,12 @@ export default function Home() {
         .toggle.on::after{left:19px}
 
         /* TABS */
-        .tabs-row{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.06)}
-        .tab{padding:14px 20px;border:none;border-bottom:2px solid transparent;font-size:13px;font-weight:400;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,0.35);margin-bottom:-1px;white-space:nowrap}
-        .tab.active{color:#fff;border-bottom-color:#6366f1;font-weight:600}
-        .tab.tab-eb.active{color:#fbbf24;border-bottom-color:#fbbf24}
-        .tab.tab-tracker.active{color:#818cf8;border-bottom-color:#818cf8}
-        .tab.tab-analytics.active{color:#34d399;border-bottom-color:#34d399}
+        .tabs-row{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.01);padding:0 4px}
+        .tab{padding:14px 16px;border:none;border-bottom:none;font-size:13px;font-weight:400;font-family:'DM Sans',sans-serif;cursor:pointer;transition:color .2s;background:transparent;color:rgba(255,255,255,0.3);white-space:nowrap;position:relative}
+        .tab.active{color:#fff;font-weight:600}
+        .tab.tab-eb.active{color:#fbbf24}
+        .tab.tab-tracker.active{color:#818cf8}
+        .tab.tab-analytics.active{color:#34d399}
         .tab:hover:not(.active){color:rgba(255,255,255,0.6)}
 
         /* JOB GRID */
@@ -2010,8 +2037,17 @@ export default function Home() {
         [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
       `}</style>
 
+      {/* AMBIENT GLOW */}
+      <div style={{position:'fixed',top:'10%',right:'5%',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,rgba(99,102,241,0.04) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientPulse 8s ease-in-out infinite'}}/>
+      <div style={{position:'fixed',bottom:'20%',left:'15%',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,rgba(139,92,246,0.03) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientPulse 10s ease-in-out infinite reverse'}}/>
+
       {/* TOPBAR */}
-      <nav className="topbar">
+      <motion.header
+        className="topbar"
+        initial={{opacity:0,y:-8}}
+        animate={{opacity:1,y:0}}
+        transition={{duration:0.4,ease:'easeOut'}}
+      >
         <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer'}} onClick={()=>window.location.href='/'}>
           <svg width="30" height="30" viewBox="0 0 200 200">
             <rect width="200" height="200" rx="44" fill="#0e0b2e"/>
@@ -2031,8 +2067,8 @@ export default function Home() {
         <div className="topbar-search">
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
-          <button className="search-btn" onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</button>
-          <button className="eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading}>{ebLoading?"Scanning…":"⚡ Early Bird"}</button>
+          <motion.button className="search-btn" whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
+          <motion.button className="eb-btn" whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={handleEarlyBirdSearch} disabled={ebLoading}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             {isRefreshing?"Refreshing…":"Refresh"}
@@ -2062,7 +2098,7 @@ export default function Home() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
-      </nav>
+      </motion.header>
 
       {/* MOBILE SEARCH PANEL — conditionally rendered, hidden on desktop via CSS */}
       {showMobileSearch&&(
@@ -2082,7 +2118,7 @@ export default function Home() {
 
       <div className="app-layout">
         {/* SIDEBAR */}
-        <aside className="sidebar">
+        <motion.aside className="sidebar" initial={{opacity:0,x:-16}} animate={{opacity:1,x:0}} transition={{duration:0.4,delay:0.1,ease:'easeOut'}}>
           <div className="sidebar-card">
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
               <div className="sidebar-card-title">🎯 AI Resume Match</div>
@@ -2171,7 +2207,7 @@ export default function Home() {
               {shareToast?"✓ Link copied!":"Share Vegaply →"}
             </button>
           </div>
-        </aside>
+        </motion.aside>
 
         {/* MAIN */}
         <main className="content">
@@ -2186,19 +2222,24 @@ export default function Home() {
 
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
-              Results {jobs.length>0&&`(${filterJobs(jobs).length})`}
+              Results {jobs.length>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{filterJobs(jobs).length}</span>}
+              {activeTab==="results"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#6366f1,#8b5cf6)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-eb${activeTab==="earlybird"?" active":""}`} onClick={()=>{setActiveTab("earlybird");setCurrentPage(1);}}>
-              ⚡ Early Bird {earlyBirdJobs.length>0&&`(${earlyBirdJobs.length})`}
+              ⚡ Early Bird {earlyBirdJobs.length>0&&<span style={{background:'rgba(251,191,36,0.12)',color:'#fbbf24',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{earlyBirdJobs.length}</span>}
+              {activeTab==="earlybird"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#fbbf24,#f97316)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab${activeTab==="saved"?" active":""}`} onClick={()=>{setActiveTab("saved");setCurrentPage(1);}}>
-              Saved {savedJobs.size>0&&`(${savedJobs.size})`}
+              Saved {savedJobs.size>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{savedJobs.size}</span>}
+              {activeTab==="saved"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#6366f1,#8b5cf6)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-tracker${activeTab==="tracker"?" active":""}`} onClick={()=>setActiveTab("tracker")}>
-              Tracker {trackedApps.length>0&&`(${trackedApps.length})`}
+              Tracker {trackedApps.length>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{trackedApps.length}</span>}
+              {activeTab==="tracker"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#818cf8,#6366f1)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-analytics${activeTab==="analytics"?" active":""}`} onClick={()=>setActiveTab("analytics")}>
               Analytics
+              {activeTab==="analytics"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#34d399,#10b981)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
           </div>
 
@@ -2246,9 +2287,11 @@ export default function Home() {
                     {isEbMode&&<span style={{color:"#f59e0b",fontWeight:600}}> · ⚡ All posted today</span>}
                   </div>
                   <div className="jobs-grid">
+                    <AnimatePresence mode="popLayout">
                     {paginatedJobs.map((job,idx)=>(
                       <JobCard
                         key={`${job.job_id}-${idx}`}
+                        index={idx}
                         job={job}
                         saved={savedJobs.has(job.job_id)}
                         onToggleSave={()=>toggleSave(job.job_id)}
@@ -2268,6 +2311,7 @@ export default function Home() {
                         lm={!darkMode}
                       />
                     ))}
+                    </AnimatePresence>
                   </div>
                   {totalPages>1&&(
                     <div className="pagination">
@@ -2293,18 +2337,31 @@ export default function Home() {
                     <p style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)"}}>Click ⚡ Early Bird to find freshly posted jobs</p>
                   </div>
                 ):(
-                  <div style={{textAlign:'center', padding:'80px 20px'}}>
-                    <div style={{fontSize:48, marginBottom:16, opacity:0.3}}>⚡</div>
-                    <div style={{fontSize:18, fontWeight:700, color:'rgba(255,255,255,0.7)', marginBottom:8}}>Find your next role</div>
-                    <div style={{fontSize:14, color:'rgba(255,255,255,0.3)', marginBottom:32}}>750+ fresh jobs from Google, Stripe, Figma and more</div>
-                    <div style={{display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap'}}>
-                      {['Software Engineer','Data Scientist','Product Manager','UX Designer','ML Engineer'].map(role => (
-                        <button key={role} onClick={() => setJobRole(role)} style={{background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:'100px', padding:'8px 16px', fontSize:'12px', color:'#a5b4fc', cursor:'pointer', fontFamily:'inherit'}}>
-                          {role}
-                        </button>
+                  <motion.div
+                    initial={{opacity:0,scale:0.95}}
+                    animate={{opacity:1,scale:1}}
+                    transition={{duration:0.5,ease:[0.34,1.56,0.64,1]}}
+                    style={{textAlign:'center',padding:'80px 40px'}}
+                  >
+                    <motion.div
+                      animate={{y:[0,-8,0]}}
+                      transition={{duration:3,repeat:Infinity,ease:'easeInOut'}}
+                      style={{fontSize:52,marginBottom:20,opacity:0.5}}
+                    >⚡</motion.div>
+                    <div style={{fontSize:20,fontWeight:700,color:'rgba(255,255,255,0.8)',marginBottom:8,letterSpacing:'-0.5px'}}>Find your next role</div>
+                    <div style={{fontSize:14,color:'rgba(255,255,255,0.25)',marginBottom:32,lineHeight:1.7}}>750+ fresh jobs from Google, Stripe, Figma and more.<br/>Updated every 3 minutes.</div>
+                    <div style={{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap',maxWidth:500,margin:'0 auto'}}>
+                      {['Software Engineer','Data Scientist','Product Manager','UX Designer','ML Engineer','DevOps Engineer'].map(role=>(
+                        <motion.button
+                          key={role}
+                          onClick={()=>setJobRole(role)}
+                          whileHover={{scale:1.05,backgroundColor:'rgba(99,102,241,0.15)',borderColor:'rgba(99,102,241,0.4)'}}
+                          whileTap={{scale:0.97}}
+                          style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:100,padding:'8px 18px',fontSize:12,color:'rgba(255,255,255,0.5)',cursor:'pointer',fontFamily:'inherit'}}
+                        >{role}</motion.button>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 )
               )}
             </>
