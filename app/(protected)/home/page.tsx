@@ -1002,7 +1002,7 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
   }
 
   // Fallback: basic synchronous analysis while AI hasn't responded
-  const r = 28, circ = 2 * Math.PI * r;
+  const r = 20, circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
   const fbColor = score >= 71 ? "#10b981" : score >= 41 ? "#f59e0b" : "#ef4444";
   const fbLabel = score >= 71 ? "Strong" : score >= 41 ? "Fair" : "Weak";
@@ -1013,13 +1013,12 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
       <div className="sidebar-card-title">📈 Resume Strength</div>
       <div className="sidebar-card-sub">Analysis based on your uploaded resume</div>
       <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
-        <svg width="72" height="72" viewBox="0 0 72 72" style={{flexShrink:0}}>
-          <circle cx="36" cy="36" r={r} fill="none" stroke={lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.07)"} strokeWidth="5"/>
-          <circle cx="36" cy="36" r={r} fill="none" stroke={fbColor} strokeWidth="5"
-            strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 36 36)"
+        <svg width="52" height="52" viewBox="0 0 52 52" style={{flexShrink:0}}>
+          <circle cx="26" cy="26" r={r} fill="none" stroke={lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.07)"} strokeWidth="4"/>
+          <circle cx="26" cy="26" r={r} fill="none" stroke={fbColor} strokeWidth="4"
+            strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 26 26)"
             style={{transition:"stroke-dashoffset .8s ease"}}/>
-          <text x="36" y="33" textAnchor="middle" fontSize="16" fontWeight="800" fill={fbColor} fontFamily="'DM Sans',sans-serif">{score}</text>
-          <text x="36" y="46" textAnchor="middle" fontSize="8" fontWeight="600" fill={fbColor} fontFamily="'DM Sans',sans-serif" opacity="0.8">{fbLabel.toUpperCase()}</text>
+          <text x="26" y="30" textAnchor="middle" fontSize="14" fontWeight="800" fill={fbColor} fontFamily="'DM Sans',sans-serif">{score}</text>
         </svg>
         <div style={{flex:1}}>
           <div style={{fontSize:13,fontWeight:700,color:fbColor,marginBottom:4}}>{fbLabel} Resume</div>
@@ -1030,22 +1029,22 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
         </div>
       </div>
       {failing.length > 0 && (
-        <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8}}>
+        <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:8}}>
           <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:2}}>Fix these</div>
           {failing.map((c,i)=>(
             <div key={i} style={{display:"flex",alignItems:"flex-start",gap:7,background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:7,padding:"6px 9px"}}>
-              <span style={{fontSize:10,color:"#ef4444",flexShrink:0,marginTop:1}}>✗</span>
-              <div><div style={{fontSize:10,fontWeight:700,color:"#ef4444",marginBottom:1}}>{c.label}</div><div style={{fontSize:10,color:t2,lineHeight:1.4}}>{c.tip}</div></div>
+              <span style={{fontSize:11,color:"#ef4444",flexShrink:0,marginTop:1}}>✗</span>
+              <div><div style={{fontSize:11,fontWeight:700,color:"#ef4444",marginBottom:1}}>{c.label}</div><div style={{fontSize:11,color:t2,lineHeight:1.4}}>{c.tip}</div></div>
             </div>
           ))}
         </div>
       )}
       {passing.length > 0 && (
-        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+        <div style={{display:"flex",flexDirection:"column",gap:7}}>
           <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:t3,marginBottom:2}}>Looking good</div>
           {passing.map((c,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:7,padding:"4px 0"}}>
-              <span style={{fontSize:10,color:"#10b981",flexShrink:0}}>✓</span>
+            <div key={i} style={{display:"flex",alignItems:"center",gap:7,padding:"3px 0"}}>
+              <span style={{fontSize:11,color:"#10b981",flexShrink:0}}>✓</span>
               <span style={{fontSize:11,color:t2}}>{c.label}</span>
             </div>
           ))}
@@ -1299,117 +1298,88 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
   return(
     <motion.div
-      className={`job-card${hot&&earlyBirdMode?" job-card-hot":""}`}
+      className="job-card"
       layout
-      initial={{ opacity:0, y:20, scale:0.98 }}
-      animate={{ opacity:1, y:0, scale:1 }}
-      exit={{ opacity:0, scale:0.96 }}
-      transition={{ duration:0.35, delay:(index??0)*0.05, ease:[0.34,1.56,0.64,1] }}
-      style={{display:"flex",flexDirection:"column",gap:12,position:"relative",overflow:"hidden"}}
+      initial={{opacity:0,y:20,scale:0.98}}
+      animate={{opacity:1,y:0,scale:1}}
+      exit={{opacity:0,scale:0.96}}
+      transition={{duration:0.35,delay:(index??0)*0.05,ease:[0.34,1.56,0.64,1]}}
+      style={{display:"flex",flexDirection:"column",gap:10,position:"relative",overflow:"hidden"}}
     >
       {/* TOP GRADIENT LINE */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)',pointerEvents:'none'}}/>
-      {/* HOT BANNER */}
-      {hot&&earlyBirdMode&&<div style={{position:"absolute",top:0,left:0,right:0,background:"linear-gradient(135deg,rgba(239,68,68,0.65),rgba(245,158,11,0.65))",color:"#fff",fontSize:11,fontWeight:700,padding:"3px 12px",textAlign:"center",letterSpacing:".3px",boxShadow:"0 0 8px rgba(249,115,22,0.4)"}}>🔥 HOT — under 6h old</div>}
 
-      {/* HEADER */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginTop:hot&&earlyBirdMode?18:0}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer",minWidth:0}} onClick={onClick}>
-          <div style={{width:42,height:42,borderRadius:8,border:`1px solid ${t.bd}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:t.bg,flexShrink:0}}>
-            {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:(()=>{const ch=(job.employer_name?.[0]??"?").toUpperCase();const logoColor=ch>='A'&&ch<='E'?'#818cf8':ch>='F'&&ch<='K'?'#ec4899':ch>='L'&&ch<='R'?'#34d399':'#fbbf24';return<span style={{fontSize:17,fontWeight:700,color:logoColor}}>{ch}</span>;})()}
-          </div>
-          <div style={{flex:1,minWidth:0,overflow:"hidden"}}>
-            <h3 style={{fontSize:14,fontWeight:700,color:t.t1,lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title}</h3>
-            <p style={{fontSize:12,color:"#818cf8",fontWeight:500,marginBottom:1}}>{job.employer_name}</p>
-            <p style={{fontSize:10,color:t.t4}}>{job.job_is_remote?"🌐 Remote":loc||"Location not specified"}</p>
-          </div>
+      {/* ROW 1: Logo + title + company + time */}
+      <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+        <div style={{width:40,height:40,borderRadius:8,border:`1px solid ${t.bd}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:t.bg,flexShrink:0,cursor:"pointer"}} onClick={onClick}>
+          {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:(()=>{const ch=(job.employer_name?.[0]??"?").toUpperCase();const logoColor=ch>='A'&&ch<='E'?'#818cf8':ch>='F'&&ch<='K'?'#ec4899':ch>='L'&&ch<='R'?'#34d399':'#fbbf24';return<span style={{fontSize:16,fontWeight:700,color:logoColor}}>{ch}</span>;})()}
         </div>
-        <button style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.5,flexShrink:0}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":t.t3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        <div style={{flex:1,minWidth:0,overflow:"hidden",cursor:"pointer"}} onClick={onClick}>
+          <h3 style={{fontSize:14,fontWeight:700,color:t.t1,lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title}</h3>
+          <p style={{fontSize:11,color:"#818cf8",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.employer_name}</p>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
+          <button style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.5}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":t.t3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          </button>
+          <span style={{fontSize:10,color:t.t4}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
+        </div>
+      </div>
+
+      {/* ROW 2: Match score bar */}
+      {job.matchLoading&&(
+        <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"#818cf8"}}>
+          <div className="spin-sm"/>Analyzing match…
+        </div>
+      )}
+      {job.match&&!job.matchLoading&&(
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{flex:1,height:3,background:"rgba(255,255,255,0.05)",borderRadius:99,overflow:"hidden"}}>
+            <div style={{height:"100%",width:`${job.match.matchScore}%`,background:scoreColor(job.match.matchScore),borderRadius:99,transition:"width 0.6s ease"}}/>
+          </div>
+          <span style={{fontSize:10,color:scoreColor(job.match.matchScore),flexShrink:0,fontWeight:600}}>{job.match.matchScore}% match</span>
+        </div>
+      )}
+
+      {/* ROW 3: Tags — max 3 */}
+      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+        {hot&&earlyBirdMode&&<span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100,background:"rgba(239,68,68,0.12)",color:"#f87171",border:"1px solid rgba(239,68,68,0.2)"}}>🔥 HOT</span>}
+        <div style={{display:"flex",alignItems:"center",padding:"3px 8px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
+          <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
+        </div>
+        {isH1bSponsor(job.employer_name)&&<span style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",color:"#34d399",fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:100}}>✓ H1B</span>}
+      </div>
+
+      {/* ROW 4: 4 action buttons */}
+      <div className="action-btns" style={{display:"flex",gap:4}}>
+        <button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={!!job.matchLoading} title="AI match score">
+          {job.matchLoading?<><div className="spin-sm"/>…</>:job.match?<><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
+        </button>
+        <button className={`action-card-btn interview-btn${job.interview?" done":""}`} onClick={e=>{e.stopPropagation();onInterview();}} disabled={!!job.interviewLoading} title="Interview prep">
+          {job.interviewLoading?<><div className="spin-sm"/>…</>:job.interview?<><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Done</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Prep</>}
+        </button>
+        <button className={`action-card-btn tailor-btn${job.tailor?" done":""}`} onClick={e=>{e.stopPropagation();onTailor();}} disabled={!!job.tailorLoading} title="Tailor resume">
+          {job.tailorLoading?<><div className="spin-sm"/>…</>:job.tailor?<><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Done</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Tailor</>}
+        </button>
+        <button className={`action-card-btn track-btn${isTracked?" tracked":""}`} onClick={e=>{e.stopPropagation();onTrack();}} title="Track application">
+          {isTracked?<><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Track</>}
         </button>
       </div>
 
-      {/* COMPETITION + TIME ROW */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 9px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
-          <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
-        </div>
-        <span style={{fontSize:10,color:t.t4}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
-      </div>
-
-      {/* MATCH SCORE (if available) */}
-      {(job.match||job.matchLoading)&&(
-        <div style={{display:"flex",alignItems:"center",gap:10,borderRadius:8,padding:"8px 12px",border:`1px solid ${job.match?scoreColor(job.match.matchScore)+"22":"rgba(99,102,241,0.15)"}`,background:job.match?scoreColor(job.match.matchScore)+"07":"rgba(99,102,241,0.04)"}}>
-          {job.matchLoading?<><div className="spin-sm"/><span style={{fontSize:11,color:"#818cf8"}}>Analyzing…</span></>:<><ScoreRing score={job.match!.matchScore}/><div><div style={{fontSize:12,fontWeight:700,color:scoreColor(job.match!.matchScore)}}>{job.match!.matchLabel} Match — {job.match!.matchScore}%</div><div style={{fontSize:10,color:t.t4,marginTop:1}}>{job.match!.matchedSkills.slice(0,2).join(" · ")}</div></div></>}
-        </div>
-      )}
-
-      {/* NO RESUME PLACEHOLDER */}
-      {!job.match&&!job.matchLoading&&!resumeReady&&(
-        <div style={{display:"flex",alignItems:"center",gap:8,borderRadius:8,padding:"7px 12px",border:`1px solid ${t.bd}`,background:t.bg}}>
-          <span style={{fontSize:11,color:t.t4}}>-- Match</span>
-          <span style={{fontSize:10,color:t.t4}}>· Upload resume to see your score</span>
-        </div>
-      )}
-
-      {/* BADGES */}
-      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-        {badge&&<span className="badge badge-type">{badge}</span>}
-        {job.job_is_remote&&<span className="badge badge-remote">Remote</span>}
-        {(job.job_min_salary||job.job_max_salary)&&<span className="badge badge-salary">💰 {job.job_salary_currency??"$"}{job.job_min_salary?.toLocaleString()}–{job.job_max_salary?.toLocaleString()}</span>}
-        <span style={{fontSize:11,fontWeight:500,padding:"3px 10px",borderRadius:100,background:diffBadge.label.includes("Easy")||diffBadge.label.includes("Very Low")?"rgba(52,211,153,0.08)":diffBadge.label.includes("Competitive")||diffBadge.label.includes("High")?"rgba(239,68,68,0.08)":"rgba(251,191,36,0.08)",color:diffBadge.label.includes("Easy")||diffBadge.label.includes("Very Low")?"#34d399":diffBadge.label.includes("Competitive")||diffBadge.label.includes("High")?"#f87171":"#fbbf24",border:diffBadge.label.includes("Easy")||diffBadge.label.includes("Very Low")?"1px solid rgba(52,211,153,0.15)":diffBadge.label.includes("Competitive")||diffBadge.label.includes("High")?"1px solid rgba(239,68,68,0.15)":"1px solid rgba(251,191,36,0.15)"}}>{diffBadge.label.replace(/^[🟢🔴🟡]\s*/u,"")}</span>
-        <span style={{fontSize:11,fontWeight:500,padding:"3px 10px",borderRadius:100,background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.35)",border:"1px solid rgba(255,255,255,0.08)"}}>🎯 {successChance}%</span>
-        {visaBadges.map((vb,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:4,background:vb.bg,color:vb.color,border:`1px solid ${vb.border}`}}>{vb.label}</span>)}
-        {isH1bSponsor(job.employer_name)&&<span style={{background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.2)',color:'#34d399',fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:100,letterSpacing:0.3}}>✓ H1B</span>}
-      </div>
-
-      {/* ACTION BUTTONS — unified ghost style */}
-      <div className="action-btns" style={{borderTop:`1px solid ${t.bd}`,paddingTop:10,display:"flex",gap:5,flexWrap:"wrap"}}>
-        {/* MATCH */}
-        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={job.matchLoading} title="AI scores your resume vs this job" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 12px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
-          {job.matchLoading?<><div className="spin-sm"/>Matching…</>:job.match?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
-        </motion.button>
-        {/* PREP */}
-        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onInterview();}} disabled={job.interviewLoading} title="AI interview questions for this job" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 12px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
-          {job.interviewLoading?<><div className="spin-sm"/>Loading…</>:job.interview?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Prep Done</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Prep</>}
-        </motion.button>
-        {/* COVER */}
-        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onCoverLetter();}} disabled={job.coverLetterLoading} title="AI generates a cover letter for this job" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 12px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
-          {job.coverLetterLoading?<><div className="spin-sm"/>Writing…</>:job.coverLetter?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Letter</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Cover</>}
-        </motion.button>
-        {/* SKILLS */}
-        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onSkillGap();}} disabled={job.skillGapLoading} title="See skill gaps and recommended courses" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 12px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
-          {job.skillGapLoading?<><div className="spin-sm"/>Analyzing…</>:job.skillGap?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Gaps</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Skills</>}
-        </motion.button>
-        {/* TAILOR */}
-        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onTailor();}} disabled={job.tailorLoading} title="AI tailors your resume bullets" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 12px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flex:1,justifyContent:'center'}}>
-          {job.tailorLoading?<><div className="spin-sm"/>Tailoring…</>:job.tailor?<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Tailored</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Tailor</>}
-        </motion.button>
-        {/* TRACK */}
-        <motion.button whileHover={{backgroundColor:'rgba(99,102,241,0.12)',borderColor:'rgba(99,102,241,0.3)',color:'#a5b4fc'}} whileTap={{scale:0.95}} onClick={e=>{e.stopPropagation();onTrack();}} title="Add to application tracker" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:8,padding:'6px 12px',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.45)',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap'}}>
-          {isTracked?<><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved</>:<><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Track</>}
-        </motion.button>
-      </div>
-
-      {/* APPLY BUTTON */}
+      {/* ROW 5: Apply */}
       {job.job_apply_link&&(
         <motion.a
           href={job.job_apply_link} target="_blank" rel="noopener noreferrer"
           whileHover={{scale:1.02,boxShadow:'0 8px 32px rgba(99,102,241,0.35)'}}
           whileTap={{scale:0.98}}
-          style={{
-            width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6366f1,#8b5cf6)',
-            border:'none',borderRadius:12,padding:'12px',color:'#fff',fontSize:13,fontWeight:600,
-            cursor:'pointer',fontFamily:'inherit',marginTop:12,letterSpacing:'-0.2px',
-            textDecoration:'none',textAlign:'center',display:'block'
-          }}
+          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6366f1,#8b5cf6)',border:'none',borderRadius:12,padding:'11px',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.2px',textDecoration:'none',textAlign:'center',display:'block'}}
           onClick={e=>e.stopPropagation()}
         >
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
         </motion.a>
       )}
 
-      {/* AUTO APPLY BUTTON */}
+      {/* ROW 6: Auto Apply */}
       <motion.button
         onClick={e=>{e.stopPropagation();onAutoApply();}}
         disabled={isAutoApplying||autoApplyResult==="applied"}
@@ -1417,7 +1387,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         whileHover={autoApplyResult!=="applied"&&!isAutoApplying?{backgroundColor:'rgba(99,102,241,0.1)',borderColor:'rgba(99,102,241,0.4)'}:{}}
         whileTap={{scale:0.98}}
         style={{
-          width:"100%",marginTop:6,padding:"10px",borderRadius:12,border:"1px solid",fontSize:12,fontWeight:500,
+          width:"100%",padding:"9px",borderRadius:12,border:"1px solid",fontSize:12,fontWeight:500,
           cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:"inherit",
           display:"flex",alignItems:"center",justifyContent:"center",gap:6,
           ...(autoApplyResult==="applied"
@@ -1429,13 +1399,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
                 :{background:"transparent",borderColor:"rgba(99,102,241,0.2)",color:"#818cf8"})
         }}
       >
-        {isAutoApplying
-          ?<><div className="spin-sm"/>Analyzing match…</>
-          :autoApplyResult==="applied"
-            ?"✅ Applied"
-            :autoApplyResult==="low_match"
-              ?"⚠️ Low Match — Try Again"
-              :"⚡ Auto Apply"}
+        {isAutoApplying?<><div className="spin-sm"/>Analyzing…</>:autoApplyResult==="applied"?"✅ Applied":autoApplyResult==="low_match"?"⚠️ Low Match":"⚡ Auto Apply"}
       </motion.button>
     </motion.div>
   );
@@ -1989,8 +1953,10 @@ export default function Home() {
 
         /* LAYOUT */
         .app-layout{display:flex;min-height:calc(100vh - 54px);position:relative;z-index:1;background:#06080f}
-        .sidebar{width:220px;flex-shrink:0;background:#090c17;border-right:1px solid rgba(93,104,130,0.1);padding:18px 14px;display:flex;flex-direction:column;gap:20px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
-        .content{flex:1;min-width:0;padding:24px 24px;max-width:calc(100vw - 220px)}
+        .sidebar{width:260px;flex-shrink:0;background:#090c17;border-right:1px solid rgba(93,104,130,0.1);padding:20px 16px;display:flex;flex-direction:column;gap:24px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+        .content{flex:1;min-width:0;padding:24px;max-width:calc(100vw - 260px - 320px)}
+        .right-panel{width:320px;flex-shrink:0;background:#090c17;border-left:1px solid rgba(93,104,130,0.1);padding:20px 16px;display:flex;flex-direction:column;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+        @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
 
         /* SIDEBAR */
         .sidebar-card{background:transparent;padding:0}
@@ -2155,6 +2121,7 @@ export default function Home() {
         [data-theme="light"] .eb-banner{background:rgba(251,191,36,0.04);border-color:rgba(251,191,36,0.15)}
         [data-theme="light"] .mobile-sidebar-backdrop{background:rgba(0,0,0,0.4)}
         [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
+        [data-theme="light"] .right-panel{background:rgba(255,255,255,0.8);border-left-color:rgba(0,0,0,0.06)}
 
         @media(max-width:900px){.sidebar{display:none}.content{padding:20px 16px;max-width:100%}}
 
@@ -2185,9 +2152,9 @@ export default function Home() {
 
           .search-btn,.eb-btn{min-height:44px;height:44px;padding:0 14px}
           .action-card-btn{padding:8px 6px;min-height:40px;font-size:10px}
-          .action-btns{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:5px}
+          .action-btns{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:5px}
           .action-btns .action-card-btn{flex:none!important;width:100%!important;min-width:0!important;justify-content:center;overflow:hidden}
-          .action-btns .action-card-btn.track-btn{flex:none!important;padding:8px 4px;width:100%!important;min-width:0!important}
+          .action-btns .action-card-btn.track-btn{flex:none!important;padding:8px 6px;width:100%!important;min-width:0!important}
           .page-btn{width:38px;height:38px;font-size:13px}
           .apply-btn{padding:13px;min-height:44px;font-size:13px}
 
@@ -2573,6 +2540,88 @@ export default function Home() {
             </>
           )}
         </main>
+
+        {/* RIGHT PANEL */}
+        <aside className="right-panel">
+          {/* STATS 2x2 */}
+          <div style={{paddingBottom:20,marginBottom:20,borderBottom:'1px solid rgba(93,104,130,0.07)'}}>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Overview</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              {([
+                {val:totalSearched,label:'Jobs Found',sub:totalSearched>0?'Available now':undefined,subColor:'#34d399'},
+                {val:earlyBirdJobs.length,label:'Early Bird',sub:earlyBirdJobs.length>0?'⚡ Today':undefined,subColor:'#fbbf24'},
+                {val:savedJobs.size,label:'Saved',sub:undefined,subColor:undefined},
+                {val:trackedApps.length,label:'Tracked',sub:trackedApps.length>0?'Applications':undefined,subColor:'#818cf8'},
+              ] as {val:number;label:string;sub:string|undefined;subColor:string|undefined}[]).map((s,i)=>(
+                <div key={i} style={{background:'rgba(13,18,32,0.6)',border:'1px solid rgba(93,104,130,0.08)',borderRadius:12,padding:14}}>
+                  <div style={{fontFamily:'Georgia,serif',fontSize:26,fontWeight:700,color:'#fff',lineHeight:1}}>{s.val}</div>
+                  <div style={{fontSize:9,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(255,255,255,0.2)',marginTop:5}}>{s.label}</div>
+                  {s.sub&&<div style={{fontSize:9,color:s.subColor,marginTop:3}}>{s.sub}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* KANBAN MINI */}
+          <div style={{paddingBottom:20,marginBottom:20,borderBottom:'1px solid rgba(93,104,130,0.07)'}}>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Applications</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
+              {TRACKER_COLS.filter(c=>c.status!=='Saved').map(col=>{
+                const count=trackedApps.filter(a=>a.status===col.status).length;
+                return(
+                  <div key={col.status} style={{background:'rgba(13,18,32,0.4)',borderRadius:10,padding:'10px 4px',textAlign:'center'}}>
+                    <div style={{fontFamily:'Georgia,serif',fontSize:20,fontWeight:700,color:col.color,lineHeight:1}}>{count}</div>
+                    <div style={{fontSize:8,textTransform:'uppercase',letterSpacing:'1px',color:'rgba(255,255,255,0.2)',marginTop:5,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{col.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* AI MATCH SCORES */}
+          {jobs.filter(j=>j.match).length>0&&(
+            <div style={{paddingBottom:20,marginBottom:20,borderBottom:'1px solid rgba(93,104,130,0.07)'}}>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Top Matches</div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,5).map((j,i)=>(
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:10,color:'rgba(255,255,255,0.3)',width:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flexShrink:0}}>{j.employer_name}</span>
+                    <div style={{flex:1,height:3,background:'rgba(255,255,255,0.05)',borderRadius:99,overflow:'hidden'}}>
+                      <div style={{height:'100%',width:`${j.match!.matchScore}%`,background:scoreColor(j.match!.matchScore),borderRadius:99}}/>
+                    </div>
+                    <span style={{fontSize:10,color:'rgba(255,255,255,0.25)',width:28,textAlign:'right',flexShrink:0}}>{j.match!.matchScore}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* LIVE ACTIVITY */}
+          {trackedApps.length>0&&(
+            <div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Recent Activity</div>
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {[...trackedApps].reverse().slice(0,4).map(app=>{
+                  const col=TRACKER_COLS.find(c=>c.status===app.status)!;
+                  return(
+                    <div key={app.id} style={{borderLeft:`2px solid ${col.color}`,paddingLeft:10,marginLeft:4}}>
+                      <div style={{fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.6)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{app.job.job_title}</div>
+                      <div style={{fontSize:10,color:'rgba(255,255,255,0.25)',marginTop:2}}>{col.icon} {col.label} · {app.job.employer_name}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* EMPTY STATE */}
+          {totalSearched===0&&trackedApps.length===0&&(
+            <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10,opacity:0.35,paddingTop:48,textAlign:'center'}}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',lineHeight:1.6}}>Search for jobs to see analytics here</div>
+            </div>
+          )}
+        </aside>
       </div>
 
       {/* MODALS */}
