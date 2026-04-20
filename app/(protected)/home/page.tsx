@@ -1936,7 +1936,7 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'DM Sans',sans-serif;background:#06080f;color:#fff;min-height:100vh;overflow-x:hidden}
+        body{font-family:'DM Sans',sans-serif;background:linear-gradient(145deg,#1b1d22 0%,#23262d 100%)!important;color:#fff;min-height:100vh;overflow-x:hidden}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.25);border-radius:99px}
         @keyframes ambientFloat{0%,100%{transform:scale(1) translate(0,0)}33%{transform:scale(1.1) translate(10px,-15px)}66%{transform:scale(0.95) translate(-8px,10px)}}
 
@@ -2009,8 +2009,9 @@ export default function Home() {
         .tab.tab-analytics.active{color:#34d399;background:rgba(52,211,153,0.1)}
         .tab:hover:not(.active){color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.04)}
 
-        /* JOB LIST — full-width flex column */
-        .jobs-list{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+        /* JOB GRID — 2-col */
+        .jobs-list{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:12px!important;padding:14px 16px!important}
+        @media(max-width:900px){.jobs-list{grid-template-columns:1fr!important}}
         .job-card{background:linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;cursor:default;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}
         .job-card:hover{border-color:rgba(99,102,241,0.35);box-shadow:0 6px 24px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.07)}
         .job-card-hot{border-color:rgba(251,191,36,0.2)!important}
