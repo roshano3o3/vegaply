@@ -108,6 +108,40 @@ function getCompetitionLabel(h: number) {
   return { label: "📅 Open", color: "rgba(255,255,255,0.3)", bg: "rgba(255,255,255,0.05)" };
 }
 
+function getEarlyBirdStatus(job: Job) {
+  const ts = job.job_posted_at_timestamp;
+  const hoursOld = ts ? (Date.now() / 1000 - ts) / 3600 : 999;
+  const isEarly = hoursOld < 24;
+  const isHotJob = hoursOld < 6;
+  let label: string;
+  if (hoursOld < 1) label = `${Math.floor(hoursOld * 60)}m ago`;
+  else if (hoursOld < 24) label = `${Math.floor(hoursOld)}h ago`;
+  else if (hoursOld < 48) label = "1 day ago";
+  else if (hoursOld < 168) label = `${Math.floor(hoursOld / 24)}d ago`;
+  else if (hoursOld < 999) label = `${Math.floor(hoursOld / 168)}w ago`;
+  else label = "Recently";
+  return { hoursOld, isEarly, isHotJob, label };
+}
+
+function getH1BStatus(job: Job): { sponsors: boolean; likely: boolean; label: string } | null {
+  const name = job.employer_name ?? '';
+  const desc = job.job_description ?? '';
+  const sponsors = isH1bSponsor(name);
+  const likely = !sponsors && /h[- ]?1[- ]?b|visa\s+sponsor|will\s+sponsor|sponsorship\s+available/i.test(desc);
+  if (sponsors) return { sponsors: true, likely: false, label: '✓ H1B Sponsor' };
+  if (likely) return { sponsors: false, likely: true, label: '~ H1B Likely' };
+  return null;
+}
+
+function normalizeJobDescription(text?: string): string {
+  if (!text) return '';
+  return text
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
 function ScoreRing({ score }: { score: number }) {
   const r = 22, circ = 2 * Math.PI * r, offset = circ - (score / 100) * circ, color = scoreColor(score);
   return (
@@ -696,7 +730,7 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
           <>
             {job.job_highlights?.Responsibilities&&<div style={{marginBottom:16}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.2)",marginBottom:8}}>Responsibilities</div><ul style={{paddingLeft:18,display:"flex",flexDirection:"column",gap:6}}>{job.job_highlights.Responsibilities.slice(0,5).map((r,i)=><li key={i} style={{fontSize:13,color:"rgba(255,255,255,0.4)",lineHeight:1.55}}>{r}</li>)}</ul></div>}
             {job.job_highlights?.Qualifications&&<div style={{marginBottom:16}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.2)",marginBottom:8}}>Qualifications</div><ul style={{paddingLeft:18,display:"flex",flexDirection:"column",gap:6}}>{job.job_highlights.Qualifications.slice(0,5).map((q,i)=><li key={i} style={{fontSize:13,color:"rgba(255,255,255,0.4)",lineHeight:1.55}}>{q}</li>)}</ul></div>}
-            {job.job_description&&!job.job_highlights?.Responsibilities&&<div style={{marginBottom:16}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.2)",marginBottom:8}}>About this role</div><p style={{fontSize:13,color:"rgba(255,255,255,0.35)",lineHeight:1.7}}>{job.job_description.slice(0,800)}...</p></div>}
+            {job.job_description&&!job.job_highlights?.Responsibilities&&<div style={{marginBottom:16}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.2)",marginBottom:8}}>About this role</div><p style={{fontSize:13,color:"rgba(255,255,255,0.35)",lineHeight:1.7}}>{normalizeJobDescription(job.job_description).slice(0,800)}...</p></div>}
           </>
         )}
         <div style={{display:"flex",gap:10,alignItems:"center",marginTop:20,paddingTop:18,borderTop:"1px solid rgba(255,255,255,0.05)",flexWrap:"wrap"}}>
@@ -1339,8 +1373,8 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
     if (!desc || typeof desc !== 'string') {
       return { text: 'Description unavailable. Open source posting for details.', available: false };
     }
-    const cleaned = desc.replace(/<[^>]*>/g, '').trim();
-    return { text: cleaned.slice(0, 140), available: cleaned.length > 0 };
+    const cleaned = normalizeJobDescription(desc);
+    return { text: cleaned.slice(0, 180), available: cleaned.length > 0 };
   };
 
   return(
@@ -1372,8 +1406,8 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           <button style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.5}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":t.t3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
           </button>
-          <span style={{fontSize:10,color:t.t4}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
-          {(()=>{const ts=job.job_posted_at_timestamp;const hrs=ts?(Date.now()/1000-ts)/3600:999;const count=hrs<=1?'~2 applicants':hrs<=3?'~8 applicants':hrs<=6?'~18 applicants':hrs<=12?'~40 applicants':hrs<=24?'~75 applicants':'150+ applicants';const color=hrs<=6?'#8eb29b':hrs<=24?'#d6b268':'rgba(239,68,68,0.65)';const bg=hrs<=6?'rgba(52,211,153,0.10)':hrs<=24?'rgba(251,191,36,0.08)':'rgba(239,68,68,0.07)';const border=hrs<=6?'1px solid rgba(52,211,153,0.18)':hrs<=24?'1px solid rgba(251,191,36,0.16)':'1px solid rgba(239,68,68,0.14)';return hrs>=999?null:<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:bg,color,border,marginLeft:6,flexShrink:0}}>👤 {count}</span>;})()}
+          <span style={{fontSize:10,color:t.t4}}>{getEarlyBirdStatus(job).label}</span>
+          {(()=>{const hrs=getEarlyBirdStatus(job).hoursOld;const count=hrs<=1?'~2 applicants':hrs<=3?'~8 applicants':hrs<=6?'~18 applicants':hrs<=12?'~40 applicants':hrs<=24?'~75 applicants':'150+ applicants';const color=hrs<=6?'#8eb29b':hrs<=24?'#d6b268':'rgba(239,68,68,0.65)';const bg=hrs<=6?'rgba(52,211,153,0.10)':hrs<=24?'rgba(251,191,36,0.08)':'rgba(239,68,68,0.07)';const border=hrs<=6?'1px solid rgba(52,211,153,0.18)':hrs<=24?'1px solid rgba(251,191,36,0.16)':'1px solid rgba(239,68,68,0.14)';return <span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:bg,color,border,marginLeft:6,flexShrink:0}}>👤 {count}</span>;})()}
         </div>
       </div>
 
@@ -1398,7 +1432,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         <div style={{display:"flex",alignItems:"center",padding:"3px 8px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
           <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
         </div>
-        {isH1bSponsor(job.employer_name)&&<span style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",color:"#34d399",fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:100}}>✓ H1B</span>}
+        {(()=>{const h1b=getH1BStatus(job);return h1b?<span style={{background:h1b.sponsors?"rgba(52,211,153,0.08)":"rgba(99,102,241,0.08)",border:h1b.sponsors?"1px solid rgba(52,211,153,0.2)":"1px solid rgba(99,102,241,0.2)",color:h1b.sponsors?"#34d399":"#818cf8",fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:100}}>{h1b.label}</span>:null;})()}
       </div>
 
       {/* ROW 3b: Description preview */}
@@ -2112,16 +2146,16 @@ export default function Home() {
   const isH1B = (job: any): boolean => isH1bSponsor(job.employer_name)
 
   const modeFilteredJobs=activeMode==='earlybird'
-    ?jobs.filter(isEarlyBird)
+    ?jobs.filter(j=>getEarlyBirdStatus(j).isEarly)
     :activeMode==='h1b'
     ?jobs.filter(isH1B)
     :jobs;
-  const smartEbCount=jobs.filter(isEarlyBird).length;
+  const smartEbCount=jobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
   const h1bCount=jobs.filter(isH1B).length;
   const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
-  const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(isEarlyBird):allSaved;
+  const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(j=>getEarlyBirdStatus(j).isEarly):allSaved;
   const isEbMode=activeTab==="earlybird";
-  const hotCount=jobs.filter(isEarlyBird).filter(j=>isHot(j.job_posted_at_datetime_utc)).length;
+  const hotCount=jobs.filter(j=>getEarlyBirdStatus(j).isHotJob).length;
   const totalPages=Math.ceil(displayJobs.length/JOBS_PER_PAGE);
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
   const currentLoading=isEbMode?ebLoading:loading;

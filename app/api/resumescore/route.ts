@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
     const prompt = `You are an expert ATS (Applicant Tracking System) and career coach. Analyze this resume and return ONLY a JSON object with no markdown, no code blocks, no explanation.
 
-Be strict and accurate. Most resumes have real weaknesses. A weak resume should score 30-50. Only exceptional, polished resumes with strong metrics, clean formatting signals, and comprehensive content should score above 85. Do not be generous — score what you actually see.
+Be strict and harsh. Most resumes have real weaknesses. A weak resume should score 30-50. A resume missing an education section scores maximum 60. A resume with no quantified achievements (numbers, percentages, dollar amounts) scores maximum 65. Only exceptional, complete, polished resumes with strong metrics, clean formatting, and comprehensive content should score above 85. Average resumes score 50-70. Be realistic — do not be generous.
 
 RESUME:
 ${resumeText.slice(0, 4000)}
