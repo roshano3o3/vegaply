@@ -1859,16 +1859,26 @@ export default function Home() {
     return true;
   });
 
+  const isEarlyBird = (job: any): boolean => {
+    const ts = job.job_posted_at_timestamp
+    if (!ts || ts === 0) return true
+    const hoursOld = (Date.now() / 1000 - ts) / 3600
+    return hoursOld <= 72
+  }
+
+  const isH1B = (job: any): boolean => isH1bSponsor(job.employer_name)
+
   const modeFilteredJobs=activeMode==='earlybird'
-    ?jobs.filter(job=>!job.job_posted_at_datetime_utc||getHoursAgo(job.job_posted_at_datetime_utc)<=72)
+    ?jobs.filter(isEarlyBird)
     :activeMode==='h1b'
-    ?jobs.filter(job=>isH1bSponsor(job.employer_name))
+    ?jobs.filter(isH1B)
     :jobs;
-  const smartEbCount=jobs.filter(j=>!j.job_posted_at_datetime_utc||getHoursAgo(j.job_posted_at_datetime_utc)<=72).length||earlyBirdJobs.length;
+  const smartEbCount=jobs.filter(isEarlyBird).length;
+  const h1bCount=jobs.filter(isH1B).length;
   const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
-  const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?earlyBirdJobs:allSaved;
+  const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(isEarlyBird):allSaved;
   const isEbMode=activeTab==="earlybird";
-  const hotCount=earlyBirdJobs.filter(j=>isHot(j.job_posted_at_datetime_utc)).length;
+  const hotCount=jobs.filter(isEarlyBird).filter(j=>isHot(j.job_posted_at_datetime_utc)).length;
   const totalPages=Math.ceil(displayJobs.length/JOBS_PER_PAGE);
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
   const currentLoading=isEbMode?ebLoading:loading;
