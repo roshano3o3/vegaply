@@ -1323,7 +1323,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       animate={{opacity:1,y:0,scale:1}}
       exit={{opacity:0,scale:0.96}}
       transition={{duration:0.35,delay:(index??0)*0.05,ease:[0.34,1.56,0.64,1]}}
-      style={{display:"flex",flexDirection:"column",gap:10,position:"relative",overflow:"hidden"}}
+      style={{display:"flex",flexDirection:"column",gap:10,background:'linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16,position:"relative",overflow:"hidden",cursor:"pointer",boxShadow:'0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)'}}
     >
       {/* TOP GRADIENT LINE */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)',pointerEvents:'none'}}/>
@@ -2458,7 +2458,7 @@ export default function Home() {
               {autoOpenDone&&<div style={{background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:12,fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:8}}>🚀 Opened top 3 matches in new tabs!</div>}
 
               {currentLoading&&(
-                <div className="jobs-list">
+                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
                   {[...Array(5)].map((_,i)=><SkeletonRow key={i}/>)}
                 </div>
               )}
@@ -2469,7 +2469,7 @@ export default function Home() {
                     Showing <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{(currentPage-1)*JOBS_PER_PAGE+1}–{Math.min(currentPage*JOBS_PER_PAGE,displayJobs.length)}</strong> of <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{displayJobs.length}</strong> jobs
                     {isEbMode&&<span style={{color:"#f59e0b",fontWeight:600}}> · ⚡ All posted today</span>}
                   </div>
-                  <div className="jobs-list">
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
                     <AnimatePresence mode="popLayout">
                     {paginatedJobs.map((job,idx)=>(
                       <JobCard
