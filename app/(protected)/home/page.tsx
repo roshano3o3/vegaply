@@ -75,11 +75,16 @@ const H1B_SPONSORS = new Set([
   'tableau','qlik','microstrategy','domo','looker','thoughtspot','incorta',
   'sigma','mode','hex','deepnote','domino','dataiku','h2o',
   'sas','spss','stata','mathworks','ansys','dassault','ptc','siemens',
+  'northwell','sanofi','speechify','robert half','kelly','adecco','manpower',
+  'randstad','insight global','tek systems',
 ]);
 function isH1bSponsor(name?: string): boolean {
   if (!name) return false;
-  const n = name.toLowerCase();
-  return [...H1B_SPONSORS].some(s => n.includes(s) || s.includes(n.split(' ')[0]));
+  const n = name.toLowerCase().trim();
+  return [...H1B_SPONSORS].some(s => {
+    const sp = s.toLowerCase().trim();
+    return n.includes(sp) || sp.includes(n) || n.split(' ')[0] === sp.split(' ')[0];
+  });
 }
 
 function getHoursAgo(d?: string) { return d ? (Date.now() - new Date(d).getTime()) / 3600000 : 999; }
@@ -1801,7 +1806,7 @@ export default function Home() {
   });
 
   const modeFilteredJobs=activeMode==='earlybird'
-    ?jobs.filter(job=>getHoursAgo(job.job_posted_at_datetime_utc)<=24)
+    ?jobs.filter(job=>!job.job_posted_at_datetime_utc||getHoursAgo(job.job_posted_at_datetime_utc)<=72)
     :activeMode==='h1b'
     ?jobs.filter(job=>isH1bSponsor(job.employer_name))
     :jobs;
@@ -2511,8 +2516,13 @@ export default function Home() {
                 activeTab==="results"&&activeMode==='h1b'&&hasSearched?(
                   <div style={{textAlign:'center',padding:'60px 20px'}}>
                     <div style={{fontSize:40,marginBottom:16}}>🌐</div>
-                    <div style={{fontSize:18,fontWeight:700,color:'rgba(255,255,255,0.7)',marginBottom:8}}>No H1B sponsors found for this search</div>
-                    <div style={{fontSize:14,color:'rgba(255,255,255,0.3)'}}>Try searching &quot;Software Engineer&quot; or &quot;Data Scientist&quot; — most H1B sponsors hire for tech roles</div>
+                    <div style={{fontSize:18,fontWeight:700,color:'rgba(255,255,255,0.7)',marginBottom:8}}>No H1B sponsors found for this role</div>
+                    <div style={{fontSize:14,color:'rgba(255,255,255,0.35)',marginBottom:20}}>Try &quot;Software Engineer&quot;, &quot;Data Scientist&quot; or &quot;Product Manager&quot; — most H1B sponsors hire for tech roles</div>
+                    <div style={{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap'}}>
+                      {['Software Engineer','Data Scientist','Product Manager'].map(r=>(
+                        <button key={r} onClick={()=>{setJobRole(r);setActiveMode('all');}} style={{background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.2)',borderRadius:100,padding:'7px 16px',fontSize:12,color:'#8eb29b',cursor:'pointer',fontFamily:'inherit'}}>{r}</button>
+                      ))}
+                    </div>
                   </div>
                 ):activeTab==="saved"?(
                   <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
@@ -2523,8 +2533,9 @@ export default function Home() {
                 ):activeTab==="earlybird"?(
                   <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
                     <div style={{fontSize:36,marginBottom:12}}>⚡</div>
-                    <h3 style={{fontSize:16,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>No early bird jobs yet</h3>
-                    <p style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)"}}>Click ⚡ Early Bird to find freshly posted jobs</p>
+                    <h3 style={{fontSize:16,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>No fresh jobs found for this search</h3>
+                    <p style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)",marginBottom:16}}>Try a broader search term like &quot;Software Engineer&quot; or &quot;Data Analyst&quot;</p>
+                    <button onClick={()=>setActiveTab("results")} style={{background:'rgba(214,178,104,0.11)',border:'1px solid rgba(214,178,104,0.22)',borderRadius:100,padding:'8px 20px',fontSize:12,color:'#d6b268',cursor:'pointer',fontFamily:'inherit'}}>← Back to Results</button>
                   </div>
                 ):(
                   <motion.div
