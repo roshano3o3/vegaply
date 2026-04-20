@@ -99,8 +99,8 @@ function scoreColor(s: number) { return s >= 80 ? "#10b981" : s >= 65 ? "#818cf8
 function getCompetitionLabel(h: number) {
   if (h < 2)  return { label: "🔥 Very Low Competition", color: "#ef4444", bg: "rgba(239,68,68,0.08)" };
   if (h < 6)  return { label: "⚡ Still Early", color: "#f59e0b", bg: "rgba(245,158,11,0.08)" };
-  if (h < 12) return { label: "⏰ Act Soon", color: "rgba(255,255,255,0.4)", bg: "rgba(255,255,255,0.04)" };
-  return { label: "📅 Open", color: "rgba(255,255,255,0.2)", bg: "rgba(255,255,255,0.02)" };
+  if (h < 12) return { label: "⏰ Act Soon", color: "rgba(255,255,255,0.45)", bg: "rgba(255,255,255,0.05)" };
+  return { label: "📅 Open", color: "rgba(255,255,255,0.3)", bg: "rgba(255,255,255,0.05)" };
 }
 
 function ScoreRing({ score }: { score: number }) {
@@ -1362,7 +1362,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* ROW 3: Tags — max 3 */}
       <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-        {hot&&earlyBirdMode&&<span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100,background:"rgba(239,68,68,0.12)",color:"#f87171",border:"1px solid rgba(239,68,68,0.2)"}}>🔥 HOT</span>}
+        {hot&&<span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100,background:"rgba(239,68,68,0.12)",color:"#f87171",border:"1px solid rgba(239,68,68,0.2)"}}>🔥 HOT</span>}
         <div style={{display:"flex",alignItems:"center",padding:"3px 8px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
           <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
         </div>
@@ -2037,9 +2037,10 @@ export default function Home() {
         .badge-time{background:rgba(251,191,36,0.06);color:#fbbf24;border:1px solid rgba(251,191,36,0.12)}
 
         /* APPLY */
-        .apply-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;display:block;text-align:center;width:100%;box-shadow:0 2px 12px rgba(99,102,241,0.25);letter-spacing:-0.2px}
-        .apply-btn:hover{box-shadow:0 6px 28px rgba(99,102,241,0.4);transform:scale(1.01)}
+        .apply-btn{background:linear-gradient(135deg,#6f87c8,#5b73b4)!important;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;display:block;text-align:center;width:100%;box-shadow:0 4px 14px rgba(111,135,200,0.25)!important;letter-spacing:-0.2px}
+        .apply-btn:hover{box-shadow:0 6px 24px rgba(111,135,200,0.35)!important;transform:scale(1.01)}
         .apply-btn-hot{background:linear-gradient(135deg,#ef4444,#fbbf24)!important}
+        .btn-apply,[class*="apply"]{background:linear-gradient(135deg,#6f87c8,#5b73b4)!important;box-shadow:0 4px 14px rgba(111,135,200,0.25)!important}
 
         /* EB BANNER */
         .eb-banner{background:rgba(251,191,36,0.02);border:1px solid rgba(251,191,36,0.08);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
