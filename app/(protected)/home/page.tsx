@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 interface Job {
   job_id: string; job_title: string; employer_name: string; employer_logo?: string;
   job_city?: string; job_state?: string; job_country?: string; job_employment_type?: string;
-  job_posted_at_datetime_utc?: string; job_description?: string; job_apply_link?: string;
+  job_posted_at_datetime_utc?: string; job_posted_at_timestamp?: number; job_description?: string; job_apply_link?: string;
   job_is_remote?: boolean; job_min_salary?: number; job_max_salary?: number;
   job_salary_currency?: string; job_highlights?: { Qualifications?: string[]; Responsibilities?: string[]; Benefits?: string[] };
 }
@@ -667,6 +667,19 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
           {badge&&<span className="badge badge-type">{badge}</span>}
           {job.job_is_remote&&<span className="badge badge-remote">Remote</span>}
           <span className="badge badge-time">{timeAgo(job.job_posted_at_datetime_utc)}</span>
+          {(() => {
+            const ts = job.job_posted_at_timestamp
+            const hrs = ts ? (Date.now()/1000 - ts)/3600 : 999
+            const count = hrs <= 1 ? '~2 applicants' : hrs <= 3 ? '~8 applicants' : hrs <= 6 ? '~18 applicants' : hrs <= 12 ? '~40 applicants' : hrs <= 24 ? '~75 applicants' : '150+ applicants'
+            const color = hrs <= 6 ? '#8eb29b' : hrs <= 24 ? '#d6b268' : 'rgba(239,68,68,0.65)'
+            const bg = hrs <= 6 ? 'rgba(52,211,153,0.10)' : hrs <= 24 ? 'rgba(251,191,36,0.08)' : 'rgba(239,68,68,0.07)'
+            const border = hrs <= 6 ? '1px solid rgba(52,211,153,0.18)' : hrs <= 24 ? '1px solid rgba(251,191,36,0.16)' : '1px solid rgba(239,68,68,0.14)'
+            return (
+              <span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:bg,color,border,marginLeft:6,flexShrink:0}}>
+                👤 {count}
+              </span>
+            )
+          })()}
           {(job.job_min_salary||job.job_max_salary)&&<span className="badge badge-salary">💰 {job.job_salary_currency??"$"}{job.job_min_salary?.toLocaleString()}–{job.job_max_salary?.toLocaleString()}</span>}
         </div>
         {job.match&&(
@@ -1350,11 +1363,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
             <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":t.t3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
           </button>
           <span style={{fontSize:10,color:t.t4}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
-          {getApplicantEstimate(hours)&&(
-            <span style={{fontSize:9,fontWeight:600,padding:'2px 7px',borderRadius:999,background:hours<=6?'rgba(52,211,153,0.10)':hours<=24?'rgba(251,191,36,0.08)':'rgba(239,68,68,0.07)',color:hours<=6?'#8eb29b':hours<=24?'#d6b268':'rgba(239,68,68,0.65)',border:hours<=6?'1px solid rgba(52,211,153,0.18)':hours<=24?'1px solid rgba(251,191,36,0.16)':'1px solid rgba(239,68,68,0.14)',display:'flex',alignItems:'center',gap:3}}>
-              👤 {getApplicantEstimate(hours)}
-            </span>
-          )}
+          {(()=>{const ts=job.job_posted_at_timestamp;const hrs=ts?(Date.now()/1000-ts)/3600:999;const count=hrs<=1?'~2 applicants':hrs<=3?'~8 applicants':hrs<=6?'~18 applicants':hrs<=12?'~40 applicants':hrs<=24?'~75 applicants':'150+ applicants';const color=hrs<=6?'#8eb29b':hrs<=24?'#d6b268':'rgba(239,68,68,0.65)';const bg=hrs<=6?'rgba(52,211,153,0.10)':hrs<=24?'rgba(251,191,36,0.08)':'rgba(239,68,68,0.07)';const border=hrs<=6?'1px solid rgba(52,211,153,0.18)':hrs<=24?'1px solid rgba(251,191,36,0.16)':'1px solid rgba(239,68,68,0.14)';return hrs>=999?null:<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:bg,color,border,marginLeft:6,flexShrink:0}}>👤 {count}</span>;})()}
         </div>
       </div>
 
@@ -2063,7 +2072,7 @@ export default function Home() {
         /* JOB GRID — 2-col */
         .jobs-list{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:12px!important;padding:14px 16px!important}
         @media(max-width:900px){.jobs-list{grid-template-columns:1fr!important}}
-        .job-card{background:linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;cursor:default;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}
+        .job-card{background:linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;cursor:default;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05);animation:cardPulse 5s ease infinite}
         .job-card:hover{border-color:rgba(99,102,241,0.35);box-shadow:0 6px 24px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.07)}
         .job-card-hot{border-color:rgba(251,191,36,0.2)!important}
 
@@ -2088,7 +2097,7 @@ export default function Home() {
         .badge-time{background:rgba(251,191,36,0.06);color:#fbbf24;border:1px solid rgba(251,191,36,0.12)}
 
         /* APPLY */
-        .apply-btn{background:linear-gradient(135deg,#6f87c8,#5b73b4)!important;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;display:block;text-align:center;width:100%;box-shadow:0 4px 14px rgba(111,135,200,0.25)!important;letter-spacing:-0.2px}
+        .apply-btn{background:linear-gradient(270deg,#6f87c8,#8a9fd4,#6f87c8)!important;background-size:200% auto!important;animation:btnShimmer 3s linear infinite!important;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:box-shadow .2s;text-decoration:none;display:block;text-align:center;width:100%;box-shadow:0 4px 14px rgba(111,135,200,0.25)!important;letter-spacing:-0.2px}
         .apply-btn:hover{box-shadow:0 6px 24px rgba(111,135,200,0.35)!important;transform:scale(1.01)}
         .apply-btn-hot{background:linear-gradient(135deg,#ef4444,#fbbf24)!important}
         .btn-apply,[class*="apply"]{background:linear-gradient(135deg,#6f87c8,#5b73b4)!important;box-shadow:0 4px 14px rgba(111,135,200,0.25)!important}
@@ -2110,8 +2119,10 @@ export default function Home() {
         @keyframes skeletonShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
         @keyframes ebPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0.12)}}
         @keyframes cardGlow{0%,100%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}50%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05),0 0 20px rgba(111,135,200,0.06)}}
+        @keyframes cardPulse{0%,100%{border-color:rgba(255,255,255,0.08)}50%{border-color:rgba(111,135,200,0.18)}}
         @keyframes hotGlow{0%,100%{box-shadow:0 2px 6px rgba(249,115,22,0.2)}50%{box-shadow:0 2px 12px rgba(249,115,22,0.45)}}
         @keyframes buttonShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+        @keyframes btnShimmer{0%{background-position:0% center}100%{background-position:200% center}}
 
         /* SPINNERS */
         .spin{width:16px;height:16px;border:2px solid rgba(99,102,241,0.15);border-top-color:#818cf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
