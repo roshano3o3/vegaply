@@ -1330,8 +1330,15 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
   return badges;
 }
 
-// JOB CARD — 2x3 grid, highlighted Match + Prep
-// PART 8: Skeleton row component
+function getLogoStyle(name: string): { bg: string; color: string } {
+  const c = (name || 'A')[0].toUpperCase();
+  if ('ABCDE'.includes(c)) return { bg: 'rgba(99,102,241,0.14)', color: '#818cf8' };
+  if ('FGHIJ'.includes(c)) return { bg: 'rgba(236,72,153,0.14)', color: '#f472b6' };
+  if ('KLMNO'.includes(c)) return { bg: 'rgba(52,211,153,0.14)', color: '#34d399' };
+  if ('PQRST'.includes(c)) return { bg: 'rgba(251,191,36,0.14)', color: '#fbbf24' };
+  return { bg: 'rgba(154,116,223,0.14)', color: '#a78bfa' };
+}
+
 function SkeletonRow() {
   return (
     <div style={{display:'flex',alignItems:'center',gap:14,padding:'14px 18px',background:'rgba(13,18,32,0.6)',border:'1px solid rgba(93,104,130,0.08)',borderRadius:14,position:'relative',overflow:'hidden'}}>
@@ -1377,6 +1384,10 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
     return { text: cleaned.slice(0, 180), available: cleaned.length > 0 };
   };
 
+  const ebStatus = getEarlyBirdStatus(job);
+  const h1bStatus = getH1BStatus(job);
+  const logoStyle = getLogoStyle(job.employer_name || '');
+
   return(
     <motion.div
       className="job-card"
@@ -1384,30 +1395,41 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       initial={{opacity:0,y:16}}
       animate={{opacity:1,y:0}}
       exit={{opacity:0,scale:0.96}}
-      whileHover={{y:-3,boxShadow:'0 16px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(111,135,200,0.20),0 0 30px rgba(111,135,200,0.08)',borderColor:'rgba(111,135,200,0.30)',transition:{duration:0.2}}}
+      whileHover={{y:-3,boxShadow:'0 16px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(111,135,200,0.22)',borderColor:'rgba(111,135,200,0.30)',transition:{duration:0.2}}}
       transition={{duration:0.35,delay:Math.min((index??0)*0.05,0.25),ease:[0.25,0.46,0.45,0.94]}}
-      style={{display:"flex",flexDirection:"column",gap:10,background:'linear-gradient(180deg,#21242e 0%,#1e2129 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16,position:"relative",overflow:"hidden",cursor:"pointer",boxShadow:'0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)',animation:'cardGlow 4s ease infinite',animationDelay:`${(index??0)*0.8}s`}}
+      style={{background:'linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:18,padding:'18px 18px 14px',position:'relative',overflow:'hidden',cursor:'pointer',boxShadow:'0 2px 12px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)',transition:'all 0.22s cubic-bezier(0.34,1.56,0.64,1)',display:'flex',flexDirection:'column',gap:10}}
     >
-      {/* LEFT ACCENT BAR */}
-      <motion.div initial={{opacity:0,scaleY:0}} whileHover={{opacity:1,scaleY:1}} transition={{duration:0.2}} style={{position:'absolute',top:0,left:0,bottom:0,width:2,background:'linear-gradient(180deg,#6f87c8,#9a74df)',borderRadius:'16px 0 0 16px',transformOrigin:'top',pointerEvents:'none'}}/>
-      {/* TOP GRADIENT LINE */}
-      <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)',pointerEvents:'none'}}/>
+      {/* TOP SHIMMER LINE */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(111,135,200,0.2),transparent)',pointerEvents:'none'}}/>
 
-      {/* ROW 1: Logo + title + company + time */}
-      <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
-        <div style={{width:40,height:40,borderRadius:8,border:`1px solid ${t.bd}`,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:t.bg,flexShrink:0,cursor:"pointer"}} onClick={onClick}>
-          {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:(()=>{const ch=(job.employer_name?.[0]??"?").toUpperCase();const logoColor=ch>='A'&&ch<='E'?'#818cf8':ch>='F'&&ch<='K'?'#ec4899':ch>='L'&&ch<='R'?'#34d399':'#fbbf24';return<span style={{fontSize:16,fontWeight:700,color:logoColor}}>{ch}</span>;})()}
+      {/* HEADER ROW */}
+      <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
+        {/* Company logo */}
+        <div
+          style={{width:40,height:40,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,fontWeight:800,flexShrink:0,border:'1px solid rgba(255,255,255,0.08)',fontFamily:'var(--font-display)',background:logoStyle.bg,color:logoStyle.color,overflow:'hidden',cursor:'pointer'}}
+          onClick={onClick}
+        >
+          {job.employer_logo
+            ? <img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>
+            : (job.employer_name||'?')[0].toUpperCase()
+          }
         </div>
-        <div style={{flex:1,minWidth:0,overflow:"hidden",cursor:"pointer"}} onClick={onClick}>
-          <h3 style={{fontFamily:'var(--font-display)',fontSize:15,fontWeight:700,color:'rgba(255,255,255,0.92)',lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",letterSpacing:'-0.3px'}}>{job.job_title}</h3>
-          <p style={{fontFamily:'var(--font-primary)',fontSize:12,color:"rgba(255,255,255,0.55)",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.employer_name}</p>
+        {/* Title + company + city */}
+        <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={onClick}>
+          <div style={{fontFamily:'var(--font-display)',fontSize:15,fontWeight:700,color:'rgba(255,255,255,0.92)',letterSpacing:'-0.3px',lineHeight:1.3,marginBottom:3,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>
+            {job.job_title}
+          </div>
+          <div style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:500,color:'rgba(255,255,255,0.50)',display:'flex',alignItems:'center',gap:6}}>
+            <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{job.employer_name}</span>
+            {job.job_city&&<><span style={{color:'rgba(255,255,255,0.2)',flexShrink:0}}>·</span><span style={{color:'rgba(255,255,255,0.35)',flexShrink:0}}>{job.job_city}</span></>}
+          </div>
         </div>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
+        {/* Time + save */}
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4,flexShrink:0}}>
           <button style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.5}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":t.t3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":"rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
           </button>
-          <span style={{fontFamily:'var(--font-primary)',fontSize:10,fontWeight:400,color:t.t4}}>{getEarlyBirdStatus(job).label}</span>
-          {(()=>{const hrs=getEarlyBirdStatus(job).hoursOld;const count=hrs<=1?'~2 applicants':hrs<=3?'~8 applicants':hrs<=6?'~18 applicants':hrs<=12?'~40 applicants':hrs<=24?'~75 applicants':'150+ applicants';const color=hrs<=6?'#8eb29b':hrs<=24?'#d6b268':'rgba(239,68,68,0.65)';const bg=hrs<=6?'rgba(52,211,153,0.10)':hrs<=24?'rgba(251,191,36,0.08)':'rgba(239,68,68,0.07)';const border=hrs<=6?'1px solid rgba(52,211,153,0.18)':hrs<=24?'1px solid rgba(251,191,36,0.16)':'1px solid rgba(239,68,68,0.14)';return <span style={{fontFamily:'var(--font-primary)',fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:bg,color,border,marginLeft:6,flexShrink:0}}>👤 {count}</span>;})()}
+          <span style={{fontFamily:'var(--font-primary)',fontSize:10,fontWeight:400,color:'rgba(255,255,255,0.25)'}}>{ebStatus.label}</span>
         </div>
       </div>
 
@@ -1426,24 +1448,18 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         </div>
       )}
 
-      {/* ROW 3: Tags — max 3 */}
-      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-        {hot&&<span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100,background:"rgba(239,68,68,0.12)",color:"#f87171",border:"1px solid rgba(239,68,68,0.2)",animation:'hotGlow 2s ease infinite'}}>🔥 HOT</span>}
-        <div style={{display:"flex",alignItems:"center",padding:"3px 8px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
-          <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
-        </div>
-        {(()=>{const h1b=getH1BStatus(job);return h1b?<span style={{background:h1b.sponsors?"rgba(52,211,153,0.08)":"rgba(99,102,241,0.08)",border:h1b.sponsors?"1px solid rgba(52,211,153,0.2)":"1px solid rgba(99,102,241,0.2)",color:h1b.sponsors?"#34d399":"#818cf8",fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:100}}>{h1b.label}</span>:null;})()}
+      {/* BADGES ROW */}
+      <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}}>
+        {ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:800,padding:'3px 8px',borderRadius:999,letterSpacing:'0.3px',background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',boxShadow:'0 2px 8px rgba(249,115,22,0.25)',fontFamily:'var(--font-primary)'}}>🔥 HOT</span>}
+        {ebStatus.isEarly&&!ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:'rgba(111,135,200,0.10)',color:'#818cf8',border:'1px solid rgba(111,135,200,0.20)',fontFamily:'var(--font-primary)'}}>⚡ Still Early</span>}
+        {h1bStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:h1bStatus.sponsors?'rgba(142,178,155,0.10)':'rgba(214,178,104,0.08)',color:h1bStatus.sponsors?'#8eb29b':'#d6b268',border:h1bStatus.sponsors?'1px solid rgba(142,178,155,0.20)':'1px solid rgba(214,178,104,0.18)',fontFamily:'var(--font-primary)'}}>{h1bStatus.sponsors?'✓ H1B':'~ H1B Likely'}</span>}
+        {(()=>{const hrs=ebStatus.hoursOld;const count=hrs<=1?'~2':hrs<=3?'~8':hrs<=6?'~18':hrs<=12?'~40':hrs<=24?'~80':hrs<=48?'~150':'200+';const isLow=hrs<=12;return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:isLow?'rgba(142,178,155,0.08)':'rgba(239,68,68,0.06)',color:isLow?'#8eb29b':'rgba(239,68,68,0.6)',border:isLow?'1px solid rgba(142,178,155,0.16)':'1px solid rgba(239,68,68,0.12)',fontFamily:'var(--font-primary)'}}>👤 {count} applicants</span>})()}
       </div>
 
-      {/* ROW 3b: Description preview */}
-      {(() => {
-        const { text, available } = getJobDescription();
-        return (
-          <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:available?'rgba(255,255,255,0.48)':'rgba(255,255,255,0.30)',lineHeight:1.65,margin:'0 0 2px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const,letterSpacing:'0.1px',fontStyle:available?'normal':'italic'}}>
-            {text}{available && '…'}
-          </p>
-        );
-      })()}
+      {/* DESCRIPTION */}
+      <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.45)',lineHeight:1.65,margin:0,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const}}>
+        {getJobDescription().text}
+      </p>
 
       {/* Quick Match Preview */}
       {qm ? (
@@ -1609,13 +1625,11 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
             border: '1px solid rgba(111,135,200,0.12)',
             borderRadius: 8,
             padding: '7px 12px',
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 600,
-            color: 'rgba(111,135,200,0.7)',
+            color: 'rgba(111,135,200,0.65)',
             cursor: 'pointer',
-            fontFamily: 'inherit',
-            marginBottom: 8,
-            marginTop: 4,
+            fontFamily: 'var(--font-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1649,7 +1663,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           href={job.job_apply_link} target="_blank" rel="noopener noreferrer"
           whileHover={{scale:1.02,boxShadow:'0 8px 32px rgba(99,102,241,0.35)'}}
           whileTap={{scale:0.98}}
-          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6f87c8 0%,#8a9fd4 50%,#6f87c8 100%)',backgroundSize:'200% auto',border:'none',borderRadius:10,padding:'8px 16px',color:'#fff',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.1px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 14px rgba(111,135,200,0.25),inset 0 1px 0 rgba(255,255,255,0.14)',animation:hot&&earlyBirdMode?undefined:'buttonShimmer 3s linear infinite'}}
+          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6f87c8,#5b73b4)',border:'none',borderRadius:12,padding:'12px',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'var(--font-primary)',letterSpacing:'-0.2px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 16px rgba(111,135,200,0.25),inset 0 1px 0 rgba(255,255,255,0.15)',transition:'all 0.2s ease'}}
           onClick={e=>e.stopPropagation()}
         >
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
@@ -1664,16 +1678,16 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         whileHover={autoApplyResult!=="applied"&&!isAutoApplying?{backgroundColor:'rgba(99,102,241,0.1)',borderColor:'rgba(99,102,241,0.4)'}:{}}
         whileTap={{scale:0.98}}
         style={{
-          width:"100%",padding:"9px",borderRadius:12,border:"1px solid",fontSize:12,fontWeight:500,
-          cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:"inherit",
-          display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+          width:"100%",padding:"9px",borderRadius:12,border:"1px solid",fontSize:11,fontWeight:600,
+          cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:'var(--font-primary)',
+          display:"flex",alignItems:"center",justifyContent:"center",gap:6,transition:'all 0.18s ease',
           ...(autoApplyResult==="applied"
             ?{background:"rgba(16,185,129,0.1)",borderColor:"rgba(16,185,129,0.3)",color:"#34d399"}
             :autoApplyResult==="low_match"
               ?{background:"rgba(245,158,11,0.08)",borderColor:"rgba(245,158,11,0.3)",color:"#fbbf24"}
               :isAutoApplying
-                ?{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)"}
-                :{background:"rgba(255,255,255,0.04)",borderColor:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)"})
+                ?{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.30)"}
+                :{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.30)"})
         }}
       >
         {isAutoApplying?<><div className="spin-sm"/>Analyzing…</>:autoApplyResult==="applied"?"✅ Applied":autoApplyResult==="low_match"?"⚠️ Low Match":"⚡ Auto Apply"}
