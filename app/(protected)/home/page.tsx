@@ -1279,6 +1279,25 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 }
 
 // JOB CARD — 2x3 grid, highlighted Match + Prep
+// PART 8: Skeleton row component
+function SkeletonRow() {
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:14,padding:'14px 18px',background:'rgba(13,18,32,0.6)',border:'1px solid rgba(93,104,130,0.08)',borderRadius:14,position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.022) 50%,transparent 100%)',animation:'skeletonShimmer 1.6s ease-in-out infinite'}}/>
+      <div style={{width:40,height:40,borderRadius:8,background:'rgba(93,104,130,0.1)',flexShrink:0}}/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',gap:7}}>
+        <div style={{height:12,width:'52%',background:'rgba(93,104,130,0.1)',borderRadius:6}}/>
+        <div style={{height:10,width:'34%',background:'rgba(93,104,130,0.07)',borderRadius:6}}/>
+      </div>
+      <div style={{display:'flex',gap:6,flexShrink:0}}>
+        <div style={{height:26,width:60,background:'rgba(93,104,130,0.08)',borderRadius:6}}/>
+        <div style={{height:26,width:60,background:'rgba(93,104,130,0.08)',borderRadius:6}}/>
+      </div>
+      <div style={{height:30,width:90,background:'rgba(99,102,241,0.1)',borderRadius:8,flexShrink:0}}/>
+    </div>
+  );
+}
+
 function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, isAutoApplying, lm, index }: {
   job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;isAutoApplying:boolean;lm?:boolean;index?:number;
 }) {
@@ -1981,20 +2000,19 @@ export default function Home() {
         .toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.4)}
         .toggle.on::after{left:19px}
 
-        /* TABS */
-        .tabs-row{display:flex;gap:2px;margin-bottom:24px;border-bottom:1px solid rgba(93,104,130,0.1);background:rgba(9,12,23,0.8);padding:0 4px}
-        .tab{padding:13px 16px;border:none;border-bottom:none;font-size:13px;font-weight:400;font-family:'DM Sans',sans-serif;cursor:pointer;transition:color .2s;background:transparent;color:rgba(255,255,255,0.28);white-space:nowrap;position:relative}
-        .tab.active{color:#fff;font-weight:600}
-        .tab.tab-eb.active{color:#fbbf24}
-        .tab.tab-tracker.active{color:#818cf8}
-        .tab.tab-analytics.active{color:#34d399}
-        .tab:hover:not(.active){color:rgba(255,255,255,0.55)}
+        /* TABS — pill style */
+        .tabs-row{display:flex;gap:4px;margin-bottom:20px;padding:4px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(93,104,130,0.08)}
+        .tab{padding:8px 14px;border:none;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,0.32);white-space:nowrap;position:relative;border-radius:8px}
+        .tab.active{color:#a5b4fc;font-weight:600;background:rgba(99,102,241,0.15)}
+        .tab.tab-eb.active{color:#fbbf24;background:rgba(251,191,36,0.1)}
+        .tab.tab-tracker.active{color:#818cf8;background:rgba(99,102,241,0.12)}
+        .tab.tab-analytics.active{color:#34d399;background:rgba(52,211,153,0.1)}
+        .tab:hover:not(.active){color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.04)}
 
-        /* JOB GRID */
-        .jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-        @media(min-width:1500px){.jobs-grid{grid-template-columns:repeat(3,1fr)}}
-        .job-card{background:#0d1220;border:1px solid rgba(93,104,130,0.12);border-radius:18px;padding:18px;cursor:default;transition:border-color .2s,box-shadow .2s}
-        .job-card:hover{border-color:rgba(99,102,241,0.28);box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+        /* JOB LIST — full-width flex column */
+        .jobs-list{display:flex;flex-direction:column;gap:8px}
+        .job-card{background:#0d1220;border:1px solid rgba(93,104,130,0.12);border-radius:14px;padding:16px 18px;cursor:default;transition:border-color .2s,box-shadow .2s}
+        .job-card:hover{border-color:rgba(99,102,241,0.28);box-shadow:0 4px 20px rgba(0,0,0,0.35)}
         .job-card-hot{border-color:rgba(251,191,36,0.14)!important}
 
         /* ACTION BUTTONS */
@@ -2036,6 +2054,8 @@ export default function Home() {
         .skel{background:rgba(93,104,130,0.1);border-radius:8px;position:relative;overflow:hidden}
         .skel::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.025),transparent);animation:shimmer 1.8s infinite}
         @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+        @keyframes skeletonShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+        @keyframes ebPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0.12)}}
 
         /* SPINNERS */
         .spin{width:16px;height:16px;border:2px solid rgba(99,102,241,0.15);border-top-color:#818cf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
@@ -2145,6 +2165,7 @@ export default function Home() {
 
           .content{padding:14px 12px;max-width:100%}
           .jobs-grid{grid-template-columns:1fr}
+          .jobs-list{gap:6px}
 
           .tabs-row{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:0;flex-wrap:nowrap}
           .tabs-row::-webkit-scrollbar{display:none}
@@ -2178,7 +2199,7 @@ export default function Home() {
       <div style={{position:'fixed',bottom:'20%',left:'15%',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,rgba(52,211,153,0.02) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientFloat 10s ease-in-out infinite reverse'}}/>
 
       {/* TOPBAR */}
-      <motion.header
+      <motion.nav
         className="topbar"
         initial={{opacity:0,y:-8}}
         animate={{opacity:1,y:0}}
@@ -2236,7 +2257,7 @@ export default function Home() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
-      </motion.header>
+      </motion.nav>
 
       {/* MOBILE SEARCH PANEL — conditionally rendered, hidden on desktop via CSS */}
       {showMobileSearch&&(
@@ -2436,14 +2457,8 @@ export default function Home() {
               {autoOpenDone&&<div style={{background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:12,fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:8}}>🚀 Opened top 3 matches in new tabs!</div>}
 
               {currentLoading&&(
-                <div className="jobs-grid">
-                  {[...Array(6)].map((_,i)=>(
-                    <div key={i} style={{background:darkMode?"rgba(255,255,255,0.025)":"#fff",border:`1px solid ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.07)"}`,borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:10}}>
-                      <div style={{display:"flex",gap:10}}><div className="skel" style={{width:42,height:42,borderRadius:8,flexShrink:0}}/><div style={{flex:1,display:"flex",flexDirection:"column",gap:7}}><div className="skel" style={{height:13,width:"68%"}}/><div className="skel" style={{height:10,width:"42%"}}/></div></div>
-                      <div className="skel" style={{height:32,borderRadius:7}}/>
-                      <div style={{display:"flex",gap:5}}><div className="skel" style={{height:30,flex:1,borderRadius:6}}/><div className="skel" style={{height:30,flex:1,borderRadius:6}}/><div className="skel" style={{height:30,flex:1,borderRadius:6}}/></div>
-                    </div>
-                  ))}
+                <div className="jobs-list">
+                  {[...Array(5)].map((_,i)=><SkeletonRow key={i}/>)}
                 </div>
               )}
 
@@ -2453,7 +2468,7 @@ export default function Home() {
                     Showing <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{(currentPage-1)*JOBS_PER_PAGE+1}–{Math.min(currentPage*JOBS_PER_PAGE,displayJobs.length)}</strong> of <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{displayJobs.length}</strong> jobs
                     {isEbMode&&<span style={{color:"#f59e0b",fontWeight:600}}> · ⚡ All posted today</span>}
                   </div>
-                  <div className="jobs-grid">
+                  <div className="jobs-list">
                     <AnimatePresence mode="popLayout">
                     {paginatedJobs.map((job,idx)=>(
                       <JobCard
@@ -2542,7 +2557,7 @@ export default function Home() {
         </main>
 
         {/* RIGHT PANEL */}
-        <aside className="right-panel">
+        <motion.aside className="right-panel" initial={{opacity:0,x:16}} animate={{opacity:1,x:0}} transition={{duration:0.4,delay:0.15,ease:'easeOut'}}>
           {/* STATS 2x2 */}
           <div style={{paddingBottom:20,marginBottom:20,borderBottom:'1px solid rgba(93,104,130,0.07)'}}>
             <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Overview</div>
@@ -2621,7 +2636,7 @@ export default function Home() {
               <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',lineHeight:1.6}}>Search for jobs to see analytics here</div>
             </div>
           )}
-        </aside>
+        </motion.aside>
       </div>
 
       {/* MODALS */}
