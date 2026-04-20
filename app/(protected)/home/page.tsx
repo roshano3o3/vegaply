@@ -1327,10 +1327,12 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       initial={{opacity:0,y:16}}
       animate={{opacity:1,y:0}}
       exit={{opacity:0,scale:0.96}}
-      whileHover={{y:-3,boxShadow:'0 12px 32px rgba(0,0,0,0.5),0 0 0 1px rgba(111,135,200,0.15)',transition:{duration:0.18}}}
+      whileHover={{y:-3,boxShadow:'0 16px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(111,135,200,0.20),0 0 30px rgba(111,135,200,0.08)',borderColor:'rgba(111,135,200,0.30)',transition:{duration:0.2}}}
       transition={{duration:0.35,delay:Math.min((index??0)*0.05,0.25),ease:[0.25,0.46,0.45,0.94]}}
-      style={{display:"flex",flexDirection:"column",gap:10,background:'linear-gradient(180deg,#21242e 0%,#1e2129 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16,position:"relative",overflow:"hidden",cursor:"pointer",boxShadow:'0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)'}}
+      style={{display:"flex",flexDirection:"column",gap:10,background:'linear-gradient(180deg,#21242e 0%,#1e2129 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16,position:"relative",overflow:"hidden",cursor:"pointer",boxShadow:'0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)',animation:'cardGlow 4s ease infinite',animationDelay:`${(index??0)*0.8}s`}}
     >
+      {/* LEFT ACCENT BAR */}
+      <motion.div initial={{opacity:0,scaleY:0}} whileHover={{opacity:1,scaleY:1}} transition={{duration:0.2}} style={{position:'absolute',top:0,left:0,bottom:0,width:2,background:'linear-gradient(180deg,#6f87c8,#9a74df)',borderRadius:'16px 0 0 16px',transformOrigin:'top',pointerEvents:'none'}}/>
       {/* TOP GRADIENT LINE */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)',pointerEvents:'none'}}/>
 
@@ -1340,14 +1342,19 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {job.employer_logo?<img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>:(()=>{const ch=(job.employer_name?.[0]??"?").toUpperCase();const logoColor=ch>='A'&&ch<='E'?'#818cf8':ch>='F'&&ch<='K'?'#ec4899':ch>='L'&&ch<='R'?'#34d399':'#fbbf24';return<span style={{fontSize:16,fontWeight:700,color:logoColor}}>{ch}</span>;})()}
         </div>
         <div style={{flex:1,minWidth:0,overflow:"hidden",cursor:"pointer"}} onClick={onClick}>
-          <h3 style={{fontSize:14,fontWeight:700,color:t.t1,lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.job_title}</h3>
-          <p style={{fontSize:11,color:"#818cf8",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.employer_name}</p>
+          <h3 style={{fontSize:14,fontWeight:700,color:'rgba(255,255,255,0.92)',lineHeight:1.3,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",letterSpacing:'-0.3px'}}>{job.job_title}</h3>
+          <p style={{fontSize:11,color:"rgba(255,255,255,0.55)",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.employer_name}</p>
         </div>
         <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0}}>
           <button style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.5}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#818cf8":"none"} stroke={saved?"#818cf8":t.t3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
           </button>
           <span style={{fontSize:10,color:t.t4}}>{timeAgo(job.job_posted_at_datetime_utc)}</span>
+          {getApplicantEstimate(hours)&&(
+            <span style={{fontSize:9,fontWeight:600,padding:'2px 7px',borderRadius:999,background:hours<=6?'rgba(52,211,153,0.10)':hours<=24?'rgba(251,191,36,0.08)':'rgba(239,68,68,0.07)',color:hours<=6?'#8eb29b':hours<=24?'#d6b268':'rgba(239,68,68,0.65)',border:hours<=6?'1px solid rgba(52,211,153,0.18)':hours<=24?'1px solid rgba(251,191,36,0.16)':'1px solid rgba(239,68,68,0.14)',display:'flex',alignItems:'center',gap:3}}>
+              👤 {getApplicantEstimate(hours)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -1368,7 +1375,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* ROW 3: Tags — max 3 */}
       <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-        {hot&&<span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100,background:"rgba(239,68,68,0.12)",color:"#f87171",border:"1px solid rgba(239,68,68,0.2)"}}>🔥 HOT</span>}
+        {hot&&<span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:100,background:"rgba(239,68,68,0.12)",color:"#f87171",border:"1px solid rgba(239,68,68,0.2)",animation:'hotGlow 2s ease infinite'}}>🔥 HOT</span>}
         <div style={{display:"flex",alignItems:"center",padding:"3px 8px",borderRadius:6,background:comp.bg,border:`1px solid ${comp.color}18`}}>
           <span style={{fontSize:10,fontWeight:700,color:comp.color}}>{comp.label}</span>
         </div>
@@ -1377,7 +1384,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* ROW 3b: Description preview */}
       {job.job_description&&(
-        <p style={{fontSize:11,color:'rgba(255,255,255,0.32)',lineHeight:1.6,margin:'0 0 2px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const,letterSpacing:'0.1px'}}>
+        <p style={{fontSize:12,color:'rgba(255,255,255,0.50)',lineHeight:1.7,margin:'0 0 2px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const,letterSpacing:'0.1px'}}>
           {job.job_description.replace(/<[^>]*>/g,'').slice(0,140)}…
         </p>
       )}
@@ -1404,7 +1411,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           href={job.job_apply_link} target="_blank" rel="noopener noreferrer"
           whileHover={{scale:1.02,boxShadow:'0 8px 32px rgba(99,102,241,0.35)'}}
           whileTap={{scale:0.98}}
-          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6f87c8,#5b73b4)',border:'none',borderRadius:10,padding:'8px 16px',color:'#fff',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.1px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 14px rgba(111,135,200,0.25),inset 0 1px 0 rgba(255,255,255,0.14)'}}
+          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6f87c8 0%,#8a9fd4 50%,#6f87c8 100%)',backgroundSize:'200% auto',border:'none',borderRadius:10,padding:'8px 16px',color:'#fff',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.1px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 14px rgba(111,135,200,0.25),inset 0 1px 0 rgba(255,255,255,0.14)',animation:hot&&earlyBirdMode?undefined:'buttonShimmer 3s linear infinite'}}
           onClick={e=>e.stopPropagation()}
         >
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
@@ -1542,6 +1549,19 @@ function PreferencesModal({ onClose, lm, onSave }: { onClose:()=>void; lm?:boole
       </div>
     </div>
   );
+}
+
+function getApplicantEstimate(h: number): string | null {
+  if (h >= 999) return null;
+  if (h <= 1) return '~2 applicants';
+  if (h <= 2) return '~5 applicants';
+  if (h <= 4) return '~12 applicants';
+  if (h <= 6) return '~20 applicants';
+  if (h <= 12) return '~45 applicants';
+  if (h <= 24) return '~80 applicants';
+  if (h <= 48) return '~150 applicants';
+  if (h <= 72) return '~200 applicants';
+  return '200+ applicants';
 }
 
 function scoreJob(job: JobWithMatch): number {
@@ -2048,7 +2068,7 @@ export default function Home() {
         .job-card-hot{border-color:rgba(251,191,36,0.2)!important}
 
         /* ACTION BUTTONS */
-        .action-card-btn{flex:1;min-width:fit-content;border-radius:7px;padding:6px 11px;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.35);transition:all .15s;white-space:nowrap}
+        .action-card-btn{flex:1;min-width:fit-content;border-radius:7px;padding:6px 11px;font-size:10px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.55);transition:all .15s;white-space:nowrap}
         .action-card-btn:hover{background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.28);color:#a5b4fc}
         .action-card-btn.match-btn{background:rgba(255,255,255,0.03);border-color:rgba(93,104,130,0.12);color:rgba(255,255,255,0.38)}
         .action-card-btn.match-btn.done{background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.22);color:#818cf8}
@@ -2089,6 +2109,9 @@ export default function Home() {
         @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
         @keyframes skeletonShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
         @keyframes ebPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0.12)}}
+        @keyframes cardGlow{0%,100%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}50%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05),0 0 20px rgba(111,135,200,0.06)}}
+        @keyframes hotGlow{0%,100%{box-shadow:0 2px 6px rgba(249,115,22,0.2)}50%{box-shadow:0 2px 12px rgba(249,115,22,0.45)}}
+        @keyframes buttonShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 
         /* SPINNERS */
         .spin{width:16px;height:16px;border:2px solid rgba(99,102,241,0.15);border-top-color:#818cf8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
@@ -2608,8 +2631,8 @@ export default function Home() {
                 {val:trackedApps.length,label:'Tracked',sub:trackedApps.length>0?'Applications':undefined,subColor:'#818cf8'},
               ] as {val:number;label:string;sub:string|undefined;subColor:string|undefined}[]).map((s,i)=>(
                 <div key={i} style={{background:'rgba(13,18,32,0.6)',border:'1px solid rgba(93,104,130,0.08)',borderRadius:12,padding:14}}>
-                  <div style={{fontFamily:'Georgia,serif',fontSize:26,fontWeight:700,color:'#fff',lineHeight:1}}>{s.val}</div>
-                  <div style={{fontSize:9,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(255,255,255,0.2)',marginTop:5}}>{s.label}</div>
+                  <div style={{fontFamily:'Georgia,serif',fontSize:26,fontWeight:700,color:'rgba(255,255,255,0.90)',lineHeight:1}}>{s.val}</div>
+                  <div style={{fontSize:9,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',marginTop:5}}>{s.label}</div>
                   {s.sub&&<div style={{fontSize:9,color:s.subColor,marginTop:3}}>{s.sub}</div>}
                 </div>
               ))}
