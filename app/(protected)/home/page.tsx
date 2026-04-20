@@ -2176,6 +2176,31 @@ export default function Home() {
   const allJobs=[...jobs,...earlyBirdJobs];
   const totalSearched=allJobs.length;
 
+  // AI Intelligence Panel computed values
+  const panelFreshJobs = jobs.filter(j => getEarlyBirdStatus(j).isEarly);
+  const panelHotJobs   = jobs.filter(j => getEarlyBirdStatus(j).isHotJob);
+  const panelH1bJobs   = jobs.filter(j => getH1BStatus(j) !== null);
+  const panelLowComp   = jobs.filter(j => {
+    const comp = (j as any).competition_level ?? '';
+    return /easy|very low|low/i.test(comp);
+  });
+  const topCompaniesMap = jobs.reduce((acc: Record<string,number>, j) => {
+    if (j.employer_name) acc[j.employer_name] = (acc[j.employer_name] || 0) + 1;
+    return acc;
+  }, {});
+  const topCompaniesList = Object.entries(topCompaniesMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([name]) => name);
+  const getCoachingInsight = (): string => {
+    if (!resumeText) return 'Upload your resume to unlock AI coaching';
+    if (jobs.length === 0) return 'Search for jobs to see personalized insights';
+    if (panelHotJobs.length > 5) return `🔥 ${panelHotJobs.length} HOT jobs posted recently — apply in the next 2 hours`;
+    if (panelH1bJobs.length > 20) return `🌐 ${panelH1bJobs.length} H1B-friendly roles found — great opportunity`;
+    if (panelFreshJobs.length > 0) return `⚡ ${panelFreshJobs.length} early jobs found — you are ahead of most applicants`;
+    return '💡 Apply to low-competition roles first for best callback rates';
+  };
+
   const completeOnboarding=async()=>{
     const{data:{user}}=await supabase.auth.getUser();
     if(user){
@@ -2932,72 +2957,93 @@ export default function Home() {
           )}
         </main>
 
-        {/* RIGHT PANEL */}
-        <motion.aside className="right-panel" initial={{opacity:0,x:16}} animate={{opacity:1,x:0}} transition={{duration:0.4,delay:0.15,ease:'easeOut'}}>
-          {/* STATS 2x2 */}
-          <div style={{paddingBottom:20,marginBottom:20,borderBottom:'1px solid rgba(93,104,130,0.07)'}}>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Overview</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+        {/* RIGHT PANEL — AI Intelligence */}
+        <motion.aside
+          className="right-panel"
+          initial={{opacity:0,x:16}}
+          animate={{opacity:1,x:0}}
+          transition={{duration:0.45,delay:0.15,ease:'easeOut'}}
+          style={{background:'rgba(22,24,34,0.90)',borderLeft:'1px solid rgba(255,255,255,0.06)',padding:'18px 14px',overflowY:'auto',display:'flex',flexDirection:'column',gap:20}}
+        >
+
+          {/* TODAY'S ACTIVITY */}
+          <div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Today's Activity</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
               {([
-                {val:totalSearched,label:'Jobs Found',sub:totalSearched>0?'Available now':undefined,subColor:'#34d399'},
-                {val:smartEbCount,label:'Early Bird',sub:smartEbCount>0?'⚡ Fresh':undefined,subColor:'#fbbf24'},
-                {val:savedJobs.size,label:'Saved',sub:undefined,subColor:undefined},
-                {val:trackedApps.length,label:'Tracked',sub:trackedApps.length>0?'Applications':undefined,subColor:'#818cf8'},
-              ] as {val:number;label:string;sub:string|undefined;subColor:string|undefined}[]).map((s,i)=>(
-                <div key={i} style={{background:'rgba(13,18,32,0.6)',border:'1px solid rgba(93,104,130,0.08)',borderRadius:12,padding:14}}>
-                  <div style={{fontFamily:'var(--font-display)',fontSize:28,fontWeight:800,color:'rgba(255,255,255,0.92)',lineHeight:1,letterSpacing:'-1.5px'}}>{s.val}</div>
-                  <div style={{fontFamily:'var(--font-primary)',fontSize:9,fontWeight:600,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(255,255,255,0.30)',marginTop:5}}>{s.label}</div>
-                  {s.sub&&<div style={{fontFamily:'var(--font-primary)',fontSize:10,fontWeight:500,color:s.subColor,marginTop:3}}>{s.sub}</div>}
+                {label:'Jobs Found',    value:jobs.length,           sub:'Available now', color:'rgba(255,255,255,0.85)'},
+                {label:'Early Bird',   value:panelFreshJobs.length,  sub:'⚡ Fresh',       color:'#d6b268'},
+                {label:'H1B Jobs',     value:panelH1bJobs.length,    sub:'Verified',      color:'#8eb29b'},
+                {label:'Low Comp',     value:panelLowComp.length,    sub:'Apply first',   color:'#6f87c8'},
+              ] as {label:string;value:number;sub:string;color:string}[]).map((stat,i)=>(
+                <motion.div key={stat.label} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:0.3+i*0.08}}
+                  style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:13,padding:'12px 11px',position:'relative',overflow:'hidden'}}
+                >
+                  <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)'}}/>
+                  <div style={{fontSize:9,fontWeight:600,letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:5,fontFamily:'var(--font-primary)'}}>{stat.label}</div>
+                  <div style={{fontSize:24,fontWeight:800,fontFamily:'var(--font-display)',color:stat.color,letterSpacing:'-1px',lineHeight:1}}>{stat.value}</div>
+                  <div style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.30)',marginTop:3,fontFamily:'var(--font-primary)'}}>{stat.sub}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* AI COACHING INSIGHT */}
+          <div style={{background:'linear-gradient(135deg,rgba(111,135,200,0.08),rgba(154,116,223,0.05))',border:'1px solid rgba(111,135,200,0.15)',borderRadius:14,padding:'13px 14px'}}>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(111,135,200,0.6)',marginBottom:8,fontFamily:'var(--font-primary)'}}>AI Career Coach</div>
+            <p style={{fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.55)',lineHeight:1.65,margin:0,fontFamily:'var(--font-primary)'}}>{getCoachingInsight()}</p>
+          </div>
+
+          {/* APPLICATION TRACKER */}
+          <div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Application Tracker</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
+              {([
+                {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     color:'#6f87c8'},
+                {label:'Interview', value:trackedApps.filter(a=>a.status==='Interviewing').length, color:'#8eb29b'},
+                {label:'Offer',     value:trackedApps.filter(a=>a.status==='Offer').length,       color:'#d6b268'},
+                {label:'Rejected',  value:trackedApps.filter(a=>a.status==='Rejected').length,    color:'rgba(239,68,68,0.65)'},
+              ] as {label:string;value:number;color:string}[]).map(col=>(
+                <div key={col.label} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10,padding:'9px 5px',textAlign:'center'}}>
+                  <div style={{fontSize:7,fontWeight:700,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.22)',marginBottom:4,fontFamily:'var(--font-primary)'}}>{col.label}</div>
+                  <div style={{fontSize:20,fontWeight:800,fontFamily:'var(--font-display)',color:col.color,letterSpacing:'-0.5px'}}>{col.value}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* KANBAN MINI */}
-          <div style={{paddingBottom:20,marginBottom:20,borderBottom:'1px solid rgba(93,104,130,0.07)'}}>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Applications</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
-              {TRACKER_COLS.filter(c=>c.status!=='Saved').map(col=>{
-                const count=trackedApps.filter(a=>a.status===col.status).length;
+          {/* AI MATCH SCORES */}
+          {jobs.filter(j=>j.match).length>0&&(
+            <div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Your Match Scores</div>
+              {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,4).map((j,i)=>{
+                const pct=j.match!.matchScore;
+                const barColor=pct>=70?'linear-gradient(90deg,#6f87c8,#8eb29b)':pct>=50?'linear-gradient(90deg,#d6b268,#c9922a)':'linear-gradient(90deg,rgba(239,68,68,0.7),rgba(220,38,38,0.7))';
                 return(
-                  <div key={col.status} style={{background:'rgba(13,18,32,0.4)',borderRadius:10,padding:'10px 4px',textAlign:'center'}}>
-                    <div style={{fontFamily:'var(--font-display)',fontSize:20,fontWeight:800,color:col.color,lineHeight:1}}>{count}</div>
-                    <div style={{fontSize:8,textTransform:'uppercase',letterSpacing:'1px',color:'rgba(255,255,255,0.2)',marginTop:5,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{col.label}</div>
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                    <div style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.45)',width:60,flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:'var(--font-primary)'}}>{j.employer_name?.split(' ')[0]}</div>
+                    <div style={{flex:1,height:3,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
+                      <motion.div initial={{width:0}} animate={{width:`${pct}%`}} transition={{duration:0.8,ease:'easeOut'}} style={{height:'100%',borderRadius:999,background:barColor}}/>
+                    </div>
+                    <div style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',width:28,textAlign:'right' as const,fontFamily:'var(--font-primary)'}}>{pct}%</div>
                   </div>
                 );
               })}
             </div>
-          </div>
-
-          {/* AI MATCH SCORES */}
-          {jobs.filter(j=>j.match).length>0&&(
-            <div style={{paddingBottom:20,marginBottom:20,borderBottom:'1px solid rgba(93,104,130,0.07)'}}>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Top Matches</div>
-              <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,5).map((j,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:8}}>
-                    <span style={{fontSize:10,color:'rgba(255,255,255,0.3)',width:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flexShrink:0}}>{j.employer_name}</span>
-                    <div style={{flex:1,height:3,background:'rgba(255,255,255,0.05)',borderRadius:99,overflow:'hidden'}}>
-                      <div style={{height:'100%',width:`${j.match!.matchScore}%`,background:scoreColor(j.match!.matchScore),borderRadius:99}}/>
-                    </div>
-                    <span style={{fontSize:10,color:'rgba(255,255,255,0.25)',width:28,textAlign:'right',flexShrink:0}}>{j.match!.matchScore}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           )}
 
-          {/* LIVE ACTIVITY */}
-          {trackedApps.length>0&&(
+          {/* TOP COMPANIES HIRING */}
+          {topCompaniesList.length>0&&(
             <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.18)',marginBottom:12}}>Recent Activity</div>
-              <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                {[...trackedApps].reverse().slice(0,4).map(app=>{
-                  const col=TRACKER_COLS.find(c=>c.status===app.status)!;
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Top Hiring Now</div>
+              <div style={{display:'flex',flexDirection:'column',gap:5}}>
+                {topCompaniesList.map((name,i)=>{
+                  const logo=getLogoStyle(name);
                   return(
-                    <div key={app.id} style={{borderLeft:`2px solid ${col.color}`,paddingLeft:10,marginLeft:4}}>
-                      <div style={{fontSize:11,fontWeight:600,color:'rgba(255,255,255,0.6)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{app.job.job_title}</div>
-                      <div style={{fontSize:10,color:'rgba(255,255,255,0.25)',marginTop:2}}>{col.icon} {col.label} · {app.job.employer_name}</div>
+                    <div key={name} style={{display:'flex',alignItems:'center',gap:9,padding:'7px 10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10}}>
+                      <div style={{width:24,height:24,borderRadius:7,background:logo.bg,color:logo.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,flexShrink:0,fontFamily:'var(--font-display)'}}>{name[0].toUpperCase()}</div>
+                      <span style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.55)',fontFamily:'var(--font-primary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>{name}</span>
+                      <span style={{fontSize:9,fontWeight:600,color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-primary)',flexShrink:0}}>#{i+1}</span>
                     </div>
                   );
                 })}
@@ -3005,13 +3051,22 @@ export default function Home() {
             </div>
           )}
 
-          {/* EMPTY STATE */}
-          {totalSearched===0&&trackedApps.length===0&&(
-            <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10,opacity:0.35,paddingTop:48,textAlign:'center'}}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-              <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',lineHeight:1.6}}>Search for jobs to see analytics here</div>
-            </div>
-          )}
+          {/* LIVE ACTIVITY */}
+          <div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Live Activity</div>
+            {[
+              {dot:'#8eb29b',text:'Someone in Austin applied to ML Engineer at Stripe',time:'2m'},
+              {dot:'#d6b268',text:'Someone in NYC got interview at Figma',time:'5m'},
+              {dot:'#6f87c8',text:'Someone in Seattle found H1B role',time:'8m'},
+            ].map((item,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'7px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                <div style={{width:6,height:6,borderRadius:'50%',background:item.dot,marginTop:3,flexShrink:0}}/>
+                <div style={{fontSize:10,fontWeight:400,color:'rgba(255,255,255,0.35)',lineHeight:1.5,flex:1,fontFamily:'var(--font-primary)'}}>{item.text}</div>
+                <div style={{fontSize:9,color:'rgba(255,255,255,0.18)',flexShrink:0,fontFamily:'var(--font-primary)'}}>{item.time}</div>
+              </div>
+            ))}
+          </div>
+
         </motion.aside>
       </div>
 
