@@ -1334,6 +1334,15 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
   const successBorder=successChance>=70?"rgba(16,185,129,0.22)":successChance>=50?"rgba(245,158,11,0.22)":"rgba(239,68,68,0.22)";
   const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.3)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.06)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.03)"};
 
+  const getJobDescription = (): { text: string; available: boolean } => {
+    const desc = job.job_description || (job as any).description || (job as any).summary || (job as any).snippet || '';
+    if (!desc || typeof desc !== 'string') {
+      return { text: 'Description unavailable. Open source posting for details.', available: false };
+    }
+    const cleaned = desc.replace(/<[^>]*>/g, '').trim();
+    return { text: cleaned.slice(0, 140), available: cleaned.length > 0 };
+  };
+
   return(
     <motion.div
       className="job-card"
@@ -1393,11 +1402,14 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       </div>
 
       {/* ROW 3b: Description preview */}
-      {job.job_description&&(
-        <p style={{fontSize:12,color:'rgba(255,255,255,0.50)',lineHeight:1.7,margin:'0 0 2px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const,letterSpacing:'0.1px'}}>
-          {job.job_description.replace(/<[^>]*>/g,'').slice(0,140)}…
-        </p>
-      )}
+      {(() => {
+        const { text, available } = getJobDescription();
+        return (
+          <p style={{fontSize:12,color:available?'rgba(255,255,255,0.50)':'rgba(255,255,255,0.30)',lineHeight:1.7,margin:'0 0 2px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const,letterSpacing:'0.1px',fontStyle:available?'normal':'italic'}}>
+            {text}{available && '…'}
+          </p>
+        );
+      })()}
 
       {/* Quick Match Preview */}
       {qm ? (
