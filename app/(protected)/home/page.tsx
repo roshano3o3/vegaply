@@ -1324,10 +1324,11 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
     <motion.div
       className="job-card"
       layout
-      initial={{opacity:0,y:20,scale:0.98}}
-      animate={{opacity:1,y:0,scale:1}}
+      initial={{opacity:0,y:16}}
+      animate={{opacity:1,y:0}}
       exit={{opacity:0,scale:0.96}}
-      transition={{duration:0.35,delay:(index??0)*0.05,ease:[0.34,1.56,0.64,1]}}
+      whileHover={{y:-3,boxShadow:'0 12px 32px rgba(0,0,0,0.5),0 0 0 1px rgba(111,135,200,0.15)',transition:{duration:0.18}}}
+      transition={{duration:0.35,delay:Math.min((index??0)*0.05,0.25),ease:[0.25,0.46,0.45,0.94]}}
       style={{display:"flex",flexDirection:"column",gap:10,background:'linear-gradient(180deg,#21242e 0%,#1e2129 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16,position:"relative",overflow:"hidden",cursor:"pointer",boxShadow:'0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)'}}
     >
       {/* TOP GRADIENT LINE */}
@@ -1374,20 +1375,27 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         {isH1bSponsor(job.employer_name)&&<span style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",color:"#34d399",fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:100}}>✓ H1B</span>}
       </div>
 
+      {/* ROW 3b: Description preview */}
+      {job.job_description&&(
+        <p style={{fontSize:11,color:'rgba(255,255,255,0.32)',lineHeight:1.6,margin:'0 0 2px',overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const,letterSpacing:'0.1px'}}>
+          {job.job_description.replace(/<[^>]*>/g,'').slice(0,140)}…
+        </p>
+      )}
+
       {/* ROW 4: 4 action buttons */}
       <div className="action-btns" style={{display:"flex",gap:4}}>
-        <button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={!!job.matchLoading} title="AI match score">
+        <motion.button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={!!job.matchLoading} title="AI match score" whileHover={{backgroundColor:'rgba(111,135,200,0.12)',borderColor:'rgba(111,135,200,0.28)',color:'#818cf8'}} whileTap={{scale:0.94}}>
           {job.matchLoading?<><div className="spin-sm"/>…</>:job.match?<><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
-        </button>
-        <button className={`action-card-btn interview-btn${job.interview?" done":""}`} onClick={e=>{e.stopPropagation();onInterview();}} disabled={!!job.interviewLoading} title="Interview prep">
+        </motion.button>
+        <motion.button className={`action-card-btn interview-btn${job.interview?" done":""}`} onClick={e=>{e.stopPropagation();onInterview();}} disabled={!!job.interviewLoading} title="Interview prep" whileHover={{backgroundColor:'rgba(111,135,200,0.12)',borderColor:'rgba(111,135,200,0.28)',color:'#818cf8'}} whileTap={{scale:0.94}}>
           {job.interviewLoading?<><div className="spin-sm"/>…</>:job.interview?<><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Done</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg> Prep</>}
-        </button>
-        <button className={`action-card-btn tailor-btn${job.tailor?" done":""}`} onClick={e=>{e.stopPropagation();onTailor();}} disabled={!!job.tailorLoading} title="Tailor resume">
+        </motion.button>
+        <motion.button className={`action-card-btn tailor-btn${job.tailor?" done":""}`} onClick={e=>{e.stopPropagation();onTailor();}} disabled={!!job.tailorLoading} title="Tailor resume" whileHover={{backgroundColor:'rgba(111,135,200,0.12)',borderColor:'rgba(111,135,200,0.28)',color:'#818cf8'}} whileTap={{scale:0.94}}>
           {job.tailorLoading?<><div className="spin-sm"/>…</>:job.tailor?<><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Done</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg> Tailor</>}
-        </button>
-        <button className={`action-card-btn track-btn${isTracked?" tracked":""}`} onClick={e=>{e.stopPropagation();onTrack();}} title="Track application">
+        </motion.button>
+        <motion.button className={`action-card-btn track-btn${isTracked?" tracked":""}`} onClick={e=>{e.stopPropagation();onTrack();}} title="Track application" whileHover={{backgroundColor:'rgba(111,135,200,0.12)',borderColor:'rgba(111,135,200,0.28)',color:'#818cf8'}} whileTap={{scale:0.94}}>
           {isTracked?<><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Track</>}
-        </button>
+        </motion.button>
       </div>
 
       {/* ROW 5: Apply */}
@@ -1536,6 +1544,23 @@ function PreferencesModal({ onClose, lm, onSave }: { onClose:()=>void; lm?:boole
   );
 }
 
+function scoreJob(job: JobWithMatch): number {
+  let score = 0;
+  const hoursOld = getHoursAgo(job.job_posted_at_datetime_utc);
+  if (hoursOld <= 2) score += 100;
+  else if (hoursOld <= 6) score += 80;
+  else if (hoursOld <= 12) score += 60;
+  else if (hoursOld <= 24) score += 40;
+  else if (hoursOld <= 72) score += 20;
+  if (isH1bSponsor(job.employer_name)) score += 15;
+  if (job.match) {
+    if (job.match.matchScore >= 80) score += 30;
+    else if (job.match.matchScore >= 60) score += 20;
+    else if (job.match.matchScore >= 40) score += 10;
+  }
+  return score;
+}
+
 export default function Home() {
   const [jobRole,setJobRole]=useState("");const [location,setLocation]=useState("");
   const searchParams = useSearchParams();
@@ -1670,7 +1695,7 @@ export default function Home() {
     const r=role??jobRole;const l=loc??location;
     if(!r||!l)return;
     if(mode==="normal"){setLoading(true);setJobs([]);}else{setEbLoading(true);setEarlyBirdJobs([]);setAutoOpenDone(false);}
-    try{const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:r,location:l,earlyBird:mode==="earlybird"})});if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json();if(mode==="normal")setJobs(data?.data||[]);else setEarlyBirdJobs(data?.data||[]);}catch(err){console.error("fetchJobs error:",err);}
+    try{const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:r,location:l,earlyBird:mode==="earlybird"})});if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json();const raw:JobWithMatch[]=data?.data||[];const sorted=[...raw].sort((a,b)=>scoreJob(b)-scoreJob(a));if(mode==="normal")setJobs(sorted);else setEarlyBirdJobs(sorted);}catch(err){console.error("fetchJobs error:",err);}
     if(mode==="normal")setLoading(false);else setEbLoading(false);
   };
 
@@ -1810,6 +1835,7 @@ export default function Home() {
     :activeMode==='h1b'
     ?jobs.filter(job=>isH1bSponsor(job.employer_name))
     :jobs;
+  const smartEbCount=jobs.filter(j=>!j.job_posted_at_datetime_utc||getHoursAgo(j.job_posted_at_datetime_utc)<=72).length||earlyBirdJobs.length;
   const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
   const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?earlyBirdJobs:allSaved;
   const isEbMode=activeTab==="earlybird";
@@ -2212,21 +2238,21 @@ export default function Home() {
         animate={{opacity:1,y:0}}
         transition={{duration:0.4,ease:'easeOut'}}
       >
-        <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer'}} onClick={()=>window.location.href='/'}>
-          <svg width="30" height="30" viewBox="0 0 200 200">
-            <rect width="200" height="200" rx="44" fill="url(#logoGrad)"/><defs><linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#4f46e5"/><stop offset="100%" stopColor="#7c3aed"/></linearGradient></defs>
-            <path d="M100,76 L34,118 L66,113 Z" fill="#4f46e5"/>
-            <path d="M100,76 L166,118 L134,113 Z" fill="#7c3aed"/>
-            <ellipse cx="100" cy="92" rx="9" ry="18" fill="#4f46e5"/>
-            <circle cx="100" cy="74" r="8" fill="#4f46e5"/>
-            <polygon points="100,65 107,61 100,60" fill="#fbbf24"/>
-            <circle cx="103" cy="73" r="2.2" fill="white" opacity="0.9"/>
-            <line x1="96" y1="108" x2="88" y2="128" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="100" y1="110" x2="100" y2="131" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="104" y1="108" x2="112" y2="128" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M80,148 A20,20 0 0,1 120,148" fill="#f59e0b" opacity="0.6"/>
-          </svg>
-          <span style={{fontFamily:'Georgia,serif', fontSize:20, fontWeight:700, color:'#fff', letterSpacing:'-0.5px'}}>Vega<span style={{fontStyle:'italic', background:'linear-gradient(135deg,#818cf8,#ec4899)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text'}}>ply</span></span>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginRight:14,flexShrink:0,cursor:'pointer'}} onClick={()=>window.location.href='/'}>
+          <div style={{width:30,height:30,background:'linear-gradient(135deg,#4f46e5,#7c3aed)',borderRadius:9,border:'1px solid rgba(139,92,246,0.4)',boxShadow:'0 0 16px rgba(99,102,241,0.35)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <svg width="16" height="16" viewBox="0 0 200 200">
+              <path d="M100,76 L34,118 L66,113 Z" fill="#a5b4fc"/>
+              <path d="M100,76 L166,118 L134,113 Z" fill="#c4b5fd"/>
+              <ellipse cx="100" cy="92" rx="8" ry="16" fill="#818cf8"/>
+              <circle cx="100" cy="76" r="7" fill="#818cf8"/>
+              <polygon points="100,66 107,62 100,61" fill="#fcd34d"/>
+              <line x1="96" y1="108" x2="88" y2="126" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="100" y1="109" x2="100" y2="128" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="104" y1="108" x2="112" y2="126" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M82,144 A18,18 0 0,1 118,144" fill="#f59e0b" opacity="0.6"/>
+            </svg>
+          </div>
+          <span style={{fontFamily:'Georgia,serif',fontSize:18,fontWeight:800,color:'#ffffff',letterSpacing:'-0.5px',lineHeight:1}}>Vega<span style={{fontStyle:'italic',background:'linear-gradient(135deg,#818cf8,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>ply</span></span>
         </div>
         <div className="topbar-search">
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
@@ -2577,7 +2603,7 @@ export default function Home() {
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
               {([
                 {val:totalSearched,label:'Jobs Found',sub:totalSearched>0?'Available now':undefined,subColor:'#34d399'},
-                {val:earlyBirdJobs.length,label:'Early Bird',sub:earlyBirdJobs.length>0?'⚡ Today':undefined,subColor:'#fbbf24'},
+                {val:smartEbCount,label:'Early Bird',sub:smartEbCount>0?'⚡ Fresh':undefined,subColor:'#fbbf24'},
                 {val:savedJobs.size,label:'Saved',sub:undefined,subColor:undefined},
                 {val:trackedApps.length,label:'Tracked',sub:trackedApps.length>0?'Applications':undefined,subColor:'#818cf8'},
               ] as {val:number;label:string;sub:string|undefined;subColor:string|undefined}[]).map((s,i)=>(
