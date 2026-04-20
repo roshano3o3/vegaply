@@ -1391,7 +1391,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           href={job.job_apply_link} target="_blank" rel="noopener noreferrer"
           whileHover={{scale:1.02,boxShadow:'0 8px 32px rgba(99,102,241,0.35)'}}
           whileTap={{scale:0.98}}
-          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6366f1,#8b5cf6)',border:'none',borderRadius:12,padding:'11px',color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.2px',textDecoration:'none',textAlign:'center',display:'block'}}
+          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#4f46e5,#7c3aed)',border:'none',borderRadius:10,padding:'8px 16px',color:'#fff',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.1px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 14px rgba(99,102,241,0.3)'}}
           onClick={e=>e.stopPropagation()}
         >
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
@@ -1932,7 +1932,7 @@ export default function Home() {
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
   return (
-    <div data-theme={darkMode?"dark":"light"}>
+    <div data-theme={darkMode?"dark":"light"} style={{background:'linear-gradient(145deg,#1b1d22 0%,#23262d 100%)',minHeight:'100vh'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1941,7 +1941,7 @@ export default function Home() {
         @keyframes ambientFloat{0%,100%{transform:scale(1) translate(0,0)}33%{transform:scale(1.1) translate(10px,-15px)}66%{transform:scale(0.95) translate(-8px,10px)}}
 
         /* TOPBAR */
-        .topbar{background:rgba(6,8,15,0.92);border-bottom:1px solid rgba(93,104,130,0.1);padding:0 20px;height:54px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200;backdrop-filter:blur(24px)}
+        .topbar{background:rgba(28,30,40,0.92);border-bottom:1px solid rgba(255,255,255,0.07);padding:0 20px;height:54px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200;backdrop-filter:blur(28px)}
         .topbar-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px;cursor:pointer;display:flex;align-items:center}
         .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:560px}
@@ -2010,10 +2010,10 @@ export default function Home() {
         .tab:hover:not(.active){color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.04)}
 
         /* JOB LIST — full-width flex column */
-        .jobs-list{display:flex;flex-direction:column;gap:8px}
-        .job-card{background:#0d1220;border:1px solid rgba(93,104,130,0.12);border-radius:14px;padding:16px 18px;cursor:default;transition:border-color .2s,box-shadow .2s}
-        .job-card:hover{border-color:rgba(99,102,241,0.28);box-shadow:0 4px 20px rgba(0,0,0,0.35)}
-        .job-card-hot{border-color:rgba(251,191,36,0.14)!important}
+        .jobs-list{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+        .job-card{background:linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;cursor:default;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}
+        .job-card:hover{border-color:rgba(99,102,241,0.35);box-shadow:0 6px 24px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.07)}
+        .job-card-hot{border-color:rgba(251,191,36,0.2)!important}
 
         /* ACTION BUTTONS */
         .action-card-btn{flex:1;min-width:fit-content;border-radius:7px;padding:6px 11px;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(93,104,130,0.12);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.38);transition:all .15s;white-space:nowrap}
