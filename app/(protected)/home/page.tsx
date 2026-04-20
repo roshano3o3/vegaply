@@ -1316,8 +1316,8 @@ function SkeletonRow() {
   );
 }
 
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, isAutoApplying, lm, index }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;isAutoApplying:boolean;lm?:boolean;index?:number;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, isAutoApplying, lm, index, quickMatches, handleQuickMatch, resumeText }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;isAutoApplying:boolean;lm?:boolean;index?:number;quickMatches?:Record<string,any>;handleQuickMatch?:(job:any)=>void;resumeText?:string;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -1325,6 +1325,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
   const hours=getHoursAgo(job.job_posted_at_datetime_utc);
   const comp=getCompetitionLabel(hours);
   const visaBadges=getVisaBadges(job.job_description);
+  const qm = (quickMatches || {})[job.job_id];
   const diffBadge=getDifficultyBadge(job.job_title,job.job_description);
   const baseChance=diffBadge.label.startsWith("🟢")?80:diffBadge.label.startsWith("🔴")?30:55;
   const successChance=job.match?Math.min(99,Math.round(baseChance*0.4+job.match.matchScore*0.6)):baseChance;
@@ -1397,6 +1398,188 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {job.job_description.replace(/<[^>]*>/g,'').slice(0,140)}…
         </p>
       )}
+
+      {/* Quick Match Preview */}
+      {qm ? (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.3 }}
+          style={{
+            background: 'rgba(111,135,200,0.06)',
+            border: '1px solid rgba(111,135,200,0.15)',
+            borderRadius: 10,
+            padding: '10px 12px',
+            marginBottom: 10,
+            marginTop: 6
+          }}
+        >
+          {qm.loading ? (
+            <div style={{
+              fontSize: 10,
+              color: 'rgba(255,255,255,0.35)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}>
+              <motion.span
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                style={{ display: 'inline-block' }}
+              >
+                ⟳
+              </motion.span>
+              Analyzing your resume match...
+            </div>
+          ) : (
+            <>
+              {/* Score bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 8
+              }}>
+                <span style={{
+                  fontSize: 9,
+                  color: 'rgba(255,255,255,0.4)',
+                  fontWeight: 700,
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase'
+                }}>
+                  Your Match
+                </span>
+                <div style={{
+                  flex: 1,
+                  height: 4,
+                  background: 'rgba(255,255,255,0.06)',
+                  borderRadius: 99,
+                  overflow: 'hidden'
+                }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${qm.score}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    style={{
+                      height: '100%',
+                      borderRadius: 99,
+                      background: qm.score >= 70
+                        ? 'linear-gradient(90deg, #6f87c8, #8eb29b)'
+                        : qm.score >= 50
+                          ? 'linear-gradient(90deg, #d6b268, #c9922a)'
+                          : 'linear-gradient(90deg, rgba(239,68,68,0.7), rgba(220,38,38,0.7))'
+                    }}
+                  />
+                </div>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: qm.score >= 70
+                    ? '#8eb29b'
+                    : qm.score >= 50
+                      ? '#d6b268'
+                      : 'rgba(239,68,68,0.7)',
+                  fontFamily: 'Georgia, serif',
+                  letterSpacing: '-0.5px'
+                }}>
+                  {qm.score}%
+                </span>
+              </div>
+
+              {/* Matching skills */}
+              {qm.matching.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                  marginBottom: 6
+                }}>
+                  {qm.matching.slice(0, 3).map((skill: string, i: number) => (
+                    <span key={i} style={{
+                      fontSize: 9,
+                      padding: '2px 7px',
+                      borderRadius: 999,
+                      background: 'rgba(142,178,155,0.10)',
+                      color: '#8eb29b',
+                      border: '1px solid rgba(142,178,155,0.18)',
+                      fontWeight: 600
+                    }}>
+                      ✓ {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Missing skills */}
+              {qm.missing.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                  marginBottom: 6
+                }}>
+                  {qm.missing.slice(0, 2).map((skill: string, i: number) => (
+                    <span key={i} style={{
+                      fontSize: 9,
+                      padding: '2px 7px',
+                      borderRadius: 999,
+                      background: 'rgba(239,68,68,0.07)',
+                      color: 'rgba(239,68,68,0.65)',
+                      border: '1px solid rgba(239,68,68,0.14)',
+                      fontWeight: 600
+                    }}>
+                      ⚠ {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Recommendation */}
+              {qm.recommendation && (
+                <p style={{
+                  fontSize: 10,
+                  color: 'rgba(255,255,255,0.40)',
+                  lineHeight: 1.5,
+                  margin: 0,
+                  fontStyle: 'italic'
+                }}>
+                  💡 {qm.recommendation.slice(0, 100)}
+                </p>
+              )}
+            </>
+          )}
+        </motion.div>
+      ) : resumeText ? (
+        <motion.button
+          onClick={() => handleQuickMatch && handleQuickMatch(job)}
+          whileHover={{
+            background: 'rgba(111,135,200,0.12)',
+            borderColor: 'rgba(111,135,200,0.3)'
+          }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            width: '100%',
+            background: 'rgba(111,135,200,0.05)',
+            border: '1px solid rgba(111,135,200,0.12)',
+            borderRadius: 8,
+            padding: '7px 12px',
+            fontSize: 10,
+            fontWeight: 600,
+            color: 'rgba(111,135,200,0.7)',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            marginBottom: 8,
+            marginTop: 4,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            transition: 'all 0.18s ease'
+          }}
+        >
+          🎯 Check how this matches your resume
+        </motion.button>
+      ) : null}
 
       {/* ROW 4: 4 action buttons */}
       <div className="action-btns" style={{display:"flex",gap:4}}>
@@ -1631,6 +1814,13 @@ export default function Home() {
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
   const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'>('all');
+  const [quickMatches, setQuickMatches] = useState<Record<string, {
+    score: number,
+    matching: string[],
+    missing: string[],
+    recommendation: string,
+    loading: boolean
+  }>>({})
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -1814,6 +2004,47 @@ export default function Home() {
     setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:true}:j));
     try{const res=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const tailor:TailorResult=await res.json();const updated={...job,tailor,tailorLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setTailorJob(updated);}catch{setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:false}:j));}
   };
+
+  const handleQuickMatch = async (job: any) => {
+    const jobId = job.job_id
+    if (quickMatches[jobId]) return // already loaded
+
+    setQuickMatches(prev => ({
+      ...prev,
+      [jobId]: { score: 0, matching: [], missing: [],
+                 recommendation: '', loading: true }
+    }))
+
+    try {
+      const response = await fetch('/api/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobDescription: job.job_description?.slice(0, 800) || job.job_title,
+          resumeText: resumeText || '',
+          jobTitle: job.job_title
+        })
+      })
+      const data = await response.json()
+
+      setQuickMatches(prev => ({
+        ...prev,
+        [jobId]: {
+          score: data.matchScore || data.score || 0,
+          matching: data.matchingSkills || data.strongSkills || [],
+          missing: data.missingSkills || data.gaps || [],
+          recommendation: data.recommendation || data.summary || '',
+          loading: false
+        }
+      }))
+    } catch {
+      setQuickMatches(prev => ({
+        ...prev,
+        [jobId]: { score: 0, matching: [], missing: [],
+                   recommendation: 'Could not load match', loading: false }
+      }))
+    }
+  }
 
   const handleInterview=(job:JobWithMatch)=>{
     setInterviewJob(job);
@@ -2568,6 +2799,9 @@ export default function Home() {
                         autoApplyResult={autoApplyResults[job.job_id]??null}
                         isAutoApplying={autoApplying===job.job_id}
                         lm={!darkMode}
+                        quickMatches={quickMatches}
+                        handleQuickMatch={handleQuickMatch}
+                        resumeText={resumeText}
                       />
                     ))}
                     </AnimatePresence>
