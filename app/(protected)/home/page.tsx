@@ -1323,7 +1323,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       animate={{opacity:1,y:0,scale:1}}
       exit={{opacity:0,scale:0.96}}
       transition={{duration:0.35,delay:(index??0)*0.05,ease:[0.34,1.56,0.64,1]}}
-      style={{display:"flex",flexDirection:"column",gap:10,background:'linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16,position:"relative",overflow:"hidden",cursor:"pointer",boxShadow:'0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)'}}
+      style={{display:"flex",flexDirection:"column",gap:10,background:'linear-gradient(180deg,#21242e 0%,#1e2129 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:16,padding:16,position:"relative",overflow:"hidden",cursor:"pointer",boxShadow:'0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)'}}
     >
       {/* TOP GRADIENT LINE */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)',pointerEvents:'none'}}/>
@@ -1391,7 +1391,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           href={job.job_apply_link} target="_blank" rel="noopener noreferrer"
           whileHover={{scale:1.02,boxShadow:'0 8px 32px rgba(99,102,241,0.35)'}}
           whileTap={{scale:0.98}}
-          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#4f46e5,#7c3aed)',border:'none',borderRadius:10,padding:'8px 16px',color:'#fff',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.1px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 14px rgba(99,102,241,0.3)'}}
+          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,#6f87c8,#5b73b4)',border:'none',borderRadius:10,padding:'8px 16px',color:'#fff',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.1px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 14px rgba(111,135,200,0.25),inset 0 1px 0 rgba(255,255,255,0.14)'}}
           onClick={e=>e.stopPropagation()}
         >
           {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
@@ -1415,7 +1415,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
               ?{background:"rgba(245,158,11,0.08)",borderColor:"rgba(245,158,11,0.3)",color:"#fbbf24"}
               :isAutoApplying
                 ?{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)"}
-                :{background:"transparent",borderColor:"rgba(99,102,241,0.2)",color:"#818cf8"})
+                :{background:"rgba(255,255,255,0.04)",borderColor:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)"})
         }}
       >
         {isAutoApplying?<><div className="spin-sm"/>Analyzing…</>:autoApplyResult==="applied"?"✅ Applied":autoApplyResult==="low_match"?"⚠️ Low Match":"⚡ Auto Apply"}
@@ -1932,11 +1932,11 @@ export default function Home() {
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
   return (
-    <div data-theme={darkMode?"dark":"light"} style={{background:'linear-gradient(145deg,#1b1d22 0%,#23262d 100%)',minHeight:'100vh'}}>
+    <div data-theme={darkMode?"dark":"light"} style={{background:"radial-gradient(circle at 18% 22%,rgba(120,130,150,0.10),transparent 38%),radial-gradient(circle at 82% 72%,rgba(90,100,120,0.08),transparent 42%),linear-gradient(145deg,#1b1d22 0%,#23262d 100%)",minHeight:'100vh'}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'DM Sans',sans-serif;background:linear-gradient(145deg,#1b1d22 0%,#23262d 100%)!important;color:#fff;min-height:100vh;overflow-x:hidden}
+        body{font-family:'DM Sans',sans-serif;background:radial-gradient(circle at 18% 22%,rgba(120,130,150,0.10),transparent 38%),radial-gradient(circle at 82% 72%,rgba(90,100,120,0.08),transparent 42%),linear-gradient(145deg,#1b1d22 0%,#23262d 100%)!important;color:#fff;min-height:100vh;overflow-x:hidden}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.25);border-radius:99px}
         @keyframes ambientFloat{0%,100%{transform:scale(1) translate(0,0)}33%{transform:scale(1.1) translate(10px,-15px)}66%{transform:scale(0.95) translate(-8px,10px)}}
 
@@ -1948,11 +1948,11 @@ export default function Home() {
         .topbar-input{background:rgba(13,18,32,0.9);border:1px solid rgba(93,104,130,0.15);border-radius:10px;padding:0 14px;height:36px;font-size:13px;font-family:'DM Sans',sans-serif;color:rgba(255,255,255,0.85);outline:none;transition:border-color .2s,box-shadow .2s;flex:1}
         .topbar-input::placeholder{color:rgba(255,255,255,0.2)}
         .topbar-input:focus{border-color:rgba(99,102,241,0.5);box-shadow:0 0 0 3px rgba(99,102,241,0.08)}
-        .search-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:10px;height:36px;padding:0 22px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 12px rgba(99,102,241,0.3);transition:opacity .2s}
+        .search-btn{background:linear-gradient(135deg,#6f87c8,#5b73b4);color:#fff;border:none;border-radius:10px;height:36px;padding:0 22px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 12px rgba(111,135,200,0.25);transition:opacity .2s}
         .search-btn:hover{opacity:0.88}
         .search-btn:disabled{opacity:0.35;cursor:not-allowed}
         @keyframes ebGlow{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.25)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0)}}
-        .eb-btn{background:rgba(251,191,36,0.06);color:#fbbf24;border:1px solid rgba(251,191,36,0.18);border-radius:10px;height:36px;padding:0 16px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0;animation:ebGlow 2.5s ease infinite}
+        .eb-btn{background:rgba(214,178,104,0.11);color:#d6b268;border:1px solid rgba(214,178,104,0.22);border-radius:10px;height:36px;padding:0 16px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0;animation:ebGlow 2.5s ease infinite}
         .eb-btn:hover{background:rgba(251,191,36,0.12)}
         .eb-btn:disabled{opacity:0.35;cursor:not-allowed;animation:none}
         .refresh-btn{background:transparent;border:none;border-radius:8px;padding:8px;font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer;transition:color .2s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;font-family:'DM Sans',sans-serif}
@@ -1972,9 +1972,9 @@ export default function Home() {
 
         /* LAYOUT */
         .app-layout{display:flex;min-height:calc(100vh - 54px);position:relative;z-index:1;background:#06080f}
-        .sidebar{width:260px;flex-shrink:0;background:#090c17;border-right:1px solid rgba(93,104,130,0.1);padding:20px 16px;display:flex;flex-direction:column;gap:24px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+        .sidebar{width:260px;flex-shrink:0;background:rgba(22,24,34,0.85);border-right:1px solid rgba(255,255,255,0.06);padding:20px 16px;display:flex;flex-direction:column;gap:24px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
         .content{flex:1;min-width:0;padding:24px;max-width:calc(100vw - 260px - 320px)}
-        .right-panel{width:320px;flex-shrink:0;background:#090c17;border-left:1px solid rgba(93,104,130,0.1);padding:20px 16px;display:flex;flex-direction:column;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+        .right-panel{width:320px;flex-shrink:0;background:rgba(22,24,34,0.85);border-left:1px solid rgba(255,255,255,0.06);padding:20px 16px;display:flex;flex-direction:column;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
 
         /* SIDEBAR */
@@ -2003,7 +2003,7 @@ export default function Home() {
         /* TABS — pill style */
         .tabs-row{display:flex;gap:4px;margin-bottom:20px;padding:4px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(93,104,130,0.08)}
         .tab{padding:8px 14px;border:none;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,0.32);white-space:nowrap;position:relative;border-radius:8px}
-        .tab.active{color:#a5b4fc;font-weight:600;background:rgba(99,102,241,0.15)}
+        .tab.active{color:rgba(219,234,254,0.92);font-weight:600;background:rgba(111,135,200,0.16);border:1px solid rgba(111,135,200,0.28)}
         .tab.tab-eb.active{color:#fbbf24;background:rgba(251,191,36,0.1)}
         .tab.tab-tracker.active{color:#818cf8;background:rgba(99,102,241,0.12)}
         .tab.tab-analytics.active{color:#34d399;background:rgba(52,211,153,0.1)}
@@ -2017,7 +2017,7 @@ export default function Home() {
         .job-card-hot{border-color:rgba(251,191,36,0.2)!important}
 
         /* ACTION BUTTONS */
-        .action-card-btn{flex:1;min-width:fit-content;border-radius:7px;padding:6px 11px;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(93,104,130,0.12);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.38);transition:all .15s;white-space:nowrap}
+        .action-card-btn{flex:1;min-width:fit-content;border-radius:7px;padding:6px 11px;font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.35);transition:all .15s;white-space:nowrap}
         .action-card-btn:hover{background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.28);color:#a5b4fc}
         .action-card-btn.match-btn{background:rgba(255,255,255,0.03);border-color:rgba(93,104,130,0.12);color:rgba(255,255,255,0.38)}
         .action-card-btn.match-btn.done{background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.22);color:#818cf8}
@@ -2208,7 +2208,7 @@ export default function Home() {
       >
         <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0, cursor:'pointer'}} onClick={()=>window.location.href='/'}>
           <svg width="30" height="30" viewBox="0 0 200 200">
-            <rect width="200" height="200" rx="44" fill="#0e0b2e"/>
+            <rect width="200" height="200" rx="44" fill="url(#logoGrad)"/><defs><linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#4f46e5"/><stop offset="100%" stopColor="#7c3aed"/></linearGradient></defs>
             <path d="M100,76 L34,118 L66,113 Z" fill="#4f46e5"/>
             <path d="M100,76 L166,118 L134,113 Z" fill="#7c3aed"/>
             <ellipse cx="100" cy="92" rx="9" ry="18" fill="#4f46e5"/>
@@ -2227,7 +2227,7 @@ export default function Home() {
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           <motion.button className="search-btn" whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
           <motion.button className="eb-btn" whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>setActiveMode(m=>m==='earlybird'?'all':'earlybird')} style={{opacity:activeMode==='earlybird'?1:undefined,background:activeMode==='earlybird'?'rgba(251,191,36,0.14)':undefined,borderColor:activeMode==='earlybird'?'rgba(251,191,36,0.45)':undefined,boxShadow:activeMode==='earlybird'?'0 0 16px rgba(251,191,36,0.2)':undefined}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
-          <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>setActiveMode(m=>m==='h1b'?'all':'h1b')} style={{background:activeMode==='h1b'?'rgba(52,211,153,0.14)':'rgba(52,211,153,0.06)',border:activeMode==='h1b'?'1px solid rgba(52,211,153,0.45)':'1px solid rgba(52,211,153,0.15)',borderRadius:10,height:36,padding:'0 16px',color:'#34d399',fontSize:13,fontWeight:activeMode==='h1b'?600:500,cursor:'pointer',fontFamily:'inherit',flexShrink:0,boxShadow:activeMode==='h1b'?'0 0 16px rgba(52,211,153,0.2)':'none',transition:'all 0.2s'}}>🌐 H1B</motion.button>
+          <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>setActiveMode(m=>m==='h1b'?'all':'h1b')} style={{background:activeMode==='h1b'?'rgba(142,178,155,0.18)':'rgba(142,178,155,0.09)',border:activeMode==='h1b'?'1px solid rgba(142,178,155,0.38)':'1px solid rgba(142,178,155,0.19)',borderRadius:10,height:36,padding:'0 16px',color:'#8eb29b',fontSize:13,fontWeight:activeMode==='h1b'?600:500,cursor:'pointer',fontFamily:'inherit',flexShrink:0,boxShadow:activeMode==='h1b'?'0 0 12px rgba(142,178,155,0.15)':'none',transition:'all 0.2s'}}>🌐 H1B</motion.button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             {isRefreshing?"Refreshing…":"Refresh"}
