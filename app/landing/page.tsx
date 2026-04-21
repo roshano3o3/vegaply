@@ -238,51 +238,49 @@ export default function LandingPage() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
         *{margin:0;padding:0;box-sizing:border-box;}
         html{scroll-behavior:smooth;}
-        body{background:#060608;font-family:'DM Sans',sans-serif;color:#fff;overflow-x:hidden;}
+        body{background:linear-gradient(145deg,#1b1d22 0%,#23262d 100%);font-family:'DM Sans',sans-serif;color:#fff;overflow-x:hidden;}
         canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
         .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");background-size:200px 200px;}
         .wrap{position:relative;z-index:10;}
         
         /* NAV */
-        nav{display:flex;align-items:center;justify-content:space-between;padding:22px 52px;background:rgba(6,6,8,0.55);backdrop-filter:blur(28px);border-bottom:1px solid rgba(255,255,255,0.04);position:sticky;top:0;z-index:100;}
-        .logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;letter-spacing:-0.5px;text-decoration:none;color:#fff;}
-        .logo span{background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        nav{display:flex;align-items:center;justify-content:space-between;padding:0 52px;height:56px;background:rgba(18,20,30,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:100;}
+        .logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:#fff;}
+        .logo-text{font-size:18px;font-weight:800;letter-spacing:-0.5px;line-height:1;}
+        .logo-text span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
         .nav-links{display:flex;gap:32px;list-style:none;}
         .nav-links a{font-size:13px;color:rgba(255,255,255,0.38);text-decoration:none;transition:color .3s;}
         .nav-links a:hover{color:#fff;}
         .nav-right{display:flex;gap:12px;align-items:center;}
         .nav-signin{font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;transition:color .3s;padding:8px 16px;}
         .nav-signin:hover{color:#fff;}
-        .nav-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .3s,box-shadow .3s;text-decoration:none;display:inline-block;}
-        .nav-btn:hover{transform:scale(1.06);box-shadow:0 0 32px rgba(99,102,241,.5);}
+        .nav-btn{background:linear-gradient(135deg,#6f87c8,#5b73b4);color:#fff;border:none;padding:8px 20px;border-radius:10px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .25s ease;text-decoration:none;display:inline-block;box-shadow:0 2px 12px rgba(111,135,200,0.30);}
+        .nav-btn:hover{opacity:0.88;box-shadow:0 6px 24px rgba(111,135,200,0.45);}
 
         /* HERO */
-        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 60px;position:relative;overflow:hidden;}
-        .orb-1{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.18),transparent 70%);top:-200px;left:-200px;filter:blur(80px);pointer-events:none;animation:orbFloat1 8s ease-in-out infinite;}
-        .orb-2{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);top:30%;right:-150px;filter:blur(70px);pointer-events:none;animation:orbFloat2 10s ease-in-out infinite;}
-        .orb-3{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(236,72,153,0.12),transparent 70%);bottom:-100px;left:40%;filter:blur(90px);pointer-events:none;animation:orbFloat3 12s ease-in-out infinite;}
-        @keyframes orbFloat1{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-30px) scale(1.05);}66%{transform:translate(-20px,20px) scale(0.95);}}
-        @keyframes orbFloat2{0%,100%{transform:translate(0,0);}50%{transform:translate(-40px,-20px);}}
-        @keyframes orbFloat3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-30px) scale(1.08);}}
+        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 60px;position:relative;overflow:hidden;background:linear-gradient(145deg,#1b1d22 0%,#23262d 100%);}
+        .orb-1{position:absolute;top:-10%;right:-5%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(111,135,200,0.06),transparent 70%);pointer-events:none;animation:ambientFloat 10s ease-in-out infinite;}
+        .orb-2{position:absolute;bottom:0;left:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(142,178,155,0.04),transparent 70%);pointer-events:none;animation:ambientFloat 14s ease-in-out infinite reverse;}
+        @keyframes ambientFloat{0%,100%{transform:scale(1) translate(0,0);}33%{transform:scale(1.08) translate(8px,-12px);}66%{transform:scale(0.96) translate(-6px,8px);}}
         
         .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.22);border-radius:100px;padding:6px 18px;font-size:12px;font-weight:500;color:#a5b4fc;letter-spacing:.4px;margin-bottom:36px;}
         .pdot{width:7px;height:7px;background:#6366f1;border-radius:50%;animation:pdotAnim 1.8s ease infinite;}
         @keyframes pdotAnim{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(.5);opacity:.3;}}
 
-        .hero-h1{font-family:'Playfair Display',serif;font-size:clamp(52px,8.5vw,100px);font-weight:900;line-height:.95;letter-spacing:-4px;max-width:940px;}
+        .hero-h1{font-family:'Playfair Display',serif;font-size:clamp(42px,5vw,72px);font-weight:800;line-height:1.1;letter-spacing:-2px;max-width:940px;}
         .grad-word{display:inline-block;background:linear-gradient(135deg,#818cf8 0%,#c084fc 40%,#ec4899 75%,#fb7185 100%);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gflow 5s linear infinite;}
         @keyframes gflow{0%{background-position:0% 50%;}100%{background-position:300% 50%;}}
         
-        .hero-sub{font-size:17px;font-weight:300;color:rgba(255,255,255,.42);max-width:490px;margin:26px auto 0;line-height:1.75;}
+        .hero-sub{font-size:18px;font-weight:400;color:rgba(255,255,255,0.45);max-width:520px;margin:26px auto 0;line-height:1.7;}
         .hero-btns{display:flex;align-items:center;gap:14px;margin-top:42px;flex-wrap:wrap;justify-content:center;}
         
-        .btn-primary{position:relative;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:15px 36px;border-radius:100px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;overflow:hidden;transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;box-shadow:0 4px 40px rgba(99,102,241,.35);text-decoration:none;display:inline-block;}
-        .btn-primary::after{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:sheen 3.5s 1.5s ease infinite;}
+        .btn-primary{position:relative;background:linear-gradient(135deg,#6f87c8,#5b73b4);color:#fff;border:none;padding:16px 36px;border-radius:14px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;overflow:hidden;transition:all .3s ease;box-shadow:0 4px 24px rgba(111,135,200,0.35);text-decoration:none;display:inline-block;}
+        .btn-primary::after{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);animation:sheen 3.5s 1.5s ease infinite;}
         @keyframes sheen{0%{left:-100%;}45%,100%{left:160%;}}
-        .btn-primary:hover{transform:scale(1.07) translateY(-2px);box-shadow:0 8px 60px rgba(99,102,241,.55);}
-        
-        .btn-ghost{background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);padding:15px 28px;border-radius:100px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .3s;text-decoration:none;display:inline-block;}
-        .btn-ghost:hover{border-color:rgba(255,255,255,.28);color:#fff;}
+        .btn-primary:hover{opacity:0.9;box-shadow:0 8px 40px rgba(111,135,200,0.5);transform:translateY(-1px);}
+
+        .btn-ghost{background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);padding:16px 36px;border-radius:14px;font-size:16px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .3s;text-decoration:none;display:inline-block;}
+        .btn-ghost:hover{border-color:rgba(255,255,255,.35);color:#fff;}
         
         .av-row{display:flex;align-items:center;gap:14px;margin-top:46px;flex-wrap:wrap;justify-content:center;}
         .av-stack{display:flex;}
@@ -309,14 +307,14 @@ export default function LandingPage() {
         .ctr{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:22px 28px;text-align:center;position:relative;overflow:hidden;transition:transform .4s ease,border-color .3s;min-width:120px;}
         .ctr:hover{transform:translateY(-4px);border-color:rgba(99,102,241,.28);}
         .ctr::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.45),transparent);}
-        .ctr-n{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;background:linear-gradient(135deg,#fff,rgba(255,255,255,.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block;}
-        .ctr-l{font-size:11px;color:rgba(255,255,255,.28);margin-top:4px;letter-spacing:.3px;}
+        .ctr-n{font-family:'Playfair Display',serif;font-size:32px;font-weight:800;color:rgba(255,255,255,0.90);display:block;}
+        .ctr-l{font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;letter-spacing:1px;text-transform:uppercase;}
 
         /* TICKER */
         .ticker-wrap{overflow:hidden;padding:13px 0;border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);position:relative;}
         .ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:100px;z-index:2;pointer-events:none;}
-        .ticker-wrap::before{left:0;background:linear-gradient(90deg,#060608,transparent);}
-        .ticker-wrap::after{right:0;background:linear-gradient(270deg,#060608,transparent);}
+        .ticker-wrap::before{left:0;background:linear-gradient(90deg,#1b1d22,transparent);}
+        .ticker-wrap::after{right:0;background:linear-gradient(270deg,#1b1d22,transparent);}
         .ticker-inner{display:flex;width:max-content;animation:tick 35s linear infinite;}
         @keyframes tick{from{transform:translateX(0);}to{transform:translateX(-50%);}}
         .t-item{display:flex;align-items:center;gap:10px;padding:0 28px;font-size:13px;color:rgba(255,255,255,.32);white-space:nowrap;font-weight:300;}
@@ -325,8 +323,8 @@ export default function LandingPage() {
 
         /* ACTIVITY FEED */
         .activity-feed{max-width:600px;margin:0 auto;height:140px;overflow:hidden;position:relative;}
-        .activity-feed::before{content:'';position:absolute;top:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(180deg,#060608,transparent);}
-        .activity-feed::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(0deg,#060608,transparent);}
+        .activity-feed::before{content:'';position:absolute;top:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(180deg,#1b1d22,transparent);}
+        .activity-feed::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;z-index:2;background:linear-gradient(0deg,#1b1d22,transparent);}
         .activity-inner{display:flex;flex-direction:column;gap:10px;animation:feedScroll 14s linear infinite;}
         @keyframes feedScroll{0%{transform:translateY(0);}100%{transform:translateY(-50%);}}
         .activity-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:100px;padding:8px 16px;font-size:12px;color:rgba(255,255,255,0.45);white-space:nowrap;}
@@ -367,9 +365,10 @@ export default function LandingPage() {
         .tilt-card:hover .float-label{opacity:1;bottom:-20px;}
 
         /* FEATURES */
-        .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:52px;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.06);}
-        .feat{background:#060608;padding:38px 32px;position:relative;overflow:hidden;cursor:default;transition:background .35s;}
-        .feat-glow{position:absolute;inset:0;background:radial-gradient(circle at var(--fx,50%) var(--fy,50%),rgba(99,102,241,.09),transparent 55%);opacity:0;transition:opacity .4s;pointer-events:none;}
+        .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px;}
+        .feat{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:28px;position:relative;overflow:hidden;cursor:default;transition:all .3s ease;}
+        .feat:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.14);transform:translateY(-2px);}
+        .feat-glow{position:absolute;inset:0;background:radial-gradient(circle at var(--fx,50%) var(--fy,50%),rgba(111,135,200,.08),transparent 55%);opacity:0;transition:opacity .4s;pointer-events:none;border-radius:20px;}
         .feat:hover .feat-glow{opacity:1;}
         .feat-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:18px;}
         .i1{background:rgba(99,102,241,.14);}
@@ -378,8 +377,8 @@ export default function LandingPage() {
         .i4{background:rgba(251,191,36,.14);}
         .i5{background:rgba(167,139,250,.14);}
         .i6{background:rgba(248,113,113,.14);}
-        .feat-name{font-size:15px;font-weight:600;margin-bottom:8px;color:rgba(255,255,255,.88);}
-        .feat-desc{font-size:13px;font-weight:300;color:rgba(255,255,255,.35);line-height:1.72;}
+        .feat-name{font-size:18px;font-weight:700;margin-bottom:8px;color:rgba(255,255,255,0.88);}
+        .feat-desc{font-size:14px;font-weight:400;color:rgba(255,255,255,0.42);line-height:1.7;}
         .feat-tag{display:inline-block;margin-top:13px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.18);color:#a5b4fc;font-size:11px;padding:3px 10px;border-radius:100px;font-weight:500;}
 
         /* TESTIMONIALS */
@@ -411,7 +410,7 @@ export default function LandingPage() {
 
         /* CTA */
         .cta-wrap{text-align:center;padding:110px 52px;position:relative;}
-        .cta-radial{position:absolute;width:900px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,.09) 0%,transparent 68%);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
+        .cta-radial{position:absolute;width:900px;height:500px;background:radial-gradient(ellipse,rgba(111,135,200,.08) 0%,transparent 68%);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
         .cta-h{font-family:'Playfair Display',serif;font-size:clamp(40px,6vw,76px);font-weight:900;letter-spacing:-2.5px;line-height:1.0;max-width:700px;margin:0 auto 28px;}
         .cta-h em{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
         .cta-sub{font-size:16px;color:rgba(255,255,255,.38);font-weight:300;max-width:440px;margin:0 auto 38px;line-height:1.75;}
@@ -450,8 +449,8 @@ export default function LandingPage() {
         }
       `}</style>
 
-      {/* Canvas background */}
-      <canvas ref={canvasRef} id="bg" />
+      {/* Canvas background (kept for logic, hidden visually) */}
+      <canvas ref={canvasRef} id="bg" style={{display:'none'}} />
       
       {/* Noise overlay */}
       <div className="noise" />
@@ -468,7 +467,12 @@ export default function LandingPage() {
       <div className="wrap">
         {/* NAV */}
         <nav>
-          <Link href="/" className="logo"><img src="/vegaply-icon.svg" width="30" height="30" style={{borderRadius:'8px', marginRight:'8px', verticalAlign:'middle'}} />Vega<span>ply</span></Link>
+          <Link href="/" className="logo">
+            <div style={{width:30,height:30,background:'linear-gradient(135deg,#4f46e5,#7c3aed)',borderRadius:9,border:'1px solid rgba(139,92,246,0.4)',boxShadow:'0 0 16px rgba(99,102,241,0.25)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <svg width="16" height="16" viewBox="0 0 200 200"><path d="M100,76 L34,118 L66,113 Z" fill="#a5b4fc"/><path d="M100,76 L166,118 L134,113 Z" fill="#c4b5fd"/><ellipse cx="100" cy="92" rx="8" ry="16" fill="#818cf8"/><circle cx="100" cy="76" r="7" fill="#818cf8"/><polygon points="100,66 107,62 100,61" fill="#fcd34d"/><line x1="96" y1="108" x2="88" y2="126" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"/><line x1="100" y1="109" x2="100" y2="128" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/><line x1="104" y1="108" x2="112" y2="126" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round"/><path d="M82,144 A18,18 0 0,1 118,144" fill="#f59e0b" opacity="0.6"/></svg>
+            </div>
+            <span className="logo-text">Vega<span>ply</span></span>
+          </Link>
           <ul className="nav-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#how">How it works</a></li>
@@ -482,7 +486,7 @@ export default function LandingPage() {
 
         {/* HERO */}
         <div className="hero">
-          <div className="orb-1" /><div className="orb-2" /><div className="orb-3" />
+          <div className="orb-1" /><div className="orb-2" />
           
           <motion.div className="pill" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.6}}>
             <span className="pdot" />
@@ -576,7 +580,7 @@ export default function LandingPage() {
         </div>
 
         {/* TICKER */}
-        <div className="ticker-wrap">
+        <motion.div className="ticker-wrap" initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
           <div className="ticker-inner">
             {[...tickData, ...tickData].map((d, i) => (
               <span key={i} className="t-item">
@@ -584,10 +588,10 @@ export default function LandingPage() {
               </span>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* ACTIVITY FEED */}
-        <div style={{padding:'40px 24px',textAlign:'center'}}>
+        <motion.div style={{padding:'40px 24px',textAlign:'center'}} initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
           <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',letterSpacing:2,marginBottom:20,textTransform:'uppercase'}}>Live activity</div>
           <div className="activity-feed">
             <div className="activity-inner">
@@ -598,9 +602,10 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* 3D TILT CARDS */}
+        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
         <div className="section reveal" id="features">
           <div className="eyebrow">Live job feed</div>
           <h2 className="sec-title">Jobs that are <em>actually</em> fresh.</h2>
@@ -678,10 +683,12 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </motion.div>
 
         <div className="glow-line"/>
 
         {/* FEATURES */}
+        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
         <div className="section reveal">
           <div className="eyebrow">Everything you need</div>
           <h2 className="sec-title">Six tools. One <em>unfair</em> advantage.</h2>
@@ -704,10 +711,12 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+        </motion.div>
 
         <div className="glow-line"/>
 
         {/* TESTIMONIALS */}
+        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
         <div className="section reveal" id="stories">
           <div className="eyebrow">Real results</div>
           <h2 className="sec-title">People are getting hired <em>faster.</em></h2>
@@ -730,8 +739,10 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+        </motion.div>
 
         {/* PRICING */}
+        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
         <div className="pricing-section reveal">
           <div className="eyebrow">Pricing</div>
           <h2 className="sec-title">Simple. <em>Transparent.</em></h2>
@@ -789,8 +800,10 @@ export default function LandingPage() {
 
           </div>
         </div>
+        </motion.div>
 
         {/* CTA */}
+        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
         <div className="cta-wrap reveal">
           <div className="cta-radial"/>
           <h2 className="cta-h">Your dream job is being posted <em>right now.</em></h2>
@@ -800,6 +813,7 @@ export default function LandingPage() {
           </Link>
           <p className="cta-trust">✓ Free forever · ✓ No credit card · ✓ 750+ fresh jobs daily</p>
         </div>
+        </motion.div>
 
         {/* FOOTER */}
         <footer>
