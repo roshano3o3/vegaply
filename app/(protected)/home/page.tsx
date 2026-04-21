@@ -2338,7 +2338,7 @@ export default function Home() {
         .topbar-search-box{flex:1;max-width:420px;display:flex;align-items:center;background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.08);border-radius:12px;height:38px;overflow:hidden;transition:border-color 0.3s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease}
         .topbar-search-box:focus-within{border-color:rgba(111,135,200,0.5);box-shadow:0 0 0 3px rgba(111,135,200,0.08),0 0 16px rgba(111,135,200,0.12)}
         .topbar-input{border:none;outline:none;background:none;height:100%;padding:0 14px;flex:1;font-size:13px;font-weight:400;color:rgba(255,255,255,0.80);font-family:var(--font-primary)}
-        .topbar-input-loc{border:none;outline:none;background:none;height:100%;padding:0 12px;width:110px;font-size:13px;font-weight:400;color:rgba(255,255,255,0.60);font-family:var(--font-primary)}
+        .topbar-input-loc{border:none;outline:none;background:none;height:100%;padding:0 12px;width:90px;font-size:13px;font-weight:400;color:rgba(255,255,255,0.80);font-family:var(--font-primary)}
         .topbar-input::placeholder,.topbar-input-loc::placeholder{color:rgba(255,255,255,0.22)}
         .topbar-sep{width:1px;height:20px;background:rgba(255,255,255,0.08);flex-shrink:0}
         .search-btn{background:linear-gradient(135deg,#6f87c8,#5b73b4);border:none;border-radius:10px;height:38px;padding:0 22px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-primary);letter-spacing:-0.2px;box-shadow:0 2px 12px rgba(111,135,200,0.30);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);flex-shrink:0;white-space:nowrap}
@@ -2376,7 +2376,7 @@ export default function Home() {
         /* SIDEBAR */
         .sidebar-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 0 0 rgba(99,102,241,0.0);transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1)}
         .sidebar-card:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08),0 0 16px rgba(99,102,241,0.06)}
-        .sidebar-card-title{font-size:9px;font-weight:700;color:rgba(255,255,255,0.18);margin-bottom:8px;letter-spacing:2.5px;text-transform:uppercase}
+        .sidebar-card-title{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);margin-bottom:8px;letter-spacing:2.2px;text-transform:uppercase}
         .sidebar-card-sub{font-size:11px;color:rgba(255,255,255,0.28);margin-bottom:10px;line-height:1.5}
         .resume-drop{border:1.5px dashed rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.02);padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s ease;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.22);line-height:1.7;font-family:var(--font-primary)}
         .resume-drop:hover,.resume-drop.dragging{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}
@@ -2637,8 +2637,11 @@ export default function Home() {
           <span style={{fontFamily:'var(--font-display)',fontSize:18,fontWeight:800,color:'#ffffff',letterSpacing:'-0.5px',lineHeight:1}}>Vega<span style={{fontStyle:'italic',background:'linear-gradient(135deg,#818cf8,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>ply</span></span>
         </div>
         <div className="topbar-search">
-          <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
-          <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
+          <div className="topbar-search-box">
+            <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
+            <div className="topbar-sep"/>
+            <input className="topbar-input-loc" type="text" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
+          </div>
           <motion.button className="search-btn" whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
           <motion.button className="eb-btn" whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>setActiveMode(m=>m==='earlybird'?'all':'earlybird')} style={{opacity:activeMode==='earlybird'?1:undefined,background:activeMode==='earlybird'?'rgba(251,191,36,0.14)':undefined,borderColor:activeMode==='earlybird'?'rgba(251,191,36,0.45)':undefined,boxShadow:activeMode==='earlybird'?'0 0 16px rgba(251,191,36,0.2)':undefined}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
           <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>setActiveMode(m=>m==='h1b'?'all':'h1b')} style={{background:activeMode==='h1b'?'rgba(142,178,155,0.16)':'rgba(142,178,155,0.07)',border:activeMode==='h1b'?'1px solid rgba(142,178,155,0.40)':'1px solid rgba(142,178,155,0.16)',borderRadius:10,height:38,padding:'0 16px',color:'#8eb29b',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'var(--font-primary)',flexShrink:0,boxShadow:activeMode==='h1b'?'0 0 16px rgba(142,178,155,0.10)':'none',transition:'all 0.2s',display:'flex',alignItems:'center',gap:6}}>🌐 H1B</motion.button>
@@ -2805,7 +2808,7 @@ export default function Home() {
 
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
-              Results {modeFilteredJobs.length>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{filterJobs(modeFilteredJobs).length}</span>}
+              Results {modeFilteredJobs.length>0&&<span style={{background:'rgba(111,135,200,0.18)',color:'#818cf8',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{filterJobs(modeFilteredJobs).length}</span>}
               {activeTab==="results"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#6366f1,#8b5cf6)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-eb${activeTab==="earlybird"?" active":""}`} onClick={()=>{setActiveTab("earlybird");setCurrentPage(1);}}>
@@ -2817,11 +2820,11 @@ export default function Home() {
               {activeTab==="earlybird"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#fbbf24,#f97316)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab${activeTab==="saved"?" active":""}`} onClick={()=>{setActiveTab("saved");setCurrentPage(1);}}>
-              Saved {savedJobs.size>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{savedJobs.size}</span>}
+              Saved {savedJobs.size>0&&<span style={{background:'rgba(111,135,200,0.18)',color:'#818cf8',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{savedJobs.size}</span>}
               {activeTab==="saved"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#6366f1,#8b5cf6)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-tracker${activeTab==="tracker"?" active":""}`} onClick={()=>setActiveTab("tracker")}>
-              Tracker {trackedApps.length>0&&<span style={{background:'rgba(99,102,241,0.15)',color:'#818cf8',fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:100,marginLeft:6}}>{trackedApps.length}</span>}
+              Tracker {trackedApps.length>0&&<span style={{background:'rgba(111,135,200,0.18)',color:'#818cf8',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{trackedApps.length}</span>}
               {activeTab==="tracker"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#818cf8,#6366f1)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
             <button className={`tab tab-analytics${activeTab==="analytics"?" active":""}`} onClick={()=>setActiveTab("analytics")}>
