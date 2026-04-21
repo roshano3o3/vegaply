@@ -1401,6 +1401,8 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
     >
       {/* TOP SHIMMER LINE */}
       <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(111,135,200,0.2),transparent)',pointerEvents:'none'}}/>
+      {/* LEFT ACCENT BAR */}
+      <div className="job-card-accent"/>
 
       {/* HEADER ROW */}
       <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
@@ -1450,7 +1452,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* BADGES ROW */}
       <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}}>
-        {ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:800,padding:'3px 8px',borderRadius:999,letterSpacing:'0.3px',background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',boxShadow:'0 2px 8px rgba(249,115,22,0.25)',fontFamily:'var(--font-primary)'}}>🔥 HOT</span>}
+        {ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:800,padding:'3px 8px',borderRadius:999,letterSpacing:'0.3px',background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',boxShadow:'0 2px 8px rgba(249,115,22,0.25)',fontFamily:'var(--font-primary)',animation:'hotGlow 2s ease infinite'}}>🔥 HOT</span>}
         {ebStatus.isEarly&&!ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:'rgba(111,135,200,0.10)',color:'#818cf8',border:'1px solid rgba(111,135,200,0.20)',fontFamily:'var(--font-primary)'}}>⚡ Still Early</span>}
         {h1bStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:h1bStatus.sponsors?'rgba(142,178,155,0.10)':'rgba(214,178,104,0.08)',color:h1bStatus.sponsors?'#8eb29b':'#d6b268',border:h1bStatus.sponsors?'1px solid rgba(142,178,155,0.20)':'1px solid rgba(214,178,104,0.18)',fontFamily:'var(--font-primary)'}}>{h1bStatus.sponsors?'✓ H1B':'~ H1B Likely'}</span>}
         {(()=>{const hrs=ebStatus.hoursOld;const count=hrs<=1?'~2':hrs<=3?'~8':hrs<=6?'~18':hrs<=12?'~40':hrs<=24?'~80':hrs<=48?'~150':'200+';const isLow=hrs<=12;return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:isLow?'rgba(142,178,155,0.08)':'rgba(239,68,68,0.06)',color:isLow?'#8eb29b':'rgba(239,68,68,0.6)',border:isLow?'1px solid rgba(142,178,155,0.16)':'1px solid rgba(239,68,68,0.12)',fontFamily:'var(--font-primary)'}}>👤 {count} applicants</span>})()}
@@ -2323,7 +2325,7 @@ export default function Home() {
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         body{font-family:var(--font-primary);background:radial-gradient(circle at 18% 22%,rgba(120,130,150,0.10),transparent 38%),radial-gradient(circle at 82% 72%,rgba(90,100,120,0.08),transparent 42%),linear-gradient(145deg,#1b1d22 0%,#23262d 100%)!important;color:#fff;min-height:100vh;overflow-x:hidden}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.25);border-radius:99px}
-        @keyframes ambientFloat{0%,100%{transform:scale(1) translate(0,0)}33%{transform:scale(1.1) translate(10px,-15px)}66%{transform:scale(0.95) translate(-8px,10px)}}
+        @keyframes ambientFloat{0%,100%{transform:scale(1) translate(0,0)}33%{transform:scale(1.08) translate(8px,-12px)}66%{transform:scale(0.96) translate(-6px,8px)}}
         @keyframes softGlow{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.0)}50%{box-shadow:0 0 20px 2px rgba(99,102,241,0.08)}}
         @keyframes focusGlow{0%{box-shadow:0 0 0 0 rgba(111,135,200,0.15)}to{box-shadow:0 0 0 6px rgba(111,135,200,0.0)}}
         @keyframes cardHoverGlow{0%,100%{box-shadow:0 12px 32px rgba(111,135,200,0.08),inset 0 1px 0 rgba(255,255,255,0.05)}50%{box-shadow:0 12px 40px rgba(111,135,200,0.12),inset 0 1px 0 rgba(255,255,255,0.08)}}
@@ -2418,6 +2420,8 @@ export default function Home() {
         .job-card{background:linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;cursor:default;transition:all 0.32s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05);animation:cardPulse 5s ease infinite}
         .job-card:hover{border-color:rgba(111,135,200,0.40);box-shadow:0 12px 32px rgba(111,135,200,0.12),inset 0 1px 0 rgba(255,255,255,0.08),0 0 24px rgba(111,135,200,0.08);transform:translateY(-2px);animation:none}
         .job-card-hot{border-color:rgba(251,191,36,0.25)!important}
+        .job-card-accent{position:absolute;top:0;left:0;bottom:0;width:2px;background:linear-gradient(180deg,#6f87c8,#9a74df);border-radius:16px 0 0 16px;opacity:0;transition:opacity 0.2s ease;pointer-events:none}
+        .job-card:hover .job-card-accent{opacity:1}
         .job-card-hot:hover{box-shadow:0 12px 32px rgba(251,191,36,0.10),inset 0 1px 0 rgba(255,255,255,0.08),0 0 24px rgba(251,191,36,0.10)!important}
 
         /* ACTION BUTTONS */
@@ -2464,10 +2468,10 @@ export default function Home() {
         .skel::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.025),transparent);animation:shimmer 1.8s infinite}
         @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
         @keyframes skeletonShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-        @keyframes ebPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0.12)}}
+        @keyframes ebPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.2;transform:scale(0.6)}}
         @keyframes cardGlow{0%,100%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}50%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05),0 0 20px rgba(111,135,200,0.08)}}
         @keyframes cardPulse{0%,100%{border-color:rgba(255,255,255,0.08)}50%{border-color:rgba(111,135,200,0.15)}}
-        @keyframes hotGlow{0%,100%{box-shadow:0 2px 6px rgba(249,115,22,0.2)}50%{box-shadow:0 2px 12px rgba(249,115,22,0.45)}}
+        @keyframes hotGlow{0%,100%{box-shadow:0 2px 6px rgba(249,115,22,0.2)}50%{box-shadow:0 2px 14px rgba(249,115,22,0.5)}}
         @keyframes buttonShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         @keyframes btnShimmer{0%{background-position:0% center}100%{background-position:200% center}}
         @keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.0)}50%{box-shadow:0 0 0 4px rgba(99,102,241,0.08)}}
@@ -2610,8 +2614,8 @@ export default function Home() {
       `}</style>
 
       {/* AMBIENT GLOW */}
-      <div style={{position:'fixed',top:'10%',right:'5%',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,rgba(99,102,241,0.035) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientFloat 8s ease-in-out infinite'}}/>
-      <div style={{position:'fixed',bottom:'20%',left:'15%',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,rgba(52,211,153,0.02) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientFloat 10s ease-in-out infinite reverse'}}/>
+      <div style={{position:'fixed',top:'10%',right:'5%',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,rgba(111,135,200,0.04) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientFloat 9s ease-in-out infinite'}}/>
+      <div style={{position:'fixed',bottom:'15%',left:'20%',width:380,height:380,borderRadius:'50%',background:'radial-gradient(circle,rgba(142,178,155,0.025) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientFloat 12s ease-in-out infinite reverse'}}/>
 
       {/* TOPBAR */}
       <motion.nav
@@ -2642,7 +2646,7 @@ export default function Home() {
             <div className="topbar-sep"/>
             <input className="topbar-input-loc" type="text" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           </div>
-          <motion.button className="search-btn" whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
+          <motion.button className="search-btn" whileHover={{scale:1.04,filter:'brightness(1.12)'}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
           <motion.button className="eb-btn" whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>setActiveMode(m=>m==='earlybird'?'all':'earlybird')} style={{opacity:activeMode==='earlybird'?1:undefined,background:activeMode==='earlybird'?'rgba(251,191,36,0.14)':undefined,borderColor:activeMode==='earlybird'?'rgba(251,191,36,0.45)':undefined,boxShadow:activeMode==='earlybird'?'0 0 16px rgba(251,191,36,0.2)':undefined}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
           <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>setActiveMode(m=>m==='h1b'?'all':'h1b')} style={{background:activeMode==='h1b'?'rgba(142,178,155,0.16)':'rgba(142,178,155,0.07)',border:activeMode==='h1b'?'1px solid rgba(142,178,155,0.40)':'1px solid rgba(142,178,155,0.16)',borderRadius:10,height:38,padding:'0 16px',color:'#8eb29b',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'var(--font-primary)',flexShrink:0,boxShadow:activeMode==='h1b'?'0 0 16px rgba(142,178,155,0.10)':'none',transition:'all 0.2s',display:'flex',alignItems:'center',gap:6}}>🌐 H1B</motion.button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
@@ -2693,7 +2697,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="app-layout">
+      <motion.div className="app-layout" initial={{opacity:0,y:8,scale:0.99}} animate={{opacity:1,y:0,scale:1}} transition={{duration:0.5,ease:[0.34,1.56,0.64,1]}}>
         {/* SIDEBAR */}
         <motion.aside className="sidebar" initial={{opacity:0,x:-16}} animate={{opacity:1,x:0}} transition={{duration:0.4,delay:0.1,ease:'easeOut'}}>
           <div className="sidebar-card">
@@ -2813,7 +2817,7 @@ export default function Home() {
             </button>
             <button className={`tab tab-eb${activeTab==="earlybird"?" active":""}`} onClick={()=>{setActiveTab("earlybird");setCurrentPage(1);}}>
               <span style={{display:"inline-flex",alignItems:"center",gap:6}}>
-                <span style={{width:7,height:7,borderRadius:"50%",background:"#34d399",boxShadow:"0 0 6px rgba(52,211,153,0.8)",display:"inline-block",animation:"pulse-dot 2s ease-in-out infinite",flexShrink:0}}/>
+                <span style={{width:7,height:7,borderRadius:"50%",background:"#34d399",boxShadow:"0 0 6px rgba(52,211,153,0.8)",display:"inline-block",animation:"ebPulse 2s ease-in-out infinite",flexShrink:0}}/>
                 ⚡ Early Bird
               </span>
               {earlyBirdJobs.length>0&&<span style={{background:'rgba(251,191,36,0.2)',color:'#fbbf24',fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:100,marginLeft:6,border:'1px solid rgba(251,191,36,0.35)'}}>{earlyBirdJobs.length}</span>}
@@ -3094,7 +3098,7 @@ export default function Home() {
           </div>
 
         </motion.aside>
-      </div>
+      </motion.div>
 
       {/* MODALS */}
       {selectedJob&&<JobModal job={selectedJob} saved={savedJobs.has(selectedJob.job_id)} onToggleSave={()=>toggleSave(selectedJob.job_id)} onClose={()=>setSelectedJob(null)} earlyBirdMode={isEbMode} onAddToTracker={()=>addToTracker(selectedJob)} isTracked={!!trackedApps.find(a=>a.job.job_id===selectedJob.job_id)}/>}
