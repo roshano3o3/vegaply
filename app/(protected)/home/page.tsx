@@ -1381,7 +1381,8 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       return { text: 'Description unavailable. Open source posting for details.', available: false };
     }
     const cleaned = normalizeJobDescription(desc);
-    return { text: cleaned.slice(0, 180), available: cleaned.length > 0 };
+    if (!cleaned) return { text: 'Description unavailable. Open source posting for details.', available: false };
+    return { text: cleaned.slice(0, 400), available: true };
   };
 
   const ebStatus = getEarlyBirdStatus(job);
@@ -1459,7 +1460,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       </div>
 
       {/* DESCRIPTION */}
-      <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.45)',lineHeight:1.65,margin:0,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const}}>
+      <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.55)',lineHeight:1.65,margin:0,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as const}}>
         {getJobDescription().text}
       </p>
 
@@ -1672,28 +1673,28 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         </motion.a>
       )}
 
-      {/* ROW 6: Auto Apply */}
-      <motion.button
-        onClick={e=>{e.stopPropagation();onAutoApply();}}
-        disabled={isAutoApplying||autoApplyResult==="applied"}
-        title="AI scores your resume, tracks as Applied, and opens the job link"
-        whileHover={autoApplyResult!=="applied"&&!isAutoApplying?{backgroundColor:'rgba(99,102,241,0.1)',borderColor:'rgba(99,102,241,0.4)'}:{}}
-        whileTap={{scale:0.98}}
-        style={{
-          width:"100%",padding:"9px",borderRadius:12,border:"1px solid",fontSize:11,fontWeight:600,
-          cursor:isAutoApplying||autoApplyResult==="applied"?"not-allowed":"pointer",fontFamily:'var(--font-primary)',
-          display:"flex",alignItems:"center",justifyContent:"center",gap:6,transition:'all 0.18s ease',
-          ...(autoApplyResult==="applied"
-            ?{background:"rgba(16,185,129,0.1)",borderColor:"rgba(16,185,129,0.3)",color:"#34d399"}
-            :autoApplyResult==="low_match"
-              ?{background:"rgba(245,158,11,0.08)",borderColor:"rgba(245,158,11,0.3)",color:"#fbbf24"}
-              :isAutoApplying
-                ?{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.30)"}
-                :{background:"rgba(255,255,255,0.03)",borderColor:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.30)"})
-        }}
-      >
-        {isAutoApplying?<><div className="spin-sm"/>Analyzing…</>:autoApplyResult==="applied"?"✅ Applied":autoApplyResult==="low_match"?"⚠️ Low Match":"⚡ Auto Apply"}
-      </motion.button>
+      {/* ROW 6: Auto Apply — secondary CTA */}
+      {(autoApplyResult==="applied"||autoApplyResult==="low_match"||isAutoApplying)?(
+        <div style={{textAlign:'center',fontSize:10,fontWeight:600,color:autoApplyResult==="applied"?"#34d399":autoApplyResult==="low_match"?"#fbbf24":"rgba(255,255,255,0.25)",paddingTop:2}}>
+          {isAutoApplying?<><span className="spin-sm" style={{display:'inline-block',verticalAlign:'middle',marginRight:4}}/> Analyzing…</>:autoApplyResult==="applied"?"✅ Applied":autoApplyResult==="low_match"?"⚠️ Low Match — manual review suggested":""}
+        </div>
+      ):(
+        <motion.button
+          onClick={e=>{e.stopPropagation();onAutoApply();}}
+          disabled={isAutoApplying}
+          title="AI scores your resume, tracks as Applied, and opens the job link"
+          whileHover={{color:'rgba(255,255,255,0.5)',borderColor:'rgba(255,255,255,0.14)'}}
+          whileTap={{scale:0.97}}
+          style={{
+            width:"100%",padding:"5px",borderRadius:8,border:"1px solid rgba(255,255,255,0.06)",fontSize:10,fontWeight:500,
+            cursor:"pointer",fontFamily:'var(--font-primary)',background:"transparent",
+            display:"flex",alignItems:"center",justifyContent:"center",gap:5,transition:'all 0.15s ease',
+            color:"rgba(255,255,255,0.22)",letterSpacing:"0.1px"
+          }}
+        >
+          ⚡ Auto Apply
+        </motion.button>
+      )}
     </motion.div>
   );
 }
@@ -2378,7 +2379,7 @@ export default function Home() {
         /* SIDEBAR */
         .sidebar-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 0 0 rgba(99,102,241,0.0);transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1)}
         .sidebar-card:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08),0 0 16px rgba(99,102,241,0.06)}
-        .sidebar-card-title{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);margin-bottom:8px;letter-spacing:2.2px;text-transform:uppercase}
+        .sidebar-card-title{font-size:10px;font-weight:700;color:rgba(255,255,255,0.40);margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase}
         .sidebar-card-sub{font-size:11px;color:rgba(255,255,255,0.28);margin-bottom:10px;line-height:1.5}
         .resume-drop{border:1.5px dashed rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.02);padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s ease;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.22);line-height:1.7;font-family:var(--font-primary)}
         .resume-drop:hover,.resume-drop.dragging{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}

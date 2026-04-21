@@ -18,47 +18,65 @@ interface NormalisedJob {
   job_is_remote?: boolean;
   job_highlights?: { Qualifications?: string[]; Responsibilities?: string[]; Benefits?: string[] };
   source?: string;
-  [key: string]: unknown; // allow JSearch passthrough fields
+  [key: string]: unknown;
 }
 
-// ── SOURCE A: JSearch (5 pages) ──────────────────────────────────────────────
-async function fetchJSearch(jobRole: string, location: string, earlyBird: boolean): Promise<NormalisedJob[]> {
+// ── SOURCE A: Adzuna (primary — 10 pages × 50 = up to 500 results) ───────────
+async function fetchAdzuna(jobRole: string, location: string, earlyBird: boolean): Promise<NormalisedJob[]> {
   try {
-    const apiKey = process.env.RAPIDAPI_KEY ?? "";
-    console.log("[JSearch] API key present:", !!apiKey, "| earlyBird:", earlyBird);
-    const dateFilter = earlyBird ? "today" : "all";
-    const pageRequests = Array.from({ length: 5 }, (_, i) =>
+    const appId = process.env.ADZUNA_APP_ID ?? "";
+    const appKey = process.env.ADZUNA_APP_KEY ?? "";
+    if (!appId || !appKey) {
+      console.log("[Adzuna] No credentials, skipping");
+      return [];
+    }
+    // max_days_old=1 restricts results to the last 24 h (Adzuna's early-bird equivalent)
+    const earlyBirdParam = earlyBird ? "&max_days_old=1" : "";
+    const pageRequests = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(page =>
       fetch(
-        `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(jobRole)}%20${encodeURIComponent(location)}&page=${i + 1}&num_pages=1&date_posted=${dateFilter}&employment_types=FULLTIME%2CPARTTIME%2CCONTRACTOR`,
-        {
-          method: "GET",
-          headers: {
-            "X-RapidAPI-Key": apiKey,
-            "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
-          },
-          next: { revalidate: 0 },
-        }
+        `https://api.adzuna.com/v1/api/jobs/us/search/${page}` +
+        `?app_id=${appId}&app_key=${appKey}` +
+        `&results_per_page=50` +
+        `&what=${encodeURIComponent(jobRole)}` +
+        `&where=${encodeURIComponent(location)}` +
+        `&content-type=application/json` +
+        earlyBirdParam,
+        { next: { revalidate: 0 } }
       )
         .then(async r => {
-          const json = await r.json();
-          if (r.status === 429 || /exceeded|quota/i.test(JSON.stringify(json))) {
-            console.log("[JSearch] Quota exceeded, skipping");
-            return { data: [] };
+          if (!r.ok) {
+            console.error(`[Adzuna] page ${page} HTTP ${r.status}`);
+            return [];
           }
-          if (!r.ok) console.error(`[JSearch] page ${i+1} HTTP ${r.status}:`, JSON.stringify(json).slice(0, 200));
-          return json;
+          const data = await r.json();
+          return data?.results ?? [];
         })
-        .catch(err => { console.error(`[JSearch] page ${i+1} fetch error:`, err); return { data: [] }; })
+        .catch(err => {
+          console.error(`[Adzuna] page ${page} error:`, err);
+          return [];
+        })
     );
     const pages = await Promise.all(pageRequests);
-    const jobs: NormalisedJob[] = [];
-    for (const page of pages) {
-      if (page?.data && Array.isArray(page.data)) jobs.push(...page.data);
-    }
-    console.log("[JSearch] jobs fetched:", jobs.length);
-    return jobs;
+    const jobs: any[] = pages.flat();
+    console.log("[Adzuna] jobs fetched:", jobs.length);
+    return jobs.map(job => ({
+      job_id: `adzuna-${job.id}`,
+      job_title: job.title,
+      employer_name: job.company?.display_name || "",
+      employer_logo: null,
+      job_city: job.location?.display_name || "",
+      job_country: "US",
+      job_posted_at_timestamp: job.created
+        ? Math.floor(new Date(job.created).getTime() / 1000)
+        : 0,
+      job_posted_at_datetime_utc: job.created ?? null,
+      job_apply_link: job.redirect_url ?? "",
+      job_description: job.description ?? "",
+      job_employment_type: job.contract_time || "",
+      source: "adzuna",
+    }));
   } catch (err) {
-    console.error("[JSearch] top-level error:", err);
+    console.error("[Adzuna] error:", err);
     return [];
   }
 }
@@ -109,7 +127,7 @@ async function fetchGreenhouse(): Promise<NormalisedJob[]> {
     const companyRequests = GREENHOUSE_COMPANIES.map(company =>
       fetch(
         `https://boards-api.greenhouse.io/v1/boards/${company}/jobs?content=true`,
-        { next: { revalidate: 3600 } } // greenhouse boards update infrequently
+        { next: { revalidate: 3600 } }
       )
         .then(r => r.json())
         .then(data => ({ company, jobs: data?.jobs ?? [] }))
@@ -140,55 +158,14 @@ async function fetchGreenhouse(): Promise<NormalisedJob[]> {
         });
       }
     }
-    console.log("[Greenhouse] matching jobs fetched:", normalised.length);
+    console.log("[Greenhouse] jobs fetched:", normalised.length);
     return normalised;
   } catch {
     return [];
   }
 }
 
-// ── SOURCE D: Adzuna ─────────────────────────────────────────────────────────
-async function fetchAdzuna(jobRole: string, location: string): Promise<NormalisedJob[]> {
-  try {
-    const appId = process.env.ADZUNA_APP_ID ?? "";
-    const appKey = process.env.ADZUNA_APP_KEY ?? "";
-    if (!appId || !appKey) { console.log("[Adzuna] No credentials, skipping"); return []; }
-    const pageRequests = [1, 2, 3, 4, 5].map(page =>
-      fetch(
-        `https://api.adzuna.com/v1/api/jobs/us/search/${page}?app_id=${appId}&app_key=${appKey}&results_per_page=50&what=${encodeURIComponent(jobRole)}&where=${encodeURIComponent(location)}&content-type=application/json`,
-        { next: { revalidate: 0 } }
-      )
-        .then(async r => {
-          if (!r.ok) { console.error(`[Adzuna] page ${page} HTTP ${r.status}`); return []; }
-          const data = await r.json();
-          return data?.results ?? [];
-        })
-        .catch(err => { console.error(`[Adzuna] page ${page} error:`, err); return []; })
-    );
-    const pages = await Promise.all(pageRequests);
-    const jobs: any[] = pages.flat();
-    console.log("[Adzuna] jobs fetched:", jobs.length);
-    return jobs.map(job => ({
-      job_id: `adzuna-${job.id}`,
-      job_title: job.title,
-      employer_name: job.company?.display_name || "",
-      employer_logo: null,
-      job_city: job.location?.display_name || "",
-      job_country: "US",
-      job_posted_at_timestamp: Math.floor(new Date(job.created).getTime() / 1000),
-      job_posted_at_datetime_utc: job.created,
-      job_apply_link: job.redirect_url,
-      job_description: job.description,
-      job_employment_type: job.contract_time || "",
-      source: "adzuna",
-    }));
-  } catch (err) {
-    console.error("[Adzuna] error:", err);
-    return [];
-  }
-}
-
-// ── SOURCE E: The Muse ────────────────────────────────────────────────────────
+// ── SOURCE D: The Muse ────────────────────────────────────────────────────────
 async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
   try {
     const pageRequests = [0, 1, 2, 3, 4].map(page =>
@@ -230,7 +207,7 @@ async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
   }
 }
 
-// ── SOURCE F: Arbeitnow ───────────────────────────────────────────────────────
+// ── SOURCE E: Arbeitnow ───────────────────────────────────────────────────────
 async function fetchArbeitnow(jobRole: string): Promise<NormalisedJob[]> {
   try {
     const pageRequests = [1, 2, 3].map(page =>
@@ -283,26 +260,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ data: [], total: 0 });
     }
 
-    // Fetch all 6 sources in parallel; each has its own error boundary
-    const [jsearchJobs, remotiveJobs, greenhouseJobs, adzunaJobs, themuseJobs, arbeitnowJobs] = await Promise.all([
-      fetchJSearch(jobRole, location, earlyBird),
+    // Fetch all sources in parallel; each has its own error boundary
+    const [adzunaJobs, remotiveJobs, greenhouseJobs, themuseJobs, arbeitnowJobs] = await Promise.all([
+      fetchAdzuna(jobRole, location, earlyBird),
       fetchRemotive(),
       fetchGreenhouse(),
-      fetchAdzuna(jobRole, location),
       fetchTheMuse(jobRole),
       fetchArbeitnow(jobRole),
     ]);
 
-    console.log('JSearch jobs:', jsearchJobs.length);
-    console.log('Remotive jobs:', remotiveJobs.length);
-    console.log('Greenhouse jobs:', greenhouseJobs.length);
-    console.log('Adzuna jobs:', adzunaJobs.length);
-    console.log('TheMuse jobs:', themuseJobs.length);
-    console.log('Arbeitnow jobs:', arbeitnowJobs.length);
+    console.log("Adzuna jobs:", adzunaJobs.length);
+    console.log("Remotive jobs:", remotiveJobs.length);
+    console.log("Greenhouse jobs:", greenhouseJobs.length);
+    console.log("TheMuse jobs:", themuseJobs.length);
+    console.log("Arbeitnow jobs:", arbeitnowJobs.length);
 
     // Combine
-    const allJobs: NormalisedJob[] = [...jsearchJobs, ...remotiveJobs, ...greenhouseJobs, ...adzunaJobs, ...themuseJobs, ...arbeitnowJobs];
-    console.log('Total combined:', allJobs.length);
+    const allJobs: NormalisedJob[] = [
+      ...adzunaJobs,
+      ...remotiveJobs,
+      ...greenhouseJobs,
+      ...themuseJobs,
+      ...arbeitnowJobs,
+    ];
+    console.log("Total combined:", allJobs.length);
 
     // Deduplicate by job_id
     const seen = new Set<string>();
@@ -326,18 +307,17 @@ export async function POST(req: Request) {
 
     let finalJobs: NormalisedJob[];
     if (earlyBird) {
-      // Early Bird: only jobs posted in the last 24 hours, no cap
+      // Early Bird: only jobs posted in the last 24 hours
+      // Adzuna already filtered server-side via max_days_old=1;
+      // this client-side pass catches any non-Adzuna sources that slipped through.
       const cutoff = Math.floor(Date.now() / 1000) - 86400;
       finalJobs = uniqueJobs.filter(j => (j.job_posted_at_timestamp ?? 0) > cutoff);
-      console.log('[Jobs] Early Bird — jobs within 24h:', finalJobs.length);
+      console.log("[Jobs] Early Bird — jobs within 24h:", finalJobs.length);
     } else {
-      // Normal: cap at 2000
       finalJobs = uniqueJobs.slice(0, 2000);
     }
 
-    console.log('[Jobs] Remotive count:', remotiveJobs.length);
-    console.log('[Jobs] Greenhouse count:', greenhouseJobs.length);
-    console.log('[Jobs] Final total:', finalJobs.length);
+    console.log("[Jobs] Final total:", finalJobs.length);
     return NextResponse.json({ data: finalJobs, total: finalJobs.length });
   } catch (error) {
     console.error(error);
