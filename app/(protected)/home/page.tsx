@@ -135,13 +135,18 @@ function getH1BStatus(job: Job): { sponsors: boolean; likely: boolean; label: st
 
 function normalizeJobDescription(text?: string): string {
   if (!text || typeof text !== 'string') return '';
-  return text
+  const result = text
     .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<\/?(h[1-6]|p|div|span|strong|em|ul|ol|li|a|b|i)[^>]*>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
     .replace(/\s+/g, ' ').trim();
+  if (typeof window !== 'undefined' && text.length > 50 && text.includes('<')) {
+    console.log('[NORMALIZE] input:', text.slice(0, 100));
+    console.log('[NORMALIZE] output:', result.slice(0, 100));
+  }
+  return result;
 }
 
 function ScoreRing({ score }: { score: number }) {
