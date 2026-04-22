@@ -143,10 +143,6 @@ function normalizeJobDescription(text?: string): string {
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ').trim();
-  if (typeof window !== 'undefined' && text.length > 50 && (text.includes('<') || text.includes('&lt;'))) {
-    console.log('[NORMALIZE] input:', text.slice(0, 100));
-    console.log('[NORMALIZE] output:', result.slice(0, 100));
-  }
   return result;
 }
 
