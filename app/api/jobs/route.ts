@@ -82,7 +82,7 @@ async function fetchAdzuna(jobRole: string, location: string, earlyBird: boolean
 }
 
 // ── SOURCE B: Remotive ───────────────────────────────────────────────────────
-async function fetchRemotive(): Promise<NormalisedJob[]> {
+async function fetchRemotive(jobRole: string): Promise<NormalisedJob[]> {
   try {
     const res = await fetch(
       `https://remotive.com/api/remote-jobs?limit=300&category=software-dev`,
@@ -99,7 +99,7 @@ async function fetchRemotive(): Promise<NormalisedJob[]> {
     const data = await res.json();
     const jobs: any[] = data?.jobs ?? [];
     console.log("[Remotive] jobs fetched:", jobs.length);
-    return jobs.map(job => ({
+    const mapped: NormalisedJob[] = jobs.map(job => ({
       job_id: String(job.id),
       job_title: job.title,
       employer_name: job.company_name,
@@ -114,6 +114,12 @@ async function fetchRemotive(): Promise<NormalisedJob[]> {
       job_is_remote: true,
       source: "remotive",
     }));
+    const roleLower = (jobRole || '').toLowerCase().trim();
+    const filtered = roleLower
+      ? mapped.filter(j => j.job_title?.toLowerCase().includes(roleLower))
+      : mapped;
+    console.log("[Remotive] jobs after role filter:", filtered.length);
+    return filtered;
   } catch {
     return [];
   }
@@ -122,7 +128,7 @@ async function fetchRemotive(): Promise<NormalisedJob[]> {
 // ── SOURCE C: Greenhouse (5 companies) ──────────────────────────────────────
 const GREENHOUSE_COMPANIES = ["stripe", "figma", "notion", "linear", "vercel"];
 
-async function fetchGreenhouse(): Promise<NormalisedJob[]> {
+async function fetchGreenhouse(jobRole: string): Promise<NormalisedJob[]> {
   try {
     const companyRequests = GREENHOUSE_COMPANIES.map(company =>
       fetch(
@@ -159,7 +165,12 @@ async function fetchGreenhouse(): Promise<NormalisedJob[]> {
       }
     }
     console.log("[Greenhouse] jobs fetched:", normalised.length);
-    return normalised;
+    const roleLower = (jobRole || '').toLowerCase().trim();
+    const filtered = roleLower
+      ? normalised.filter(j => j.job_title?.toLowerCase().includes(roleLower))
+      : normalised;
+    console.log("[Greenhouse] jobs after role filter:", filtered.length);
+    return filtered;
   } catch {
     return [];
   }
@@ -263,8 +274,8 @@ export async function POST(req: Request) {
     // Fetch all sources in parallel; each has its own error boundary
     const [adzunaJobs, remotiveJobs, greenhouseJobs, themuseJobs, arbeitnowJobs] = await Promise.all([
       fetchAdzuna(jobRole, location, earlyBird),
-      fetchRemotive(),
-      fetchGreenhouse(),
+      fetchRemotive(jobRole),
+      fetchGreenhouse(jobRole),
       fetchTheMuse(jobRole),
       fetchArbeitnow(jobRole),
     ]);
