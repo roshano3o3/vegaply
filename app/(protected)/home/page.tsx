@@ -134,8 +134,10 @@ function getH1BStatus(job: Job): { sponsors: boolean; likely: boolean; label: st
 }
 
 function normalizeJobDescription(text?: string): string {
-  if (!text) return '';
+  if (!text || typeof text !== 'string') return '';
   return text
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/?(h[1-6]|p|div|span|strong|em|ul|ol|li|a|b|i)[^>]*>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
@@ -927,22 +929,31 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
   const { score, checks } = analyzeResume(resumeText);
   const [aiResult, setAiResult] = useState<AiResumeScore | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(false);
   const cachedTextRef = useRef<string>("");
   const t2 = lm ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.4)";
   const t3 = lm ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.28)";
   const bg = lm ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.02)";
 
+  const runScoreAnalysis = () => {
+    if (!resumeText) return;
+    setAiLoading(true);
+    setAiError(false);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    fetch("/api/resumescore", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeText }), signal: controller.signal })
+      .then(r => r.json())
+      .then(d => { if (!d.error) setAiResult(d); else setAiError(true); })
+      .catch(() => { setAiError(true); })
+      .finally(() => { clearTimeout(timeoutId); setAiLoading(false); });
+  };
+
   useEffect(() => {
     const key = resumeText.slice(0, 80);
     if (key === cachedTextRef.current || !resumeText) return;
     cachedTextRef.current = key;
-    setAiLoading(true);
     setAiResult(null);
-    fetch("/api/resumescore", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeText }) })
-      .then(r => r.json())
-      .then(d => { if (!d.error) setAiResult(d); })
-      .catch(() => {})
-      .finally(() => setAiLoading(false));
+    runScoreAnalysis();
   }, [resumeText]);
 
   const BREAKDOWN_LABELS: Record<string, string> = {
@@ -967,11 +978,23 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
     );
   };
 
-  if (aiLoading) return (
+  if (aiLoading && !aiError) return (
     <div className="sidebar-card" style={{marginTop:0}}>
       <div className="sidebar-card-title">📈 Resume Strength</div>
       <div style={{display:"flex",alignItems:"center",gap:8,padding:"16px 0",fontSize:12,color:"#818cf8"}}>
         <div className="spin-sm"/>AI analyzing your resume…
+      </div>
+    </div>
+  );
+
+  if (aiError) return (
+    <div className="sidebar-card" style={{marginTop:0}}>
+      <div className="sidebar-card-title">📈 Resume Strength</div>
+      <div style={{fontSize:11,color:'rgba(239,68,68,0.65)',textAlign:'center',padding:'12px 10px'}}>
+        ⚠️ Analysis failed
+        <button onClick={runScoreAnalysis} style={{display:'block',marginTop:6,background:'rgba(111,135,200,0.10)',border:'1px solid rgba(111,135,200,0.25)',borderRadius:7,padding:'5px 12px',fontSize:10,color:'#6f87c8',cursor:'pointer',margin:'6px auto 0'}}>
+          Retry
+        </button>
       </div>
     </div>
   );
@@ -2371,7 +2394,7 @@ export default function Home() {
 
         /* LAYOUT */
         .app-layout{display:flex;min-height:calc(100vh - 54px);position:relative;z-index:1;background:#06080f}
-        .sidebar{width:260px;flex-shrink:0;background:rgba(16,18,28,0.92);border-right:1px solid rgba(255,255,255,0.05);padding:20px 14px;display:flex;flex-direction:column;gap:22px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+        .sidebar{width:260px;flex-shrink:0;background:rgba(16,18,28,0.92);border-right:1px solid rgba(255,255,255,0.05);padding:20px 14px 40px 14px;display:flex;flex-direction:column;gap:22px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
         .content{flex:1;min-width:0;padding:24px;max-width:calc(100vw - 260px - 320px)}
         .right-panel{width:320px;flex-shrink:0;background:rgba(22,24,34,0.85);border-left:1px solid rgba(255,255,255,0.06);padding:20px 16px;display:flex;flex-direction:column;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
@@ -2447,7 +2470,7 @@ export default function Home() {
         .badge-time{background:rgba(251,191,36,0.06);color:#fbbf24;border:1px solid rgba(251,191,36,0.12)}
 
         /* APPLY */
-        .apply-btn{background:linear-gradient(270deg,#6f87c8,#8a9fd4,#6f87c8)!important;background-size:200% auto!important;animation:btnShimmer 3s linear infinite!important;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:700;font-family:var(--font-primary);cursor:pointer;transition:all 0.32s cubic-bezier(0.34,1.56,0.64,1);text-decoration:none;display:block;text-align:center;width:100%;box-shadow:0 4px 14px rgba(111,135,200,0.25)!important;letter-spacing:-0.2px}
+        .apply-btn{background:linear-gradient(135deg,#6f87c8 0%,#5b73b4 100%)!important;background-size:auto!important;animation:none!important;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:700;font-family:var(--font-primary);cursor:pointer;transition:all 0.32s cubic-bezier(0.34,1.56,0.64,1);text-decoration:none;display:block;text-align:center;width:100%;box-shadow:0 4px 14px rgba(111,135,200,0.3),inset 0 1px 0 rgba(255,255,255,0.15)!important;letter-spacing:-0.2px}
         .apply-btn:hover{box-shadow:0 8px 32px rgba(111,135,200,0.40),0 0 20px rgba(111,135,200,0.15)!important;transform:translateY(-1px)}
         .apply-btn:active{transform:translateY(0)}
         .apply-btn-hot{background:linear-gradient(135deg,#ef4444,#fbbf24)!important}
