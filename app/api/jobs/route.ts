@@ -82,7 +82,7 @@ async function fetchAdzuna(jobRole: string, location: string, earlyBird: boolean
 }
 
 // ── SOURCE B: Remotive ───────────────────────────────────────────────────────
-async function fetchRemotive(jobRole: string): Promise<NormalisedJob[]> {
+async function fetchRemotive(jobRole: string, location: string): Promise<NormalisedJob[]> {
   try {
     const res = await fetch(
       `https://remotive.com/api/remote-jobs?limit=300&category=software-dev`,
@@ -119,7 +119,21 @@ async function fetchRemotive(jobRole: string): Promise<NormalisedJob[]> {
       ? mapped.filter(j => j.job_title?.toLowerCase().includes(roleLower))
       : mapped;
     console.log("[Remotive] jobs after role filter:", filtered.length);
-    return filtered;
+    const locLower = (location || '').toLowerCase().trim();
+    const wantsUS = ['us', 'usa', 'united states', 'u.s.', 'u.s.a'].includes(locLower)
+      || locLower === '';
+
+    // Remotive jobs are remote by default (Worldwide), which generally works for US users
+    // Keep Remotive jobs if user wants US or typed no location
+    const locationFiltered = wantsUS
+      ? filtered
+      : filtered.filter(j => {
+          const city = (j.job_city || '').toLowerCase();
+          return city.includes(locLower) || city.includes('remote');
+        });
+
+    console.log("[Remotive] jobs after location filter:", locationFiltered.length);
+    return locationFiltered;
   } catch {
     return [];
   }
@@ -128,7 +142,7 @@ async function fetchRemotive(jobRole: string): Promise<NormalisedJob[]> {
 // ── SOURCE C: Greenhouse (5 companies) ──────────────────────────────────────
 const GREENHOUSE_COMPANIES = ["stripe", "figma", "notion", "linear", "vercel"];
 
-async function fetchGreenhouse(jobRole: string): Promise<NormalisedJob[]> {
+async function fetchGreenhouse(jobRole: string, location: string): Promise<NormalisedJob[]> {
   try {
     const companyRequests = GREENHOUSE_COMPANIES.map(company =>
       fetch(
@@ -170,7 +184,33 @@ async function fetchGreenhouse(jobRole: string): Promise<NormalisedJob[]> {
       ? normalised.filter(j => j.job_title?.toLowerCase().includes(roleLower))
       : normalised;
     console.log("[Greenhouse] jobs after role filter:", filtered.length);
-    return filtered;
+    const locLower = (location || '').toLowerCase().trim();
+
+    // Determine if user wants US jobs specifically
+    const wantsUS = ['us', 'usa', 'united states', 'u.s.', 'u.s.a'].includes(locLower)
+      || locLower === '';
+
+    // If user typed a specific city/state, filter by that
+    const locationFiltered = locLower && !wantsUS
+      ? filtered.filter(j => (j.job_city || '').toLowerCase().includes(locLower))
+      : wantsUS
+        ? filtered.filter(j => {
+            const city = (j.job_city || '').toLowerCase();
+            // Keep if location mentions US cities, states, "us", "remote", or empty
+            const usIndicators = [
+              'us', 'usa', 'united states', 'u.s.',
+              'new york', 'san francisco', 'seattle', 'chicago', 'los angeles',
+              'austin', 'boston', 'denver', 'atlanta', 'miami', 'dallas',
+              'houston', 'phoenix', 'philadelphia', 'washington', 'portland',
+              'nashville', 'charlotte', 'remote'
+            ];
+            if (!city) return false;
+            return usIndicators.some(ind => city.includes(ind));
+          })
+        : filtered;
+
+    console.log("[Greenhouse] jobs after location filter:", locationFiltered.length);
+    return locationFiltered;
   } catch {
     return [];
   }
@@ -274,8 +314,8 @@ export async function POST(req: Request) {
     // Fetch all sources in parallel; each has its own error boundary
     const [adzunaJobs, remotiveJobs, greenhouseJobs, themuseJobs, arbeitnowJobs] = await Promise.all([
       fetchAdzuna(jobRole, location, earlyBird),
-      fetchRemotive(jobRole),
-      fetchGreenhouse(jobRole),
+      fetchRemotive(jobRole, location),
+      fetchGreenhouse(jobRole, location),
       fetchTheMuse(jobRole),
       fetchArbeitnow(jobRole),
     ]);
