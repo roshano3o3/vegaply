@@ -2108,9 +2108,13 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          jobDescription: job.job_description?.slice(0, 800) || job.job_title,
           resumeText: resumeText || '',
-          jobTitle: job.job_title
+          job: {
+            job_title: job.job_title,
+            employer_name: job.employer_name,
+            job_description: job.job_description?.slice(0, 1500) || '',
+            job_highlights: job.job_highlights || {}
+          }
         })
       })
       const data = await response.json()
@@ -2119,9 +2123,9 @@ export default function Home() {
         ...prev,
         [jobId]: {
           score: data.matchScore || data.score || 0,
-          matching: data.matchingSkills || data.strongSkills || [],
-          missing: data.missingSkills || data.gaps || [],
-          recommendation: data.recommendation || data.summary || '',
+          matching: data.matchedSkills || data.matchingSkills || [],
+          missing: data.missingSkills || [],
+          recommendation: data.matchSummary || data.recommendation || data.summary || '',
           loading: false
         }
       }))
