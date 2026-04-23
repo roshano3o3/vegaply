@@ -293,6 +293,30 @@ function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onC
   );
 }
 
+async function parsePdfFile(file: File): Promise<string> {
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+  const arrayBuffer = await file.arrayBuffer();
+  let pdf: any;
+  try {
+    pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  } catch (err: any) {
+    if (err?.name === 'PasswordException') throw new Error('This PDF is password-protected. Please remove the password before uploading.');
+    const msg: string = err?.message || '';
+    if (msg.includes('Invalid PDF') || msg.includes('corrupt')) throw new Error('This PDF appears corrupted. Please try re-saving it.');
+    throw new Error('Could not open this PDF. Try re-saving it from Word or Google Docs.');
+  }
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((it: any) => it.str).join(' ') + ' ';
+  }
+  if (!text.trim()) throw new Error('This PDF appears to be scanned/image-based. Please upload a text-based PDF, or re-save your resume from Word/Google Docs.');
+  return text.trim();
+}
+
 function ResumePanel({ resumeText, fileName, onResume, onClear }: { resumeText: string; fileName: string; onResume: (t: string, n: string) => void; onClear: () => void }) {
   const [dragging, setDragging] = useState(false);
   const [parsing, setParsing] = useState(false);
@@ -302,17 +326,11 @@ function ResumePanel({ resumeText, fileName, onResume, onClear }: { resumeText: 
     if (!file.name.endsWith(".pdf")) { setError("PDF only."); return; }
     setError(""); setParsing(true);
     try {
-      if (!(window as any).pdfjsLib) {
-        await new Promise<void>((res, rej) => { const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"; s.onload = () => res(); s.onerror = () => rej(); document.head.appendChild(s); });
-        (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      }
-      const ab = await file.arrayBuffer();
-      const pdf = await (window as any).pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
-      let text = "";
-      for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const content = await page.getTextContent(); text += content.items.map((it: any) => it.str).join(" ") + "\n"; }
-      if (!text.trim()) { setError("Could not extract text."); setParsing(false); return; }
+      const text = await parsePdfFile(file);
       onResume(text, file.name);
-    } catch { setError("Failed to parse PDF."); }
+    } catch (err: any) {
+      setError(err?.message || "Failed to parse PDF.");
+    }
     setParsing(false);
   };
   if (resumeText) return (
@@ -1895,6 +1913,7 @@ export default function Home() {
   const [onboardRole,setOnboardRole]=useState("");
   const [onboardLocation,setOnboardLocation]=useState("");
   const [onboardParsing,setOnboardParsing]=useState(false);
+  const [onboardError,setOnboardError]=useState("");
   const [showOnboard,setShowOnboard]=useState(false);
   const [obTermLines,setObTermLines]=useState<string[]>([]);
   const [obTermItems,setObTermItems]=useState<{text:string;color:string}[]>([]);
@@ -3343,34 +3362,16 @@ export default function Home() {
                         e.preventDefault();
                         const file = e.dataTransfer.files[0];
                         if (!file || !file.name.endsWith('.pdf')) return;
-                        setOnboardParsing(true);
+                        setOnboardParsing(true); setOnboardError("");
                         try {
-                          if (!(window as any).pdfjsLib) {
-                            await new Promise<void>((res, rej) => {
-                              const s = document.createElement("script");
-                              s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-                              s.onload = () => res();
-                              s.onerror = () => rej();
-                              document.head.appendChild(s);
-                            });
-                            (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-                          }
-                          const ab = await file.arrayBuffer();
-                          const pdf = await (window as any).pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
-                          let text = "";
-                          for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const content = await page.getTextContent();
-                            text += content.items.map((it: any) => it.str).join(" ") + "\n";
-                          }
-                          if (!text.trim()) throw new Error("No text found");
+                          const text = await parsePdfFile(file);
                           setResumeText(text);
                           setResumeFileName(file.name);
                           lsSet("applysmart_resume", text);
                           lsSet("applysmart_resume_name", file.name);
                           setOnboardStep(3);
-                        } catch (err) {
-                          console.error(err);
+                        } catch (err: any) {
+                          setOnboardError(err?.message || "Failed to parse PDF.");
                         }
                         setOnboardParsing(false);
                       }}
@@ -3381,34 +3382,16 @@ export default function Home() {
                         input.onchange = async(e) => {
                           const file = (e.target as HTMLInputElement).files?.[0];
                           if (!file) return;
-                          setOnboardParsing(true);
+                          setOnboardParsing(true); setOnboardError("");
                           try {
-                            if (!(window as any).pdfjsLib) {
-                              await new Promise<void>((res, rej) => {
-                                const s = document.createElement("script");
-                                s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-                                s.onload = () => res();
-                                s.onerror = () => rej();
-                                document.head.appendChild(s);
-                              });
-                              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-                            }
-                            const ab = await file.arrayBuffer();
-                            const pdf = await (window as any).pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
-                            let text = "";
-                            for (let i = 1; i <= pdf.numPages; i++) {
-                              const page = await pdf.getPage(i);
-                              const content = await page.getTextContent();
-                              text += content.items.map((it: any) => it.str).join(" ") + "\n";
-                            }
-                            if (!text.trim()) throw new Error("No text found");
+                            const text = await parsePdfFile(file);
                             setResumeText(text);
                             setResumeFileName(file.name);
                             lsSet("applysmart_resume", text);
                             lsSet("applysmart_resume_name", file.name);
                             setOnboardStep(3);
-                          } catch (err) {
-                            console.error(err);
+                          } catch (err: any) {
+                            setOnboardError(err?.message || "Failed to parse PDF.");
                           }
                           setOnboardParsing(false);
                         };
@@ -3441,7 +3424,8 @@ export default function Home() {
                             <line x1="12" y1="3" x2="12" y2="15"/>
                           </svg>
                           <div style={{fontSize:16,fontWeight:600,color:"rgba(255,255,255,0.8)",marginBottom:8}}>Drop your resume PDF here</div>
-                          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginBottom:16}}>or click to browse • We support PDF files only</div>
+                          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginBottom:onboardError?8:16}}>or click to browse • We support PDF files only</div>
+                          {onboardError&&<div style={{fontSize:12,color:"#ef4444",marginBottom:12,maxWidth:280,lineHeight:1.5}}>{onboardError}</div>}
                           <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
                             <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",background:"rgba(255,255,255,0.05)",padding:"4px 8px",borderRadius:6}}>✓ AI Analysis</div>
                             <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",background:"rgba(255,255,255,0.05)",padding:"4px 8px",borderRadius:6}}>✓ Auto Apply</div>
