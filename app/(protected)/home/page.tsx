@@ -1382,8 +1382,8 @@ function SkeletonRow() {
   );
 }
 
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, isAutoApplying, lm, index, quickMatches, handleQuickMatch, resumeText }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;isAutoApplying:boolean;lm?:boolean;index?:number;quickMatches?:Record<string,any>;handleQuickMatch?:(job:any)=>void;resumeText?:string;
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, autoApplyScore, isAutoApplying, lm, index, quickMatches, handleQuickMatch, resumeText }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;autoApplyScore?:number;isAutoApplying:boolean;lm?:boolean;index?:number;quickMatches?:Record<string,any>;handleQuickMatch?:(job:any)=>void;resumeText?:string;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -1700,9 +1700,17 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* ROW 6: Auto Apply — secondary CTA */}
       {(autoApplyResult==="applied"||autoApplyResult==="low_match"||isAutoApplying)?(
-        <div style={{textAlign:'center',fontSize:10,fontWeight:600,color:autoApplyResult==="applied"?"#34d399":autoApplyResult==="low_match"?"#fbbf24":"rgba(255,255,255,0.25)",paddingTop:2}}>
-          {isAutoApplying?<><span className="spin-sm" style={{display:'inline-block',verticalAlign:'middle',marginRight:4}}/> Analyzing…</>:autoApplyResult==="applied"?"✅ Applied":autoApplyResult==="low_match"?"⚠️ Low Match — manual review suggested":""}
-        </div>
+        isAutoApplying?(
+          <div style={{textAlign:'center',fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.25)",paddingTop:2}}>
+            <span className="spin-sm" style={{display:'inline-block',verticalAlign:'middle',marginRight:4}}/> Analyzing…
+          </div>
+        ):autoApplyResult==="applied"?(
+          <div style={{textAlign:'center',fontSize:10,fontWeight:600,color:"#34d399",paddingTop:2}}>✅ Applied</div>
+        ):(
+          <div style={{width:'100%',padding:'8px 10px',borderRadius:8,background:'rgba(251,191,36,0.10)',border:'1px solid rgba(251,191,36,0.35)',textAlign:'center',fontSize:11,fontWeight:600,color:'#fbbf24',letterSpacing:'-0.1px',lineHeight:1.4}}>
+            ⚠️ Low Match{autoApplyScore!==undefined?` — ${autoApplyScore}%`:''} · Review Before Applying
+          </div>
+        )
       ):(
         <motion.button
           onClick={e=>{e.stopPropagation();onAutoApply();}}
@@ -1898,6 +1906,7 @@ export default function Home() {
   const [autoApplyCount,setAutoApplyCount]=useState(0);
   const [autoApplying,setAutoApplying]=useState<string|null>(null);
   const [autoApplyResults,setAutoApplyResults]=useState<Record<string,'applied'|'low_match'>>({});
+  const [autoApplyScores,setAutoApplyScores]=useState<Record<string,number>>({});
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
@@ -2153,7 +2162,16 @@ export default function Home() {
     if(autoApplyResults[job.job_id]==="applied")return;
     setAutoApplying(job.job_id);
     let score=0;
-    try{const res=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const data:MatchResult=await res.json();score=data.matchScore??0;}catch{}
+    try{const res=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const data:MatchResult=await res.json();score=data.matchScore??0;}
+    catch(err){
+      console.error('[AutoApply] match API failed:',err);
+      setAutoApplyResults(prev=>({...prev,[job.job_id]:"low_match"}));
+      setAutoApplyToast("⚠️ Could not analyze match — please review the job before applying");
+      setTimeout(()=>setAutoApplyToast(null),5000);
+      setAutoApplying(null);
+      return;
+    }
+    setAutoApplyScores(prev=>({...prev,[job.job_id]:Math.round(score)}));
     if(score>=70){
       setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
       if(job.job_apply_link)window.open(job.job_apply_link,"_blank");
@@ -2165,7 +2183,7 @@ export default function Home() {
       localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
     }else{
       setAutoApplyToast(`⚠️ Low match (${score}%) — manual apply recommended`);
-      setTimeout(()=>setAutoApplyToast(null),4000);
+      setTimeout(()=>setAutoApplyToast(null),6000);
       setAutoApplyResults(prev=>({...prev,[job.job_id]:"low_match"}));
     }
     setAutoApplying(null);
@@ -2941,6 +2959,7 @@ export default function Home() {
                         onTrack={()=>addToTracker(job)}
                         onAutoApply={()=>handleAutoApply(job)}
                         autoApplyResult={autoApplyResults[job.job_id]??null}
+                        autoApplyScore={autoApplyScores[job.job_id]}
                         isAutoApplying={autoApplying===job.job_id}
                         lm={!darkMode}
                         quickMatches={quickMatches}
