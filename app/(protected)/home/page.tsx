@@ -2404,9 +2404,9 @@ export default function Home() {
         .topbar-logo{font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px;cursor:pointer;display:flex;align-items:center}
         .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:560px}
-        .topbar-search-box{flex:1;max-width:420px;display:flex;align-items:center;background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.08);border-radius:12px;height:38px;overflow:hidden;transition:border-color 0.3s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease}
+        .topbar-search-box{flex:1;max-width:560px;display:flex;align-items:center;background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.08);border-radius:12px;height:38px;overflow:hidden;transition:border-color 0.3s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease}
         .topbar-search-box:focus-within{border-color:rgba(111,135,200,0.5);box-shadow:0 0 0 3px rgba(111,135,200,0.08),0 0 16px rgba(111,135,200,0.12)}
-        .topbar-input{border:none;outline:none;background:none;height:100%;padding:0 14px;flex:1 1 0;min-width:0;font-size:13px;font-weight:400;color:rgba(255,255,255,0.80);font-family:var(--font-primary)}
+        .topbar-input{border:none;outline:none;background:none;height:100%;padding:0 14px;flex:1 1 180px;min-width:180px;font-size:13px;font-weight:400;color:rgba(255,255,255,0.80);font-family:var(--font-primary)}
         .topbar-input-loc{border:none;outline:none;background:none;height:100%;padding:0 12px;flex:0 0 120px;width:120px;font-size:13px;font-weight:400;color:rgba(255,255,255,0.80);font-family:var(--font-primary)}
         .topbar-input::placeholder,.topbar-input-loc::placeholder{color:rgba(255,255,255,0.22)}
         .topbar-sep{width:1px;height:20px;background:rgba(255,255,255,0.08);flex-shrink:0}
