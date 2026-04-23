@@ -942,7 +942,7 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
     setAiLoading(true);
     setAiError(false);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
     fetch("/api/resumescore", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeText }), signal: controller.signal })
       .then(r => r.json())
       .then(d => { if (!d.error) setAiResult(d); else setAiError(true); })

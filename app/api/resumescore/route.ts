@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
 export async function POST(req: Request) {
   try {
     const { resumeText } = await req.json();
@@ -44,7 +46,7 @@ Return exactly this JSON (all fields required, all scores must be integers 0-100
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 2000,
+        max_tokens: 1200,
         messages: [{ role: "user", content: prompt }],
       }),
     });
