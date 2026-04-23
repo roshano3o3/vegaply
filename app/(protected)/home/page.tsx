@@ -2389,6 +2389,113 @@ export default function Home() {
   return (
     <div data-theme={darkMode?"dark":"light"} style={{background:"radial-gradient(circle at 18% 22%,rgba(120,130,150,0.10),transparent 38%),radial-gradient(circle at 82% 72%,rgba(90,100,120,0.08),transparent 42%),linear-gradient(145deg,#1b1d22 0%,#23262d 100%)",minHeight:'100vh'}}>
       <style>{`
+        :root {
+          /* === BACKGROUNDS === */
+          --bg-page:      #0a0a0c;
+          --bg-surface:   #141418;
+          --bg-elevated:  #1c1c22;
+          --bg-input:     #1a1a1f;
+          --bg-hover:     rgba(255,255,255,0.03);
+
+          /* === TEXT === */
+          --text-primary:   #f5f5f7;
+          --text-secondary: #a1a1aa;
+          --text-tertiary:  #6b6b75;
+          --text-disabled:  #404048;
+
+          /* === BORDERS === */
+          --border-subtle: rgba(255,255,255,0.06);
+          --border-normal: rgba(255,255,255,0.10);
+          --border-strong: rgba(255,255,255,0.18);
+          --border-focus:  rgba(245,158,11,0.45);
+
+          /* === ACCENT: AMBER GOLD (human actions, brand) === */
+          --gold:         #f59e0b;
+          --gold-hover:   #fbbf24;
+          --gold-subtle:  rgba(245,158,11,0.12);
+          --gold-glow:    rgba(245,158,11,0.25);
+
+          /* === ACCENT: ELECTRIC CYAN (AI, intelligence) === */
+          --cyan:         #06b6d4;
+          --cyan-hover:   #22d3ee;
+          --cyan-subtle:  rgba(6,182,212,0.12);
+          --cyan-glow:    rgba(6,182,212,0.25);
+
+          /* === STATUS === */
+          --success:        #10b981;
+          --success-subtle: rgba(16,185,129,0.12);
+          --warning:        #fbbf24;
+          --warning-subtle: rgba(251,191,36,0.12);
+          --danger:         #ef4444;
+          --danger-subtle:  rgba(239,68,68,0.12);
+
+          /* === SPACING (8px grid) === */
+          --space-1: 4px;
+          --space-2: 8px;
+          --space-3: 12px;
+          --space-4: 16px;
+          --space-5: 20px;
+          --space-6: 24px;
+          --space-8: 32px;
+          --space-10: 40px;
+          --space-12: 48px;
+          --space-16: 64px;
+
+          /* === RADIUS === */
+          --radius-sm: 6px;
+          --radius-md: 10px;
+          --radius-lg: 14px;
+          --radius-xl: 20px;
+          --radius-full: 9999px;
+
+          /* === SHADOWS === */
+          --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+          --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+          --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+          --shadow-glow-gold: 0 0 24px rgba(245,158,11,0.20);
+          --shadow-glow-cyan: 0 0 24px rgba(6,182,212,0.20);
+
+          /* === ANIMATION === */
+          --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+          --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+          --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+          --dur-fast:  120ms;
+          --dur-base:  200ms;
+          --dur-slow:  400ms;
+          --dur-xslow: 600ms;
+
+          /* === TYPOGRAPHY SCALE === */
+          --text-xs:   11px;
+          --text-sm:   13px;
+          --text-base: 14px;
+          --text-md:   16px;
+          --text-lg:   20px;
+          --text-xl:   28px;
+          --text-2xl:  40px;
+          --text-3xl:  56px;
+        }
+
+        /* === GLOBAL KEYFRAMES (for reuse across components) === */
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50%      { opacity: 0.6; }
+        }
+
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.96); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         body{font-family:var(--font-primary);background:radial-gradient(circle at 18% 22%,rgba(120,130,150,0.10),transparent 38%),radial-gradient(circle at 82% 72%,rgba(90,100,120,0.08),transparent 42%),linear-gradient(145deg,#1b1d22 0%,#23262d 100%)!important;color:#fff;min-height:100vh;overflow-x:hidden}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.25);border-radius:99px}
