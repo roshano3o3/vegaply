@@ -2569,11 +2569,11 @@ export default function Home() {
         .topbar-logo{font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px;cursor:pointer;display:flex;align-items:center}
         .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#f59e0b,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:560px}
-        .topbar-search-box{flex:1 1 auto;max-width:620px;display:flex;align-items:center;height:40px;background:var(--bg-input);border:1px solid var(--border-normal);border-radius:var(--radius-md);overflow:hidden;transition:border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out)}
+        .topbar-search-box{flex:1 1 auto;max-width:640px;min-width:400px;display:flex;align-items:center;height:40px;background:var(--bg-input);border:1px solid var(--border-normal);border-radius:var(--radius-md);overflow:hidden;transition:border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out)}
         .topbar-search-box:focus-within{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--gold-subtle)}
-        .topbar-input{flex:1 1 200px;min-width:180px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm)}
+        .topbar-input{flex:1 1 200px;min-width:160px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm)}
         .topbar-input::placeholder{color:var(--text-tertiary)}
-        .topbar-input-loc{flex:0 0 140px;width:140px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm)}
+        .topbar-input-loc{flex:0 0 140px;width:140px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm);border-left:1px solid var(--border-subtle)}
         .topbar-input-loc::placeholder{color:var(--text-tertiary)}
         .topbar-sep{width:1px;height:24px;background:var(--border-subtle);flex-shrink:0}
         .search-btn{height:40px;padding:0 var(--space-5);background:var(--gold);color:#1a1a1f;border:none;border-radius:var(--radius-md);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;transition:background var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);flex-shrink:0}
