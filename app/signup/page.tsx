@@ -30,7 +30,7 @@ export default function SignupPage() {
 
   const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3;
   const strengthLabel = ["", "Weak", "Good", "Strong"][strength];
-  const strengthColor = ["", "#f87171", "#fbbf24", "#34d399"][strength];
+  const strengthColor = ["", "var(--danger)", "var(--warning)", "var(--success)"][strength];
 
   const handleGoogleAuth = async () => {
     setGoogleLoading(true);
@@ -58,6 +58,41 @@ export default function SignupPage() {
   return (
     <>
       <style>{`
+        :root {
+          --bg-page:      #0a0a0c;
+          --bg-surface:   #141418;
+          --bg-elevated:  #1c1c22;
+          --bg-input:     #1a1a1f;
+          --bg-hover:     rgba(255,255,255,0.03);
+          --text-primary:   #f5f5f7;
+          --text-secondary: #a1a1aa;
+          --text-tertiary:  #6b6b75;
+          --border-subtle: rgba(255,255,255,0.06);
+          --border-normal: rgba(255,255,255,0.10);
+          --border-strong: rgba(255,255,255,0.18);
+          --gold:         #f59e0b;
+          --gold-hover:   #fbbf24;
+          --gold-subtle:  rgba(245,158,11,0.12);
+          --gold-glow:    rgba(245,158,11,0.25);
+          --cyan:         #06b6d4;
+          --cyan-hover:   #22d3ee;
+          --cyan-subtle:  rgba(6,182,212,0.12);
+          --cyan-glow:    rgba(6,182,212,0.25);
+          --success: #10b981;
+          --warning: #fbbf24;
+          --danger:  #ef4444;
+          --radius-sm: 6px;
+          --radius-md: 10px;
+          --radius-lg: 14px;
+          --radius-xl: 20px;
+          --shadow-glow-gold: 0 0 24px rgba(245,158,11,0.20);
+          --shadow-glow-cyan: 0 0 24px rgba(6,182,212,0.20);
+          --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+          --dur-fast: 120ms;
+          --dur-base: 200ms;
+          --dur-slow: 400ms;
+        }
+
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,7 +100,7 @@ export default function SignupPage() {
         .auth-root {
           min-height: 100vh;
           display: flex;
-          background: #060608;
+          background: var(--bg-page);
           font-family: 'DM Sans', sans-serif;
           overflow: hidden;
         }
@@ -77,7 +112,7 @@ export default function SignupPage() {
           flex-direction: column;
           justify-content: space-between;
           padding: 48px 56px;
-          background: #060608;
+          background: var(--bg-page);
           overflow: hidden;
         }
         .auth-left::before {
@@ -85,7 +120,7 @@ export default function SignupPage() {
           position: absolute;
           top: -120px; left: -120px;
           width: 480px; height: 480px;
-          background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
+          background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
           pointer-events: none;
           animation: breathe 6s ease-in-out infinite;
         }
@@ -94,7 +129,7 @@ export default function SignupPage() {
           position: absolute;
           bottom: -80px; right: -60px;
           width: 360px; height: 360px;
-          background: radial-gradient(circle, rgba(236,72,153,0.10) 0%, transparent 70%);
+          background: radial-gradient(circle, var(--cyan-glow) 0%, transparent 70%);
           pointer-events: none;
           animation: breathe 8s ease-in-out infinite reverse;
         }
@@ -107,13 +142,13 @@ export default function SignupPage() {
           font-family: 'Playfair Display', serif;
           font-size: 28px;
           font-weight: 900;
-          color: #fff;
+          color: var(--text-primary);
           letter-spacing: -0.5px;
           position: relative;
           z-index: 1;
         }
         .auth-logo span {
-          background: linear-gradient(135deg, #818cf8, #ec4899);
+          background: linear-gradient(135deg,var(--gold),var(--cyan));
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -125,20 +160,20 @@ export default function SignupPage() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(99,102,241,0.12);
-          border: 1px solid rgba(99,102,241,0.25);
+          background: var(--gold-bg);
+          border: 1px solid var(--gold-border);
           border-radius: 100px;
           padding: 6px 14px;
           font-size: 12px;
           font-weight: 500;
-          color: #a5b4fc;
+          color: var(--gold);
           letter-spacing: 0.5px;
           margin-bottom: 28px;
         }
         .auth-eyebrow::before {
           content: '';
           width: 6px; height: 6px;
-          background: #818cf8;
+          background: var(--gold);
           border-radius: 50%;
           animation: pulse-dot 2s ease-in-out infinite;
         }
@@ -151,14 +186,14 @@ export default function SignupPage() {
           font-family: 'Playfair Display', serif;
           font-size: clamp(42px, 4vw, 62px);
           font-weight: 900;
-          color: #fff;
+          color: var(--text-primary);
           line-height: 1.05;
           letter-spacing: -1.5px;
           margin-bottom: 20px;
         }
         .auth-headline em {
           font-style: italic;
-          background: linear-gradient(135deg, #818cf8 0%, #ec4899 100%);
+          background: linear-gradient(135deg, var(--gold) 0%, var(--cyan) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -166,7 +201,7 @@ export default function SignupPage() {
 
         .auth-sub {
           font-size: 16px;
-          color: rgba(255,255,255,0.45);
+          color: var(--text-secondary);
           line-height: 1.7;
           font-weight: 300;
           max-width: 380px;
@@ -200,19 +235,19 @@ export default function SignupPage() {
           font-size: 16px;
           flex-shrink: 0;
         }
-        .feature-icon.indigo { background: rgba(99,102,241,0.15); }
-        .feature-icon.pink   { background: rgba(236,72,153,0.12); }
-        .feature-icon.green  { background: rgba(52,211,153,0.12); }
-        .feature-icon.amber  { background: rgba(251,191,36,0.12); }
-        .feature-name { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); margin-bottom: 2px; }
-        .feature-desc { font-size: 12px; color: rgba(255,255,255,0.3); font-weight: 300; }
+        .feature-icon.indigo { background: var(--gold-bg); }
+        .feature-icon.pink   { background: var(--cyan-bg); }
+        .feature-icon.green  { background: var(--success-bg); }
+        .feature-icon.amber  { background: var(--warning-bg); }
+        .feature-name { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+        .feature-desc { font-size: 12px; color: var(--text-tertiary); font-weight: 300; }
 
         /* RIGHT */
         .auth-right {
           width: 480px;
           flex-shrink: 0;
-          background: #0d0d14;
-          border-left: 1px solid rgba(255,255,255,0.06);
+          background: var(--bg-card);
+          border-left: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -224,13 +259,13 @@ export default function SignupPage() {
           position: absolute;
           top: 0; left: 0; right: 0;
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(129,140,248,0.4), transparent);
+          background: linear-gradient(90deg, transparent, var(--gold-glow), transparent);
         }
 
         .form-tag {
           font-size: 11px;
           font-weight: 500;
-          color: rgba(129,140,248,0.8);
+          color: var(--gold);
           letter-spacing: 2px;
           text-transform: uppercase;
           margin-bottom: 12px;
@@ -239,14 +274,14 @@ export default function SignupPage() {
           font-family: 'Playfair Display', serif;
           font-size: 34px;
           font-weight: 700;
-          color: #fff;
+          color: var(--text-primary);
           letter-spacing: -0.5px;
           margin-bottom: 8px;
           line-height: 1.1;
         }
         .form-subtitle {
           font-size: 14px;
-          color: rgba(255,255,255,0.35);
+          color: var(--text-tertiary);
           margin-bottom: 40px;
           font-weight: 300;
         }
@@ -256,29 +291,29 @@ export default function SignupPage() {
           display: block;
           font-size: 12px;
           font-weight: 500;
-          color: rgba(255,255,255,0.4);
+          color: var(--text-secondary);
           letter-spacing: 0.5px;
           margin-bottom: 8px;
           text-transform: uppercase;
         }
         .form-input {
           width: 100%;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.09);
+          background: var(--bg-input);
+          border: 1px solid var(--border);
           border-radius: 12px;
           padding: 14px 18px;
           font-size: 15px;
           font-family: 'DM Sans', sans-serif;
           font-weight: 300;
-          color: #fff;
+          color: var(--text-primary);
           outline: none;
           transition: all 0.2s;
         }
-        .form-input::placeholder { color: rgba(255,255,255,0.2); }
+        .form-input::placeholder { color: var(--text-placeholder); }
         .form-input:focus {
-          border-color: rgba(129,140,248,0.5);
-          background: rgba(129,140,248,0.05);
-          box-shadow: 0 0 0 3px rgba(129,140,248,0.08);
+          border-color: var(--gold);
+          background: var(--bg-input-focus);
+          box-shadow: 0 0 0 3px var(--gold-glow);
         }
 
         .strength-bar {
@@ -291,7 +326,7 @@ export default function SignupPage() {
           flex: 1;
           height: 3px;
           border-radius: 3px;
-          background: rgba(255,255,255,0.08);
+          background: var(--bg-input);
           transition: background 0.3s;
         }
         .strength-text {
@@ -304,25 +339,25 @@ export default function SignupPage() {
         }
 
         .form-error {
-          background: rgba(239,68,68,0.08);
-          border: 1px solid rgba(239,68,68,0.2);
+          background: var(--error-bg);
+          border: 1px solid var(--error-border);
           border-radius: 10px;
           padding: 12px 16px;
           font-size: 13px;
-          color: #fca5a5;
+          color: var(--error);
           margin-bottom: 20px;
         }
 
         .form-btn {
           width: 100%;
-          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+          background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 50%, var(--cyan) 100%);
           border: none;
           border-radius: 12px;
           padding: 15px;
           font-size: 15px;
           font-weight: 600;
           font-family: 'DM Sans', sans-serif;
-          color: #fff;
+          color: var(--text-primary);
           cursor: pointer;
           position: relative;
           overflow: hidden;
@@ -345,8 +380,8 @@ export default function SignupPage() {
         .form-loading { display: flex; align-items: center; justify-content: center; gap: 10px; }
         .form-spinner {
           width: 16px; height: 16px;
-          border: 2px solid rgba(255,255,255,0.3);
-          border-top-color: #fff;
+          border: 2px solid var(--text-tertiary);
+          border-top-color: var(--text-primary);
           border-radius: 50%;
           animation: spin 0.7s linear infinite;
         }
@@ -355,23 +390,23 @@ export default function SignupPage() {
         .form-footer {
           text-align: center;
           font-size: 14px;
-          color: rgba(255,255,255,0.3);
+          color: var(--text-tertiary);
           margin-top: 28px;
           font-weight: 300;
         }
         .form-footer a {
-          color: #818cf8;
+          color: var(--gold);
           text-decoration: none;
           font-weight: 500;
           transition: color 0.2s;
         }
-        .form-footer a:hover { color: #a5b4fc; }
-        .google-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.85); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
-        .google-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.22); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+        .form-footer a:hover { color: var(--gold-light); }
+        .google-btn { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
+        .google-btn:hover { background: var(--bg-input-hover); border-color: var(--gold-border); transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow); }
         .google-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         .or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
-        .or-divider span { font-size: 12px; color: rgba(255,255,255,0.25); font-weight: 400; letter-spacing: 0.5px; text-transform: uppercase; }
+        .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .or-divider span { font-size: 12px; color: var(--text-tertiary); font-weight: 400; letter-spacing: 0.5px; text-transform: uppercase; }
 
         .success-box {
           text-align: center;
@@ -380,8 +415,8 @@ export default function SignupPage() {
         }
         .success-icon {
           width: 64px; height: 64px;
-          background: rgba(52,211,153,0.12);
-          border: 1px solid rgba(52,211,153,0.25);
+          background: var(--success-bg);
+          border: 1px solid var(--success-border);
           border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           font-size: 28px;
@@ -391,17 +426,17 @@ export default function SignupPage() {
           font-family: 'Playfair Display', serif;
           font-size: 26px;
           font-weight: 700;
-          color: #fff;
+          color: var(--text-primary);
           margin-bottom: 10px;
         }
         .success-sub {
           font-size: 14px;
-          color: rgba(255,255,255,0.4);
+          color: var(--text-secondary);
           line-height: 1.6;
           font-weight: 300;
           margin-bottom: 32px;
         }
-        .success-sub strong { color: rgba(255,255,255,0.7); font-weight: 500; }
+        .success-sub strong { color: var(--text-primary); font-weight: 500; }
 
         .form-enter { animation: formFadeIn 0.5s ease forwards; }
         @keyframes formFadeIn {
@@ -477,9 +512,9 @@ export default function SignupPage() {
               <p className="success-sub">
                 We sent a confirmation link to<br />
                 <strong>{email}</strong><br /><br />
-                Click the link to activate your account and start finding jobs.<br/><span style={{fontSize:12,color:"rgba(255,255,255,0.3)"}}>Check spam folder if you do not see it.</span>
+                Click the link to activate your account and start finding jobs.<br/><span style={{fontSize:12,color:"var(--text-tertiary)"}}>Check spam folder if you do not see it.</span>
               </p>
-              {resent&&<div style={{background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:10,padding:"10px 16px",fontSize:13,color:"#34d399",marginBottom:16}}>Email resent!</div>}<button onClick={handleResend} disabled={!canResend||resending} style={{width:"100%",background:canResend?"linear-gradient(135deg,#6366f1,#8b5cf6)":"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"13px",fontSize:14,fontWeight:600,fontFamily:"inherit",color:canResend?"#fff":"rgba(255,255,255,0.3)",cursor:canResend?"pointer":"not-allowed",marginBottom:16}}>{resending?"Sending...":canResend?"Resend Email":"Resend in "+countdown+"s"}</button><a href="/login" style={{display:"block",textAlign:"center",color:"#818cf8",fontSize:14,fontWeight:500,textDecoration:"none"}}>
+              {resent&&<div style={{background:"var(--success-bg)",border:"1px solid var(--success-border)",borderRadius:10,padding:"10px 16px",fontSize:13,color:"var(--success)",marginBottom:16}}>Email resent!</div>}<button onClick={handleResend} disabled={!canResend||resending} style={{width:"100%",background:canResend?"linear-gradient(135deg,var(--gold),var(--gold-dark))":"var(--bg-input)",border:"1px solid var(--border)",borderRadius:12,padding:"13px",fontSize:14,fontWeight:600,fontFamily:"inherit",color:canResend?"var(--text-primary)":"var(--text-tertiary)",cursor:canResend?"pointer":"not-allowed",marginBottom:16}}>{resending?"Sending...":canResend?"Resend Email":"Resend in "+countdown+"s"}</button><a href="/login" style={{display:"block",textAlign:"center",color:"var(--gold)",fontSize:14,fontWeight:500,textDecoration:"none"}}>
                 ← Back to sign in
               </a>
             </div>

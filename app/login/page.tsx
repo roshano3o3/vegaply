@@ -81,59 +81,93 @@ export default function LoginPage() {
   return (
     <>
       <style>{`
+        :root {
+          --bg-page:      #0a0a0c;
+          --bg-surface:   #141418;
+          --bg-elevated:  #1c1c22;
+          --bg-input:     #1a1a1f;
+          --bg-hover:     rgba(255,255,255,0.03);
+          --text-primary:   #f5f5f7;
+          --text-secondary: #a1a1aa;
+          --text-tertiary:  #6b6b75;
+          --border-subtle: rgba(255,255,255,0.06);
+          --border-normal: rgba(255,255,255,0.10);
+          --border-strong: rgba(255,255,255,0.18);
+          --gold:         #f59e0b;
+          --gold-hover:   #fbbf24;
+          --gold-subtle:  rgba(245,158,11,0.12);
+          --gold-glow:    rgba(245,158,11,0.25);
+          --cyan:         #06b6d4;
+          --cyan-hover:   #22d3ee;
+          --cyan-subtle:  rgba(6,182,212,0.12);
+          --cyan-glow:    rgba(6,182,212,0.25);
+          --success: #10b981;
+          --warning: #fbbf24;
+          --danger:  #ef4444;
+          --radius-sm: 6px;
+          --radius-md: 10px;
+          --radius-lg: 14px;
+          --radius-xl: 20px;
+          --shadow-glow-gold: 0 0 24px rgba(245,158,11,0.20);
+          --shadow-glow-cyan: 0 0 24px rgba(6,182,212,0.20);
+          --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+          --dur-fast: 120ms;
+          --dur-base: 200ms;
+          --dur-slow: 400ms;
+        }
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        .auth-root { min-height: 100vh; display: flex; background: #060608; font-family: 'DM Sans', sans-serif; overflow: hidden; }
-        .auth-left { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px 56px; background: #060608; overflow: hidden; }
-        .auth-left::before { content: ''; position: absolute; top: -120px; left: -120px; width: 480px; height: 480px; background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%); pointer-events: none; animation: breathe 6s ease-in-out infinite; }
-        .auth-left::after { content: ''; position: absolute; bottom: -80px; right: -60px; width: 360px; height: 360px; background: radial-gradient(circle, rgba(236,72,153,0.10) 0%, transparent 70%); pointer-events: none; animation: breathe 8s ease-in-out infinite reverse; }
+        .auth-root { min-height: 100vh; display: flex; background: var(--bg-page); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+        .auth-left { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px 56px; background: var(--bg-page); overflow: hidden; }
+        .auth-left::before { content: ''; position: absolute; top: -120px; left: -120px; width: 480px; height: 480px; background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 6s ease-in-out infinite; }
+        .auth-left::after { content: ''; position: absolute; bottom: -80px; right: -60px; width: 360px; height: 360px; background: radial-gradient(circle, var(--cyan-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 8s ease-in-out infinite reverse; }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
-        .auth-logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -0.5px; position: relative; z-index: 1; }
-        .auth-logo span { background: linear-gradient(135deg, #818cf8, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .auth-logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.5px; position: relative; z-index: 1; }
+        .auth-logo span { background: linear-gradient(135deg,var(--gold),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .auth-hero { position: relative; z-index: 1; }
-        .auth-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25); border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 500; color: #a5b4fc; letter-spacing: 0.5px; margin-bottom: 28px; }
-        .auth-eyebrow::before { content: ''; width: 6px; height: 6px; background: #818cf8; border-radius: 50%; animation: pulse-dot 2s ease-in-out infinite; }
+        .auth-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--gold-subtle); border: 1px solid rgba(245,158,11,.22); border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--gold); letter-spacing: 0.5px; margin-bottom: 28px; }
+        .auth-eyebrow::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: pulse-dot 2s ease-in-out infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
-        .auth-headline { font-family: 'Playfair Display', serif; font-size: clamp(42px, 4vw, 62px); font-weight: 900; color: #fff; line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 20px; }
-        .auth-headline em { font-style: italic; background: linear-gradient(135deg, #818cf8 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .auth-sub { font-size: 16px; color: rgba(255,255,255,0.45); line-height: 1.7; font-weight: 300; max-width: 380px; margin-bottom: 48px; }
+        .auth-headline { font-family: 'Playfair Display', serif; font-size: clamp(42px, 4vw, 62px); font-weight: 900; color: var(--text-primary); line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 20px; }
+        .auth-headline em { font-style: italic; background: linear-gradient(135deg,var(--gold) 0%,var(--gold-hover) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .auth-sub { font-size: 16px; color: var(--text-secondary); line-height: 1.7; font-weight: 300; max-width: 380px; margin-bottom: 48px; }
         .auth-stats { display: flex; gap: 40px; }
-        .auth-stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 4px; }
-        .auth-stat-label { font-size: 12px; color: rgba(255,255,255,0.35); font-weight: 400; letter-spacing: 0.3px; }
+        .auth-stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-bottom: 4px; }
+        .auth-stat-label { font-size: 12px; color: var(--text-tertiary); font-weight: 400; letter-spacing: 0.3px; }
         .auth-ticker { position: relative; z-index: 1; }
-        .ticker-title { font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+        .ticker-title { font-size: 11px; color: var(--text-tertiary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
         .ticker-cards { display: flex; flex-direction: column; gap: 10px; }
-        .ticker-card { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 12px 16px; animation: slideInLeft 0.6s ease forwards; opacity: 0; transform: translateX(-20px); }
+        .ticker-card { display: flex; align-items: center; gap: 12px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 16px; animation: slideInLeft 0.6s ease forwards; opacity: 0; transform: translateX(-20px); }
         .ticker-card:nth-child(1) { animation-delay: 0.1s; }
         .ticker-card:nth-child(2) { animation-delay: 0.25s; }
         .ticker-card:nth-child(3) { animation-delay: 0.4s; }
         @keyframes slideInLeft { to { opacity: 1; transform: translateX(0); } }
         .ticker-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .ticker-dot.green { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.6); }
-        .ticker-dot.blue { background: #60a5fa; box-shadow: 0 0 8px rgba(96,165,250,0.6); }
-        .ticker-dot.pink { background: #f472b6; box-shadow: 0 0 8px rgba(244,114,182,0.6); }
-        .ticker-text { font-size: 13px; color: rgba(255,255,255,0.55); flex: 1; }
-        .ticker-time { font-size: 11px; color: rgba(255,255,255,0.2); }
-        .auth-right { width: 480px; flex-shrink: 0; background: #0d0d14; border-left: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; justify-content: center; padding: 64px 48px; position: relative; }
-        .auth-right::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(129,140,248,0.4), transparent); }
-        .form-tag { font-size: 11px; font-weight: 500; color: rgba(129,140,248,0.8); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
-        .form-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px; line-height: 1.1; }
-        .form-subtitle { font-size: 14px; color: rgba(255,255,255,0.35); margin-bottom: 40px; font-weight: 300; }
+        .ticker-dot.green { background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); }
+        .ticker-dot.blue { background: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
+        .ticker-dot.pink { background: var(--gold-hover); box-shadow: 0 0 8px var(--gold-glow); }
+        .ticker-text { font-size: 13px; color: var(--text-secondary); flex: 1; }
+        .ticker-time { font-size: 11px; color: var(--text-tertiary); }
+        .auth-right { width: 480px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: center; padding: 64px 48px; position: relative; }
+        .auth-right::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-glow), transparent); }
+        .form-tag { font-size: 11px; font-weight: 500; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+        .form-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; margin-bottom: 8px; line-height: 1.1; }
+        .form-subtitle { font-size: 14px; color: var(--text-tertiary); margin-bottom: 40px; font-weight: 300; }
         .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.4); letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
-        .form-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 14px 18px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 300; color: #fff; outline: none; transition: all 0.2s; }
-        .form-input::placeholder { color: rgba(255,255,255,0.2); }
-        .form-input:focus { border-color: rgba(129,140,248,0.5); background: rgba(129,140,248,0.05); box-shadow: 0 0 0 3px rgba(129,140,248,0.08); }
-        .form-error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #fca5a5; margin-bottom: 20px; }
-        .form-btn { width: 100%; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); border: none; border-radius: 12px; padding: 15px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; color: #fff; cursor: pointer; position: relative; overflow: hidden; transition: opacity 0.2s, transform 0.15s; margin-top: 8px; letter-spacing: 0.3px; }
-        .form-btn:hover { transform: translateY(-1px); }
+        .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+        .form-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 18px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 300; color: var(--text-primary); outline: none; transition: all 0.2s; }
+        .form-input::placeholder { color: var(--text-tertiary); }
+        .form-input:focus { border-color: var(--gold); background: var(--bg-input); box-shadow: 0 0 0 3px var(--gold-subtle); }
+        .form-error { background: var(--error-bg); border: 1px solid var(--error-border); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--error); margin-bottom: 20px; }
+        .form-btn { width: 100%; background: var(--gold); color: #1a1a1f; border: none; border-radius: var(--radius-md); padding: 15px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; position: relative; overflow: hidden; transition: all var(--dur-base) var(--ease-out); margin-top: 8px; letter-spacing: 0.3px; }
+        .form-btn:hover { background: var(--gold-hover); box-shadow: var(--shadow-glow-gold); transform: translateY(-1px); }
         .form-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .form-loading { display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .form-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        .form-spinner { width: 16px; height: 16px; border: 2px solid var(--text-tertiary); border-top-color: var(--text-primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .form-footer { text-align: center; font-size: 14px; color: rgba(255,255,255,0.3); margin-top: 28px; font-weight: 300; }
-        .form-footer a { color: #818cf8; text-decoration: none; font-weight: 500; }
-        .form-footer a:hover { color: #a5b4fc; }
+        .form-footer { text-align: center; font-size: 14px; color: var(--text-tertiary); margin-top: 28px; font-weight: 300; }
+        .form-footer a { color: var(--gold); text-decoration: none; font-weight: 500; }
+        .form-footer a:hover { color: var(--gold-hover); }
         .form-enter { animation: formFadeIn 0.5s ease forwards; }
         @keyframes formFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .google-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.85); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
@@ -169,7 +203,7 @@ export default function LoginPage() {
         </div>
         <div className="auth-right">
           {envMissing && process.env.NODE_ENV === 'development' && (
-            <div style={{background:'rgba(239,68,68,0.15)',border:'1px solid rgba(239,68,68,0.4)',borderRadius:'12px',padding:'16px',marginBottom:'24px',fontSize:'13px',color:'#fca5a5',lineHeight:'1.5'}}>
+            <div style={{background:'var(--error-bg)',border:'1px solid var(--error-border)',borderRadius:'12px',padding:'16px',marginBottom:'24px',fontSize:'13px',color:'var(--error)',lineHeight:'1.5'}}>
               <strong>⚠️ Development Debug:</strong><br />
               Missing Supabase environment variables:<br />
               • NEXT_PUBLIC_SUPABASE_URL<br />
@@ -183,7 +217,7 @@ export default function LoginPage() {
               <h2 className="form-title">Reset your password</h2>
               <p className="form-subtitle">Enter your email and we&apos;ll send you a reset link</p>
               {forgotError && <div className="form-error">⚠ {forgotError}</div>}
-              {forgotMsg && <div style={{background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:10,padding:"12px 16px",fontSize:13,color:"#6ee7b7",marginBottom:20}}>{forgotMsg}</div>}
+              {forgotMsg && <div style={{background:"var(--success-bg)",border:"1px solid var(--success-border)",borderRadius:10,padding:"12px 16px",fontSize:13,color:"var(--success)",marginBottom:20}}>{forgotMsg}</div>}
               <div className="form-group">
                 <label className="form-label">Email</label>
                 <input className="form-input" type="email" placeholder="you@example.com" value={forgotEmail} onChange={(e)=>setForgotEmail(e.target.value)} onKeyDown={(e)=>e.key==="Enter"&&handleForgotPassword()}/>
@@ -191,7 +225,7 @@ export default function LoginPage() {
               <button className="form-btn" onClick={handleForgotPassword} disabled={forgotLoading||!!forgotMsg}>
                 {forgotLoading ? <span className="form-loading"><span className="form-spinner"/> Sending…</span> : "Send Reset Link →"}
               </button>
-              <div className="form-footer"><span onClick={()=>{setForgotMode(false);setForgotMsg("");setForgotError("");}} style={{color:"#818cf8",cursor:"pointer"}}>← Back to login</span></div>
+              <div className="form-footer"><span onClick={()=>{setForgotMode(false);setForgotMsg("");setForgotError("");}} style={{color:"var(--gold)",cursor:"pointer"}}>← Back to login</span></div>
             </div>
           ) : (
             <div className="form-enter">
