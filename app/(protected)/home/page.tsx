@@ -2548,8 +2548,42 @@ export default function Home() {
         .app-layout{display:flex;min-height:calc(100vh - 54px);position:relative;z-index:1;background:#06080f}
         .sidebar{width:260px;flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
         .content{flex:1;min-width:0;padding:24px;max-width:calc(100vw - 260px - 320px)}
-        .right-panel{width:320px;flex-shrink:0;background:rgba(22,24,34,0.85);border-left:1px solid rgba(255,255,255,0.06);padding:20px 16px;display:flex;flex-direction:column;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+        .right-panel{width:320px;flex-shrink:0;background:var(--bg-surface);border-left:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4);display:flex;flex-direction:column;gap:var(--space-6);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
+
+        /* RIGHT PANEL COMPONENTS */
+        .right-label{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:var(--space-4)}
+        .activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+        .activity-card{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-1);transition:border-color var(--dur-base) var(--ease-out)}
+        .activity-card:hover{border-color:var(--border-normal)}
+        .activity-label{font-family:var(--font-primary);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)}
+        .activity-number{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px;line-height:1.1}
+        .activity-number.gold{color:var(--gold)}
+        .activity-number.cyan{color:var(--cyan)}
+        .activity-sub{font-family:var(--font-primary);font-size:var(--text-xs);color:var(--text-secondary);display:flex;align-items:center;gap:4px}
+        .coach-card{background:var(--cyan-subtle);border:1px solid rgba(6,182,212,0.25);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);transition:border-color var(--dur-base) var(--ease-out)}
+        .coach-card:hover{border-color:var(--cyan);box-shadow:0 0 12px var(--cyan-subtle)}
+        .coach-card-label{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--cyan)}
+        .coach-card-text{font-family:var(--font-primary);font-size:var(--text-sm);color:var(--text-primary);line-height:1.5}
+        .tracker-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
+        .tracker-pill{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3) var(--space-2);display:flex;flex-direction:column;align-items:center;gap:2px;transition:border-color var(--dur-base) var(--ease-out)}
+        .tracker-pill:hover{border-color:var(--border-normal)}
+        .tracker-label{font-family:var(--font-primary);font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-tertiary)}
+        .tracker-number{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--text-primary);line-height:1}
+        .tracker-number.applied{color:var(--success)}
+        .tracker-number.interview{color:var(--gold)}
+        .tracker-number.offer{color:var(--cyan)}
+        .tracker-number.rejected{color:var(--danger)}
+        .hiring-row{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);cursor:pointer;transition:background var(--dur-base) var(--ease-out)}
+        .hiring-row:hover{background:var(--bg-hover)}
+        .hiring-avatar{width:32px;height:32px;flex-shrink:0;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--gold) 0%,#c97a0a 100%);color:#1a1a1f;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:var(--text-sm);font-weight:700}
+        .hiring-name{flex:1;font-family:var(--font-primary);font-size:var(--text-sm);color:var(--text-primary);font-weight:500}
+        .hiring-rank{font-family:var(--font-primary);font-size:var(--text-xs);color:var(--text-tertiary);font-weight:500}
+        .live-item{display:flex;align-items:flex-start;gap:var(--space-2);padding:var(--space-2) 0;border-bottom:1px solid var(--border-subtle)}
+        .live-item:last-child{border-bottom:none}
+        .live-dot{width:6px;height:6px;border-radius:var(--radius-full);background:var(--success);margin-top:6px;flex-shrink:0;box-shadow:0 0 6px var(--success);animation:pulse 2s ease-in-out infinite}
+        .live-text{flex:1;font-family:var(--font-primary);font-size:var(--text-xs);color:var(--text-secondary);line-height:1.4}
+        .live-time{font-family:var(--font-primary);font-size:10px;color:var(--text-tertiary);margin-left:var(--space-2);flex-shrink:0}
 
         /* SIDEBAR */
         .sidebar-card{background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out)}
@@ -2753,8 +2787,6 @@ export default function Home() {
         [data-theme="light"] .eb-banner{background:rgba(251,191,36,0.04);border-color:rgba(251,191,36,0.15)}
         [data-theme="light"] .mobile-sidebar-backdrop{background:rgba(0,0,0,0.4)}
         [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
-        [data-theme="light"] .right-panel{background:rgba(255,255,255,0.8);border-left-color:rgba(0,0,0,0.06)}
-
         @media(max-width:900px){.sidebar{display:none}.content{padding:20px 16px;max-width:100%}}
 
         /* ── MOBILE ── */
