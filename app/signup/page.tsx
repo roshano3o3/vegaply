@@ -193,7 +193,7 @@ export default function SignupPage() {
         }
         .auth-headline em {
           font-style: italic;
-          background: linear-gradient(135deg, var(--gold) 0%, var(--cyan) 100%);
+          background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
