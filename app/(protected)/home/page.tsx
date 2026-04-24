@@ -2528,6 +2528,32 @@ export default function Home() {
         .stagger-children > *:nth-child(7) { animation-delay: 360ms; }
         .stagger-children > *:nth-child(8) { animation-delay: 420ms; }
 
+        @keyframes scaleInSoft {
+          from { opacity: 0; transform: scale(0.96); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes toastSlideUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes skeletonWave {
+          0%   { background-position: -200% 0; }
+          100% { background-position:  200% 0; }
+        }
+        @keyframes fadeSoft {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        .anim-scale-in   { animation: scaleInSoft  var(--dur-slow) var(--ease-out) both; }
+        .anim-toast-slide{ animation: toastSlideUp var(--dur-base) var(--ease-out) both; }
+        .anim-fade-soft  { animation: fadeSoft     var(--dur-slow) var(--ease-out) both; }
+        .skeleton {
+          background: linear-gradient(90deg, var(--bg-elevated) 0%, var(--bg-hover) 50%, var(--bg-elevated) 100%);
+          background-size: 200% 100%;
+          animation: skeletonWave 1.8s linear infinite;
+          border-radius: var(--radius-md);
+        }
+
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         body{margin:0;padding:0;background:var(--bg-page);color:var(--text-primary);font-family:var(--font-primary);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.25);border-radius:99px}
@@ -2568,7 +2594,7 @@ export default function Home() {
         .refresh-btn.spinning svg{animation:spin360 .8s linear infinite}
         @keyframes spin360{to{transform:rotate(360deg)}}
         @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-        .refresh-toast{position:fixed;bottom:28px;right:28px;background:rgba(9,12,23,0.97);border:1px solid rgba(52,211,153,0.28);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;color:#34d399;display:flex;align-items:center;gap:8px;z-index:600;backdrop-filter:blur(16px);animation:toastIn .25s ease both}
+        .refresh-toast{position:fixed;bottom:28px;right:28px;background:rgba(9,12,23,0.97);border:1px solid rgba(52,211,153,0.28);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;color:#34d399;display:flex;align-items:center;gap:8px;z-index:600;backdrop-filter:blur(16px);animation:toastSlideUp var(--dur-base) var(--ease-out) both}
         .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
         .nav-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
         .pill-eb{background:rgba(251,191,36,0.07);color:#fbbf24;border:1px solid rgba(251,191,36,0.18)}
@@ -2760,7 +2786,7 @@ export default function Home() {
         .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(16px);animation:fi .18s}
         @keyframes fi{from{opacity:0}to{opacity:1}}
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .modal{background:#0a0a10;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:32px;position:relative;animation:su .22s ease;scrollbar-width:thin}
+        .modal{background:#0a0a10;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:32px;position:relative;animation:scaleInSoft var(--dur-slow) var(--ease-out) both;scrollbar-width:thin}
         @keyframes su{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
         .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:30px;height:30px;font-size:12px;cursor:pointer;color:rgba(255,255,255,0.35);transition:all .2s;display:flex;align-items:center;justify-content:center}
         .modal-close:hover{background:rgba(239,68,68,0.1);color:#ef4444;border-color:rgba(239,68,68,0.2)}
@@ -3096,6 +3122,7 @@ export default function Home() {
             </button>
           </div>
 
+          <motion.div key={activeTab} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.3,ease:[0.16,1,0.3,1]}}>
           {activeTab==="tracker"&&<TrackerView lm={!darkMode} apps={trackedApps}
             onUpdateStatus={(id,s)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,status:s}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
             onUpdateNotes={(id,n)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,notes:n}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
@@ -3245,6 +3272,7 @@ export default function Home() {
               )}
             </>
           )}
+          </motion.div>
         </main>
 
         {/* RIGHT PANEL — AI Intelligence */}
