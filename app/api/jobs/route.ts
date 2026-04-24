@@ -119,20 +119,58 @@ async function fetchRemotive(jobRole: string, location: string): Promise<Normali
       ? mapped.filter(j => j.job_title?.toLowerCase().includes(roleLower))
       : mapped;
     console.log("[Remotive] jobs after role filter:", filtered.length);
-    const locLower = (location || '').toLowerCase().trim();
-    const wantsUS = ['us', 'usa', 'united states', 'u.s.', 'u.s.a'].includes(locLower)
-      || locLower === '';
-
-    // Remotive jobs are remote by default (Worldwide), which generally works for US users
-    // Keep Remotive jobs if user wants US or typed no location
-    const locationFiltered = wantsUS
-      ? filtered
-      : filtered.filter(j => {
-          const city = (j.job_city || '').toLowerCase();
-          return city.includes(locLower) || city.includes('remote');
-        });
-
-    console.log("[Remotive] jobs after location filter:", locationFiltered.length);
+    // --- LOCATION FILTER ---
+    const locRaw = (location || '').toLowerCase().trim();
+    const locNorm = locRaw.replace(/[\s.,\-]/g, '');
+    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
+    const isDefaultUS = US_ALIASES.includes(locNorm);
+    const US_MARKERS = [
+      'us','usa','unitedstates','america',
+      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
+      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
+      'austin','tx','dallas','houston','sanantonio','ftworth',
+      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
+      'phoenix','az','philadelphia','pa','pittsburgh',
+      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
+      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
+      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
+      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
+      'remote','usremote','remoteus'
+    ];
+    const NON_US_MARKERS = [
+      'germany','berlin','munich','frankfurt','hamburg',
+      'uk','london','england','manchester','scotland',
+      'france','paris','lyon','marseille',
+      'ireland','dublin','cork',
+      'spain','madrid','barcelona',
+      'netherlands','amsterdam','rotterdam','utrecht',
+      'canada','toronto','vancouver','montreal','ottawa',
+      'mexico','mexicocity','guadalajara',
+      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
+      'japan','tokyo','osaka',
+      'singapore',
+      'australia','sydney','melbourne','brisbane',
+      'brazil','saopaulo','riodejaneiro',
+      'china','shanghai','beijing','shenzhen','hongkong',
+      'italy','rome','milan',
+      'poland','warsaw','krakow',
+      'portugal','lisbon','porto',
+      'southafrica','johannesburg','capetown',
+      'belgium','brussels','switzerland','zurich','geneva',
+      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
+      'dubai','uae','israel','telaviv','turkey','istanbul'
+    ];
+    const locationFiltered = filtered.filter(j => {
+      const rawCity = (j.job_city || '').toLowerCase();
+      const normCity = rawCity.replace(/[\s.,\-]/g, '');
+      if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
+      if (isDefaultUS) {
+        if (!normCity) return true;
+        return US_MARKERS.some(m => normCity.includes(m));
+      }
+      return normCity.includes(locNorm);
+    });
+    console.log("[Remotive] after location filter:", locationFiltered.length);
     return locationFiltered;
   } catch {
     return [];
@@ -184,32 +222,58 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
       ? normalised.filter(j => j.job_title?.toLowerCase().includes(roleLower))
       : normalised;
     console.log("[Greenhouse] jobs after role filter:", filtered.length);
-    const locLower = (location || '').toLowerCase().trim();
-
-    // Determine if user wants US jobs specifically
-    const wantsUS = ['us', 'usa', 'united states', 'u.s.', 'u.s.a'].includes(locLower)
-      || locLower === '';
-
-    // If user typed a specific city/state, filter by that
-    const locationFiltered = locLower && !wantsUS
-      ? filtered.filter(j => (j.job_city || '').toLowerCase().includes(locLower))
-      : wantsUS
-        ? filtered.filter(j => {
-            const city = (j.job_city || '').toLowerCase();
-            // Keep if location mentions US cities, states, "us", "remote", or empty
-            const usIndicators = [
-              'us', 'usa', 'united states', 'u.s.',
-              'new york', 'san francisco', 'seattle', 'chicago', 'los angeles',
-              'austin', 'boston', 'denver', 'atlanta', 'miami', 'dallas',
-              'houston', 'phoenix', 'philadelphia', 'washington', 'portland',
-              'nashville', 'charlotte', 'remote'
-            ];
-            if (!city) return false;
-            return usIndicators.some(ind => city.includes(ind));
-          })
-        : filtered;
-
-    console.log("[Greenhouse] jobs after location filter:", locationFiltered.length);
+    // --- LOCATION FILTER ---
+    const locRaw = (location || '').toLowerCase().trim();
+    const locNorm = locRaw.replace(/[\s.,\-]/g, '');
+    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
+    const isDefaultUS = US_ALIASES.includes(locNorm);
+    const US_MARKERS = [
+      'us','usa','unitedstates','america',
+      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
+      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
+      'austin','tx','dallas','houston','sanantonio','ftworth',
+      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
+      'phoenix','az','philadelphia','pa','pittsburgh',
+      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
+      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
+      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
+      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
+      'remote','usremote','remoteus'
+    ];
+    const NON_US_MARKERS = [
+      'germany','berlin','munich','frankfurt','hamburg',
+      'uk','london','england','manchester','scotland',
+      'france','paris','lyon','marseille',
+      'ireland','dublin','cork',
+      'spain','madrid','barcelona',
+      'netherlands','amsterdam','rotterdam','utrecht',
+      'canada','toronto','vancouver','montreal','ottawa',
+      'mexico','mexicocity','guadalajara',
+      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
+      'japan','tokyo','osaka',
+      'singapore',
+      'australia','sydney','melbourne','brisbane',
+      'brazil','saopaulo','riodejaneiro',
+      'china','shanghai','beijing','shenzhen','hongkong',
+      'italy','rome','milan',
+      'poland','warsaw','krakow',
+      'portugal','lisbon','porto',
+      'southafrica','johannesburg','capetown',
+      'belgium','brussels','switzerland','zurich','geneva',
+      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
+      'dubai','uae','israel','telaviv','turkey','istanbul'
+    ];
+    const locationFiltered = filtered.filter(j => {
+      const rawCity = (j.job_city || '').toLowerCase();
+      const normCity = rawCity.replace(/[\s.,\-]/g, '');
+      if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
+      if (isDefaultUS) {
+        if (!normCity) return true;
+        return US_MARKERS.some(m => normCity.includes(m));
+      }
+      return normCity.includes(locNorm);
+    });
+    console.log("[Greenhouse] after location filter:", locationFiltered.length);
     return locationFiltered;
   } catch {
     return [];
