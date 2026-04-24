@@ -281,7 +281,7 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
 }
 
 // ── SOURCE D: The Muse ────────────────────────────────────────────────────────
-async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
+async function fetchTheMuse(jobRole: string, location: string): Promise<NormalisedJob[]> {
   try {
     const pageRequests = [0, 1, 2, 3, 4].map(page =>
       fetch(
@@ -300,7 +300,7 @@ async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.name?.toLowerCase().includes(roleLower));
     console.log("[TheMuse] jobs fetched:", jobs.length, "| matching:", filtered.length);
-    return filtered.map(job => ({
+    const mapped: NormalisedJob[] = filtered.map(job => ({
       job_id: `themuse-${job.id}`,
       job_title: job.name,
       employer_name: job.company?.name || "",
@@ -316,6 +316,59 @@ async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
       job_employment_type: job.type ?? "",
       source: "themuse",
     }));
+    // --- LOCATION FILTER ---
+    const locRaw = (location || '').toLowerCase().trim();
+    const locNorm = locRaw.replace(/[\s.,\-]/g, '');
+    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
+    const isDefaultUS = US_ALIASES.includes(locNorm);
+    const US_MARKERS = [
+      'us','usa','unitedstates','america',
+      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
+      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
+      'austin','tx','dallas','houston','sanantonio','ftworth',
+      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
+      'phoenix','az','philadelphia','pa','pittsburgh',
+      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
+      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
+      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
+      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
+      'remote','usremote','remoteus'
+    ];
+    const NON_US_MARKERS = [
+      'germany','berlin','munich','frankfurt','hamburg',
+      'uk','london','england','manchester','scotland',
+      'france','paris','lyon','marseille',
+      'ireland','dublin','cork',
+      'spain','madrid','barcelona',
+      'netherlands','amsterdam','rotterdam','utrecht',
+      'canada','toronto','vancouver','montreal','ottawa',
+      'mexico','mexicocity','guadalajara',
+      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
+      'japan','tokyo','osaka',
+      'singapore',
+      'australia','sydney','melbourne','brisbane',
+      'brazil','saopaulo','riodejaneiro',
+      'china','shanghai','beijing','shenzhen','hongkong',
+      'italy','rome','milan',
+      'poland','warsaw','krakow',
+      'portugal','lisbon','porto',
+      'southafrica','johannesburg','capetown',
+      'belgium','brussels','switzerland','zurich','geneva',
+      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
+      'dubai','uae','israel','telaviv','turkey','istanbul'
+    ];
+    const locationFiltered = mapped.filter(j => {
+      const rawCity = (j.job_city || '').toLowerCase();
+      const normCity = rawCity.replace(/[\s.,\-]/g, '');
+      if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
+      if (isDefaultUS) {
+        if (!normCity) return true;
+        return US_MARKERS.some(m => normCity.includes(m));
+      }
+      return normCity.includes(locNorm);
+    });
+    console.log("[TheMuse] after location filter:", locationFiltered.length);
+    return locationFiltered;
   } catch (err) {
     console.error("[TheMuse] error:", err);
     return [];
@@ -323,7 +376,7 @@ async function fetchTheMuse(jobRole: string): Promise<NormalisedJob[]> {
 }
 
 // ── SOURCE E: Arbeitnow ───────────────────────────────────────────────────────
-async function fetchArbeitnow(jobRole: string): Promise<NormalisedJob[]> {
+async function fetchArbeitnow(jobRole: string, location: string): Promise<NormalisedJob[]> {
   try {
     const pageRequests = [1, 2, 3].map(page =>
       fetch(
@@ -342,7 +395,7 @@ async function fetchArbeitnow(jobRole: string): Promise<NormalisedJob[]> {
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.title?.toLowerCase().includes(roleLower));
     console.log("[Arbeitnow] jobs fetched:", jobs.length, "| matching:", filtered.length);
-    return filtered.map(job => ({
+    const mapped: NormalisedJob[] = filtered.map(job => ({
       job_id: `arbeitnow-${job.slug}`,
       job_title: job.title,
       employer_name: job.company_name || "",
@@ -359,6 +412,59 @@ async function fetchArbeitnow(jobRole: string): Promise<NormalisedJob[]> {
       job_is_remote: job.remote ?? false,
       source: "arbeitnow",
     }));
+    // --- LOCATION FILTER ---
+    const locRaw = (location || '').toLowerCase().trim();
+    const locNorm = locRaw.replace(/[\s.,\-]/g, '');
+    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
+    const isDefaultUS = US_ALIASES.includes(locNorm);
+    const US_MARKERS = [
+      'us','usa','unitedstates','america',
+      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
+      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
+      'austin','tx','dallas','houston','sanantonio','ftworth',
+      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
+      'phoenix','az','philadelphia','pa','pittsburgh',
+      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
+      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
+      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
+      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
+      'remote','usremote','remoteus'
+    ];
+    const NON_US_MARKERS = [
+      'germany','berlin','munich','frankfurt','hamburg',
+      'uk','london','england','manchester','scotland',
+      'france','paris','lyon','marseille',
+      'ireland','dublin','cork',
+      'spain','madrid','barcelona',
+      'netherlands','amsterdam','rotterdam','utrecht',
+      'canada','toronto','vancouver','montreal','ottawa',
+      'mexico','mexicocity','guadalajara',
+      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
+      'japan','tokyo','osaka',
+      'singapore',
+      'australia','sydney','melbourne','brisbane',
+      'brazil','saopaulo','riodejaneiro',
+      'china','shanghai','beijing','shenzhen','hongkong',
+      'italy','rome','milan',
+      'poland','warsaw','krakow',
+      'portugal','lisbon','porto',
+      'southafrica','johannesburg','capetown',
+      'belgium','brussels','switzerland','zurich','geneva',
+      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
+      'dubai','uae','israel','telaviv','turkey','istanbul'
+    ];
+    const locationFiltered = mapped.filter(j => {
+      const rawCity = (j.job_city || '').toLowerCase();
+      const normCity = rawCity.replace(/[\s.,\-]/g, '');
+      if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
+      if (isDefaultUS) {
+        if (!normCity) return true;
+        return US_MARKERS.some(m => normCity.includes(m));
+      }
+      return normCity.includes(locNorm);
+    });
+    console.log("[Arbeitnow] after location filter:", locationFiltered.length);
+    return locationFiltered;
   } catch (err) {
     console.error("[Arbeitnow] error:", err);
     return [];
@@ -380,8 +486,8 @@ export async function POST(req: Request) {
       fetchAdzuna(jobRole, location, earlyBird),
       fetchRemotive(jobRole, location),
       fetchGreenhouse(jobRole, location),
-      fetchTheMuse(jobRole),
-      fetchArbeitnow(jobRole),
+      fetchTheMuse(jobRole, location),
+      fetchArbeitnow(jobRole, location),
     ]);
 
     console.log("Adzuna jobs:", adzunaJobs.length);

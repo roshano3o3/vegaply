@@ -6,7 +6,13 @@
       "Bash(npm run *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(node *)",
+      "Bash(grep -n \"br\\\\\\\\\\\\\\\\s\\\\*\\\\\\\\\\\\\\\\\\\\/?\" \"app/\\(protected\\)/home/page.tsx\")",
+      "Bash(xargs grep *)",
+      "Bash(awk *)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npm run build)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
