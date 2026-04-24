@@ -99,7 +99,7 @@ function timeAgo(d?: string) {
 function isHot(d?: string) { return getHoursAgo(d) < 6; }
 function isEarlyBird(d?: string) { return getHoursAgo(d) < 24; }
 function empBadge(t?: string) { return ({ FULLTIME: "Full-time", PARTTIME: "Part-time", CONTRACTOR: "Contract", INTERN: "Internship" } as any)[t ?? ""] ?? t ?? null; }
-function scoreColor(s: number) { return s >= 80 ? "#10b981" : s >= 65 ? "#818cf8" : s >= 50 ? "#f59e0b" : "#ef4444"; }
+function scoreColor(s: number) { return s >= 80 ? "#10b981" : s >= 65 ? "#06b6d4" : s >= 50 ? "#f59e0b" : "#ef4444"; }
 
 function getCompetitionLabel(h: number) {
   if (h < 2)  return { label: "🔥 Very Low Competition", color: "#ef4444", bg: "rgba(239,68,68,0.08)" };
@@ -265,7 +265,7 @@ function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onC
     setLoading(false);
   };
   useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, [resumeText, matchResult, loading]);
-  const color = matchResult ? scoreColor(matchResult.matchScore) : "#818cf8";
+  const color = matchResult ? scoreColor(matchResult.matchScore) : "#06b6d4";
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(6,6,8,0.55)",backdropFilter:"blur(4px)",zIndex:250}}>
       <div style={{position:"fixed",top:0,right:0,bottom:0,width:400,background:"#080810",borderLeft:"1px solid rgba(99,102,241,0.12)",padding:24,overflowY:"auto",display:"flex",flexDirection:"column",gap:16,animation:"slideIn .25s ease",zIndex:251}} onClick={e=>e.stopPropagation()}>
@@ -360,9 +360,9 @@ interface SimSummary { overallScore: number; verdict: string; strengths: string[
 
 function SimFeedbackCard({ feedback }: { feedback: SimFeedback }) {
   const score = feedback.score ?? 5;
-  const color = score >= 8 ? "#10b981" : score >= 6 ? "#818cf8" : score >= 4 ? "#f59e0b" : "#ef4444";
+  const color = score >= 8 ? "#10b981" : score >= 6 ? "#06b6d4" : score >= 4 ? "#f59e0b" : "#ef4444";
   const label = score >= 8 ? "Excellent" : score >= 6 ? "Good" : score >= 4 ? "Fair" : "Needs Work";
-  const rgbMap: Record<string,string> = { "#10b981":"16,185,129", "#818cf8":"129,140,248", "#f59e0b":"245,158,11", "#ef4444":"239,68,68" };
+  const rgbMap: Record<string,string> = { "#10b981":"16,185,129", "#06b6d4":"6,182,212", "#f59e0b":"245,158,11", "#ef4444":"239,68,68" };
   const rgb = rgbMap[color] ?? "129,140,248";
   return (
     <div style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:14,marginLeft:38}}>
@@ -399,7 +399,7 @@ function SimFeedbackCard({ feedback }: { feedback: SimFeedback }) {
 }
 
 function SimSummaryScreen({ summary, allQA, onClose }: { summary: SimSummary; allQA: SimQA[]; onClose: () => void }) {
-  const recMap: Record<string,string> = { "Strong Hire":"#10b981","Hire":"#818cf8","Borderline":"#f59e0b","Needs More Prep":"#f59e0b","Not Ready":"#ef4444" };
+  const recMap: Record<string,string> = { "Strong Hire":"#10b981","Hire":"#06b6d4","Borderline":"#f59e0b","Needs More Prep":"#f59e0b","Not Ready":"#ef4444" };
   const recColor = recMap[summary.recommendation ?? ""] ?? "#818cf8";
   return (
     <div style={{flex:1,overflowY:"auto",padding:"24px 22px 28px"}}>
@@ -420,7 +420,7 @@ function SimSummaryScreen({ summary, allQA, onClose }: { summary: SimSummary; al
         <div style={{display:"flex",gap:6}}>
           {allQA.map((qa,i)=>{
             const sc=qa.feedback.score??5;
-            const c=sc>=8?"#10b981":sc>=6?"#818cf8":sc>=4?"#f59e0b":"#ef4444";
+            const c=sc>=8?"#10b981":sc>=6?"#06b6d4":sc>=4?"#f59e0b":"#ef4444";
             return(
               <div key={i} style={{flex:1,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"8px 4px",textAlign:"center"}}>
                 <div style={{fontSize:9,color:"rgba(255,255,255,0.2)",marginBottom:2}}>Q{i+1}</div>
@@ -785,7 +785,7 @@ function AnalyticsView({ apps, savedCount, totalSearched, lm }: { apps: TrackedA
   })();
 
   const statCards = [
-    { label:"Total Tracked", value:apps.length,        icon:"📋", color:"#818cf8" },
+    { label:"Total Tracked", value:apps.length,        icon:"📋", color:"#06b6d4" },
     { label:"Applied",       value:totalApplied,        icon:"📤", color:"#818cf8" },
     { label:"Interviewing",  value:sc.Interviewing,     icon:"🎯", color:"#f59e0b" },
     { label:"Offers",        value:sc.Offer,            icon:"🎉", color:"#10b981" },
@@ -798,14 +798,14 @@ function AnalyticsView({ apps, savedCount, totalSearched, lm }: { apps: TrackedA
   const funnel = [
     { label:"Jobs Scanned", count:totalSearched, color:"rgba(255,255,255,0.2)" },
     { label:"Bookmarked",   count:savedCount,    color:"#94a3b8" },
-    { label:"Tracked",      count:apps.length,   color:"#818cf8" },
+    { label:"Tracked",      count:apps.length,   color:"#06b6d4" },
     { label:"Applied",      count:totalApplied,  color:"#f59e0b" },
     { label:"Interviewing", count:sc.Interviewing,color:"#a78bfa" },
     { label:"Offers",       count:sc.Offer,      color:"#10b981" },
   ];
   const mx = Math.max(funnel[0].count, 1);
 
-  const sc2: Record<AppStatus,string> = {Saved:"#94a3b8",Applied:"#818cf8",Interviewing:"#f59e0b",Offer:"#10b981",Rejected:"#ef4444"};
+  const sc2: Record<AppStatus,string> = {Saved:"#94a3b8",Applied:"#10b981",Interviewing:"#f59e0b",Offer:"#10b981",Rejected:"#ef4444"};
   const sc2icon: Record<AppStatus,string> = {Saved:"🔖",Applied:"📤",Interviewing:"🎯",Offer:"🎉",Rejected:"❌"};
 
   return (
@@ -1289,7 +1289,7 @@ function SkillGapModal({ job, result, onClose }: { job: Job; result: SkillGapRes
     if(/linkedin/i.test(p))    return "#0077b5";
     if(/freecodecamp/i.test(p))return "#0a0a23";
     if(/edx/i.test(p))         return "#02262b";
-    return "#818cf8";
+    return "#06b6d4";
   };
   return(
     <div className="overlay" onClick={onClose}>
@@ -1375,9 +1375,9 @@ function getVisaBadges(desc?: string): { label: string; color: string; bg: strin
 
 function getLogoStyle(name: string): { bg: string; color: string } {
   const c = (name || 'A')[0].toUpperCase();
-  if ('ABCDE'.includes(c)) return { bg: 'rgba(99,102,241,0.14)', color: '#818cf8' };
+  if ('ABCDE'.includes(c)) return { bg: 'rgba(6,182,212,0.14)', color: '#06b6d4' };
   if ('FGHIJ'.includes(c)) return { bg: 'rgba(236,72,153,0.14)', color: '#f472b6' };
-  if ('KLMNO'.includes(c)) return { bg: 'rgba(52,211,153,0.14)', color: '#34d399' };
+  if ('KLMNO'.includes(c)) return { bg: 'rgba(16,185,129,0.14)', color: '#10b981' };
   if ('PQRST'.includes(c)) return { bg: 'rgba(251,191,36,0.14)', color: '#fbbf24' };
   return { bg: 'rgba(154,116,223,0.14)', color: '#a78bfa' };
 }
