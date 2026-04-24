@@ -987,11 +987,11 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
     return (
       <div style={{textAlign:"center"}}>
         <svg width="58" height="58" viewBox="0 0 58 58">
-          <circle cx="29" cy="29" r={rr} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
+          <circle cx="29" cy="29" r={rr} fill="none" stroke="var(--border-subtle)" strokeWidth="4"/>
           <circle cx="29" cy="29" r={rr} fill="none" stroke={ringColor} strokeWidth="4"
             strokeDasharray={cc} strokeDashoffset={off} strokeLinecap="round" transform="rotate(-90 29 29)"
             style={{transition:"stroke-dashoffset .8s ease"}}/>
-          <text x="29" y="34" textAnchor="middle" fontSize="13" fontWeight="800" fill={ringColor} fontFamily="var(--font-display)">{sc}</text>
+          <text x="29" y="34" textAnchor="middle" fontWeight="800" fill="var(--text-primary)" fontFamily="var(--font-display)" style={{fontSize:"var(--text-lg)"}}>{sc}</text>
         </svg>
         <div style={{fontSize:9,fontWeight:600,color:t3,marginTop:2,letterSpacing:"0.3px"}}>{ringLabel}</div>
       </div>
@@ -1020,8 +1020,8 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
   );
 
   if (aiResult) {
-    const atsColor = aiResult.atsScore >= 70 ? "#60a5fa" : aiResult.atsScore >= 45 ? "#f59e0b" : "#ef4444";
-    const ovColor  = aiResult.overallScore >= 70 ? "#818cf8" : aiResult.overallScore >= 45 ? "#f59e0b" : "#ef4444";
+    const atsColor = "var(--cyan)";
+    const ovColor  = "var(--cyan)";
     return (
       <div className="sidebar-card" style={{marginTop:0}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:2}}>
@@ -1109,11 +1109,11 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
       <div className="sidebar-card-sub">Analysis based on your uploaded resume</div>
       <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14}}>
         <svg width="52" height="52" viewBox="0 0 52 52" style={{flexShrink:0}}>
-          <circle cx="26" cy="26" r={r} fill="none" stroke={lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.07)"} strokeWidth="4"/>
-          <circle cx="26" cy="26" r={r} fill="none" stroke={fbColor} strokeWidth="4"
+          <circle cx="26" cy="26" r={r} fill="none" stroke="var(--border-subtle)" strokeWidth="4"/>
+          <circle cx="26" cy="26" r={r} fill="none" stroke="var(--cyan)" strokeWidth="4"
             strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 26 26)"
             style={{transition:"stroke-dashoffset .8s ease"}}/>
-          <text x="26" y="30" textAnchor="middle" fontSize="14" fontWeight="800" fill={fbColor} fontFamily="var(--font-display)">{score}</text>
+          <text x="26" y="30" textAnchor="middle" fontWeight="800" fill="var(--text-primary)" fontFamily="var(--font-display)" style={{fontSize:"var(--text-lg)"}}>{score}</text>
         </svg>
         <div style={{flex:1}}>
           <div style={{fontSize:13,fontWeight:700,color:fbColor,marginBottom:4}}>{fbLabel} Resume</div>
@@ -1163,9 +1163,9 @@ function AlertPanel({ jobRole, location, jobs }: { jobRole: string; location: st
     <div className="sidebar-card">
       <div className="sidebar-card-title">🔔 Gmail Alert</div>
       <div className="sidebar-card-sub">Email yourself today's top jobs</div>
-      <input className="dark-input" type="email" placeholder="you@gmail.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/>
+      <input className="gmail-input" type="email" placeholder="you@gmail.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/>
       {error&&<div style={{fontSize:11,color:"#ef4444",marginTop:6}}>{error}</div>}
-      <button className="gradient-btn" onClick={send} disabled={sending||!jobs.length} style={{marginTop:10}}>{sending?<><div className="spin-sm"/>Sending…</>:`📧 Send ${jobs.length} Jobs`}</button>
+      <button className="gmail-btn" onClick={send} disabled={sending||!jobs.length}>{sending?<><div className="spin-sm"/>Sending…</>:`📧 Send ${jobs.length} Jobs`}</button>
     </div>
   );
 }
@@ -2546,20 +2546,22 @@ export default function Home() {
 
         /* LAYOUT */
         .app-layout{display:flex;min-height:calc(100vh - 54px);position:relative;z-index:1;background:#06080f}
-        .sidebar{width:260px;flex-shrink:0;background:rgba(16,18,28,0.92);border-right:1px solid rgba(255,255,255,0.05);padding:20px 14px 40px 14px;display:flex;flex-direction:column;gap:22px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+        .sidebar{width:260px;flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
         .content{flex:1;min-width:0;padding:24px;max-width:calc(100vw - 260px - 320px)}
         .right-panel{width:320px;flex-shrink:0;background:rgba(22,24,34,0.85);border-left:1px solid rgba(255,255,255,0.06);padding:20px 16px;display:flex;flex-direction:column;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
 
         /* SIDEBAR */
-        .sidebar-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 0 0 rgba(99,102,241,0.0);transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1)}
-        .sidebar-card:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08),0 0 16px rgba(99,102,241,0.06)}
-        .sidebar-card-title{font-size:10px;font-weight:700;color:rgba(255,255,255,0.40);margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase}
-        .sidebar-card-sub{font-size:11px;color:rgba(255,255,255,0.28);margin-bottom:10px;line-height:1.5}
+        .sidebar-card{background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out)}
+        .sidebar-card:hover{border-color:var(--border-normal);background:var(--bg-hover)}
+        .sidebar-card-title{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:var(--space-4)}
+        .sidebar-card-sub{font-size:11px;color:var(--text-tertiary);margin-bottom:10px;line-height:1.5}
         .resume-drop{border:1.5px dashed rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.02);padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s ease;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.22);line-height:1.7;font-family:var(--font-primary)}
         .resume-drop:hover,.resume-drop.dragging{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}
-        .filter-label{font-size:11px;font-weight:500;color:rgba(255,255,255,0.40);font-family:var(--font-primary);margin-bottom:6px}
-        .filter-select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 10px;font-size:11px;font-weight:400;color:rgba(255,255,255,0.45);font-family:var(--font-primary);outline:none;margin-bottom:7px;cursor:pointer}
+        .filter-label{font-size:var(--text-xs);font-weight:500;color:var(--text-tertiary);font-family:var(--font-primary);margin-bottom:6px}
+        .filter-select{width:100%;height:36px;padding:0 var(--space-3);background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm);cursor:pointer;outline:none;margin-bottom:7px;transition:border-color var(--dur-base) var(--ease-out)}
+        .filter-select:hover{border-color:var(--border-normal)}
+        .filter-select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--gold-subtle)}
         .resume-drop:hover,.resume-drop.dragging{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}
         .dark-input{width:100%;background:rgba(13,18,32,0.8);border:1px solid rgba(93,104,130,0.15);border-radius:8px;padding:8px 12px;font-size:12px;font-family:var(--font-primary);color:rgba(255,255,255,0.8);outline:none;transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1);margin-bottom:6px}
         .dark-input::placeholder{color:rgba(255,255,255,0.18)}
@@ -2571,6 +2573,12 @@ export default function Home() {
         .ghost-btn:hover{color:rgba(255,255,255,0.65);border-color:rgba(93,104,130,0.3);background:rgba(93,104,130,0.04);box-shadow:0 0 8px rgba(99,102,241,0.04)}
         .send-jobs-btn{width:100%;background:rgba(111,135,200,0.10);border:1px solid rgba(111,135,200,0.20);border-radius:9px;padding:9px;font-size:11px;font-weight:600;color:#818cf8;cursor:pointer;font-family:var(--font-primary);transition:all 0.26s cubic-bezier(0.34,1.56,0.64,1)}
         .send-jobs-btn:hover{background:rgba(111,135,200,0.15);border-color:rgba(111,135,200,0.35);box-shadow:0 0 12px rgba(111,135,200,0.10)}
+        .gmail-input{width:100%;height:40px;padding:0 var(--space-4);background:var(--bg-input);border:1px solid var(--border-normal);border-radius:var(--radius-md);color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm);transition:border-color var(--dur-base) var(--ease-out)}
+        .gmail-input:focus{outline:none;border-color:var(--border-focus);box-shadow:0 0 0 3px var(--gold-subtle)}
+        .gmail-input::placeholder{color:var(--text-tertiary)}
+        .gmail-btn{width:100%;height:40px;background:var(--gold);color:#1a1a1f;border:none;border-radius:var(--radius-md);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;transition:background var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);margin-top:var(--space-3)}
+        .gmail-btn:hover{background:var(--gold-hover);box-shadow:var(--shadow-glow-gold)}
+        .gmail-btn:disabled{opacity:0.35;cursor:not-allowed}
         .edit-prefs-btn{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);cursor:pointer;font-family:var(--font-primary);transition:all 0.24s ease}
         .edit-prefs-btn:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.14);box-shadow:0 0 8px rgba(99,102,241,0.04)}
         .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.35);margin-top:10px}
@@ -2697,14 +2705,8 @@ export default function Home() {
         [data-theme="light"] .nav-pill.pill-eb{background:rgba(251,191,36,0.12)}
         [data-theme="light"] .nav-pill.pill-tracker{background:rgba(99,102,241,0.1)}
         [data-theme="light"] .app-layout{background:#f4f5f9}
-        [data-theme="light"] .sidebar{background:rgba(255,255,255,0.8);border-right-color:rgba(0,0,0,0.06)}
-        [data-theme="light"] .sidebar-card{background:transparent}
-        [data-theme="light"] .sidebar-card-title{color:rgba(0,0,0,0.3)}
-        [data-theme="light"] .sidebar-card-sub{color:rgba(0,0,0,0.35)}
         [data-theme="light"] .dark-input{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.09);color:#0f0f14}
         [data-theme="light"] .dark-input::placeholder{color:rgba(0,0,0,0.3)}
-        [data-theme="light"] .filter-label{color:rgba(0,0,0,0.3)}
-        [data-theme="light"] .filter-select{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.09);color:rgba(0,0,0,0.6)}
         [data-theme="light"] .toggle-row{color:rgba(0,0,0,0.45)}
         [data-theme="light"] .ghost-btn{color:rgba(0,0,0,0.45);border-color:rgba(0,0,0,0.1)}
         [data-theme="light"] .ghost-btn:hover{color:rgba(0,0,0,0.75);border-color:rgba(0,0,0,0.2)}
