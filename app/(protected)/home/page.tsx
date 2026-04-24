@@ -2507,29 +2507,31 @@ export default function Home() {
         @keyframes premiumShimmer{0%{background-position:0% center}100%{background-position:200% center}}
 
         /* TOPBAR */
-        .topbar{background:rgba(18,20,30,0.95);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-bottom:1px solid rgba(255,255,255,0.06);height:56px;display:flex;align-items:center;padding:0 20px;gap:10px;position:sticky;top:0;z-index:100;flex-shrink:0}
+        .topbar{position:sticky;top:0;z-index:50;height:60px;padding:0 var(--space-5);display:flex;align-items:center;gap:var(--space-4);background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);backdrop-filter:blur(20px)}
         .topbar-logo{font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px;cursor:pointer;display:flex;align-items:center}
         .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:560px}
-        .topbar-search-box{flex:1;max-width:560px;display:flex;align-items:center;background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.08);border-radius:12px;height:38px;overflow:hidden;transition:border-color 0.3s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease}
-        .topbar-search-box:focus-within{border-color:rgba(111,135,200,0.5);box-shadow:0 0 0 3px rgba(111,135,200,0.08),0 0 16px rgba(111,135,200,0.12)}
-        .topbar-input{border:none;outline:none;background:none;height:100%;padding:0 14px;flex:1 1 180px;min-width:180px;font-size:13px;font-weight:400;color:rgba(255,255,255,0.80);font-family:var(--font-primary)}
-        .topbar-input-loc{border:none;outline:none;background:none;height:100%;padding:0 12px;flex:0 0 120px;width:120px;font-size:13px;font-weight:400;color:rgba(255,255,255,0.80);font-family:var(--font-primary)}
-        .topbar-input::placeholder,.topbar-input-loc::placeholder{color:rgba(255,255,255,0.22)}
-        .topbar-sep{width:1px;height:20px;background:rgba(255,255,255,0.08);flex-shrink:0}
-        .search-btn{background:linear-gradient(135deg,#6f87c8,#5b73b4);border:none;border-radius:10px;height:38px;padding:0 22px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-primary);letter-spacing:-0.2px;box-shadow:0 2px 12px rgba(111,135,200,0.30);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);flex-shrink:0;white-space:nowrap}
-        .search-btn:hover{opacity:0.88;box-shadow:0 6px 24px rgba(111,135,200,0.45),0 0 0 1px rgba(111,135,200,0.3)}
+        .topbar-search-box{flex:1 1 auto;max-width:620px;display:flex;align-items:center;height:40px;background:var(--bg-input);border:1px solid var(--border-normal);border-radius:var(--radius-md);overflow:hidden;transition:border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out)}
+        .topbar-search-box:focus-within{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--gold-subtle)}
+        .topbar-input{flex:1 1 200px;min-width:180px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm)}
+        .topbar-input::placeholder{color:var(--text-tertiary)}
+        .topbar-input-loc{flex:0 0 140px;width:140px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm)}
+        .topbar-input-loc::placeholder{color:var(--text-tertiary)}
+        .topbar-sep{width:1px;height:24px;background:var(--border-subtle);flex-shrink:0}
+        .search-btn{height:40px;padding:0 var(--space-5);background:var(--gold);color:#1a1a1f;border:none;border-radius:var(--radius-md);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;transition:background var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);flex-shrink:0}
+        .search-btn:hover{background:var(--gold-hover);box-shadow:var(--shadow-glow-gold)}
+        .search-btn:active{transform:scale(0.97)}
         .search-btn:disabled{opacity:0.35;cursor:not-allowed}
         @keyframes ebGlow{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.25)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0)}}
-        .eb-btn{background:rgba(214,178,104,0.07);color:#d6b268;border:1px solid rgba(214,178,104,0.16);border-radius:10px;height:38px;padding:0 16px;font-size:12px;font-weight:700;font-family:var(--font-primary);cursor:pointer;white-space:nowrap;transition:all 0.2s ease;flex-shrink:0;display:flex;align-items:center;gap:6px}
-        .eb-btn:hover{background:rgba(214,178,104,0.12)}
-        .eb-btn.active{background:rgba(214,178,104,0.16);border:1px solid rgba(214,178,104,0.40);box-shadow:0 0 16px rgba(214,178,104,0.12)}
+        .eb-btn{height:36px;padding:0 var(--space-4);background:transparent;border:1px solid var(--gold-subtle);border-radius:var(--radius-md);color:var(--gold);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:var(--space-2);transition:all var(--dur-base) var(--ease-out);flex-shrink:0}
+        .eb-btn:hover{background:var(--gold-subtle);border-color:var(--gold)}
+        .eb-btn.active{background:var(--gold);color:#1a1a1f;border-color:var(--gold);box-shadow:var(--shadow-glow-gold)}
         .eb-btn:disabled{opacity:0.35;cursor:not-allowed}
-        .h1b-btn{background:rgba(142,178,155,0.07);color:#8eb29b;border:1px solid rgba(142,178,155,0.16);border-radius:10px;height:38px;padding:0 16px;font-size:12px;font-weight:700;font-family:var(--font-primary);cursor:pointer;transition:all 0.2s ease;flex-shrink:0;display:flex;align-items:center;gap:6px}
-        .h1b-btn:hover{background:rgba(142,178,155,0.12)}
-        .h1b-btn.active{background:rgba(142,178,155,0.16);border:1px solid rgba(142,178,155,0.40);box-shadow:0 0 16px rgba(142,178,155,0.10)}
-        .refresh-btn{background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.35);font-size:14px;transition:all 0.18s ease;font-family:var(--font-primary);padding:0;flex-shrink:0}
-        .refresh-btn:hover{border-color:rgba(255,255,255,0.18);color:rgba(255,255,255,0.65)}
+        .h1b-btn{height:36px;padding:0 var(--space-4);background:transparent;border:1px solid var(--cyan-subtle);border-radius:var(--radius-md);color:var(--cyan);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:var(--space-2);transition:all var(--dur-base) var(--ease-out);flex-shrink:0}
+        .h1b-btn:hover{background:var(--cyan-subtle);border-color:var(--cyan)}
+        .h1b-btn.active{background:var(--cyan);color:#0a0a0c;border-color:var(--cyan);box-shadow:var(--shadow-glow-cyan)}
+        .refresh-btn{height:36px;padding:0 var(--space-3);background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-secondary);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:500;cursor:pointer;transition:all var(--dur-base) var(--ease-out);flex-shrink:0}
+        .refresh-btn:hover{color:var(--text-primary);border-color:var(--border-normal);background:var(--bg-hover)}
         .refresh-btn:disabled{opacity:0.35;cursor:not-allowed}
         .refresh-btn.spinning svg{animation:spin360 .8s linear infinite}
         @keyframes spin360{to{transform:rotate(360deg)}}
@@ -2821,8 +2823,8 @@ export default function Home() {
             <input className="topbar-input-loc" type="text" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           </div>
           <motion.button className="search-btn" whileHover={{scale:1.04,filter:'brightness(1.12)'}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
-          <motion.button className="eb-btn" whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>{const newMode=activeMode==='earlybird'?'all':'earlybird';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}} style={{opacity:activeMode==='earlybird'?1:undefined,background:activeMode==='earlybird'?'rgba(251,191,36,0.14)':undefined,borderColor:activeMode==='earlybird'?'rgba(251,191,36,0.45)':undefined,boxShadow:activeMode==='earlybird'?'0 0 16px rgba(251,191,36,0.2)':undefined}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
-          <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>{const newMode=activeMode==='h1b'?'all':'h1b';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}} style={{background:activeMode==='h1b'?'rgba(142,178,155,0.16)':'rgba(142,178,155,0.07)',border:activeMode==='h1b'?'1px solid rgba(142,178,155,0.40)':'1px solid rgba(142,178,155,0.16)',borderRadius:10,height:38,padding:'0 16px',color:'#8eb29b',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'var(--font-primary)',flexShrink:0,boxShadow:activeMode==='h1b'?'0 0 16px rgba(142,178,155,0.10)':'none',transition:'all 0.2s',display:'flex',alignItems:'center',gap:6}}>🌐 H1B</motion.button>
+          <motion.button className={`eb-btn${activeMode==='earlybird'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>{const newMode=activeMode==='earlybird'?'all':'earlybird';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
+          <motion.button className={`h1b-btn${activeMode==='h1b'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>{const newMode=activeMode==='h1b'?'all':'h1b';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>🌐 H1B</motion.button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             {isRefreshing?"Refreshing…":"Refresh"}
