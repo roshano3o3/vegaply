@@ -37,8 +37,30 @@ Return exactly this JSON (all fields required, matchScore must be an integer 0-1
     const text = data?.content?.[0]?.text ?? "{}";
     console.log("Claude raw:", text.slice(0, 200));
     const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    const jsonMatch = clean.match(/\{[\s\S]*\}/);
-    const result = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    let jsonStr = clean;
+    if (jsonStr.startsWith('{')) {
+      let braceCount = 0;
+      let endIndex = -1;
+      for (let i = 0; i < jsonStr.length; i++) {
+        if (jsonStr[i] === '{') braceCount++;
+        else if (jsonStr[i] === '}') {
+          braceCount--;
+          if (braceCount === 0) {
+            endIndex = i;
+            break;
+          }
+        }
+      }
+      if (endIndex !== -1) {
+        jsonStr = jsonStr.slice(0, endIndex + 1);
+      } else {
+        jsonStr = '{}';
+      }
+    } else {
+      const match = jsonStr.match(/\{[\s\S]*?\}/);
+      jsonStr = match ? match[0] : '{}';
+    }
+    const result = JSON.parse(jsonStr);
 
     const toInt = (v: any) => {
       const n = typeof v === "string" ? parseFloat(v) : Number(v);
