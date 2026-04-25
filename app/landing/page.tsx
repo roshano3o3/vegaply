@@ -7,12 +7,14 @@ export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [mouse, setMouse] = useState({ x: -500, y: -500 })
   const [typedText, setTypedText] = useState('')
+  const [morphWord, setMorphWord] = useState('scams.')
   const [countersStarted, setCountersStarted] = useState(false)
   const [c1, setC1] = useState('0')
   const [c2, setC2] = useState('0')
   const [c3, setC3] = useState('0×')
 
   const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
+  const morphWords = ['scams.', 'vendors.', 'middlemen.', 'scrapers.']
 
   // Mouse tracking
   useEffect(() => {
@@ -38,6 +40,15 @@ export default function LandingPage() {
     return () => clearInterval(interval)
   }, [])
 
+  // Morphing word
+  useEffect(() => {
+    let i = 0
+    const interval = setInterval(() => {
+      i = (i + 1) % morphWords.length
+      setMorphWord(morphWords[i])
+    }, 2200)
+    return () => clearInterval(interval)
+  }, [])
 
   // Star canvas
   useEffect(() => {
@@ -455,17 +466,27 @@ export default function LandingPage() {
         @keyframes gradient-sweep{0%{background-position:100% 50%;}100%{background-position:0% 50%;}}
         @keyframes shimmer{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
         @keyframes glow-pulse{0%,100%{text-shadow:0 0 30px rgba(245,158,11,0);transform:scale(1);}50%{text-shadow:0 0 40px rgba(245,158,11,0.3);transform:scale(1.01);}}
+        @keyframes glow-pulse-strong{0%,100%{text-shadow:0 0 20px rgba(245,158,11,0),0 0 40px rgba(245,158,11,0);transform:scale(1);}50%{text-shadow:0 0 30px rgba(245,158,11,0.4),0 0 60px rgba(245,158,11,0.2);transform:scale(1.015);}}
         @keyframes bullet-in{to{opacity:1;transform:translateX(0);}}
         @keyframes hero-fade-up-anim{to{opacity:1;transform:translateY(0);}}
+        @keyframes card-shimmer{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
         .hero-content{display:flex;flex-direction:column;align-items:center;width:100%;max-width:780px;}
         .hero-pill{display:inline-flex;align-items:center;gap:8px;background:var(--gold-subtle);border:1px solid rgba(245,158,11,.22);border-radius:var(--radius-full);padding:6px 18px;font-size:12px;font-weight:500;color:var(--gold);letter-spacing:.4px;margin-bottom:36px;}
         .hero-pill-dot{width:7px;height:7px;background:var(--gold);border-radius:50%;animation:pdotAnim 1.8s ease infinite;flex-shrink:0;}
-        .hero-headline-sweep{background:linear-gradient(90deg,#f5f5f7 0%,#f5f5f7 30%,#f59e0b 50%,#f5f5f7 70%,#f5f5f7 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradient-sweep 3s cubic-bezier(0.16,1,0.3,1) 0.4s both;}
+        .hero-headline-sweep{background:linear-gradient(90deg,#f5f5f7 0%,#f5f5f7 25%,#fbbf24 45%,#f59e0b 50%,#fbbf24 55%,#f5f5f7 75%,#f5f5f7 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradient-sweep 5s cubic-bezier(0.16,1,0.3,1) 0.4s infinite;}
         .hero-bullet{opacity:0;transform:translateX(-12px);animation:bullet-in 600ms cubic-bezier(0.16,1,0.3,1) forwards;}
-        .hero-prepared{display:inline-block;animation:glow-pulse 4s ease-in-out 2s infinite;}
+        .hero-prepared{display:inline-block;animation:glow-pulse-strong 3.5s ease-in-out 2s infinite;}
         .hero-closing-shimmer{background:linear-gradient(90deg,rgba(245,245,247,0.6) 0%,#f59e0b 50%,rgba(245,245,247,0.6) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 6s ease-in-out infinite;}
         .hero-fade-up{opacity:0;transform:translateY(16px);animation:hero-fade-up-anim 700ms cubic-bezier(0.16,1,0.3,1) forwards;}
-        @media(prefers-reduced-motion:reduce){.hero-headline-sweep,.hero-bullet,.hero-prepared,.hero-closing-shimmer,.hero-fade-up{animation:none !important;opacity:1 !important;transform:none !important;-webkit-text-fill-color:var(--text-primary,#f5f5f7) !important;}}
+        .hero-morph{background:linear-gradient(135deg,#f59e0b 0%,#06b6d4 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;transition:opacity 300ms ease;}
+        .feat-card{background:linear-gradient(135deg,rgba(245,158,11,0.04) 0%,rgba(6,182,212,0.04) 100%);border:1px solid rgba(245,245,247,0.08);border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:16px;opacity:0;transform:translateY(20px);animation:hero-fade-up-anim 700ms cubic-bezier(0.16,1,0.3,1) forwards;transition:all 300ms cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;}
+        .feat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(245,158,11,0.08) 50%,transparent 100%);background-size:200% 100%;background-position:-100% 0;transition:background-position 600ms ease;pointer-events:none;}
+        .feat-card:hover{border-color:rgba(245,158,11,0.3);transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,158,11,0.12);}
+        .feat-card:hover::before{background-position:100% 0;}
+        .feat-card .feat-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(6,182,212,0.12));border-radius:10px;flex-shrink:0;transition:transform 300ms cubic-bezier(0.16,1,0.3,1);margin-bottom:0;}
+        .feat-card:hover .feat-icon{transform:scale(1.1) rotate(-4deg);}
+        .feat-text{font-size:clamp(14px,1.5vw,16px);color:rgba(245,245,247,0.92);font-weight:500;line-height:1.5;}
+        @media(prefers-reduced-motion:reduce){.hero-headline-sweep,.hero-bullet,.hero-prepared,.hero-closing-shimmer,.hero-fade-up,.hero-morph,.feat-card{animation:none !important;opacity:1 !important;transform:none !important;-webkit-text-fill-color:var(--text-primary,#f5f5f7) !important;transition:none !important;}}
 
         /* MOBILE */
         @media(max-width:768px){
@@ -527,32 +548,46 @@ export default function LandingPage() {
               AI-powered · Now live at vegaply.com
             </div>
 
-            <h1 className="hero-headline" style={{
+            <h1 style={{
               fontFamily:'var(--font-display)',
-              fontSize:'clamp(48px, 7vw, 88px)',
+              fontSize:'clamp(40px, 6vw, 72px)',
               lineHeight:1.05,
               fontWeight:700,
               letterSpacing:'-0.02em',
-              margin:'0 0 24px 0',
+              margin:'0 0 16px 0',
               textAlign:'center'
             }}>
-              <span className="hero-fade-up" style={{display:'block', animationDelay:'100ms'}}>
-                Stop applying.
+              <span className="hero-fade-up" style={{display:'block', animationDelay:'200ms', color:'rgba(245,245,247,0.92)'}}>
+                Skip the
               </span>
-              <span className="hero-headline-sweep" style={{display:'block'}}>
-                Start getting interviews.
+              <span className="hero-fade-up hero-morph" style={{display:'block', animationDelay:'400ms'}}>
+                {morphWord}
               </span>
             </h1>
 
+            <h2 className="hero-fade-up" style={{
+              fontFamily:'var(--font-display)',
+              fontSize:'clamp(36px, 5vw, 56px)',
+              lineHeight:1.1,
+              fontWeight:700,
+              letterSpacing:'-0.02em',
+              margin:'32px 0 20px 0',
+              textAlign:'center',
+              animationDelay:'700ms'
+            }}>
+              <span style={{display:'block'}}>Stop applying.</span>
+              <span className="hero-headline-sweep" style={{display:'block'}}>Start getting interviews.</span>
+            </h2>
+
             <p className="hero-fade-up" style={{
               fontFamily:'var(--font-display)',
-              fontSize:'clamp(20px, 2.4vw, 28px)',
+              fontSize:'clamp(18px, 2.2vw, 24px)',
               lineHeight:1.4,
-              color:'rgba(245, 245, 247, 0.85)',
-              margin:'0 0 40px 0',
+              color:'rgba(245, 245, 247, 0.8)',
+              margin:'0 0 36px 0',
               textAlign:'center',
               fontWeight:500,
-              animationDelay:'600ms'
+              animationDelay:'1000ms'
             }}>
               Vegaply does your entire job search — better, faster, smarter.
             </p>
@@ -560,43 +595,34 @@ export default function LandingPage() {
             <p className="hero-fade-up" style={{
               fontSize:'clamp(15px, 1.6vw, 17px)',
               lineHeight:1.6,
-              color:'rgba(245, 245, 247, 0.65)',
-              margin:'0 0 16px 0',
-              textAlign:'left',
-              maxWidth:'620px',
-              marginLeft:'auto',
-              marginRight:'auto',
-              animationDelay:'900ms'
+              color:'rgba(245, 245, 247, 0.7)',
+              margin:'0 auto 20px auto',
+              maxWidth:'640px',
+              textAlign:'center',
+              animationDelay:'1300ms'
             }}>
               While others spam-apply hoping something sticks, Vegaply is:
             </p>
 
-            <ul style={{
-              listStyle:'none',
-              padding:0,
-              margin:'0 auto 32px auto',
-              maxWidth:'620px',
-              textAlign:'left'
+            <div style={{
+              display:'grid',
+              gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))',
+              gap:'12px',
+              maxWidth:'720px',
+              margin:'0 auto 40px auto'
             }}>
               {[
-                'Scanning thousands of new jobs daily',
-                'Matching them to your resume with AI',
-                'Writing custom cover letters instantly',
-                'Applying only to high-quality roles'
-              ].map((text, i) => (
-                <li key={i} className="hero-bullet" style={{
-                  fontSize:'clamp(15px, 1.6vw, 17px)',
-                  lineHeight:1.7,
-                  color:'rgba(245, 245, 247, 0.85)',
-                  paddingLeft:'24px',
-                  position:'relative',
-                  animationDelay:`${1100 + i * 120}ms`
-                }}>
-                  <span style={{position:'absolute',left:0,color:'#f59e0b',fontWeight:700}}>—</span>
-                  {text}
-                </li>
+                {icon:'⚡', text:'Scanning thousands of new jobs daily'},
+                {icon:'🎯', text:'Matching them to your resume with AI'},
+                {icon:'✍️', text:'Writing custom cover letters instantly'},
+                {icon:'✓',  text:'Applying only to high-quality roles'}
+              ].map((item, i) => (
+                <div key={i} className="feat-card" style={{animationDelay:`${1500 + i * 130}ms`}}>
+                  <div className="feat-icon">{item.icon}</div>
+                  <div className="feat-text">{item.text}</div>
+                </div>
               ))}
-            </ul>
+            </div>
 
             <p className="hero-fade-up" style={{
               fontFamily:'var(--font-display)',
@@ -606,7 +632,7 @@ export default function LandingPage() {
               color:'#f5f5f7',
               margin:'32px 0 32px 0',
               textAlign:'center',
-              animationDelay:'1700ms'
+              animationDelay:'2200ms'
             }}>
               <span className="hero-prepared">You just show up prepared.</span>
             </p>
@@ -616,9 +642,9 @@ export default function LandingPage() {
               lineHeight:1.6,
               color:'rgba(245, 245, 247, 0.65)',
               margin:'0 auto 32px auto',
-              maxWidth:'620px',
+              maxWidth:'640px',
               textAlign:'center',
-              animationDelay:'1900ms'
+              animationDelay:'2400ms'
             }}>
               After applying: track every application, know when to follow up, practice real interview questions, and find H1B sponsors without the guesswork.
             </p>
@@ -630,7 +656,7 @@ export default function LandingPage() {
               fontStyle:'italic',
               margin:'0 0 48px 0',
               textAlign:'center',
-              animationDelay:'2100ms'
+              animationDelay:'2600ms'
             }}>
               <span className="hero-closing-shimmer">
                 This isn&apos;t job searching. This is job hunting — automated.
