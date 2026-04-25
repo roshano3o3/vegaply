@@ -2154,7 +2154,7 @@ export default function Home() {
     if(!resumeText){alert("Upload your resume first!");return;}
     const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
     setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:true}:j));
-    try{const res=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const tailor:TailorResult=await res.json();const updated={...job,tailor,tailorLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setTailorJob(updated);}catch{setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:false}:j));}
+    try{const res=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const tailor:TailorResult=await res.json();const updated={...job,tailor,tailorLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setTailorJob(updated);}catch(err){console.error('[Tailor] failed:',err);setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:false}:j));setAutoApplyToast("⚠️ Tailor analysis failed — please try again");setTimeout(()=>setAutoApplyToast(""),4000);}
   };
 
   const handleQuickMatch = async (job: any) => {

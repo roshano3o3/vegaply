@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
 export async function POST(req: Request) {
   try {
     const { resumeText, job } = await req.json();
@@ -45,7 +47,8 @@ Pick 3 resume bullets to rewrite. Focus on matching the job's language.`;
     const data = await response.json();
     const text = data?.content?.[0]?.text ?? "{}";
     const clean = text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(clean);
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    const result = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ tailoredBullets: [], keywordsAdded: [], atsTip: "Could not tailor resume." });
