@@ -14,7 +14,7 @@ export default function LandingPage() {
   const [c3, setC3] = useState('0×')
 
   const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
-  const morphWords = ['scams.', 'spam.', 'ghosts.', 'silence.']
+  const morphWords = ['scams.', 'vendors.', 'middlemen.', 'scrapers.']
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&'
 
   // Mouse tracking
