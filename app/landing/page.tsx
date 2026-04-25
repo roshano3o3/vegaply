@@ -7,14 +7,14 @@ export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [mouse, setMouse] = useState({ x: -500, y: -500 })
   const [typedText, setTypedText] = useState('')
-  const [morphWord, setMorphWord] = useState('needed it.')
+  const [morphWord, setMorphWord] = useState('vendors.')
   const [countersStarted, setCountersStarted] = useState(false)
   const [c1, setC1] = useState('0')
   const [c2, setC2] = useState('0')
   const [c3, setC3] = useState('0×')
 
   const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
-  const morphWords = ['needed it.', 'lived it.', 'get it.', 'understand.']
+  const morphWords = ['vendors.', 'scams.', 'spam.', 'rejections.']
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&'
 
   // Mouse tracking
@@ -532,7 +532,7 @@ export default function LandingPage() {
           </motion.div>
 
           <h1 className="hero-h1">
-            {['The', 'job', 'search', 'tool'].map((word, i) => (
+            {['Skip', 'the'].map((word, i) => (
               <motion.span key={i} style={{display:'inline-block', marginRight:'0.25em'}}
                 initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
                 transition={{delay:i*0.15+0.3, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
@@ -545,16 +545,16 @@ export default function LandingPage() {
               {morphWord}
             </motion.span>
             <br />
-            <motion.span style={{fontStyle:'italic',color:'rgba(255,255,255,0.82)'}}
+            <motion.span style={{fontWeight:700,color:'rgba(255,255,255,0.92)'}}
               initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
               transition={{delay:0.75, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
-              I built because I
+              Land the H1B sponsor instead.
             </motion.span>
           </h1>
 
           <motion.p className="hero-sub" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
             transition={{delay:0.9, duration:0.6}}>
-            Vegaply finds fresh H1B-friendly jobs every 3 minutes, matches them to your resume with AI, and writes your cover letter. Built by an F-1 student. For F-1 students.
+            Vegaply scans 750+ jobs daily, filters for verified H1B sponsors, matches your resume with AI, and applies before the crowd.
           </motion.p>
 
           <motion.div className="hero-btns" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
@@ -571,7 +571,7 @@ export default function LandingPage() {
             </div>
             <div className="av-txt">
               <span className="stars">★★★★★</span>
-              Built by an F-1 student · No credit card · 70+ verified H1B sponsors
+              70+ verified H1B sponsors · No credit card · Cancel anytime
             </div>
           </motion.div>
 
