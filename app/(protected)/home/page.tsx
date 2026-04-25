@@ -108,9 +108,19 @@ function getCompetitionLabel(h: number) {
   return { label: "📅 Open", color: "rgba(255,255,255,0.3)", bg: "rgba(255,255,255,0.05)" };
 }
 
-function getEarlyBirdStatus(job: Job) {
-  const ts = job.job_posted_at_timestamp;
-  const hoursOld = ts ? (Date.now() / 1000 - ts) / 3600 : 999;
+function getEarlyBirdStatus(job: any) {
+  let postedTs: number | null = null;
+
+  if (job.job_posted_at_timestamp && typeof job.job_posted_at_timestamp === 'number') {
+    postedTs = job.job_posted_at_timestamp;
+  } else if (job.job_posted_at_datetime_utc) {
+    const parsed = Date.parse(job.job_posted_at_datetime_utc);
+    if (!isNaN(parsed)) postedTs = Math.floor(parsed / 1000);
+  }
+
+  if (!postedTs) return { hoursOld: 999, isEarly: false, isHotJob: false, label: 'Recently' };
+
+  const hoursOld = (Date.now() / 1000 - postedTs) / 3600;
   const isEarly = hoursOld < 24;
   const isHotJob = hoursOld < 6;
   let label: string;
@@ -2236,6 +2246,7 @@ export default function Home() {
   const smartEbCount=jobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
   const h1bCount=jobs.filter(isH1B).length;
   const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
+
   const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(j=>getEarlyBirdStatus(j).isEarly):allSaved;
   const isEbMode=activeTab==="earlybird";
   const hotCount=jobs.filter(j=>getEarlyBirdStatus(j).isHotJob).length;
