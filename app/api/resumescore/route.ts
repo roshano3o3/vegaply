@@ -11,6 +11,8 @@ export async function POST(req: Request) {
 
 Be strict and harsh. Most resumes have real weaknesses. A weak resume should score 30-50. A resume missing an education section scores maximum 60. A resume with no quantified achievements (numbers, percentages, dollar amounts) scores maximum 65. Only exceptional, complete, polished resumes with strong metrics, clean formatting, and comprehensive content should score above 85. Average resumes score 50-70. Be realistic — do not be generous.
 
+Keep all feedback strings under 100 characters. Limit strengths and improvements to 3 items each, redFlags to 2 items. Return ONLY valid JSON, no preamble.
+
 RESUME:
 ${resumeText.slice(0, 4000)}
 
@@ -30,11 +32,7 @@ Return exactly this JSON (all fields required, all scores must be integers 0-100
   },
   "strengths": [],
   "improvements": [],
-  "redFlags": [],
-  "atsKeywordsFound": [],
-  "atsKeywordsMissing": [],
-  "estimatedExperience": "",
-  "recommendedRoles": []
+  "redFlags": []
 }`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -46,7 +44,7 @@ Return exactly this JSON (all fields required, all scores must be integers 0-100
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1200,
+        max_tokens: 1000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -80,13 +78,13 @@ Return exactly this JSON (all fields required, all scores must be integers 0-100
         actionVerbs:    safeSub("actionVerbs"),
         keywords:       safeSub("keywords"),
       },
-      strengths:           Array.isArray(result.strengths)           ? result.strengths           : [],
-      improvements:        Array.isArray(result.improvements)        ? result.improvements        : [],
-      redFlags:            Array.isArray(result.redFlags)            ? result.redFlags            : [],
-      atsKeywordsFound:    Array.isArray(result.atsKeywordsFound)    ? result.atsKeywordsFound    : [],
-      atsKeywordsMissing:  Array.isArray(result.atsKeywordsMissing)  ? result.atsKeywordsMissing  : [],
-      estimatedExperience: typeof result.estimatedExperience === "string" ? result.estimatedExperience : "",
-      recommendedRoles:    Array.isArray(result.recommendedRoles)    ? result.recommendedRoles    : [],
+      strengths:           Array.isArray(result.strengths)    ? result.strengths    : [],
+      improvements:        Array.isArray(result.improvements) ? result.improvements : [],
+      redFlags:            Array.isArray(result.redFlags)     ? result.redFlags     : [],
+      atsKeywordsFound:    [],
+      atsKeywordsMissing:  [],
+      estimatedExperience: "",
+      recommendedRoles:    [],
     });
   } catch (err) {
     console.error("Resume score API error:", err);

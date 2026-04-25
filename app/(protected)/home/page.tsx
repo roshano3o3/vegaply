@@ -982,7 +982,7 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
   };
 
   useEffect(() => {
-    const key = resumeText.slice(0, 80);
+    const key = resumeText.length + ':' + resumeText.slice(0, 200);
     if (key === cachedTextRef.current || !resumeText) return;
     cachedTextRef.current = key;
     setAiResult(null);
@@ -2053,7 +2053,7 @@ export default function Home() {
           const savedFileName=lsGet("applysmart_resume_name");
           if(savedResume&&savedFileName){setResumeText(savedResume);setResumeFileName(savedFileName);}
           else{
-            const{data:rd}=await supabase.from("resumes").select("resume_text,file_name").eq("user_id",currentUserId).order("created_at",{ascending:false}).limit(1).single();
+            const{data:rd}=await supabase.from("resumes").select("resume_text,file_name").eq("user_id",currentUserId).order("created_at",{ascending:false}).limit(1).maybeSingle();
             if(rd?.resume_text){setResumeText(rd.resume_text);setResumeFileName(rd.file_name??"Resume");lsSet("applysmart_resume",rd.resume_text);lsSet("applysmart_resume_name",rd.file_name??"Resume");}
           }
         }
