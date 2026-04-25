@@ -7,14 +7,14 @@ export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [mouse, setMouse] = useState({ x: -500, y: -500 })
   const [typedText, setTypedText] = useState('')
-  const [morphWord, setMorphWord] = useState('vendors.')
+  const [morphWord, setMorphWord] = useState('scams.')
   const [countersStarted, setCountersStarted] = useState(false)
   const [c1, setC1] = useState('0')
   const [c2, setC2] = useState('0')
   const [c3, setC3] = useState('0×')
 
   const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
-  const morphWords = ['vendors.', 'scams.', 'spam.', 'rejections.']
+  const morphWords = ['scams.', 'spam.', 'ghosts.', 'silence.']
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&'
 
   // Mouse tracking
@@ -548,13 +548,13 @@ export default function LandingPage() {
             <motion.span style={{fontWeight:700,color:'rgba(255,255,255,0.92)'}}
               initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
               transition={{delay:0.75, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
-              Land the H1B sponsor instead.
+              Apply smarter.
             </motion.span>
           </h1>
 
           <motion.p className="hero-sub" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
             transition={{delay:0.9, duration:0.6}}>
-            Vegaply scans 750+ jobs daily, filters for verified H1B sponsors, matches your resume with AI, and applies before the crowd.
+            750+ jobs daily, AI-matched to your resume, with cover letters auto-written. Plus a verified H1B sponsor filter — because international students need it.
           </motion.p>
 
           <motion.div className="hero-btns" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
