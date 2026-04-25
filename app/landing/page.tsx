@@ -153,7 +153,7 @@ export default function LandingPage() {
   useEffect(() => {
     const io = new IntersectionObserver(entries => {
       entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target) } })
-    }, { threshold: 0.1 })
+    }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' })
     document.querySelectorAll('.reveal').forEach(r => io.observe(r))
     return () => io.disconnect()
   }, [])
@@ -465,8 +465,9 @@ export default function LandingPage() {
         .glow-line{height:1px;max-width:1200px;margin:0 auto;background:linear-gradient(90deg,transparent,var(--gold-glow),transparent);}
 
         /* REVEAL */
-        .reveal{opacity:0;transform:translateY(32px);transition:opacity .85s ease,transform .85s cubic-bezier(.34,1.3,.64,1);}
+        .reveal{opacity:0;transform:translateY(24px);transition:opacity 600ms cubic-bezier(0.16,1,0.3,1),transform 600ms cubic-bezier(0.16,1,0.3,1);will-change:opacity,transform;}
         .reveal.in{opacity:1;transform:none;}
+        @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
 
         /* BLINK */
         @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
@@ -739,7 +740,7 @@ export default function LandingPage() {
               {icon:'🌐',cls:'i5',name:'H1B Sponsor Filter',desc:'One toggle shows only verified H1B sponsoring companies. Built for international students.',tag:'500+ sponsors'},
               {icon:'🗂️',cls:'i6',name:'Kanban Tracker',desc:'Drag jobs across a 5-stage board. Never lose track of any application again.',tag:'5-stage board'},
             ].map((f,i) => (
-              <div key={i} className="feat">
+              <div key={i} className="feat reveal" style={{transitionDelay:`${i*80}ms`}}>
                 <div className="feat-glow"/>
                 <div className={`feat-icon ${f.cls}`}>{f.icon}</div>
                 <div className="feat-name">{f.name}</div>
