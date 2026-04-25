@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
 export async function POST(req: Request) {
   try {
     const { resumeText, job } = await req.json();
@@ -14,8 +16,8 @@ COMPANY: ${job.employer_name}
 JOB DESCRIPTION: ${job.job_description?.slice(0, 2000)}
 REQUIRED QUALIFICATIONS: ${job.job_highlights?.Qualifications?.join(", ") ?? ""}
 
-Return exactly this JSON (all fields required, matchScore and atsScore must be integers):
-{"matchScore":75,"atsScore":68,"matchLabel":"Strong","matchSummary":"Two sentence summary of fit.","matchedSkills":["skill1","skill2","skill3"],"missingSkills":["skill1","skill2"],"atsKeywordsFound":["keyword1","keyword2"],"atsKeywordsMissing":["keyword1","keyword2"],"topTip":"One specific actionable tip to improve ATS score.","coverLetter":"Short 3 sentence personalized cover letter."}`;
+Return exactly this JSON (all fields required, matchScore must be an integer 0-100):
+{"matchScore":75,"matchLabel":"Strong","matchSummary":"Two sentence summary of fit.","matchedSkills":["skill1","skill2","skill3"],"missingSkills":["skill1","skill2"],"coverLetter":"Short 3 sentence personalized cover letter."}`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -44,16 +46,16 @@ Return exactly this JSON (all fields required, matchScore and atsScore must be i
     };
 
     return NextResponse.json({
-      matchScore: toInt(result.matchScore),
-      atsScore: toInt(result.atsScore),
-      matchLabel: result.matchLabel ?? "Low",
-      matchSummary: result.matchSummary ?? "Unable to analyze.",
-      matchedSkills: Array.isArray(result.matchedSkills) ? result.matchedSkills : [],
-      missingSkills: Array.isArray(result.missingSkills) ? result.missingSkills : [],
-      atsKeywordsFound: Array.isArray(result.atsKeywordsFound) ? result.atsKeywordsFound : [],
-      atsKeywordsMissing: Array.isArray(result.atsKeywordsMissing) ? result.atsKeywordsMissing : [],
-      topTip: result.topTip ?? "",
-      coverLetter: result.coverLetter ?? "",
+      matchScore:       toInt(result.matchScore),
+      matchLabel:       result.matchLabel ?? "Low",
+      matchSummary:     result.matchSummary ?? "Unable to analyze.",
+      matchedSkills:    Array.isArray(result.matchedSkills) ? result.matchedSkills : [],
+      missingSkills:    Array.isArray(result.missingSkills) ? result.missingSkills : [],
+      coverLetter:      result.coverLetter ?? "",
+      atsScore:         0,
+      atsKeywordsFound: [],
+      atsKeywordsMissing: [],
+      topTip:           "",
     });
   } catch (err) {
     console.error("Match API error:", err);
