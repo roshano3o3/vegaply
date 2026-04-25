@@ -1963,6 +1963,7 @@ export default function Home() {
   const [autoApplyResults,setAutoApplyResults]=useState<Record<string,'applied'|'low_match'>>({});
   const [autoApplyScores,setAutoApplyScores]=useState<Record<string,number>>({});
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
+  const [autoApplyModal,setAutoApplyModal]=useState<{job:JobWithMatch;tailoredBullets:{original:string;tailored:string;reason:string}[];keywordsAdded:string[];score:number;atsTip:string}|null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
   const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'>('all');
@@ -2216,32 +2217,57 @@ export default function Home() {
     }
     if(autoApplyResults[job.job_id]==="applied")return;
     setAutoApplying(job.job_id);
-    let score=0;
-    try{const res=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const data:MatchResult=await res.json();score=data.matchScore??0;}
-    catch(err){
-      console.error('[AutoApply] match API failed:',err);
+    try{
+      setAutoApplyToast("Analyzing job...");
+      // Pass 1 — tailor
+      setAutoApplyToast("Tailoring resume...");
+      const tailorRes=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+      let tailorData=await tailorRes.json();
+      // Pass 1 — match
+      setAutoApplyToast("Checking ATS score...");
+      const matchRes=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+      const matchData:MatchResult=await matchRes.json();
+      let score=matchData.matchScore??0;
+      let missingSkills:string[]=matchData.missingSkills??[];
+      // Pass 2 — re-tailor if score < 60
+      if(score<60&&missingSkills.length>0){
+        setAutoApplyToast("Re-tailoring for better match...");
+        const instruction=`Previous ATS score was ${Math.round(score)}%. Focus on these missing keywords: ${missingSkills.slice(0,8).join(", ")}. Rewrite bullets to include these terms.`;
+        const reTailorRes=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job,instruction})});
+        tailorData=await reTailorRes.json();
+        const reMatchRes=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+        const reMatchData:MatchResult=await reMatchRes.json();
+        score=reMatchData.matchScore??score;
+        missingSkills=reMatchData.missingSkills??missingSkills;
+      }
+      const finalScore=Math.round(score);
+      setAutoApplyScores(prev=>({...prev,[job.job_id]:finalScore}));
+      setAutoApplyToast(null);
+      setAutoApplyModal({job,tailoredBullets:tailorData.tailoredBullets??[],keywordsAdded:tailorData.keywordsAdded??[],score:finalScore,atsTip:tailorData.atsTip??""});
+    }catch(err){
+      console.error("[AutoApply] failed:",err);
       setAutoApplyResults(prev=>({...prev,[job.job_id]:"low_match"}));
       setAutoApplyToast("⚠️ Could not analyze match — please review the job before applying");
       setTimeout(()=>setAutoApplyToast(null),5000);
-      setAutoApplying(null);
-      return;
-    }
-    setAutoApplyScores(prev=>({...prev,[job.job_id]:Math.round(score)}));
-    if(score>=70){
-      setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
-      if(job.job_apply_link)window.open(job.job_apply_link,"_blank");
-      setAutoApplyToast(`✅ Applied to ${job.job_title} at ${job.employer_name}! (Match: ${score}%)`);
-      setTimeout(()=>setAutoApplyToast(null),4000);
-      setAutoApplyResults(prev=>({...prev,[job.job_id]:"applied"}));
-      const newCount=autoApplyCount+1;
-      setAutoApplyCount(newCount);
-      localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
-    }else{
-      setAutoApplyToast(`⚠️ Low match (${score}%) — manual apply recommended`);
-      setTimeout(()=>setAutoApplyToast(null),6000);
-      setAutoApplyResults(prev=>({...prev,[job.job_id]:"low_match"}));
     }
     setAutoApplying(null);
+  };
+
+  const handleConfirmApply=async()=>{
+    if(!autoApplyModal)return;
+    const{job,score}=autoApplyModal;
+    const today=new Date().toISOString().slice(0,10);
+    const applyLink=job.job_apply_link||(job as any).url;
+    if(applyLink)window.open(applyLink,"_blank");
+    setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
+    const newCount=autoApplyCount+1;
+    setAutoApplyCount(newCount);
+    localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
+    setAutoApplyResults(prev=>({...prev,[job.job_id]:"applied"}));
+    fetch("/api/autoapply-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:userEmail,jobTitle:job.job_title,company:job.employer_name,location:[job.job_city,job.job_state,job.job_country].filter(Boolean).join(", "),appliedDate:new Date().toISOString(),score,userName:userEmail.split("@")[0]})}).catch(err=>console.error("[AutoApply] email failed:",err));
+    setAutoApplyToast(`✅ Applied to ${job.employer_name} — confirmation email sent`);
+    setTimeout(()=>setAutoApplyToast(null),5000);
+    setAutoApplyModal(null);
   };
 
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
@@ -3843,11 +3869,57 @@ export default function Home() {
         </div>
       )}
 
+      {/* AUTO APPLY CONFIRM MODAL */}
+      {autoApplyModal&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setAutoApplyModal(null)}>
+          <div style={{background:"#0e0e16",border:"1px solid rgba(245,158,11,0.25)",borderRadius:16,padding:24,maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 8px 48px rgba(0,0,0,0.6)"}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#f59e0b",marginBottom:2}}>Auto Apply Preview</div>
+                <div style={{fontSize:15,fontWeight:700,color:"#fff"}}>{autoApplyModal.job.job_title}</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>{autoApplyModal.job.employer_name}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:22,fontWeight:800,color:autoApplyModal.score>=70?"#34d399":autoApplyModal.score>=50?"#fbbf24":"#f87171"}}>{autoApplyModal.score}%</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",fontWeight:600}}>ATS MATCH</div>
+              </div>
+            </div>
+            {autoApplyModal.score<50&&(
+              <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"#f87171",marginBottom:14,fontWeight:500}}>
+                ⚠️ Low ATS match after 2 passes. Consider applying manually with a more targeted resume.
+              </div>
+            )}
+            {autoApplyModal.tailoredBullets.length>0&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:8}}>Tailored Bullets</div>
+                {autoApplyModal.tailoredBullets.map((b,i)=>(
+                  <div key={i} style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.12)",borderRadius:8,padding:"8px 10px",marginBottom:6}}>
+                    <div style={{fontSize:11,color:"#fbbf24",fontWeight:600,marginBottom:2}}>✦ {b.tailored}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{b.reason}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {autoApplyModal.keywordsAdded.length>0&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Keywords Added</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:5}}>{autoApplyModal.keywordsAdded.map((k,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:6,background:"rgba(52,211,153,0.08)",color:"#34d399",border:"1px solid rgba(52,211,153,0.18)"}}>{k}</span>)}</div>
+              </div>
+            )}
+            {autoApplyModal.atsTip&&<div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.14)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"rgba(245,158,11,0.75)",marginBottom:16}}>💡 {autoApplyModal.atsTip}</div>}
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+              <button onClick={()=>setAutoApplyModal(null)} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* AUTO APPLY TOAST */}
       {autoApplyToast&&(
         <div className="refresh-toast" style={{
-          borderColor:autoApplyToast.startsWith("✅")?"rgba(52,211,153,0.35)":autoApplyToast.startsWith("⚠️")?"rgba(245,158,11,0.35)":"rgba(239,68,68,0.35)",
-          color:autoApplyToast.startsWith("✅")?"#34d399":autoApplyToast.startsWith("⚠️")?"#fbbf24":"#f87171",
+          borderColor:autoApplyToast.startsWith("✅")?"rgba(52,211,153,0.35)":autoApplyToast.startsWith("⚠️")?"rgba(245,158,11,0.35)":"rgba(255,255,255,0.1)",
+          color:autoApplyToast.startsWith("✅")?"#34d399":autoApplyToast.startsWith("⚠️")?"#fbbf24":"rgba(255,255,255,0.6)",
           bottom:72,maxWidth:400
         }}>
           {autoApplyToast}
