@@ -145,15 +145,18 @@ function getH1BStatus(job: Job): { sponsors: boolean; likely: boolean; label: st
 
 function normalizeJobDescription(text?: string): string {
   if (!text || typeof text !== 'string') return '';
-  const result = text
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/?(h[1-6]|p|div|span|strong|em|ul|ol|li|a|b|i)[^>]*>/gi, ' ')
+
+  return text
+    .replace(/<\/(p|div|h[1-6]|li|ul|ol)>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(span|strong|em|a|b|i)[^>]*>/gi, '')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
     .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ').trim();
-  return result;
+    .split('\n').map(line => line.replace(/\s+/g, ' ').trim()).join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 function ScoreRing({ score }: { score: number }) {
@@ -1428,14 +1431,37 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
   const successBorder=successChance>=70?"rgba(16,185,129,0.22)":successChance>=50?"rgba(245,158,11,0.22)":"rgba(239,68,68,0.22)";
   const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.3)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.06)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.03)"};
 
-  const getJobDescription = (): { text: string; available: boolean } => {
-    const desc = job.job_description || (job as any).description || (job as any).summary || (job as any).snippet || '';
-    if (!desc || typeof desc !== 'string') {
+  const getJobDescription = () => {
+    const cleaned = normalizeJobDescription(job?.job_description || (job as any)?.description || '');
+
+    if (!cleaned) {
       return { text: 'Description unavailable. Open source posting for details.', available: false };
     }
-    const cleaned = normalizeJobDescription(desc);
-    if (!cleaned) return { text: 'Description unavailable. Open source posting for details.', available: false };
-    return { text: cleaned.slice(0, 400), available: true };
+
+    const MAX_LEN = 500;
+
+    if (cleaned.length <= MAX_LEN) {
+      return { text: cleaned, available: true };
+    }
+
+    const slice = cleaned.slice(0, MAX_LEN);
+    const sentenceEnd = Math.max(
+      slice.lastIndexOf('. '),
+      slice.lastIndexOf('! '),
+      slice.lastIndexOf('? '),
+      slice.lastIndexOf('.\n'),
+      slice.lastIndexOf('!\n'),
+      slice.lastIndexOf('?\n')
+    );
+
+    if (sentenceEnd > 200) {
+      return { text: cleaned.slice(0, sentenceEnd + 1) + ' …', available: true };
+    }
+
+    const lastSpace = slice.lastIndexOf(' ');
+    const cutPoint = lastSpace > 200 ? lastSpace : MAX_LEN;
+
+    return { text: cleaned.slice(0, cutPoint).trim() + '…', available: true };
   };
 
   const ebStatus = getEarlyBirdStatus(job);
@@ -1513,7 +1539,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       </div>
 
       {/* DESCRIPTION */}
-      <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.55)',lineHeight:1.65,margin:0,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as const}}>
+      <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.55)',lineHeight:1.65,margin:0,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as const,whiteSpace:'pre-line'}}>
         {getJobDescription().text}
       </p>
 
@@ -2729,7 +2755,7 @@ export default function Home() {
         .badge-early{background:var(--gold-subtle);color:var(--gold);border:1px solid rgba(245,158,11,0.25)}
         .badge-h1b{background:var(--cyan-subtle);color:var(--cyan);border:1px solid rgba(6,182,212,0.25)}
         .badge-applicants{background:var(--bg-hover);color:var(--text-tertiary);border:1px solid var(--border-subtle)}
-        .job-description{font-family:var(--font-primary);font-size:var(--text-sm);color:var(--text-secondary);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+        .job-description{font-family:var(--font-primary);font-size:var(--text-sm);color:var(--text-secondary);line-height:1.55;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
         .action-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
         .action-btn{height:36px;background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-secondary);font-family:var(--font-primary);font-size:var(--text-xs);font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--space-1);transition:all var(--dur-base) var(--ease-out)}
         .action-btn:hover{color:var(--text-primary);border-color:var(--border-normal);background:var(--bg-hover)}
