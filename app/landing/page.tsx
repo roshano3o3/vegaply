@@ -7,14 +7,14 @@ export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [mouse, setMouse] = useState({ x: -500, y: -500 })
   const [typedText, setTypedText] = useState('')
-  const [morphWord, setMorphWord] = useState('late.')
+  const [morphWord, setMorphWord] = useState('needed it.')
   const [countersStarted, setCountersStarted] = useState(false)
   const [c1, setC1] = useState('0')
   const [c2, setC2] = useState('0')
   const [c3, setC3] = useState('0×')
 
   const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
-  const morphWords = ['late.', 'slow.', 'blindly.', 'losing.']
+  const morphWords = ['needed it.', 'lived it.', 'get it.', 'understand.']
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&'
 
   // Mouse tracking
@@ -532,7 +532,7 @@ export default function LandingPage() {
           </motion.div>
 
           <h1 className="hero-h1">
-            {['Stop', 'applying'].map((word, i) => (
+            {['The', 'job', 'search', 'tool'].map((word, i) => (
               <motion.span key={i} style={{display:'inline-block', marginRight:'0.25em'}}
                 initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
                 transition={{delay:i*0.15+0.3, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
@@ -548,18 +548,18 @@ export default function LandingPage() {
             <motion.span style={{fontStyle:'italic',color:'rgba(255,255,255,0.82)'}}
               initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
               transition={{delay:0.75, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
-              Start winning.
+              I built because I
             </motion.span>
           </h1>
 
           <motion.p className="hero-sub" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
             transition={{delay:0.9, duration:0.6}}>
-            Vegaply finds fresh jobs, matches your resume, writes your cover letter, and preps your interview — all in seconds.
+            Vegaply finds fresh H1B-friendly jobs every 3 minutes, matches them to your resume with AI, and writes your cover letter. Built by an F-1 student. For F-1 students.
           </motion.p>
 
           <motion.div className="hero-btns" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
             transition={{delay:1.05, duration:0.6}}>
-            <Link href="/signup" className="btn-primary">Find jobs now — it&apos;s free</Link>
+            <Link href="/signup" className="btn-primary">Start free — find H1B jobs now</Link>
             <Link href="/login" className="btn-ghost">Sign in →</Link>
           </motion.div>
 
@@ -571,7 +571,7 @@ export default function LandingPage() {
             </div>
             <div className="av-txt">
               <span className="stars">★★★★★</span>
-              Early access open · Be among the first to apply
+              Built by an F-1 student · No credit card · 70+ verified H1B sponsors
             </div>
           </motion.div>
 
@@ -793,7 +793,7 @@ export default function LandingPage() {
             <div className="pricing-card pricing-free">
               <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:16,fontWeight:500}}>FREE FOREVER</div>
               <div className="pricing-price">$0</div>
-              <div className="pricing-period">No credit card · No expiry</div>
+              <div className="pricing-period">For students testing the water</div>
               <ul className="pricing-features">
                 <li><span>✓</span> 750+ fresh jobs daily</li>
                 <li><span>✓</span> Early Bird mode (24h jobs)</li>
@@ -817,7 +817,7 @@ export default function LandingPage() {
             <div className="pricing-card pricing-pro">
               <div className="pricing-badge">⚡ PRO</div>
               <div className="pricing-price" style={{background:"linear-gradient(135deg,var(--gold),var(--cyan))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>$9.99</div>
-              <div className="pricing-period">per month · Cancel anytime</div>
+              <div className="pricing-period">For students serious about landing H1B</div>
               <ul className="pricing-features">
                 <li><span>✓</span> Everything in Free</li>
                 <li><span>✓</span> <strong style={{color:"rgba(255,255,255,0.8)"}}>Smart Apply</strong> — AI preps full application</li>
@@ -844,12 +844,12 @@ export default function LandingPage() {
         <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
         <div className="cta-wrap reveal">
           <div className="cta-radial"/>
-          <h2 className="cta-h">Your dream job is being posted <em>right now.</em></h2>
-          <p className="cta-sub">Join early access — free forever. No credit card needed.</p>
+          <h2 className="cta-h">Your H1B sponsor is hiring <em>right now.</em></h2>
+          <p className="cta-sub">Stop scrolling LinkedIn at 2 AM. Let AI do the heavy lifting while you sleep.</p>
           <Link href="/signup" className="btn-primary" style={{fontSize:16,padding:'17px 48px'}}>
             Start free — no credit card
           </Link>
-          <p className="cta-trust">✓ Free forever · ✓ No credit card · ✓ 750+ fresh jobs daily</p>
+          <p className="cta-trust">✓ Built by an F-1 student · ✓ 70+ H1B sponsors verified · ✓ Free to start</p>
         </div>
         </motion.div>
 
