@@ -7,15 +7,12 @@ export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [mouse, setMouse] = useState({ x: -500, y: -500 })
   const [typedText, setTypedText] = useState('')
-  const [morphWord, setMorphWord] = useState('scams.')
   const [countersStarted, setCountersStarted] = useState(false)
   const [c1, setC1] = useState('0')
   const [c2, setC2] = useState('0')
   const [c3, setC3] = useState('0×')
 
   const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
-  const morphWords = ['scams.', 'vendors.', 'middlemen.', 'scrapers.']
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&'
 
   // Mouse tracking
   useEffect(() => {
@@ -41,23 +38,6 @@ export default function LandingPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // Morphing word
-  useEffect(() => {
-    let idx = 0
-    const morph = async () => {
-      idx = (idx + 1) % morphWords.length
-      const next = morphWords[idx]
-      for (let i = 0; i < 9; i++) {
-        setMorphWord(next.split('').map((c, k) =>
-          k < Math.floor(i / 9 * next.length) ? c : chars[Math.floor(Math.random() * chars.length)]
-        ).join(''))
-        await new Promise(r => setTimeout(r, 38))
-      }
-      setMorphWord(next)
-    }
-    const interval = setInterval(morph, 2800)
-    return () => clearInterval(interval)
-  }, [])
 
   // Star canvas
   useEffect(() => {
@@ -472,6 +452,20 @@ export default function LandingPage() {
         /* BLINK */
         @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:none;}}
+        @keyframes gradient-sweep{0%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+        @keyframes shimmer{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+        @keyframes glow-pulse{0%,100%{text-shadow:0 0 30px rgba(245,158,11,0);transform:scale(1);}50%{text-shadow:0 0 40px rgba(245,158,11,0.3);transform:scale(1.01);}}
+        @keyframes bullet-in{to{opacity:1;transform:translateX(0);}}
+        @keyframes hero-fade-up-anim{to{opacity:1;transform:translateY(0);}}
+        .hero-content{display:flex;flex-direction:column;align-items:center;width:100%;max-width:780px;}
+        .hero-pill{display:inline-flex;align-items:center;gap:8px;background:var(--gold-subtle);border:1px solid rgba(245,158,11,.22);border-radius:var(--radius-full);padding:6px 18px;font-size:12px;font-weight:500;color:var(--gold);letter-spacing:.4px;margin-bottom:36px;}
+        .hero-pill-dot{width:7px;height:7px;background:var(--gold);border-radius:50%;animation:pdotAnim 1.8s ease infinite;flex-shrink:0;}
+        .hero-headline-sweep{background:linear-gradient(90deg,#f5f5f7 0%,#f5f5f7 30%,#f59e0b 50%,#f5f5f7 70%,#f5f5f7 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gradient-sweep 3s cubic-bezier(0.16,1,0.3,1) 0.4s both;}
+        .hero-bullet{opacity:0;transform:translateX(-12px);animation:bullet-in 600ms cubic-bezier(0.16,1,0.3,1) forwards;}
+        .hero-prepared{display:inline-block;animation:glow-pulse 4s ease-in-out 2s infinite;}
+        .hero-closing-shimmer{background:linear-gradient(90deg,rgba(245,245,247,0.6) 0%,#f59e0b 50%,rgba(245,245,247,0.6) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 6s ease-in-out infinite;}
+        .hero-fade-up{opacity:0;transform:translateY(16px);animation:hero-fade-up-anim 700ms cubic-bezier(0.16,1,0.3,1) forwards;}
+        @media(prefers-reduced-motion:reduce){.hero-headline-sweep,.hero-bullet,.hero-prepared,.hero-closing-shimmer,.hero-fade-up{animation:none !important;opacity:1 !important;transform:none !important;-webkit-text-fill-color:var(--text-primary,#f5f5f7) !important;}}
 
         /* MOBILE */
         @media(max-width:768px){
@@ -527,95 +521,140 @@ export default function LandingPage() {
         <div className="hero">
           <div className="orb-1" /><div className="orb-2" />
           
-          <motion.div className="pill" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.6}}>
-            <span className="pdot" />
-            AI-powered · Now live at vegaply.com
-          </motion.div>
-
-          <h1 className="hero-h1">
-            {['Skip', 'the'].map((word, i) => (
-              <motion.span key={i} style={{display:'inline-block', marginRight:'0.25em'}}
-                initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
-                transition={{delay:i*0.15+0.3, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
-                {word}
-              </motion.span>
-            ))}
-            <br />
-            <motion.span className="grad-word" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
-              transition={{delay:0.6, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
-              {morphWord}
-            </motion.span>
-            <br />
-            <motion.span style={{fontWeight:700,color:'rgba(255,255,255,0.92)'}}
-              initial={{opacity:0,y:40}} animate={{opacity:1,y:0}}
-              transition={{delay:0.75, duration:0.6, ease:[0.34,1.56,0.64,1]}}>
-              Apply smarter.
-            </motion.span>
-          </h1>
-
-          <motion.p className="hero-sub" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
-            transition={{delay:0.9, duration:0.6}}>
-            750+ jobs daily, AI-matched to your resume, with cover letters auto-written. Plus a verified H1B sponsor filter — because international students need it.
-          </motion.p>
-
-          <motion.div className="hero-btns" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
-            transition={{delay:1.05, duration:0.6}}>
-            <Link href="/signup" className="btn-primary">Start free — find H1B jobs now</Link>
-            <Link href="/login" className="btn-ghost">Sign in →</Link>
-          </motion.div>
-
-          <motion.div className="av-row" initial={{opacity:0}} animate={{opacity:1}}
-            transition={{delay:1.2, duration:0.6}}>
-            <div className="av-stack">
-              <div className="av a1">AK</div><div className="av a3">SR</div>
-              <div className="av a3">MJ</div><div className="av a4">PL</div>
+          <div className="hero-content">
+            <div className="hero-pill">
+              <span className="hero-pill-dot"></span>
+              AI-powered · Now live at vegaply.com
             </div>
-            <div className="av-txt">
-              <span className="stars">★★★★★</span>
-              70+ verified H1B sponsors · No credit card · Cancel anytime
-            </div>
-          </motion.div>
 
-          {/* Card Stack */}
-          <motion.div className="card-stack" initial={{opacity:0,y:30}} animate={{opacity:1,y:0}}
-            transition={{delay:1.35, duration:0.8, ease:[0.34,1.56,0.64,1]}}>
-            <div className="stack-card">
-              <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginBottom:8}}>✉️ AI COVER LETTER</div>
-              <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',lineHeight:1.6,minHeight:60}}>
-                {typedText}
-                <span style={{display:'inline-block',width:2,height:14,background:'var(--gold)',marginLeft:2,animation:'blink 1s ease infinite'}}/>
+            <h1 className="hero-headline" style={{
+              fontFamily:'var(--font-display)',
+              fontSize:'clamp(48px, 7vw, 88px)',
+              lineHeight:1.05,
+              fontWeight:700,
+              letterSpacing:'-0.02em',
+              margin:'0 0 24px 0',
+              textAlign:'center'
+            }}>
+              <span className="hero-fade-up" style={{display:'block', animationDelay:'100ms'}}>
+                Stop applying.
+              </span>
+              <span className="hero-headline-sweep" style={{display:'block'}}>
+                Start getting interviews.
+              </span>
+            </h1>
+
+            <p className="hero-fade-up" style={{
+              fontFamily:'var(--font-display)',
+              fontSize:'clamp(20px, 2.4vw, 28px)',
+              lineHeight:1.4,
+              color:'rgba(245, 245, 247, 0.85)',
+              margin:'0 0 40px 0',
+              textAlign:'center',
+              fontWeight:500,
+              animationDelay:'600ms'
+            }}>
+              Vegaply does your entire job search — better, faster, smarter.
+            </p>
+
+            <p className="hero-fade-up" style={{
+              fontSize:'clamp(15px, 1.6vw, 17px)',
+              lineHeight:1.6,
+              color:'rgba(245, 245, 247, 0.65)',
+              margin:'0 0 16px 0',
+              textAlign:'left',
+              maxWidth:'620px',
+              marginLeft:'auto',
+              marginRight:'auto',
+              animationDelay:'900ms'
+            }}>
+              While others spam-apply hoping something sticks, Vegaply is:
+            </p>
+
+            <ul style={{
+              listStyle:'none',
+              padding:0,
+              margin:'0 auto 32px auto',
+              maxWidth:'620px',
+              textAlign:'left'
+            }}>
+              {[
+                'Scanning thousands of new jobs daily',
+                'Matching them to your resume with AI',
+                'Writing custom cover letters instantly',
+                'Applying only to high-quality roles'
+              ].map((text, i) => (
+                <li key={i} className="hero-bullet" style={{
+                  fontSize:'clamp(15px, 1.6vw, 17px)',
+                  lineHeight:1.7,
+                  color:'rgba(245, 245, 247, 0.85)',
+                  paddingLeft:'24px',
+                  position:'relative',
+                  animationDelay:`${1100 + i * 120}ms`
+                }}>
+                  <span style={{position:'absolute',left:0,color:'#f59e0b',fontWeight:700}}>—</span>
+                  {text}
+                </li>
+              ))}
+            </ul>
+
+            <p className="hero-fade-up" style={{
+              fontFamily:'var(--font-display)',
+              fontSize:'clamp(28px, 3.6vw, 40px)',
+              lineHeight:1.2,
+              fontWeight:700,
+              color:'#f5f5f7',
+              margin:'32px 0 32px 0',
+              textAlign:'center',
+              animationDelay:'1700ms'
+            }}>
+              <span className="hero-prepared">You just show up prepared.</span>
+            </p>
+
+            <p className="hero-fade-up" style={{
+              fontSize:'clamp(15px, 1.6vw, 17px)',
+              lineHeight:1.6,
+              color:'rgba(245, 245, 247, 0.65)',
+              margin:'0 auto 32px auto',
+              maxWidth:'620px',
+              textAlign:'center',
+              animationDelay:'1900ms'
+            }}>
+              After applying: track every application, know when to follow up, practice real interview questions, and find H1B sponsors without the guesswork.
+            </p>
+
+            <p className="hero-fade-up" style={{
+              fontFamily:'var(--font-display)',
+              fontSize:'clamp(18px, 2vw, 22px)',
+              lineHeight:1.4,
+              fontStyle:'italic',
+              margin:'0 0 48px 0',
+              textAlign:'center',
+              animationDelay:'2100ms'
+            }}>
+              <span className="hero-closing-shimmer">
+                This isn&apos;t job searching. This is job hunting — automated.
+              </span>
+            </p>
+
+            <motion.div className="hero-btns" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}
+              transition={{delay:1.05, duration:0.6}}>
+              <Link href="/signup" className="btn-primary">Start free — find H1B jobs now</Link>
+              <Link href="/login" className="btn-ghost">Sign in →</Link>
+            </motion.div>
+
+            <motion.div className="av-row" initial={{opacity:0}} animate={{opacity:1}}
+              transition={{delay:1.2, duration:0.6}}>
+              <div className="av-stack">
+                <div className="av a1">AK</div><div className="av a3">SR</div>
+                <div className="av a3">MJ</div><div className="av a4">PL</div>
               </div>
-            </div>
-            <div className="stack-card">
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
-                <div style={{width:42,height:42,borderRadius:'50%',background:'linear-gradient(135deg,var(--gold),var(--cyan))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:800,color:'#1a1a1f'}}>94%</div>
-                <div>
-                  <div style={{fontSize:13,fontWeight:600}}>Strong Match</div>
-                  <div style={{fontSize:11,color:'rgba(255,255,255,0.35)'}}>Senior ML Engineer · Google</div>
-                </div>
+              <div className="av-txt">
+                <span className="stars">★★★★★</span>
+                70+ verified H1B sponsors · No credit card · Cancel anytime
               </div>
-              <div style={{height:4,background:'rgba(255,255,255,0.06)',borderRadius:99}}>
-                <div style={{width:'94%',height:'100%',background:'linear-gradient(90deg,var(--gold),var(--cyan))',borderRadius:99}}/>
-              </div>
-            </div>
-            <div className="stack-card">
-              <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginBottom:8}}>📋 KANBAN TRACKER</div>
-              <div style={{display:'flex',gap:6}}>
-                {['Saved','Applied','Interview','Offer'].map((s,i) => (
-                  <div key={i} style={{flex:1,background:'rgba(255,255,255,0.04)',borderRadius:8,padding:'6px 4px',textAlign:'center',fontSize:9,color:'rgba(255,255,255,0.4)'}}>
-                    {s}<div style={{fontSize:13,fontWeight:700,color:i===2?'var(--cyan)':'var(--text-secondary)',marginTop:2}}>{[3,8,2,1][i]}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div className="counters" id="counters-section"
-            initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1.5, duration:0.6}}>
-            <div className="ctr"><span className="ctr-n">{c1}</span><div className="ctr-l">Fresh jobs every day</div></div>
-            <div className="ctr"><span className="ctr-n">{c2}</span><div className="ctr-l">Before anyone else sees it</div></div>
-            <div className="ctr"><span className="ctr-n">{c3}</span><div className="ctr-l">To get your AI match score</div></div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
 
         {/* TICKER */}
