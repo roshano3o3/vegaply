@@ -177,8 +177,14 @@ async function fetchRemotive(jobRole: string, location: string): Promise<Normali
   }
 }
 
-// ── SOURCE C: Greenhouse (5 companies) ──────────────────────────────────────
-const GREENHOUSE_COMPANIES = ["stripe", "figma", "notion", "linear", "vercel"];
+// ── SOURCE C: Greenhouse (25 companies) ─────────────────────────────────────
+const GREENHOUSE_COMPANIES = [
+  "stripe", "figma", "notion", "linear", "vercel",
+  "airbnb", "discord", "reddit", "asana", "gusto",
+  "brex", "plaid", "rippling", "benchling", "scaleai",
+  "retool", "lattice", "deel", "ramp", "anthropic",
+  "openai", "databricks", "datadog", "robinhood", "snowflake"
+];
 
 async function fetchGreenhouse(jobRole: string, location: string): Promise<NormalisedJob[]> {
   try {
