@@ -506,15 +506,29 @@ export async function POST(req: Request) {
     console.log("TheMuse jobs:", themuseJobs.length);
     console.log("Arbeitnow jobs:", arbeitnowJobs.length);
 
-    // Combine
-    const allJobs: NormalisedJob[] = [
-      ...adzunaJobs,
-      ...remotiveJobs,
-      ...greenhouseJobs,
-      ...themuseJobs,
-      ...arbeitnowJobs,
-    ];
-    console.log("Total combined:", allJobs.length);
+    // Group: direct-ATS sources vs Adzuna aggregator
+    const directJobs: NormalisedJob[] = [...greenhouseJobs, ...remotiveJobs, ...themuseJobs, ...arbeitnowJobs];
+    console.log("Total combined:", adzunaJobs.length + directJobs.length);
+
+    const sortByRecency = (a: NormalisedJob, b: NormalisedJob) => {
+      const ta = a.job_posted_at_datetime_utc
+        ? new Date(a.job_posted_at_datetime_utc).getTime()
+        : (a.job_posted_at_timestamp ?? 0) * 1000;
+      const tb = b.job_posted_at_datetime_utc
+        ? new Date(b.job_posted_at_datetime_utc).getTime()
+        : (b.job_posted_at_timestamp ?? 0) * 1000;
+      return tb - ta;
+    };
+    directJobs.sort(sortByRecency);
+    adzunaJobs.sort(sortByRecency);
+
+    // Interleave: 2 direct-ATS, then 3 Adzuna, repeat — guarantees ~40% direct in top results
+    const allJobs: NormalisedJob[] = [];
+    let ai = 0, di = 0;
+    while (ai < adzunaJobs.length || di < directJobs.length) {
+      for (let k = 0; k < 2 && di < directJobs.length; k++) allJobs.push(directJobs[di++]);
+      for (let k = 0; k < 3 && ai < adzunaJobs.length; k++) allJobs.push(adzunaJobs[ai++]);
+    }
 
     // Deduplicate by job_id
     const seen = new Set<string>();
@@ -523,17 +537,6 @@ export async function POST(req: Request) {
       if (seen.has(id)) return false;
       seen.add(id);
       return true;
-    });
-
-    // Sort newest first
-    uniqueJobs.sort((a, b) => {
-      const ta = a.job_posted_at_datetime_utc
-        ? new Date(a.job_posted_at_datetime_utc).getTime()
-        : (a.job_posted_at_timestamp ?? 0) * 1000;
-      const tb = b.job_posted_at_datetime_utc
-        ? new Date(b.job_posted_at_datetime_utc).getTime()
-        : (b.job_posted_at_timestamp ?? 0) * 1000;
-      return tb - ta;
     });
 
     let finalJobs: NormalisedJob[];
