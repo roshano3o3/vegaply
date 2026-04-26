@@ -108,7 +108,7 @@ async function fetchRemotive(jobRole: string, location: string): Promise<Normali
       job_country: "Worldwide",
       job_posted_at_timestamp: Math.floor(new Date(job.publication_date).getTime() / 1000),
       job_posted_at_datetime_utc: job.publication_date ?? null,
-      job_apply_link: job.url,
+      job_apply_link: job.apply_url || job.url,
       job_description: job.description ?? "",
       job_employment_type: job.job_type ?? "",
       job_is_remote: true,
