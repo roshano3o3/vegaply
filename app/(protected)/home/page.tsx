@@ -101,6 +101,28 @@ function isEarlyBird(d?: string) { return getHoursAgo(d) < 24; }
 function empBadge(t?: string) { return ({ FULLTIME: "Full-time", PARTTIME: "Part-time", CONTRACTOR: "Contract", INTERN: "Internship" } as any)[t ?? ""] ?? t ?? null; }
 function scoreColor(s: number) { return s >= 80 ? "#10b981" : s >= 65 ? "#06b6d4" : s >= 50 ? "#f59e0b" : "#ef4444"; }
 
+function getApplySource(job: any): { label: string; direct: boolean } {
+  const url = (job.job_apply_link || '').toLowerCase();
+  const source = (job.source || '').toLowerCase();
+  if (url.includes('greenhouse.io')) return { label: 'Greenhouse', direct: true };
+  if (url.includes('lever.co')) return { label: 'Lever', direct: true };
+  if (url.includes('ashbyhq.com')) return { label: 'Ashby', direct: true };
+  if (url.includes('workday')) return { label: 'Workday', direct: true };
+  if (url.includes('jobvite.com')) return { label: 'Jobvite', direct: true };
+  if (url.includes('smartrecruiters.com')) return { label: 'SmartRecruiters', direct: true };
+  if (url.includes('adzuna.com')) return { label: 'via Adzuna', direct: false };
+  if (url.includes('dice.com')) return { label: 'via Dice', direct: false };
+  if (url.includes('adp.com')) return { label: 'via ADP', direct: false };
+  if (url.includes('dejobs.org')) return { label: 'via Dejobs', direct: false };
+  if (url.includes('indeed.com')) return { label: 'via Indeed', direct: false };
+  if (source === 'greenhouse') return { label: 'Greenhouse', direct: true };
+  if (source === 'remotive') return { label: 'Remotive', direct: false };
+  if (source === 'themuse') return { label: 'TheMuse', direct: false };
+  if (source === 'arbeitnow') return { label: 'Arbeitnow', direct: false };
+  if (source === 'adzuna') return { label: 'via Adzuna', direct: false };
+  return { label: 'Company Site', direct: true };
+}
+
 function getCompetitionLabel(h: number) {
   if (h < 2)  return { label: "🔥 Very Low Competition", color: "#ef4444", bg: "rgba(239,68,68,0.08)" };
   if (h < 6)  return { label: "⚡ Still Early", color: "#f59e0b", bg: "rgba(245,158,11,0.08)" };
@@ -1536,6 +1558,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         {ebStatus.isEarly&&!ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:'rgba(245,158,11,0.10)',color:'#f59e0b',border:'1px solid rgba(245,158,11,0.20)',fontFamily:'var(--font-primary)'}}>⚡ Still Early</span>}
         {h1bStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:h1bStatus.sponsors?'rgba(142,178,155,0.10)':'rgba(214,178,104,0.08)',color:h1bStatus.sponsors?'#8eb29b':'#d6b268',border:h1bStatus.sponsors?'1px solid rgba(142,178,155,0.20)':'1px solid rgba(214,178,104,0.18)',fontFamily:'var(--font-primary)'}}>{h1bStatus.sponsors?'✓ H1B':'~ H1B Likely'}</span>}
         {(()=>{const hrs=ebStatus.hoursOld;const count=hrs<=1?'~2':hrs<=3?'~8':hrs<=6?'~18':hrs<=12?'~40':hrs<=24?'~80':hrs<=48?'~150':'200+';const isLow=hrs<=12;return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:isLow?'rgba(142,178,155,0.08)':'rgba(239,68,68,0.06)',color:isLow?'#8eb29b':'rgba(239,68,68,0.6)',border:isLow?'1px solid rgba(142,178,155,0.16)':'1px solid rgba(239,68,68,0.12)',fontFamily:'var(--font-primary)'}}>👤 {count} applicants</span>})()}
+        {(()=>{const src=getApplySource(job);return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:src.direct?'rgba(6,182,212,0.12)':'rgba(245,158,11,0.08)',color:src.direct?'#06b6d4':'#a1a1aa',border:src.direct?'1px solid rgba(6,182,212,0.3)':'1px solid rgba(245,158,11,0.2)',fontFamily:'var(--font-primary)'}}>{src.direct?'🎯':'🔗'} {src.label}</span>})()}
       </div>
 
       {/* DESCRIPTION */}
