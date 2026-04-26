@@ -218,8 +218,12 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
     }
     console.log("[Greenhouse] jobs fetched:", normalised.length);
     const roleLower = (jobRole || '').toLowerCase().trim();
-    const filtered = roleLower
-      ? normalised.filter(j => j.job_title?.toLowerCase().includes(roleLower))
+    const roleWords = roleLower.split(/\s+/).filter(Boolean);
+    const filtered = roleWords.length
+      ? normalised.filter(j => {
+          const title = j.job_title?.toLowerCase() || '';
+          return roleWords.some(w => title.includes(w));
+        })
       : normalised;
     console.log("[Greenhouse] jobs after role filter:", filtered.length);
     // --- LOCATION FILTER ---
