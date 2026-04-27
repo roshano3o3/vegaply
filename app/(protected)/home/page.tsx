@@ -2363,31 +2363,46 @@ export default function Home() {
     const maxWidth = pageWidth - margin * 2;
     let y = 20;
 
-    doc.setFontSize(18);
+    // Name (large header)
+    doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
-    doc.text("Tailored Resume", margin, y);
-    y += 8;
+    doc.setTextColor(0);
+    doc.text(generatedResume.name || "Your Name", margin, y);
+    y += 7;
+
+    // Contact info line
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(100);
-    doc.text(`Tailored for: ${job.job_title} at ${job.employer_name}`, margin, y);
-    y += 6;
+    doc.setTextColor(80);
+    const contactParts = [
+      generatedResume.email,
+      generatedResume.phone,
+      generatedResume.location
+    ].filter(Boolean);
+    doc.text(contactParts.join(" | "), margin, y);
+    y += 8;
+
+    // Gold separator
     doc.setDrawColor(245, 158, 11);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(0);
-    doc.text("PROFESSIONAL SUMMARY", margin, y);
-    y += 6;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const summaryLines = doc.splitTextToSize(generatedResume.summary || "", maxWidth);
-    doc.text(summaryLines, margin, y);
-    y += summaryLines.length * 5 + 8;
+    // Summary
+    if (generatedResume.summary) {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0);
+      doc.text("PROFESSIONAL SUMMARY", margin, y);
+      y += 6;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      const summaryLines = doc.splitTextToSize(generatedResume.summary, maxWidth);
+      doc.text(summaryLines, margin, y);
+      y += summaryLines.length * 5 + 8;
+    }
 
+    // Experience
     if (generatedResume.experience?.length > 0) {
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
@@ -2397,6 +2412,13 @@ export default function Home() {
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
         doc.text(`${exp.title} — ${exp.company}`, margin, y);
+        if (exp.dates) {
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(10);
+          doc.setTextColor(100);
+          doc.text(exp.dates, pageWidth - margin, y, { align: "right" });
+          doc.setTextColor(0);
+        }
         y += 5;
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
@@ -2409,6 +2431,33 @@ export default function Home() {
       });
     }
 
+    // Education
+    if (generatedResume.education?.length > 0) {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("EDUCATION", margin, y);
+      y += 6;
+      generatedResume.education.forEach((edu: any) => {
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(`${edu.degree}`, margin, y);
+        if (edu.dates) {
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(10);
+          doc.setTextColor(100);
+          doc.text(edu.dates, pageWidth - margin, y, { align: "right" });
+          doc.setTextColor(0);
+        }
+        y += 5;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(edu.school || "", margin, y);
+        y += 6;
+      });
+      y += 4;
+    }
+
+    // Skills
     if (generatedResume.skills?.length > 0) {
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");

@@ -10,36 +10,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing resumeText or job" }, { status: 400 });
     }
 
-    const prompt = `You are an expert resume writer. Your job is to rewrite a candidate's resume to perfectly match a specific job description.
+    const prompt = `You are an expert resume writer. Your ONLY job is to rephrase the candidate's existing resume content to match a job description. You CANNOT invent any new facts, numbers, achievements, or experiences.
+
+CRITICAL RULES:
+1. NEVER invent metrics, percentages, dollar amounts, or specific numbers that aren't already in the candidate's resume
+2. NEVER add experience, skills, or accomplishments the candidate doesn't have
+3. ONLY rephrase existing bullets to use job-relevant keywords
+4. Preserve all factual content — names, company names, job titles, dates, real metrics
+5. Keep all personal info (name, email, phone, education) EXACTLY as it appears
+6. If the candidate's resume has weak content, leave it weak — don't fabricate
 
 JOB TITLE: ${job.job_title}
 COMPANY: ${job.employer_name}
 JOB DESCRIPTION: ${job.job_description?.slice(0, 2000) || "Not provided"}
 
-CANDIDATE'S CURRENT RESUME:
-${resumeText.slice(0, 3000)}
+CANDIDATE'S CURRENT RESUME (this is the ONLY source of truth):
+${resumeText.slice(0, 4000)}
 
-Rewrite the resume to:
-1. Match the job description keywords exactly
-2. Rewrite the professional summary for this specific role
-3. Reorder and rewrite bullet points to highlight most relevant experience first
-4. Add missing keywords from job description naturally
-5. Keep all facts true — never invent experience
-6. Target 90%+ ATS score for this specific job
-
-Return ONLY a JSON object with this exact structure, no preamble:
+Now extract and rephrase the candidate's resume to better match this job. Return ONLY a JSON object with this exact structure, no preamble:
 {
-  "summary": "2-3 sentence professional summary tailored to this role",
+  "name": "candidate's actual name from resume",
+  "email": "candidate's actual email from resume",
+  "phone": "candidate's actual phone from resume",
+  "location": "candidate's actual location from resume",
+  "summary": "2-3 sentence professional summary using ONLY facts from their existing resume, rephrased to highlight relevant aspects for this job",
   "experience": [
     {
-      "title": "job title",
-      "company": "company name",
-      "bullets": ["bullet 1", "bullet 2", "bullet 3"]
+      "title": "exact job title from their resume",
+      "company": "exact company name from their resume",
+      "dates": "exact dates from their resume",
+      "bullets": ["rephrased bullet using their actual achievements with job-relevant wording"]
     }
   ],
-  "skills": ["skill1", "skill2", "skill3"],
-  "keywords_added": ["keyword1", "keyword2"],
-  "ats_score_estimate": 92
+  "education": [
+    {
+      "degree": "exact degree from their resume",
+      "school": "exact school from their resume",
+      "dates": "exact dates"
+    }
+  ],
+  "skills": ["only skills that exist in their resume, prioritize ones matching the job"],
+  "keywords_added": ["job keywords successfully incorporated through rephrasing"],
+  "ats_score_estimate": 85
 }`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
