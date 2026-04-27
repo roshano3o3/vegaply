@@ -72,7 +72,7 @@ Return ONLY a JSON object with this exact structure, no preamble. Include ALL se
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1200,
+        max_tokens: 1800,
         temperature: 0,
         messages: [{ role: "user", content: prompt }],
       }),
