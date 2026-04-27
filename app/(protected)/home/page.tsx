@@ -2366,26 +2366,28 @@ export default function Home() {
     const maxWidth = pageWidth - margin * 2;
     let y = 20;
 
-    // Name (large header)
+    const checkPageBreak = (needed: number) => {
+      if (y + needed > 280) {
+        doc.addPage();
+        y = 20;
+      }
+    };
+
+    // Name
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0);
     doc.text(generatedResume.name || "Your Name", margin, y);
     y += 7;
 
-    // Contact info line
+    // Contact
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(80);
-    const contactParts = [
-      generatedResume.email,
-      generatedResume.phone,
-      generatedResume.location
-    ].filter(Boolean);
+    const contactParts = [generatedResume.email, generatedResume.phone, generatedResume.location].filter(Boolean);
     doc.text(contactParts.join(" | "), margin, y);
     y += 8;
 
-    // Gold separator
     doc.setDrawColor(245, 158, 11);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
@@ -2393,6 +2395,7 @@ export default function Home() {
 
     // Summary
     if (generatedResume.summary) {
+      checkPageBreak(20);
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0);
@@ -2407,11 +2410,13 @@ export default function Home() {
 
     // Experience
     if (generatedResume.experience?.length > 0) {
+      checkPageBreak(15);
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text("EXPERIENCE", margin, y);
       y += 6;
       generatedResume.experience.forEach((exp: any) => {
+        checkPageBreak(20);
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
         doc.text(`${exp.title} — ${exp.company}`, margin, y);
@@ -2427,6 +2432,7 @@ export default function Home() {
         doc.setFont("helvetica", "normal");
         exp.bullets?.forEach((bullet: string) => {
           const lines = doc.splitTextToSize(`• ${bullet}`, maxWidth - 4);
+          checkPageBreak(lines.length * 5);
           doc.text(lines, margin + 4, y);
           y += lines.length * 5;
         });
@@ -2434,13 +2440,47 @@ export default function Home() {
       });
     }
 
+    // Projects
+    if (generatedResume.projects?.length > 0) {
+      checkPageBreak(15);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("PROJECTS", margin, y);
+      y += 6;
+      generatedResume.projects.forEach((proj: any) => {
+        checkPageBreak(15);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(proj.name || "", margin, y);
+        y += 5;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        if (proj.description) {
+          const descLines = doc.splitTextToSize(proj.description, maxWidth);
+          doc.text(descLines, margin, y);
+          y += descLines.length * 5;
+        }
+        if (proj.tech?.length > 0) {
+          doc.setFont("helvetica", "italic");
+          doc.setTextColor(100);
+          doc.text(`Tech: ${proj.tech.join(", ")}`, margin, y);
+          doc.setTextColor(0);
+          doc.setFont("helvetica", "normal");
+          y += 5;
+        }
+        y += 3;
+      });
+    }
+
     // Education
     if (generatedResume.education?.length > 0) {
+      checkPageBreak(15);
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text("EDUCATION", margin, y);
       y += 6;
       generatedResume.education.forEach((edu: any) => {
+        checkPageBreak(15);
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
         doc.text(`${edu.degree}`, margin, y);
@@ -2457,11 +2497,29 @@ export default function Home() {
         doc.text(edu.school || "", margin, y);
         y += 6;
       });
+      y += 3;
+    }
+
+    // Certifications
+    if (generatedResume.certifications?.length > 0) {
+      checkPageBreak(15);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("CERTIFICATIONS", margin, y);
+      y += 6;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      generatedResume.certifications.forEach((cert: string) => {
+        checkPageBreak(6);
+        doc.text(`• ${cert}`, margin, y);
+        y += 5;
+      });
       y += 4;
     }
 
     // Skills
     if (generatedResume.skills?.length > 0) {
+      checkPageBreak(15);
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text("SKILLS", margin, y);

@@ -10,47 +10,57 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing resumeText or job" }, { status: 400 });
     }
 
-    const prompt = `You are an expert resume writer. Your ONLY job is to rephrase the candidate's existing resume content to match a job description. You CANNOT invent any new facts, numbers, achievements, or experiences.
+    const prompt = `You are an expert resume writer. Your job is to rephrase a candidate's existing resume content to better match a job description — WITHOUT removing or inventing anything.
 
-CRITICAL RULES:
-1. NEVER invent metrics, percentages, dollar amounts, or specific numbers that aren't already in the candidate's resume
-2. NEVER add experience, skills, or accomplishments the candidate doesn't have
-3. ONLY rephrase existing bullets to use job-relevant keywords
-4. Preserve all factual content — names, company names, job titles, dates, real metrics
-5. Keep all personal info (name, email, phone, education) EXACTLY as it appears
-6. If the candidate's resume has weak content, leave it weak — don't fabricate
+ABSOLUTE RULES:
+1. PRESERVE every job, project, certification, skill, and bullet point from their resume
+2. NEVER invent metrics, percentages, dollar amounts, or specific numbers
+3. NEVER add experience, skills, or accomplishments not already in their resume
+4. ONLY rephrase existing bullets using job-relevant keywords from the job description
+5. Keep ALL personal info exactly as it appears (name, email, phone, location)
+6. If their resume has 5 jobs, keep all 5. If it has 3 projects, keep all 3.
+7. Skills section: keep all their existing skills, prioritize ordering by job relevance
 
 JOB TITLE: ${job.job_title}
 COMPANY: ${job.employer_name}
-JOB DESCRIPTION: ${job.job_description?.slice(0, 2000) || "Not provided"}
+JOB DESCRIPTION: ${job.job_description?.slice(0, 2500) || "Not provided"}
 
-CANDIDATE'S CURRENT RESUME (this is the ONLY source of truth):
-${resumeText.slice(0, 4000)}
+CANDIDATE'S FULL RESUME (this is the ONLY source of truth — extract EVERYTHING):
+${resumeText.slice(0, 6000)}
 
-Now extract and rephrase the candidate's resume to better match this job. Return ONLY a JSON object with this exact structure, no preamble:
+Return ONLY a JSON object with this exact structure, no preamble. Include ALL sections the candidate has — if they have projects include projects array, if they have certifications include certifications array. Do NOT skip sections:
+
 {
-  "name": "candidate's actual name from resume",
-  "email": "candidate's actual email from resume",
-  "phone": "candidate's actual phone from resume",
-  "location": "candidate's actual location from resume",
-  "summary": "2-3 sentence professional summary using ONLY facts from their existing resume, rephrased to highlight relevant aspects for this job",
+  "name": "candidate's actual name",
+  "email": "candidate's actual email",
+  "phone": "candidate's actual phone",
+  "location": "candidate's actual location",
+  "summary": "2-3 sentence summary using ONLY their real background, rephrased for this job",
   "experience": [
     {
-      "title": "exact job title from their resume",
-      "company": "exact company name from their resume",
-      "dates": "exact dates from their resume",
-      "bullets": ["rephrased bullet using their actual achievements with job-relevant wording"]
+      "title": "exact title",
+      "company": "exact company",
+      "dates": "exact dates",
+      "bullets": ["all their actual bullets, rephrased with job keywords"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "exact project name",
+      "description": "their actual description, rephrased with job keywords",
+      "tech": ["technologies they listed"]
     }
   ],
   "education": [
     {
-      "degree": "exact degree from their resume",
-      "school": "exact school from their resume",
+      "degree": "exact degree",
+      "school": "exact school",
       "dates": "exact dates"
     }
   ],
-  "skills": ["only skills that exist in their resume, prioritize ones matching the job"],
-  "keywords_added": ["job keywords successfully incorporated through rephrasing"],
+  "certifications": ["all their exact certifications"],
+  "skills": ["all their skills, ordered by job relevance"],
+  "keywords_added": ["job keywords incorporated through rephrasing"],
   "ats_score_estimate": 85
 }`;
 
