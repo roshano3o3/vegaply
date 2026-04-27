@@ -13,6 +13,7 @@
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
     "framer-motion": "^12.38.0",
+    "jspdf": "^4.2.1",
     "next": "16.2.1",
     "nodemailer": "^8.0.5",
     "pdfjs-dist": "^4.0.379",

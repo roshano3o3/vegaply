@@ -2353,6 +2353,77 @@ export default function Home() {
     setGeneratingResume(false);
   };
 
+  const handleDownloadResume = async () => {
+    if (!generatedResume || !autoApplyModal) return;
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF();
+    const job = autoApplyModal.job;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Tailored Resume", margin, y);
+    y += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100);
+    doc.text(`Tailored for: ${job.job_title} at ${job.employer_name}`, margin, y);
+    y += 6;
+    doc.setDrawColor(245, 158, 11);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(0);
+    doc.text("PROFESSIONAL SUMMARY", margin, y);
+    y += 6;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const summaryLines = doc.splitTextToSize(generatedResume.summary || "", maxWidth);
+    doc.text(summaryLines, margin, y);
+    y += summaryLines.length * 5 + 8;
+
+    if (generatedResume.experience?.length > 0) {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("EXPERIENCE", margin, y);
+      y += 6;
+      generatedResume.experience.forEach((exp: any) => {
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(`${exp.title} — ${exp.company}`, margin, y);
+        y += 5;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        exp.bullets?.forEach((bullet: string) => {
+          const lines = doc.splitTextToSize(`• ${bullet}`, maxWidth - 4);
+          doc.text(lines, margin + 4, y);
+          y += lines.length * 5;
+        });
+        y += 4;
+      });
+    }
+
+    if (generatedResume.skills?.length > 0) {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("SKILLS", margin, y);
+      y += 6;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      const skillsText = generatedResume.skills.join(" • ");
+      const skillLines = doc.splitTextToSize(skillsText, maxWidth);
+      doc.text(skillLines, margin, y);
+    }
+
+    doc.save(`Resume_${job.employer_name}_${job.job_title}.pdf`.replace(/\s+/g, "_"));
+  };
+
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
   const toggleSave=(jobId:string)=>setSavedJobs(prev=>{const n=new Set(prev);n.has(jobId)?n.delete(jobId):n.add(jobId);return n;});
   const prefTitles=savedPrefs.jobTitles.split(',').map(t=>t.trim()).filter(Boolean);
@@ -3995,16 +4066,31 @@ export default function Home() {
                 <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
               ) : generatedResume ? (
                 <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
-                  <div style={{background:"rgba(6,182,212,0.08)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:8,padding:"10px 12px"}}>
-                    <div style={{fontSize:11,color:"#06b6d4",fontWeight:700,marginBottom:6}}>✦ Tailored Resume Generated — Est. {generatedResume.ats_score_estimate}% ATS Score</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",marginBottom:6}}>{generatedResume.summary}</div>
+                  <div style={{background:"rgba(6,182,212,0.06)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:10,padding:"12px 14px",maxHeight:280,overflowY:"auto"}}>
+                    <div style={{fontSize:12,color:"#06b6d4",fontWeight:700,marginBottom:8}}>✦ Tailored Resume — Est. {generatedResume.ats_score_estimate}% ATS Score</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginBottom:4}}>Professional Summary</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.75)",marginBottom:10,lineHeight:1.5}}>{generatedResume.summary}</div>
+                    {generatedResume.experience?.map((exp: any, i: number) => (
+                      <div key={i} style={{marginBottom:8}}>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600}}>{exp.title} — {exp.company}</div>
+                        {exp.bullets?.map((b: string, j: number) => (
+                          <div key={j} style={{fontSize:10,color:"rgba(255,255,255,0.65)",marginLeft:8,marginTop:2}}>• {b}</div>
+                        ))}
+                      </div>
+                    ))}
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:8,marginBottom:4}}>Keywords Added</div>
                     <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                      {generatedResume.keywords_added?.slice(0,6).map((k:string) => (
+                      {generatedResume.keywords_added?.map((k:string) => (
                         <span key={k} style={{fontSize:10,padding:"2px 6px",borderRadius:4,background:"rgba(6,182,212,0.12)",color:"#06b6d4"}}>{k}</span>
                       ))}
                     </div>
                   </div>
-                  <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer"}}>Apply with Tailored Resume →</button>
+                  <button onClick={handleDownloadResume} style={{padding:"9px 0",borderRadius:9,background:"rgba(6,182,212,0.12)",border:"1px solid rgba(6,182,212,0.3)",color:"#06b6d4",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    ⬇ Download Tailored Resume PDF
+                  </button>
+                  <button onClick={handleConfirmApply} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    Apply with Tailored Resume →
+                  </button>
                 </div>
               ) : (
                 <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
