@@ -3971,7 +3971,18 @@ export default function Home() {
             )}
             {autoApplyModal.atsTip&&<div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.14)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"rgba(245,158,11,0.75)",marginBottom:16}}>💡 {autoApplyModal.atsTip}</div>}
             <div style={{display:"flex",gap:10}}>
-              <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+              {autoApplyModal.score >= 70 ? (
+                <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+              ) : (
+                <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
+                  <button disabled style={{flex:1,padding:"10px 0",borderRadius:9,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"rgba(239,68,68,0.6)",fontSize:11,fontWeight:700,cursor:"not-allowed",letterSpacing:"0.2px"}}>
+                    ✗ Score too low to auto-apply ({autoApplyModal.score}% / need 70%+)
+                  </button>
+                  <button onClick={handleConfirmApply} style={{flex:1,padding:"8px 0",borderRadius:9,background:"transparent",border:"1px solid rgba(245,158,11,0.3)",color:"rgba(245,158,11,0.7)",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+                    Apply manually anyway →
+                  </button>
+                </div>
+              )}
               <button onClick={()=>setAutoApplyModal(null)} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
             </div>
           </div>
