@@ -2338,6 +2338,8 @@ export default function Home() {
 
   const handleGenerateResume = async () => {
     if (!autoApplyModal) return;
+    console.log("[Resume Debug] First 500 chars of resumeText:", resumeText.slice(0, 500));
+    console.log("[Resume Debug] Total length:", resumeText.length);
     setGeneratingResume(true);
     try {
       const res = await fetch("/api/generate-resume", {
@@ -2346,6 +2348,7 @@ export default function Home() {
         body: JSON.stringify({ resumeText, job: autoApplyModal.job })
       });
       const data = await res.json();
+      console.log("[Resume Debug] AI response:", data);
       setGeneratedResume(data);
     } catch (err) {
       console.error("Resume generation failed:", err);
