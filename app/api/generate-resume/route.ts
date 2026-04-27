@@ -26,7 +26,7 @@ COMPANY: ${job.employer_name}
 JOB DESCRIPTION: ${job.job_description?.slice(0, 2500) || "Not provided"}
 
 CANDIDATE'S FULL RESUME (this is the ONLY source of truth — extract EVERYTHING):
-${resumeText.slice(0, 6000)}
+${resumeText.slice(0, 5000)}
 
 Return ONLY a JSON object with this exact structure, no preamble. Include ALL sections the candidate has — if they have projects include projects array, if they have certifications include certifications array. Do NOT skip sections:
 
@@ -47,8 +47,7 @@ Return ONLY a JSON object with this exact structure, no preamble. Include ALL se
   "projects": [
     {
       "name": "exact project name",
-      "description": "their actual description, rephrased with job keywords",
-      "tech": ["technologies they listed"]
+      "description": "their actual description, rephrased with job keywords"
     }
   ],
   "education": [
@@ -81,7 +80,19 @@ Return ONLY a JSON object with this exact structure, no preamble. Include ALL se
     const data = await response.json();
     const raw = data?.content?.[0]?.text ?? "";
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    const result = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    if (!jsonMatch) {
+      console.error("[generate-resume] No JSON found in response. Raw:", raw);
+      console.error("[generate-resume] Full API response:", JSON.stringify(data));
+      return NextResponse.json({ error: "No JSON in AI response" }, { status: 500 });
+    }
+    let result: any;
+    try {
+      result = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error("[generate-resume] JSON parse failed:", parseErr);
+      console.error("[generate-resume] Raw JSON string:", jsonMatch[0]);
+      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    }
 
     return NextResponse.json(result);
   } catch (error) {
