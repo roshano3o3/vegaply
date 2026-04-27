@@ -20,6 +20,7 @@ ABSOLUTE RULES:
 5. Keep ALL personal info exactly as it appears (name, email, phone, location)
 6. If their resume has 5 jobs, keep all 5. If it has 3 projects, keep all 3.
 7. Skills section: keep all their existing skills, prioritize ordering by job relevance
+8. PRESERVE EXACT BULLET COUNT per job/project. If their original resume has 4 bullets for Job X, output 4 bullets for Job X. Never reduce below the original count. If the original has 3 projects with 1-line descriptions each, keep all 3 with full descriptions.
 
 JOB TITLE: ${job.job_title}
 COMPANY: ${job.employer_name}
@@ -41,13 +42,18 @@ Return ONLY a JSON object with this exact structure, no preamble. Include ALL se
       "title": "exact title",
       "company": "exact company",
       "dates": "exact dates",
-      "bullets": ["all their actual bullets, rephrased with job keywords"]
+      "bullets": [
+          "First bullet — rephrased with job keywords, action verb start",
+          "Second bullet — preserve original metrics, integrate job-relevant terminology",
+          "Third bullet — strengthen verbs without inventing achievements",
+          "Fourth bullet if original had 4 — match exact count"
+        ]
     }
   ],
   "projects": [
     {
       "name": "exact project name",
-      "description": "their actual description, rephrased with job keywords"
+      "description": "Full description rephrased with job keywords. Preserve all metrics, scope, and outcomes from original. Match the original length — if their description was 3 sentences, output 3 sentences."
     }
   ],
   "education": [
