@@ -1748,7 +1748,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* ROW 4: 4 action buttons */}
       <div className="action-btns" style={{display:"flex",gap:4}}>
-        <motion.button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={!!job.matchLoading} title="AI match score" whileHover={{backgroundColor:'rgba(245,158,11,0.12)',borderColor:'rgba(245,158,11,0.28)',color:'#f59e0b'}} whileTap={{scale:0.94}}>
+        <motion.button className={`action-card-btn match-btn${job.match?" done":""}`} onClick={e=>{e.stopPropagation();onMatchResume();}} disabled={!!job.matchLoading} title="AI match score" whileHover={{backgroundColor:'rgba(6,182,212,0.12)',borderColor:'rgba(6,182,212,0.35)',color:'#06b6d4'}} whileTap={{scale:0.94}} style={{border:'1px solid rgba(6,182,212,0.2)',color:'rgba(6,182,212,0.6)',background:'rgba(6,182,212,0.06)'}}>
           {job.matchLoading?<><div className="spin-sm"/>…</>:job.match?<><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{` ${job.match.matchScore}%`}</>:<><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Match</>}
         </motion.button>
         <motion.button className={`action-card-btn interview-btn${job.interview?" done":""}`} onClick={e=>{e.stopPropagation();onInterview();}} disabled={!!job.interviewLoading} title="Interview prep" whileHover={{backgroundColor:'rgba(245,158,11,0.12)',borderColor:'rgba(245,158,11,0.28)',color:'#f59e0b'}} whileTap={{scale:0.94}}>
@@ -4238,3 +4238,4 @@ export default function Home() {
     </div>
   );
 }
+
