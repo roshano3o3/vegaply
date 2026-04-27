@@ -1780,17 +1780,17 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           onClick={e=>{e.stopPropagation();onAutoApply();}}
           disabled={isAutoApplying}
           title="AI scores your resume, tailors it to this job, then applies"
-          whileHover={{opacity:0.9,boxShadow:'0 0 20px rgba(6,182,212,0.45)'}}
+          whileHover={{boxShadow:'0 6px 28px rgba(245,158,11,0.5)'}}
           whileTap={{scale:0.97}}
           style={{
             width:"100%", padding:"12px", borderRadius:12,
-            border:"1px solid rgba(6,182,212,0.5)", fontSize:13, fontWeight:700,
+            border:"1px solid rgba(245,158,11,0.5)", fontSize:13, fontWeight:700,
             cursor:"pointer", fontFamily:'var(--font-primary)',
-            background:"rgba(6,182,212,0.15)",
+            background:"linear-gradient(135deg,#f59e0b 0%,#d97706 100%)",
             display:"flex", alignItems:"center", justifyContent:"center",
             gap:6, transition:'all 0.15s ease',
-            color:"#06b6d4", letterSpacing:"-0.2px",
-            boxShadow:"0 4px 16px rgba(6,182,212,0.2),inset 0 1px 0 rgba(6,182,212,0.15)"
+            color:"#0a0a0c", letterSpacing:"-0.2px",
+            boxShadow:"0 4px 20px rgba(245,158,11,0.35),inset 0 1px 0 rgba(255,255,255,0.15)"
           }}
         >
           ⚡ Apply with AI Resume
@@ -1804,13 +1804,14 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            display:'block', textAlign:'center', fontSize:13,
-            color:'rgba(245,245,247,0.45)', textDecoration:'underline',
-            padding:'8px', marginTop:4, transition:'color 0.2s',
-            fontFamily:'var(--font-primary)'
+            display:'block', textAlign:'center', fontSize:12, fontWeight:500,
+            color:'rgba(245,245,247,0.6)', background:'rgba(245,245,247,0.04)',
+            border:'1px solid rgba(245,245,247,0.08)', borderRadius:10,
+            padding:'8px 14px', marginTop:8, textDecoration:'none',
+            transition:'all 0.2s', cursor:'pointer', fontFamily:'var(--font-primary)'
           }}
-          onMouseEnter={e=>(e.currentTarget.style.color='rgba(245,245,247,0.8)')}
-          onMouseLeave={e=>(e.currentTarget.style.color='rgba(245,245,247,0.45)')}
+          onMouseEnter={e=>{e.currentTarget.style.background='rgba(245,245,247,0.08)';e.currentTarget.style.color='rgba(245,245,247,0.85)';e.currentTarget.style.borderColor='rgba(245,245,247,0.15)';}}
+          onMouseLeave={e=>{e.currentTarget.style.background='rgba(245,245,247,0.04)';e.currentTarget.style.color='rgba(245,245,247,0.6)';e.currentTarget.style.borderColor='rgba(245,245,247,0.08)';}}
           onClick={e=>e.stopPropagation()}
         >
           Apply manually →
