@@ -2082,6 +2082,46 @@ export default function Home() {
           }
         }
         localStorage.setItem("applysmart_user_id",currentUserId);
+        // Load apply_tracking from Supabase and merge with localStorage
+        const { data: trackedFromDB } = await supabase
+          .from("apply_tracking")
+          .select("*")
+          .eq("user_id", currentUserId)
+          .order("applied_at", { ascending: false });
+
+        if (trackedFromDB && trackedFromDB.length > 0) {
+          setTrackedApps(prev => {
+            const existing = new Map(prev.map(a => [a.job?.job_id, a]));
+
+            const fromDB: TrackedApp[] = trackedFromDB.map(row => ({
+              id: row.job_id || row.id,
+              status: "Applied" as AppStatus,
+              appliedDate: row.applied_at,
+              notes: "",
+              job: {
+                job_id: row.job_id || row.id,
+                job_title: row.job_title || "Unknown Role",
+                employer_name: row.company_name || "Unknown Company",
+                job_apply_link: row.apply_url || "",
+                job_city: "",
+                job_state: "",
+                job_country: "",
+                job_description: "",
+                job_posted_at_timestamp: 0,
+                job_employment_type: "",
+                source: row.ats_type || "other"
+              } as Job
+            }));
+
+            fromDB.forEach(dbApp => {
+              if (!existing.has(dbApp.job?.job_id)) {
+                existing.set(dbApp.job?.job_id, dbApp);
+              }
+            });
+
+            return Array.from(existing.values());
+          });
+        }
       });
     });
   },[]);
