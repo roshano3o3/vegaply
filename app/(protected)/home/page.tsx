@@ -1762,20 +1762,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         </motion.button>
       </div>
 
-      {/* ROW 5: Apply */}
-      {job.job_apply_link&&(
-        <motion.a
-          href={job.job_apply_link} target="_blank" rel="noopener noreferrer"
-          whileHover={{scale:1.02,boxShadow:'0 8px 32px rgba(245,158,11,0.35)'}}
-          whileTap={{scale:0.98}}
-          style={{width:'100%',background:hot&&earlyBirdMode?'linear-gradient(135deg,#ef4444,#fbbf24)':'linear-gradient(135deg,var(--gold),var(--gold-hover))',border:'none',borderRadius:12,padding:'12px',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'var(--font-primary)',letterSpacing:'-0.2px',textDecoration:'none',textAlign:'center',display:'block',boxShadow:'0 4px 16px rgba(245,158,11,0.25),inset 0 1px 0 rgba(255,255,255,0.15)',transition:'all 0.2s ease'}}
-          onClick={e=>e.stopPropagation()}
-        >
-          {hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}
-        </motion.a>
-      )}
-
-      {/* ROW 6: Auto Apply — secondary CTA */}
+      {/* ROW 5: Apply with AI Resume — PRIMARY CTA */}
       {(autoApplyResult==="applied"||autoApplyResult==="low_match"||isAutoApplying)?(
         isAutoApplying?(
           <div style={{textAlign:'center',fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.25)",paddingTop:2}}>
@@ -1793,21 +1780,41 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           onClick={e=>{e.stopPropagation();onAutoApply();}}
           disabled={isAutoApplying}
           title="AI scores your resume, tailors it to this job, then applies"
-          whileHover={{opacity:0.85,boxShadow:'0 0 12px rgba(6,182,212,0.3)'}}
+          whileHover={{opacity:0.9,boxShadow:'0 0 20px rgba(6,182,212,0.45)'}}
           whileTap={{scale:0.97}}
           style={{
-            width:"100%", padding:"7px", borderRadius:8,
-            border:"1px solid rgba(6,182,212,0.35)", fontSize:11, fontWeight:600,
+            width:"100%", padding:"12px", borderRadius:12,
+            border:"1px solid rgba(6,182,212,0.5)", fontSize:13, fontWeight:700,
             cursor:"pointer", fontFamily:'var(--font-primary)',
-            background:"rgba(6,182,212,0.08)",
+            background:"rgba(6,182,212,0.15)",
             display:"flex", alignItems:"center", justifyContent:"center",
-            gap:5, transition:'all 0.15s ease',
-            color:"#06b6d4", letterSpacing:"0.2px"
+            gap:6, transition:'all 0.15s ease',
+            color:"#06b6d4", letterSpacing:"-0.2px",
+            boxShadow:"0 4px 16px rgba(6,182,212,0.2),inset 0 1px 0 rgba(6,182,212,0.15)"
           }}
         >
-          {/* ORIGINAL BACKUP: color:"rgba(255,255,255,0.22)", border:"1px solid rgba(255,255,255,0.06)", background:"transparent", fontSize:10, label:"⚡ Auto Apply" */}
           ⚡ Apply with AI Resume
         </motion.button>
+      )}
+
+      {/* ROW 6: Manual apply — secondary escape hatch */}
+      {job.job_apply_link&&(
+        <a
+          href={job.job_apply_link}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display:'block', textAlign:'center', fontSize:13,
+            color:'rgba(245,245,247,0.45)', textDecoration:'underline',
+            padding:'8px', marginTop:4, transition:'color 0.2s',
+            fontFamily:'var(--font-primary)'
+          }}
+          onMouseEnter={e=>(e.currentTarget.style.color='rgba(245,245,247,0.8)')}
+          onMouseLeave={e=>(e.currentTarget.style.color='rgba(245,245,247,0.45)')}
+          onClick={e=>e.stopPropagation()}
+        >
+          Apply manually →
+        </a>
       )}
     </motion.div>
   );
