@@ -1792,17 +1792,21 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         <motion.button
           onClick={e=>{e.stopPropagation();onAutoApply();}}
           disabled={isAutoApplying}
-          title="AI scores your resume, tracks as Applied, and opens the job link"
-          whileHover={{color:'rgba(255,255,255,0.5)',borderColor:'rgba(255,255,255,0.14)'}}
+          title="AI scores your resume, tailors it to this job, then applies"
+          whileHover={{opacity:0.85,boxShadow:'0 0 12px rgba(6,182,212,0.3)'}}
           whileTap={{scale:0.97}}
           style={{
-            width:"100%",padding:"5px",borderRadius:8,border:"1px solid rgba(255,255,255,0.06)",fontSize:10,fontWeight:500,
-            cursor:"pointer",fontFamily:'var(--font-primary)',background:"transparent",
-            display:"flex",alignItems:"center",justifyContent:"center",gap:5,transition:'all 0.15s ease',
-            color:"rgba(255,255,255,0.22)",letterSpacing:"0.1px"
+            width:"100%", padding:"7px", borderRadius:8,
+            border:"1px solid rgba(6,182,212,0.35)", fontSize:11, fontWeight:600,
+            cursor:"pointer", fontFamily:'var(--font-primary)',
+            background:"rgba(6,182,212,0.08)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            gap:5, transition:'all 0.15s ease',
+            color:"#06b6d4", letterSpacing:"0.2px"
           }}
         >
-          ⚡ Auto Apply
+          {/* ORIGINAL BACKUP: color:"rgba(255,255,255,0.22)", border:"1px solid rgba(255,255,255,0.06)", background:"transparent", fontSize:10, label:"⚡ Auto Apply" */}
+          ⚡ Apply with AI Resume
         </motion.button>
       )}
     </motion.div>
