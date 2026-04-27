@@ -73,25 +73,27 @@ Return ONLY a JSON object with this exact structure, no preamble. Include ALL se
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 1200,
+        temperature: 0,
         messages: [{ role: "user", content: prompt }],
       }),
     });
 
     const data = await response.json();
     const raw = data?.content?.[0]?.text ?? "";
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    console.log("[generate-resume] Raw AI output length:", raw.length);
+
+    const jsonMatch = raw.match(/\{[\s\S]*\}(?=\s*$)/) ?? raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("[generate-resume] No JSON found in response. Raw:", raw);
-      console.error("[generate-resume] Full API response:", JSON.stringify(data));
-      return NextResponse.json({ error: "No JSON in AI response" }, { status: 500 });
+      console.error("[generate-resume] No JSON found in response:", raw.slice(0, 500));
+      return NextResponse.json({ error: "AI did not return JSON", raw: raw.slice(0, 500) }, { status: 500 });
     }
+
     let result: any;
     try {
       result = JSON.parse(jsonMatch[0]);
     } catch (parseErr) {
-      console.error("[generate-resume] JSON parse failed:", parseErr);
-      console.error("[generate-resume] Raw JSON string:", jsonMatch[0]);
-      return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+      console.error("[generate-resume] JSON parse failed. Raw:", jsonMatch[0].slice(0, 1000));
+      return NextResponse.json({ error: "Failed to parse JSON", raw: jsonMatch[0].slice(0, 500) }, { status: 500 });
     }
 
     return NextResponse.json(result);
