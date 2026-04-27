@@ -1987,6 +1987,8 @@ export default function Home() {
   const [autoApplyScores,setAutoApplyScores]=useState<Record<string,number>>({});
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
   const [autoApplyModal,setAutoApplyModal]=useState<{job:JobWithMatch;tailoredBullets:{original:string;tailored:string;reason:string}[];keywordsAdded:string[];score:number;atsTip:string}|null>(null);
+  const [generatedResume, setGeneratedResume] = useState<any>(null);
+  const [generatingResume, setGeneratingResume] = useState(false);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
   const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'>('all');
@@ -2331,6 +2333,24 @@ export default function Home() {
     setAutoApplyToast(`✅ Applied to ${job.employer_name} — confirmation email sent`);
     setTimeout(()=>setAutoApplyToast(null),5000);
     setAutoApplyModal(null);
+    setGeneratedResume(null);
+  };
+
+  const handleGenerateResume = async () => {
+    if (!autoApplyModal) return;
+    setGeneratingResume(true);
+    try {
+      const res = await fetch("/api/generate-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, job: autoApplyModal.job })
+      });
+      const data = await res.json();
+      setGeneratedResume(data);
+    } catch (err) {
+      console.error("Resume generation failed:", err);
+    }
+    setGeneratingResume(false);
   };
 
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
@@ -3934,7 +3954,7 @@ export default function Home() {
 
       {/* AUTO APPLY CONFIRM MODAL */}
       {autoApplyModal&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setAutoApplyModal(null)}>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}}>
           <div style={{background:"#0e0e16",border:"1px solid rgba(245,158,11,0.25)",borderRadius:16,padding:24,maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 8px 48px rgba(0,0,0,0.6)"}} onClick={e=>e.stopPropagation()}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
               <div>
@@ -3973,17 +3993,33 @@ export default function Home() {
             <div style={{display:"flex",gap:10}}>
               {autoApplyModal.score >= 70 ? (
                 <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+              ) : generatedResume ? (
+                <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
+                  <div style={{background:"rgba(6,182,212,0.08)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:8,padding:"10px 12px"}}>
+                    <div style={{fontSize:11,color:"#06b6d4",fontWeight:700,marginBottom:6}}>✦ Tailored Resume Generated — Est. {generatedResume.ats_score_estimate}% ATS Score</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.7)",marginBottom:6}}>{generatedResume.summary}</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                      {generatedResume.keywords_added?.slice(0,6).map((k:string) => (
+                        <span key={k} style={{fontSize:10,padding:"2px 6px",borderRadius:4,background:"rgba(6,182,212,0.12)",color:"#06b6d4"}}>{k}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer"}}>Apply with Tailored Resume →</button>
+                </div>
               ) : (
                 <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
-                  <button disabled style={{flex:1,padding:"10px 0",borderRadius:9,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"rgba(239,68,68,0.6)",fontSize:11,fontWeight:700,cursor:"not-allowed",letterSpacing:"0.2px"}}>
-                    ✗ Score too low to auto-apply ({autoApplyModal.score}% / need 70%+)
+                  <button disabled style={{padding:"8px 0",borderRadius:9,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"rgba(239,68,68,0.6)",fontSize:11,fontWeight:700,cursor:"not-allowed"}}>
+                    ✗ Score too low ({autoApplyModal.score}% / need 70%+)
                   </button>
-                  <button onClick={handleConfirmApply} style={{flex:1,padding:"8px 0",borderRadius:9,background:"transparent",border:"1px solid rgba(245,158,11,0.3)",color:"rgba(245,158,11,0.7)",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+                  <button onClick={handleGenerateResume} disabled={generatingResume} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#06b6d4,#0891b2)",border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    {generatingResume ? "Generating tailored resume..." : "✦ Generate Tailored Resume for this Job"}
+                  </button>
+                  <button onClick={handleConfirmApply} style={{padding:"8px 0",borderRadius:9,background:"transparent",border:"1px solid rgba(245,158,11,0.3)",color:"rgba(245,158,11,0.7)",fontSize:11,fontWeight:600,cursor:"pointer"}}>
                     Apply manually anyway →
                   </button>
                 </div>
               )}
-              <button onClick={()=>setAutoApplyModal(null)} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
+              <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
             </div>
           </div>
         </div>
