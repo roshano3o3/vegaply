@@ -3248,9 +3248,9 @@ export default function Home() {
         animate={{opacity:1,y:0}}
         transition={{duration:0.4,ease:'easeOut'}}
       >
-        <div style={{display:'flex',alignItems:'center',gap:8,marginRight:14,flexShrink:0,cursor:'pointer'}} onClick={()=>window.location.href='/'}>
+        <div className="topbar-logo" style={{display:'flex',alignItems:'center',gap:8,marginRight:14,flexShrink:0,cursor:'pointer'}} onClick={()=>window.location.href='/'}>
           <div style={{width:30,height:30,background:'linear-gradient(135deg,var(--gold),var(--gold-hover))',borderRadius:9,border:'1px solid rgba(139,92,246,0.4)',boxShadow:'0 0 16px rgba(245,158,11,0.35)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-            <svg width="16" height="16" viewBox="0 0 200 200">
+            <svg width="22" height="22" viewBox="0 0 200 200">
               <path d="M100,76 L34,118 L66,113 Z" fill="#fbbf24"/>
               <path d="M100,76 L166,118 L134,113 Z" fill="#c4b5fd"/>
               <ellipse cx="100" cy="92" rx="8" ry="16" fill="#f59e0b"/>
