@@ -206,12 +206,13 @@ export default function LandingPage() {
   }, [])
 
   const tickData = [
-    { n: 'Sarah K.', t: 'Got 3 interviews in one week using Early Bird mode' },
-    { n: 'Marcus T.', t: 'Cover letter generator is absolutely insane quality' },
-    { n: 'Priya R.', t: 'Landed a $140k role — applied within 2 hours of posting' },
-    { n: 'James L.', t: 'Resume match saved me from 50 bad-fit applications' },
-    { n: 'Aisha M.', t: 'Interview sim gave me exact questions I was asked IRL' },
-    { n: 'Leo C.', t: 'From zero callbacks to 5 offers in a single month' },
+    "5 job sources combined",
+    "70+ H1B sponsors verified",
+    "AI-powered resume matching",
+    "Real-time job updates",
+    "Auto cover letter generation",
+    "Direct ATS applications",
+    "Built for F-1 students",
   ]
 
   const activityItems = [
@@ -671,13 +672,8 @@ export default function LandingPage() {
 
             <motion.div className="av-row" initial={{opacity:0}} animate={{opacity:1}}
               transition={{delay:1.2, duration:0.6}}>
-              <div className="av-stack">
-                <div className="av a1">AK</div><div className="av a3">SR</div>
-                <div className="av a3">MJ</div><div className="av a4">PL</div>
-              </div>
               <div className="av-txt">
-                <span className="stars">★★★★★</span>
-                70+ verified H1B sponsors · No credit card · Cancel anytime
+                ✓ 70+ verified H1B sponsors · No credit card · Cancel anytime
               </div>
             </motion.div>
           </div>
@@ -688,7 +684,7 @@ export default function LandingPage() {
           <div className="ticker-inner">
             {[...tickData, ...tickData].map((d, i) => (
               <span key={i} className="t-item">
-                <span className="t-dot"/><span className="t-name">{d.n}</span> · {d.t}
+                <span className="t-dot"/>{d}
               </span>
             ))}
           </div>
@@ -819,30 +815,53 @@ export default function LandingPage() {
 
         <div className="glow-line"/>
 
-        {/* TESTIMONIALS */}
+        {/* FOUNDER STORY */}
         <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
-        <div className="section reveal" id="stories">
-          <div className="eyebrow">Real results</div>
-          <h2 className="sec-title">People are getting hired <em>faster.</em></h2>
-          <div className="testi-grid">
-            {[
-              {init:'R',bg:'linear-gradient(135deg,var(--gold),var(--cyan))',name:'Ravi M.',role:'MS Data Science',quote:'Got my H1B sponsor job at Deloitte in 11 days. Applied within 2 hours of posting. Never would have found it otherwise.'},
-              {init:'P',bg:'linear-gradient(135deg,var(--gold),var(--cyan))',name:'Priya K.',role:'Software Engineer',quote:'The AI match score saved me so much time. I only applied to jobs above 80%. Got 3 interviews in 2 weeks.'},
-              {init:'J',bg:'linear-gradient(135deg,var(--success),var(--success))',name:'James L.',role:'Career Changer',quote:'As a career changer, the skill gap analysis showed me exactly what to learn. Got hired at a top startup.'},
-              {init:'A',bg:'linear-gradient(135deg,var(--gold),var(--gold-hover))',name:'Ananya S.',role:'OPT Student',quote:'OPT student here. The H1B filter is literally a lifesaver. Found 3 sponsor jobs I never knew existed.'},
-              {init:'M',bg:'linear-gradient(135deg,var(--cyan),var(--gold))',name:'Marcus T.',role:'Product Manager',quote:'Applied to 8 jobs in one morning using Smart Apply. Got 2 callbacks same day. Incredible tool.'},
-              {init:'S',bg:'linear-gradient(135deg,var(--cyan),var(--success))',name:'Sofia R.',role:'UX Designer',quote:'The interview simulator is scary good. It asked me exactly the questions I got in my real interview.'},
-            ].map((t,i) => (
-              <div key={i} className="testi-card">
-                <div className="testi-avatar" style={{background:t.bg}}>{t.init}</div>
-                <div className="testi-stars">★★★★★</div>
-                <div className="testi-quote">&ldquo;{t.quote}&rdquo;</div>
-                <div className="testi-name">{t.name}</div>
-                <div className="testi-role">{t.role}</div>
-              </div>
-            ))}
+        <section className="reveal" id="stories" style={{padding:'80px 24px',maxWidth:'800px',margin:'0 auto'}}>
+          <div style={{textAlign:'center',marginBottom:'48px'}}>
+            <h2 style={{
+              fontFamily:'var(--font-display)',
+              fontSize:'clamp(32px, 4vw, 48px)',
+              fontWeight:700,
+              letterSpacing:'-0.02em',
+              margin:'0 0 16px 0',
+              color:'#f5f5f7'
+            }}>
+              Why I built Vegaply
+            </h2>
+            <p style={{
+              fontSize:'15px',
+              color:'rgba(245,245,247,0.55)',
+              letterSpacing:'0.05em',
+              textTransform:'uppercase',
+              margin:0
+            }}>
+              Founder note
+            </p>
           </div>
-        </div>
+
+          <div style={{
+            background:'linear-gradient(135deg, rgba(245,158,11,0.04) 0%, rgba(6,182,212,0.04) 100%)',
+            border:'1px solid rgba(245,245,247,0.08)',
+            borderRadius:'14px',
+            padding:'40px',
+            fontSize:'17px',
+            lineHeight:1.7,
+            color:'rgba(245,245,247,0.85)',
+            fontStyle:'italic'
+          }}>
+            <p style={{margin:'0 0 20px 0'}}>
+              I&rsquo;m Roshan — an F-1 student at the University of Houston. I watched my friends pay $300/month to shady WhatsApp &ldquo;career consultants&rdquo; who blasted out 40 garbage applications a day on their behalf. The applications were generic. The job matches were random. The results were brutal.
+            </p>
+            <p style={{margin:'0 0 20px 0'}}>
+              There had to be a better way. So I built one.
+            </p>
+            <p style={{margin:0,fontStyle:'normal',color:'rgba(245,245,247,0.65)',fontSize:'15px'}}>
+              — Roshan, founder<br/>
+              <span style={{fontSize:'13px',color:'rgba(245,245,247,0.45)'}}>F-1 student · University of Houston</span>
+            </p>
+          </div>
+        </section>
         </motion.div>
 
         {/* PRICING */}
