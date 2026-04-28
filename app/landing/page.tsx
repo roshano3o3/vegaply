@@ -370,40 +370,50 @@ export default function LandingPage() {
         .sec-title em{font-style:italic;background:linear-gradient(135deg,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
         /* 3D TILT CARDS */
-        .how-section{padding-top:80px;padding-bottom:100px;}
-        .how-smallline{font-size:14px;color:rgba(255,255,255,0.58);margin-top:18px;letter-spacing:0.02em;}
-        .how-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;margin-top:36px;position:relative;}
+        .how-section{padding-top:100px;padding-bottom:120px;}
+        .how-smallline{font-size:14px;color:rgba(255,255,255,0.72);margin-top:24px;letter-spacing:0.04em;}
+        .how-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center;margin-top:42px;position:relative;}
         .how-left{position:relative;}
-        .how-scene{position:relative;min-height:540px;display:flex;justify-content:center;align-items:center;}
-        .how-central{position:relative;width:100%;max-width:460px;padding:30px;display:flex;flex-direction:column;gap:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:28px;backdrop-filter:blur(20px);box-shadow:0 32px 90px rgba(245,158,11,0.12);z-index:2;}
-        .how-card-header{display:flex;align-items:center;justify-content:space-between;gap:18px;}
-        .how-pill{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;border-radius:999px;background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(245,158,11,0.08));color:var(--gold);}
-        .how-search{height:46px;display:flex;align-items:center;padding:0 18px;border-radius:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.72);font-size:14px;font-weight:500;}
-        .how-job{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:1px solid rgba(255,255,255,0.06);}
+        .how-scene{position:relative;min-height:600px;display:flex;justify-content:center;align-items:center;padding:14px;}
+        .how-central{position:relative;width:100%;max-width:520px;padding:34px;display:flex;flex-direction:column;gap:18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:32px;backdrop-filter:blur(28px);box-shadow:0 40px 100px rgba(245,158,11,0.14);z-index:2;overflow:hidden;}
+        .how-central::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 18% 24%,rgba(245,158,11,0.18),transparent 35%),radial-gradient(circle at 82% 78%,rgba(6,182,212,0.16),transparent 32%);pointer-events:none;mix-blend-mode:screen;}
+        .how-card-header{display:flex;align-items:center;justify-content:space-between;gap:18px;position:relative;z-index:1;}
+        .how-pill{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(245,158,11,0.08));color:var(--gold);}
+        .how-search{height:52px;display:flex;align-items:center;padding:0 20px;border-radius:18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.78);font-size:15px;font-weight:500;letter-spacing:0.01em;}
+        .how-job{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-top:1px solid rgba(255,255,255,0.06);}
         .how-job:first-child{border-top:none;}
-        .how-job-left{display:flex;gap:14px;align-items:center;}
-        .how-job-icon{width:40px;height:40px;border-radius:14px;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;}
-        .how-job-detail{display:flex;flex-direction:column;gap:4px;}
-        .how-job-role{font-size:15px;font-weight:700;color:#fff;}
+        .how-job-left{display:flex;gap:14px;align-items:center;min-width:0;}
+        .how-job-icon{width:44px;height:44px;border-radius:16px;background:rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+        .how-job-detail{display:flex;flex-direction:column;gap:4px;min-width:0;}
+        .how-job-role{font-size:15px;font-weight:700;color:#fff;min-width:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
         .how-job-company{font-size:12px;color:var(--text-secondary);}
         .how-job-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary);}
-        .how-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.18);color:var(--gold);}
-        .how-ring{position:relative;width:46px;height:46px;display:grid;place-items:center;}
-        .how-ring svg{position:absolute;top:0;left:0;width:46px;height:46px;}
+        .how-badge{font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.18);color:var(--gold);}
+        .how-ring{position:relative;width:48px;height:48px;display:grid;place-items:center;}
+        .how-ring svg{position:absolute;top:0;left:0;width:48px;height:48px;}
         .how-ring-text{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;}
-        .how-floating{position:absolute;width:220px;padding:20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:24px;backdrop-filter:blur(24px);box-shadow:0 24px 70px rgba(0,0,0,0.25);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease;}
-        .how-floating:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 28px 80px rgba(245,158,11,0.16);}
-        .how-floating h3{font-size:15px;font-weight:700;color:#fff;margin:0 0 6px;line-height:1.3;}
-        .how-floating p{font-size:13px;color:var(--text-secondary);line-height:1.6;margin:0;}
-        .how-right{display:flex;flex-direction:column;gap:18px;}
+        .how-floating{position:absolute;width:244px;padding:24px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:28px;backdrop-filter:blur(24px);box-shadow:0 38px 90px rgba(0,0,0,0.22);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease;will-change:transform;}
+        .how-floating:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 40px 98px rgba(245,158,11,0.18);}
+        .how-floating h3{font-size:15px;font-weight:700;color:#fff;margin:0 0 8px;line-height:1.35;}
+        .how-floating p{font-size:13px;color:var(--text-secondary);line-height:1.7;margin:0;}
+        .how-right{display:grid;gap:22px;}
+        .how-chat{display:flex;flex-direction:column;gap:18px;}
+        .how-chat-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);border-radius:28px;padding:24px 26px;backdrop-filter:blur(22px);box-shadow:0 24px 60px rgba(0,0,0,0.18);position:relative;overflow:hidden;}
+        .how-chat-card::before{content:'';position:absolute;top:18px;left:20px;width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 16px rgba(245,158,11,0.3);}
+        .how-chat-card.user::before{background:var(--cyan);}
+        .how-chat-card.special{background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(6,182,212,0.10));border-color:rgba(245,158,11,0.18);}
+        .how-chat-title{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#fff;margin-bottom:10px;}
+        .how-chat-text{font-size:14px;color:var(--text-secondary);line-height:1.8;}
+        .how-chat-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary);margin-top:14px;}
+        .how-chat-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:var(--text-secondary);font-weight:600;}
         .how-feature-row{display:grid;grid-template-columns:52px auto;gap:18px;padding:22px 24px;border-radius:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:transform 300ms ease,box-shadow 300ms ease,background 300ms ease;}
-        .how-feature-row:hover{transform:translateY(-3px);box-shadow:0 20px 45px rgba(245,158,11,0.12);background:rgba(255,255,255,0.06);}
+        .how-feature-row:hover{transform:translateY(-3px);box-shadow:0 20px 45px rgba(245,158,11,0.12);background:rgba(255,255,255,0.07);}
         .how-feature-icon{width:52px;height:52px;border-radius:18px;background:rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);}
         .how-feature-copy{display:flex;flex-direction:column;gap:8px;}
         .how-feature-title{font-size:16px;font-weight:700;color:#fff;}
         .how-feature-desc{font-size:14px;color:var(--text-secondary);line-height:1.7;}
-        @media(max-width:1024px){.how-grid{grid-template-columns:1fr;gap:38px;}.how-scene{min-height:auto;}.how-central{max-width:520px;margin:0 auto;}.how-left{order:2;}.how-right{order:1;}.how-section{padding-top:60px;padding-bottom:80px;}}
-        @media(max-width:768px){.how-section{padding:60px 20px;}.how-grid{gap:28px;}.how-floating{display:none;}.how-central{max-width:360px;}.how-feature-row{grid-template-columns:1fr;}.how-feature-icon{width:46px;height:46px;}.how-section h2{font-size:clamp(28px,5vw,42px);}} 
+        @media(max-width:1024px){.how-grid{grid-template-columns:1fr;gap:38px;}.how-scene{min-height:auto;}.how-central{max-width:520px;margin:0 auto;}.how-left{order:2;}.how-right{order:1;}.how-section{padding-top:80px;padding-bottom:90px;}}
+        @media(max-width:768px){.how-section{padding:70px 20px;}.how-grid{gap:28px;}.how-floating{display:none;}.how-central{max-width:360px;}.how-feature-row{grid-template-columns:1fr;}.how-feature-icon{width:46px;height:46px;}.how-section h2{font-size:clamp(28px,5vw,42px);}} 
         .cards-scene{display:flex;gap:22px;margin-top:58px;perspective:1200px;flex-wrap:wrap;}
         .tilt-card{flex:1;min-width:260px;position:relative;border-radius:22px;transform-style:preserve-3d;transform:perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1);transition:box-shadow var(--dur-base) var(--ease-out);cursor:pointer;will-change:transform;}
         .tilt-inner{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:22px;padding:30px;position:relative;overflow:hidden;height:100%;transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out);}
@@ -940,26 +950,31 @@ export default function LandingPage() {
             </div>
 
             <div className="how-right">
-              {[
-                {icon:'⚡',title:'Early Bird Jobs',desc:'Discover fresh jobs before applicant counts explode.'},
-                {icon:'🤖',title:'AI Resume Match',desc:'See match score, strengths, missing skills, and ATS keywords before applying.'},
-                {icon:'✂️',title:'Resume Tailoring',desc:'Turn your resume into a job-specific version with stronger bullets.'},
-                {icon:'🎯',title:'Interview Prep',desc:'Generate likely behavioral and technical questions with sample answers.'},
-                {icon:'📊',title:'Tracker + Analytics',desc:'Organize applications and see your progress from one dashboard.'},
-              ].map((item, idx) => (
-                <motion.div key={idx}
-                  className="how-feature-row"
-                  initial={{opacity:0,y:20}}
-                  whileInView={{opacity:1,y:0}}
-                  viewport={{once:true}}
-                  transition={{delay:0.1 + idx * 0.1, duration:0.55, ease:'easeInOut'}}>
-                  <div className="how-feature-icon">{item.icon}</div>
-                  <div className="how-feature-copy">
-                    <div className="how-feature-title">{item.title}</div>
-                    <div className="how-feature-desc">{item.desc}</div>
-                  </div>
-                </motion.div>
-              ))}
+              <div className="how-chat">
+                {[
+                  {icon:'🔍',title:'Smart job discovery',text:'Vegaply surfaces the roles with the highest fit, so you only spend time on what truly matters.'},
+                  {icon:'✂️',title:'AI resume tailoring',text:'Your resume rewrites itself for each opening, matching keywords and tone to the job description.'},
+                  {icon:'⚡',title:'One-click apply flow',text:'Submit applications, cover letters, and prep notes in a single, connected action.'},
+                  {icon:'📈',title:'Live progress feed',text:'See every application stage, interview invite, and offer update from one central dashboard.'},
+                  {icon:'🏁',title:'Beat the competition',text:'Early alerts, sponsor filters, and matched leads help you apply faster than 100+ rivals.'},
+                ].map((item, idx) => (
+                  <motion.div key={idx}
+                    className={`how-chat-card ${idx % 2 === 1 ? 'user' : ''} ${idx === 0 ? 'special' : ''}`}
+                    initial={{opacity:0,y:20}}
+                    whileInView={{opacity:1,y:0}}
+                    viewport={{once:true}}
+                    transition={{delay:0.1 + idx * 0.1, duration:0.55, ease:'easeInOut'}}>
+                    <div className="how-chat-title">{item.icon} {item.title}</div>
+                    <div className="how-chat-text">{item.text}</div>
+                    <div className="how-chat-meta">
+                      <span className="how-chat-badge">
+                        {idx === 0 ? 'Fresh' : idx === 1 ? 'Match' : idx === 2 ? 'Speed' : idx === 3 ? 'Live' : 'Priority'}
+                      </span>
+                      <span>{idx === 2 ? 'Chat-style workflow' : 'AI-first experience'}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
