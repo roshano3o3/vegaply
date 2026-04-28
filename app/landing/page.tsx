@@ -372,8 +372,8 @@ export default function LandingPage() {
         /* 3D TILT CARDS */
         .how-section{padding-top:100px;padding-bottom:120px;}
         .how-smallline{font-size:14px;color:rgba(255,255,255,0.72);margin-top:24px;letter-spacing:0.04em;}
-        .how-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center;margin-top:42px;position:relative;}
-        .how-left{position:relative;}
+        .how-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:48px;align-items:center;margin-top:42px;position:relative;}
+        .how-left{position:relative;overflow:hidden;}
         .how-scene{position:relative;min-height:600px;display:flex;justify-content:center;align-items:center;padding:14px;}
         .how-central{position:relative;width:100%;max-width:520px;padding:34px;display:flex;flex-direction:column;gap:18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:32px;backdrop-filter:blur(28px);box-shadow:0 40px 100px rgba(245,158,11,0.14);z-index:2;overflow:hidden;}
         .how-central::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 18% 24%,rgba(245,158,11,0.18),transparent 35%),radial-gradient(circle at 82% 78%,rgba(6,182,212,0.16),transparent 32%);pointer-events:none;mix-blend-mode:screen;}
@@ -396,11 +396,11 @@ export default function LandingPage() {
         .how-floating:hover{transform:translateY(-8px) scale(1.04);box-shadow:0 36px 100px rgba(245,158,11,0.22), inset 0 0 1px rgba(255,255,255,0.06);}
         .how-floating h3{font-size:15px;font-weight:800;color:#f8f8fb;margin:0 0 8px;line-height:1.3;letter-spacing:-0.02em;}
         .how-floating p{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.75;margin:0;}
-        .how-right{display:grid;gap:22px;position:relative;}
-        .how-right::before{content:'';position:absolute;top:-18px;right:-12px;width:220px;height:220px;border-radius:50%;background:rgba(245,158,11,0.08);filter:blur(50px);pointer-events:none;}
-        .how-right::after{content:'';position:absolute;bottom:-12px;left:-20px;width:240px;height:240px;border-radius:50%;background:rgba(6,182,212,0.08);filter:blur(50px);pointer-events:none;}
-        .how-chat{display:flex;flex-direction:column;gap:18px;padding:22px;position:relative;z-index:1;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.08);border-radius:44px;backdrop-filter:blur(30px);}
-        .how-chat-card{position:relative;max-width:100%;min-width:240px;width:min(100%,560px);padding:26px 28px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.12);border-radius:34px;box-shadow:0 30px 80px rgba(0,0,0,0.24);overflow:hidden;}
+        .how-right{display:grid;gap:22px;position:relative;max-width:380px;justify-self:end;}
+        .how-right::before{content:'';position:absolute;top:-18px;right:-12px;width:180px;height:180px;border-radius:50%;background:rgba(245,158,11,0.08);filter:blur(45px);pointer-events:none;}
+        .how-right::after{content:'';position:absolute;bottom:-12px;left:-20px;width:200px;height:200px;border-radius:50%;background:rgba(6,182,212,0.08);filter:blur(45px);pointer-events:none;}
+        .how-chat{display:flex;flex-direction:column;gap:14px;padding:18px;position:relative;z-index:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:44px;backdrop-filter:blur(30px);}
+        .how-chat-card{position:relative;max-width:100%;width:100%;padding:22px 24px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.12);border-radius:32px;box-shadow:0 24px 60px rgba(0,0,0,0.20);overflow:hidden;}
         .how-chat-card::before{content:'';position:absolute;top:18px;left:22px;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px rgba(245,158,11,0.35);}
         .how-chat-card.user{margin-left:auto;align-self:flex-end;background:linear-gradient(180deg,rgba(6,182,212,0.18),rgba(255,255,255,0.03));border-color:rgba(6,182,212,0.18);box-shadow:0 30px 90px rgba(6,182,212,0.16);}
         .how-chat-card.user::before{left:auto;right:22px;background:var(--cyan);box-shadow:0 0 18px rgba(6,182,212,0.35);}
