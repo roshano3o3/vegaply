@@ -392,17 +392,11 @@ export default function LandingPage() {
         .how-ring{position:relative;width:48px;height:48px;display:grid;place-items:center;}
         .how-ring svg{position:absolute;top:0;left:0;width:48px;height:48px;}
         .how-ring-text{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;}
-        .how-floating{position:absolute;width:180px;padding:14px;background:linear-gradient(180deg,rgba(12,12,16,0.92),rgba(28,28,36,0.82));border:1px solid rgba(255,255,255,0.10);border-radius:18px;backdrop-filter:blur(26px);box-shadow:0 30px 80px rgba(0,0,0,0.42), inset 0 0 1px rgba(255,255,255,0.04);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease,opacity 300ms ease;will-change:transform,opacity;z-index:8;}
+        .how-floating{position:absolute;width:160px;padding:12px 13px;background:linear-gradient(180deg,rgba(12,12,16,0.92),rgba(28,28,36,0.82));border:1px solid rgba(255,255,255,0.10);border-radius:16px;backdrop-filter:blur(26px);box-shadow:0 30px 80px rgba(0,0,0,0.42), inset 0 0 1px rgba(255,255,255,0.04);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease,opacity 300ms ease;will-change:transform,opacity;z-index:8;}
         .how-floating:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 36px 100px rgba(245,158,11,0.22), inset 0 0 1px rgba(255,255,255,0.06);}
-        .how-floating h3{font-size:15px;font-weight:800;color:#f8f8fb;margin:0 0 8px;line-height:1.3;letter-spacing:-0.02em;}
-        .how-floating p{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.75;margin:0;}
-        .how-feature-row{display:flex;align-items:flex-start;gap:14px;padding:18px;border-radius:18px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:transform 300ms ease,box-shadow 300ms ease,background 300ms ease;}
-        .how-feature-row:hover{transform:translateY(-3px);box-shadow:0 20px 45px rgba(245,158,11,0.12);background:rgba(255,255,255,0.07);}
-        .how-feature-icon{width:52px;height:52px;border-radius:18px;background:rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);flex-shrink:0;}
-        .how-feature-copy{display:flex;flex-direction:column;gap:8px;}
-        .how-feature-title{font-size:16px;font-weight:700;color:#fff;}
-        .how-feature-desc{font-size:14px;color:var(--text-secondary);line-height:1.7;}
-        .how-right{display:flex;flex-direction:column;gap:14px;width:100%;}
+        .how-floating h3{font-size:13px;font-weight:800;color:#f8f8fb;margin:0 0 8px;line-height:1.3;letter-spacing:-0.02em;}
+        .how-floating p{font-size:12px;color:rgba(255,255,255,0.7);line-height:1.35;margin:0;}
+        .how-right{display:flex;flex-direction:column;gap:12px;width:100%;}
 
 
 
@@ -417,12 +411,22 @@ export default function LandingPage() {
 
 
 
-        .how-feature-row{display:grid;grid-template-columns:52px auto;gap:18px;padding:22px 24px;border-radius:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:transform 300ms ease,box-shadow 300ms ease,background 300ms ease;}
-        .how-feature-row:hover{transform:translateY(-3px);box-shadow:0 20px 45px rgba(245,158,11,0.12);background:rgba(255,255,255,0.07);}
-        .how-feature-icon{width:52px;height:52px;border-radius:18px;background:rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);}
-        .how-feature-copy{display:flex;flex-direction:column;gap:8px;}
-        .how-feature-title{font-size:16px;font-weight:700;color:#fff;}
-        .how-feature-desc{font-size:14px;color:var(--text-secondary);line-height:1.7;}
+        .how-feature-row{display:grid;grid-template-columns:52px 1fr;gap:16px;padding:20px 22px;border-radius:20px;background:rgba(255,255,255,0.040);border:1px solid rgba(255,255,255,0.085);transition:background 0.28s ease,border-color 0.28s ease,box-shadow 0.28s ease;position:relative;overflow:hidden;cursor:default;will-change:transform;}
+        .how-feature-row:hover{background:rgba(255,255,255,0.065);border-color:rgba(245,158,11,0.20);box-shadow:0 0 0 1px rgba(245,158,11,0.06),0 16px 48px rgba(245,158,11,0.12);}
+        .how-feature-icon{width:52px;height:52px;border-radius:18px;background:radial-gradient(circle at 35% 35%,rgba(245,158,11,0.20),rgba(245,158,11,0.09));border:1px solid rgba(245,158,11,0.12);box-shadow:0 0 14px rgba(245,158,11,0.07);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);flex-shrink:0;position:relative;z-index:1;transition:background 0.28s ease,box-shadow 0.28s ease,transform 0.28s ease;}
+        .how-feature-row:hover .how-feature-icon{background:radial-gradient(circle at 35% 35%,rgba(245,158,11,0.30),rgba(245,158,11,0.14));box-shadow:0 0 20px rgba(245,158,11,0.18);transform:scale(1.04);}
+        .how-feature-copy{display:flex;flex-direction:column;gap:6px;position:relative;z-index:1;align-self:center;}
+        .how-feature-title{font-size:15px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;}
+        .how-feature-desc{font-size:13px;color:rgba(255,255,255,0.50);line-height:1.6;}
+        .how-feat-accent{position:absolute;left:0;top:18%;bottom:18%;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(245,158,11,0.30),transparent);pointer-events:none;z-index:2;opacity:0;transition:opacity 0.28s ease;}
+        .how-feature-row:hover .how-feat-accent{opacity:1;}
+        .how-feat-sweep{position:absolute;inset:0;background:linear-gradient(105deg,transparent 25%,rgba(245,158,11,0.03) 50%,transparent 75%);pointer-events:none;border-radius:20px;opacity:0;transition:opacity 0.3s ease;z-index:0;}
+        .how-feature-row:hover .how-feat-sweep{opacity:1;}
+        .how-bg-wrap{position:relative;overflow:hidden;}
+        .how-orb-1{position:absolute;top:12%;left:8%;width:140px;height:140px;background:radial-gradient(circle,rgba(245,158,11,0.11) 0%,transparent 70%);filter:blur(32px);border-radius:50%;pointer-events:none;z-index:0;animation:howOrbDrift 16s ease-in-out infinite;}
+        .how-orb-2{position:absolute;bottom:18%;right:12%;width:110px;height:110px;background:radial-gradient(circle,rgba(6,182,212,0.09) 0%,transparent 70%);filter:blur(28px);border-radius:50%;pointer-events:none;z-index:0;animation:howOrbDrift 22s ease-in-out infinite reverse;}
+        @keyframes howOrbDrift{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(10px,-14px) scale(1.05);}66%{transform:translate(-8px,10px) scale(0.97);}}
+        @media(prefers-reduced-motion:reduce){.how-orb-1,.how-orb-2{animation:none;}}
         @media(max-width:1024px){.how-grid{grid-template-columns:1fr;gap:40px;}.how-scene{min-height:auto;}.how-central{max-width:520px;margin:0 auto;}.how-left{order:2;}.how-right{order:1;max-width:none;}.how-section{padding:80px 24px;}}
         @media(max-width:768px){.how-section{padding:80px 18px;}.how-grid{gap:28px;}.how-floating{display:none;}.how-central{width:100%;max-width:none;}.how-feature-row{flex-direction:column;gap:12px;}.how-feature-icon{width:46px;height:46px;align-self:flex-start;}.how-section h2{font-size:clamp(28px,5vw,42px);}} 
         .cards-scene{display:flex;gap:22px;margin-top:58px;perspective:1200px;flex-wrap:wrap;}
@@ -852,9 +856,29 @@ export default function LandingPage() {
 
 
 
-        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
-<section className="how-section" id="how" style={{maxWidth: '1200px', margin: '0 auto', padding: '110px 24px', boxSizing: 'border-box'}}>
-  <div style={{maxWidth: '820px', margin: '0 auto 48px'}}>
+        <div className="how-bg-wrap">
+          {/* Warm amber glow — upper center, anchors the whole block */}
+          <div style={{position:'absolute',top:'-18%',left:'28%',width:'820px',height:'820px',background:'radial-gradient(circle,rgba(245,158,11,0.09) 0%,transparent 62%)',filter:'blur(62px)',pointerEvents:'none',zIndex:0}} />
+          {/* Cool cyan glow — lower right, balances the warmth */}
+          <div style={{position:'absolute',bottom:'-14%',right:'-10%',width:'660px',height:'660px',background:'radial-gradient(circle,rgba(6,182,212,0.055) 0%,transparent 58%)',filter:'blur(56px)',pointerEvents:'none',zIndex:0}} />
+          {/* Neutral white lift — left center, lifts contrast */}
+          <div style={{position:'absolute',top:'20%',left:'2%',width:'500px',height:'500px',background:'radial-gradient(circle,rgba(255,255,255,0.018) 0%,transparent 58%)',filter:'blur(50px)',pointerEvents:'none',zIndex:0}} />
+          {/* Spotlight behind right feature-card column */}
+          <div style={{position:'absolute',top:'3%',right:'-3%',width:'52%',height:'94%',background:'radial-gradient(ellipse at 65% 50%,rgba(245,158,11,0.06) 0%,transparent 68%)',filter:'blur(42px)',pointerEvents:'none',zIndex:0}} />
+          {/* Subtle amber warm floor — lower center */}
+          <div style={{position:'absolute',bottom:'-8%',left:'18%',width:'600px',height:'400px',background:'radial-gradient(ellipse,rgba(245,158,11,0.05) 0%,transparent 60%)',filter:'blur(50px)',pointerEvents:'none',zIndex:0}} />
+          {/* Drifting ambient orbs */}
+          <div className="how-orb-1" />
+          <div className="how-orb-2" />
+          {/* Edge vignette — deepens the perimeter */}
+          <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at 50% 50%,transparent 38%,rgba(0,0,0,0.38) 100%)',pointerEvents:'none',zIndex:0}} />
+          {/* Top & bottom page-blend fades */}
+          <div style={{position:'absolute',top:0,left:0,right:0,height:'140px',background:'linear-gradient(180deg,#0a0a0c 0%,transparent 100%)',pointerEvents:'none',zIndex:0}} />
+          <div style={{position:'absolute',bottom:0,left:0,right:0,height:'140px',background:'linear-gradient(0deg,#0a0a0c 0%,transparent 100%)',pointerEvents:'none',zIndex:0}} />
+
+          <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}} style={{position:'relative',zIndex:2}}>
+<section className="how-section" id="how" style={{maxWidth: '1200px', margin: '0 auto', padding: '96px 24px', boxSizing: 'border-box'}}>
+  <div style={{maxWidth: '820px', margin: '0 auto 42px'}}>
             <div className="eyebrow">HOW IT WORKS</div>
     <h2 className="sec-title" style={{maxWidth:'820px'}}>How Vegaply helps you apply <em>before everyone else</em></h2>
             <p style={{fontSize:16, color:'rgba(255,255,255,0.72)', lineHeight:1.8, margin:'22px 0 0', maxWidth:'740px'}}>
@@ -866,7 +890,7 @@ export default function LandingPage() {
   <div className="how-grid" style={{display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: '56px', alignItems: 'center'}}>
     <div className="how-left" style={{position: 'relative', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible', perspective: '1200px'}}>
               <div className="how-scene">
-        <motion.div className="how-central" style={{width: 'min(500px, 100%)', minHeight: '340px', margin: '0 auto', zIndex: 5}}
+        <motion.div className="how-central" style={{width: 'min(450px, 100%)', minHeight: '340px', margin: '0 auto', zIndex: 5}}
                   animate={prefersReducedMotion ? undefined : { y: [-4, 4, -4] }}
                   transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}>
                   <div className="how-card-header">
@@ -942,15 +966,15 @@ export default function LandingPage() {
                 </motion.div>
 
                 {[
-                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'30px',left:'-10px'}},
-                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'25px',right:'-10px'}},
-                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'210px',left:'-25px'}},
-                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'35px',right:'-10px'}},
-                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'35px',left:'10px'}},
+                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'12px',left:'-105px'}},
+                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'12px',right:'-105px'}},
+                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'215px',left:'-115px'}},
+                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'18px',right:'-105px'}},
+                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'18px',left:'-85px'}},
                 ].map((card, idx) => (
                   <motion.div key={idx}
                     className="how-floating"
-                    style={{...card.style, width: '180px', padding: '14px', borderRadius: '18px', zIndex: 8}}
+                    style={{...card.style, width: '160px', padding: '12px 13px', borderRadius: '16px', zIndex: 8}}
                     animate={prefersReducedMotion ? undefined : { y: [-6, 6, -6] }}
                     transition={{ repeat: Infinity, duration: 7 + idx * 0.5, ease: 'easeInOut', delay: idx * 0.8 }}>
                     <h3>{card.icon} {card.title}</h3>
@@ -960,7 +984,9 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="how-right" style={{display: 'flex', flexDirection: 'column', gap: '14px', width: '100%'}}>
+            <div className="how-right" style={{display:'flex',flexDirection:'column',gap:'12px',width:'100%',position:'relative'}}>
+              {/* Subtle vertical guide — sits behind the icon column */}
+              <div style={{position:'absolute',left:'46px',top:'30px',bottom:'30px',width:'1px',background:'linear-gradient(180deg,transparent,rgba(245,158,11,0.07) 15%,rgba(245,158,11,0.07) 85%,transparent)',pointerEvents:'none',zIndex:0}} />
               {[
                 {icon:'🔍',title:'Smart job discovery',text:'Vegaply surfaces the roles with the highest fit, so you only spend time on what truly matters.'},
                 {icon:'✂️',title:'AI resume tailoring',text:'Your resume rewrites itself for each opening, matching keywords and tone to the job description.'},
@@ -969,22 +995,29 @@ export default function LandingPage() {
                 {icon:'🏁',title:'Beat the competition',text:'Early alerts, sponsor filters, and matched leads help you apply faster than 100+ rivals.'},
               ].map((item, idx) => (
                 <motion.div key={idx}
-                  className="how-feature-row"
-                  initial={{opacity:0,y:10}}
+                  initial={{opacity:0,y:18}}
                   whileInView={{opacity:1,y:0}}
                   viewport={{once:true}}
-                  transition={{delay:0.1 + idx * 0.1, duration:0.4, ease:'easeOut'}}>
-                  <div className="how-feature-icon">{item.icon}</div>
-                  <div className="how-feature-copy">
-                    <div className="how-feature-title">{item.title}</div>
-                    <div className="how-feature-desc">{item.text}</div>
-                  </div>
+                  transition={{delay:0.08 + idx * 0.10, duration:0.5, ease:'easeOut'}}>
+                  <motion.div
+                    className="how-feature-row"
+                    whileHover={{y:-4,scale:1.01}}
+                    transition={{duration:0.25,ease:'easeOut'}}>
+                    <div className="how-feat-accent" />
+                    <div className="how-feat-sweep" />
+                    <div className="how-feature-icon">{item.icon}</div>
+                    <div className="how-feature-copy">
+                      <div className="how-feature-title">{item.title}</div>
+                      <div className="how-feature-desc">{item.text}</div>
+                    </div>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
-        </motion.div>
+          </motion.div>
+        </div>
 
         <div className="glow-line"/>
 
