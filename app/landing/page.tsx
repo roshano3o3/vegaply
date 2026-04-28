@@ -392,10 +392,10 @@ export default function LandingPage() {
         .how-ring{position:relative;width:48px;height:48px;display:grid;place-items:center;}
         .how-ring svg{position:absolute;top:0;left:0;width:48px;height:48px;}
         .how-ring-text{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;}
-        .how-floating{position:absolute;width:244px;padding:24px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:28px;backdrop-filter:blur(24px);box-shadow:0 38px 90px rgba(0,0,0,0.22);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease;will-change:transform;}
-        .how-floating:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 40px 98px rgba(245,158,11,0.18);}
-        .how-floating h3{font-size:15px;font-weight:700;color:#fff;margin:0 0 8px;line-height:1.35;}
-        .how-floating p{font-size:13px;color:var(--text-secondary);line-height:1.7;margin:0;}
+        .how-floating{position:absolute;width:220px;padding:20px;background:linear-gradient(180deg,rgba(12,12,16,0.92),rgba(28,28,36,0.82));border:1px solid rgba(255,255,255,0.10);border-radius:34px;backdrop-filter:blur(26px);box-shadow:0 30px 80px rgba(0,0,0,0.42), inset 0 0 1px rgba(255,255,255,0.04);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease,opacity 300ms ease;will-change:transform,opacity;}
+        .how-floating:hover{transform:translateY(-8px) scale(1.04);box-shadow:0 36px 100px rgba(245,158,11,0.22), inset 0 0 1px rgba(255,255,255,0.06);}
+        .how-floating h3{font-size:15px;font-weight:800;color:#f8f8fb;margin:0 0 8px;line-height:1.3;letter-spacing:-0.02em;}
+        .how-floating p{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.75;margin:0;}
         .how-right{display:grid;gap:22px;position:relative;}
         .how-right::before{content:'';position:absolute;top:-18px;right:-12px;width:220px;height:220px;border-radius:50%;background:rgba(245,158,11,0.08);filter:blur(50px);pointer-events:none;}
         .how-right::after{content:'';position:absolute;bottom:-12px;left:-20px;width:240px;height:240px;border-radius:50%;background:rgba(6,182,212,0.08);filter:blur(50px);pointer-events:none;}
@@ -937,11 +937,11 @@ export default function LandingPage() {
                 </motion.div>
 
                 {[
-                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'-10%',left:'-8%'}},
-                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'4%',right:'-6%'}},
-                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'42%',left:'-6%'}},
-                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'4%',right:'-8%'}},
-                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'-8%',left:'12%'}},
+                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'-6%',left:'-6%'}},
+                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'12%',right:'-4%'}},
+                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'46%',left:'-4%'}},
+                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'14%',right:'-4%'}},
+                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'-6%',left:'14%'}},
                 ].map((card, idx) => (
                   <motion.div key={idx}
                     className="how-floating"
