@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -12,6 +12,8 @@ export default function LandingPage() {
   const [c1, setC1] = useState('0')
   const [c2, setC2] = useState('0')
   const [c3, setC3] = useState('0×')
+
+  const prefersReducedMotion = useReducedMotion()
 
   const fullCoverText = 'Dear Hiring Manager, I am excited to apply for the Senior ML Engineer role at Google. My 4 years of Python and TensorFlow experience aligns perfectly with your requirements...'
   const morphWords = ['scams.', 'vendors.', 'middlemen.', 'scrapers.']
@@ -368,6 +370,40 @@ export default function LandingPage() {
         .sec-title em{font-style:italic;background:linear-gradient(135deg,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
         /* 3D TILT CARDS */
+        .how-section{padding-top:80px;padding-bottom:100px;}
+        .how-smallline{font-size:14px;color:rgba(255,255,255,0.58);margin-top:18px;letter-spacing:0.02em;}
+        .how-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;margin-top:36px;position:relative;}
+        .how-left{position:relative;}
+        .how-scene{position:relative;min-height:540px;display:flex;justify-content:center;align-items:center;}
+        .how-central{position:relative;width:100%;max-width:460px;padding:30px;display:flex;flex-direction:column;gap:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:28px;backdrop-filter:blur(20px);box-shadow:0 32px 90px rgba(245,158,11,0.12);z-index:2;}
+        .how-card-header{display:flex;align-items:center;justify-content:space-between;gap:18px;}
+        .how-pill{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;border-radius:999px;background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(245,158,11,0.08));color:var(--gold);}
+        .how-search{height:46px;display:flex;align-items:center;padding:0 18px;border-radius:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.72);font-size:14px;font-weight:500;}
+        .how-job{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:1px solid rgba(255,255,255,0.06);}
+        .how-job:first-child{border-top:none;}
+        .how-job-left{display:flex;gap:14px;align-items:center;}
+        .how-job-icon{width:40px;height:40px;border-radius:14px;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;}
+        .how-job-detail{display:flex;flex-direction:column;gap:4px;}
+        .how-job-role{font-size:15px;font-weight:700;color:#fff;}
+        .how-job-company{font-size:12px;color:var(--text-secondary);}
+        .how-job-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary);}
+        .how-badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.18);color:var(--gold);}
+        .how-ring{position:relative;width:46px;height:46px;display:grid;place-items:center;}
+        .how-ring svg{position:absolute;top:0;left:0;width:46px;height:46px;}
+        .how-ring-text{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;}
+        .how-floating{position:absolute;width:220px;padding:20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:24px;backdrop-filter:blur(24px);box-shadow:0 24px 70px rgba(0,0,0,0.25);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease;}
+        .how-floating:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 28px 80px rgba(245,158,11,0.16);}
+        .how-floating h3{font-size:15px;font-weight:700;color:#fff;margin:0 0 6px;line-height:1.3;}
+        .how-floating p{font-size:13px;color:var(--text-secondary);line-height:1.6;margin:0;}
+        .how-right{display:flex;flex-direction:column;gap:18px;}
+        .how-feature-row{display:grid;grid-template-columns:52px auto;gap:18px;padding:22px 24px;border-radius:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:transform 300ms ease,box-shadow 300ms ease,background 300ms ease;}
+        .how-feature-row:hover{transform:translateY(-3px);box-shadow:0 20px 45px rgba(245,158,11,0.12);background:rgba(255,255,255,0.06);}
+        .how-feature-icon{width:52px;height:52px;border-radius:18px;background:rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);}
+        .how-feature-copy{display:flex;flex-direction:column;gap:8px;}
+        .how-feature-title{font-size:16px;font-weight:700;color:#fff;}
+        .how-feature-desc{font-size:14px;color:var(--text-secondary);line-height:1.7;}
+        @media(max-width:1024px){.how-grid{grid-template-columns:1fr;gap:38px;}.how-scene{min-height:auto;}.how-central{max-width:520px;margin:0 auto;}.how-left{order:2;}.how-right{order:1;}.how-section{padding-top:60px;padding-bottom:80px;}}
+        @media(max-width:768px){.how-section{padding:60px 20px;}.how-grid{gap:28px;}.how-floating{display:none;}.how-central{max-width:360px;}.how-feature-row{grid-template-columns:1fr;}.how-feature-icon{width:46px;height:46px;}.how-section h2{font-size:clamp(28px,5vw,42px);}} 
         .cards-scene{display:flex;gap:22px;margin-top:58px;perspective:1200px;flex-wrap:wrap;}
         .tilt-card{flex:1;min-width:260px;position:relative;border-radius:22px;transform-style:preserve-3d;transform:perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1);transition:box-shadow var(--dur-base) var(--ease-out);cursor:pointer;will-change:transform;}
         .tilt-inner{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:22px;padding:30px;position:relative;overflow:hidden;height:100%;transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out);}
@@ -488,6 +524,14 @@ export default function LandingPage() {
         .feat-card:hover .feat-icon{transform:scale(1.1) rotate(-4deg);}
         .feat-text{font-size:clamp(14px,1.5vw,16px);color:rgba(245,245,247,0.92);font-weight:500;line-height:1.5;}
         @media(prefers-reduced-motion:reduce){.hero-headline-sweep,.hero-bullet,.hero-prepared,.hero-closing-shimmer,.hero-fade-up,.hero-morph,.feat-card{animation:none !important;opacity:1 !important;transform:none !important;-webkit-text-fill-color:var(--text-primary,#f5f5f7) !important;transition:none !important;}}
+
+        @media(max-width:1024px){
+          .how-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+        }
+        @media(max-width:768px){
+          .how-floating { display: none !important; }
+          .how-central { margin: 0 auto; max-width: 320px; }
+        }
 
         /* MOBILE */
         @media(max-width:768px){
@@ -783,6 +827,142 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </motion.div>
+
+
+
+        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
+        <section className="section reveal how-section" id="how">
+          <div style={{maxWidth: '840px', margin: '0 auto 42px'}}>
+            <div className="eyebrow">HOW IT WORKS</div>
+            <h2 className="sec-title" style={{maxWidth:'860px'}}>How Vegaply helps you apply <em>before everyone else</em></h2>
+            <p style={{fontSize:16, color:'rgba(255,255,255,0.72)', lineHeight:1.8, margin:'22px 0 0', maxWidth:'740px'}}>
+              Most job boards only show listings. Vegaply helps you find fresh roles, understand your match, tailor your resume, prepare for interviews, and track every application — from one smart dashboard.
+            </p>
+            <p className="how-smallline">LinkedIn shows jobs. Vegaply helps you decide, tailor, prepare, and apply faster.</p>
+          </div>
+
+          <div className="how-grid">
+            <div className="how-left">
+              <div className="how-scene">
+                <motion.div className="how-central"
+                  animate={prefersReducedMotion ? undefined : { y: [-8, 8, -8] }}
+                  transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}>
+                  <div className="how-card-header">
+                    <div style={{display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:'var(--gold)',boxShadow:'0 0 12px rgba(245,158,11,0.4)'}} />
+                      <div style={{display:'grid',gap:2}}>
+                        <span style={{fontSize:12,fontWeight:700,letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--gold)'}}>Vegaply</span>
+                        <span style={{fontSize:15,fontWeight:700,color:'#f5f5f7'}}>Vegaply Dashboard</span>
+                      </div>
+                    </div>
+                    <div className="how-pill">● LIVE</div>
+                  </div>
+
+                  <div className="how-search">Search 10,000+ fresh jobs…</div>
+
+                  <div className="how-job">
+                    <div className="how-job-left">
+                      <div className="how-job-icon">DA</div>
+                      <div className="how-job-detail">
+                        <div className="how-job-role">Data Analyst</div>
+                        <div className="how-job-company">Stripe · Remote</div>
+                      </div>
+                    </div>
+                    <div className="how-job-meta">
+                      <span>94%</span>
+                      <span className="how-badge">Hot</span>
+                    </div>
+                  </div>
+                  <div className="how-job" style={{paddingTop:12}}>
+                    <div className="how-job-left">
+                      <div className="how-ring">
+                        <svg viewBox="0 0 44 44" fill="none">
+                          <circle cx="22" cy="22" r="16" stroke="rgba(255,255,255,0.08)" strokeWidth="4"/>
+                          <circle cx="22" cy="22" r="16" stroke="var(--gold)" strokeWidth="4" strokeLinecap="round" strokeDasharray="100.5" strokeDashoffset="18" transform="rotate(-90 22 22)" />
+                        </svg>
+                        <div className="how-ring-text">94%</div>
+                      </div>
+                      <div className="how-job-detail">
+                        <div className="how-job-role">Data Analyst</div>
+                        <div className="how-job-company">Stripe · Remote</div>
+                      </div>
+                    </div>
+                    <div className="how-job-meta">
+                      <span className="how-badge">Hot</span>
+                    </div>
+                  </div>
+                  <div className="how-job">
+                    <div className="how-job-left">
+                      <div className="how-job-icon">BA</div>
+                      <div className="how-job-detail">
+                        <div className="how-job-role">Business Analyst</div>
+                        <div className="how-job-company">Deloitte · Dallas</div>
+                      </div>
+                    </div>
+                    <div className="how-job-meta">
+                      <span>88%</span>
+                      <span className="how-badge">New</span>
+                    </div>
+                  </div>
+                  <div className="how-job">
+                    <div className="how-job-left">
+                      <div className="how-job-icon">DE</div>
+                      <div className="how-job-detail">
+                        <div className="how-job-role">Data Engineer</div>
+                        <div className="how-job-company">Capital One · Hybrid</div>
+                      </div>
+                    </div>
+                    <div className="how-job-meta">
+                      <span>76%</span>
+                      <span className="how-badge">Early Bird</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {[
+                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'-10%',left:'-8%'}},
+                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'4%',right:'-6%'}},
+                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'42%',left:'-6%'}},
+                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'4%',right:'-8%'}},
+                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'-8%',left:'12%'}},
+                ].map((card, idx) => (
+                  <motion.div key={idx}
+                    className="how-floating"
+                    style={card.style}
+                    animate={prefersReducedMotion ? undefined : { y: [-10, 10, -10], rotate: [-2, 2, -2] }}
+                    transition={{ repeat: Infinity, duration: 5.5 + idx * 0.4, ease: 'easeInOut', delay: idx * 0.8 }}>
+                    <h3>{card.icon} {card.title}</h3>
+                    <p>{card.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            <div className="how-right">
+              {[
+                {icon:'⚡',title:'Early Bird Jobs',desc:'Discover fresh jobs before applicant counts explode.'},
+                {icon:'🤖',title:'AI Resume Match',desc:'See match score, strengths, missing skills, and ATS keywords before applying.'},
+                {icon:'✂️',title:'Resume Tailoring',desc:'Turn your resume into a job-specific version with stronger bullets.'},
+                {icon:'🎯',title:'Interview Prep',desc:'Generate likely behavioral and technical questions with sample answers.'},
+                {icon:'📊',title:'Tracker + Analytics',desc:'Organize applications and see your progress from one dashboard.'},
+              ].map((item, idx) => (
+                <motion.div key={idx}
+                  className="how-feature-row"
+                  initial={{opacity:0,y:20}}
+                  whileInView={{opacity:1,y:0}}
+                  viewport={{once:true}}
+                  transition={{delay:0.1 + idx * 0.1, duration:0.55, ease:'easeInOut'}}>
+                  <div className="how-feature-icon">{item.icon}</div>
+                  <div className="how-feature-copy">
+                    <div className="how-feature-title">{item.title}</div>
+                    <div className="how-feature-desc">{item.desc}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
         </motion.div>
 
         <div className="glow-line"/>
