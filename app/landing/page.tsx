@@ -370,12 +370,12 @@ export default function LandingPage() {
         .sec-title em{font-style:italic;background:linear-gradient(135deg,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
         /* 3D TILT CARDS */
-        .how-section{padding-top:100px;padding-bottom:120px;}
+.how-section{padding:110px 24px;max-width:1200px;margin:0 auto;box-sizing:border-box;}
         .how-smallline{font-size:14px;color:rgba(255,255,255,0.72);margin-top:24px;letter-spacing:0.04em;}
-        .how-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:48px;align-items:center;margin-top:42px;position:relative;}
-        .how-left{position:relative;overflow:hidden;}
+        .how-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:56px;align-items:center;margin-top:0;position:relative;}
+        .how-left{position:relative;min-height:500px;display:flex;align-items:center;justify-content:center;overflow:visible;perspective:1200px;}
         .how-scene{position:relative;min-height:600px;display:flex;justify-content:center;align-items:center;padding:14px;}
-        .how-central{position:relative;width:100%;max-width:520px;padding:34px;display:flex;flex-direction:column;gap:18px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:32px;backdrop-filter:blur(28px);box-shadow:0 40px 100px rgba(245,158,11,0.14);z-index:2;overflow:hidden;}
+        .how-central{position:relative;width:min(500px,100%);min-height:340px;margin:0 auto;z-index:5;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:32px;backdrop-filter:blur(28px);box-shadow:0 40px 100px rgba(245,158,11,0.14);overflow:hidden;display:flex;flex-direction:column;gap:18px;padding:34px;}
         .how-central::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 18% 24%,rgba(245,158,11,0.18),transparent 35%),radial-gradient(circle at 82% 78%,rgba(6,182,212,0.16),transparent 32%);pointer-events:none;mix-blend-mode:screen;}
         .how-card-header{display:flex;align-items:center;justify-content:space-between;gap:18px;position:relative;z-index:1;}
         .how-pill{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(245,158,11,0.08));color:var(--gold);}
@@ -392,34 +392,39 @@ export default function LandingPage() {
         .how-ring{position:relative;width:48px;height:48px;display:grid;place-items:center;}
         .how-ring svg{position:absolute;top:0;left:0;width:48px;height:48px;}
         .how-ring-text{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;}
-        .how-floating{position:absolute;width:220px;padding:20px;background:linear-gradient(180deg,rgba(12,12,16,0.92),rgba(28,28,36,0.82));border:1px solid rgba(255,255,255,0.10);border-radius:34px;backdrop-filter:blur(26px);box-shadow:0 30px 80px rgba(0,0,0,0.42), inset 0 0 1px rgba(255,255,255,0.04);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease,opacity 300ms ease;will-change:transform,opacity;}
-        .how-floating:hover{transform:translateY(-8px) scale(1.04);box-shadow:0 36px 100px rgba(245,158,11,0.22), inset 0 0 1px rgba(255,255,255,0.06);}
+        .how-floating{position:absolute;width:180px;padding:14px;background:linear-gradient(180deg,rgba(12,12,16,0.92),rgba(28,28,36,0.82));border:1px solid rgba(255,255,255,0.10);border-radius:18px;backdrop-filter:blur(26px);box-shadow:0 30px 80px rgba(0,0,0,0.42), inset 0 0 1px rgba(255,255,255,0.04);transform-style:preserve-3d;transition:transform 300ms ease,box-shadow 300ms ease,opacity 300ms ease;will-change:transform,opacity;z-index:8;}
+        .how-floating:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 36px 100px rgba(245,158,11,0.22), inset 0 0 1px rgba(255,255,255,0.06);}
         .how-floating h3{font-size:15px;font-weight:800;color:#f8f8fb;margin:0 0 8px;line-height:1.3;letter-spacing:-0.02em;}
         .how-floating p{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.75;margin:0;}
-        .how-right{display:grid;gap:22px;position:relative;max-width:380px;justify-self:end;}
-        .how-right::before{content:'';position:absolute;top:-18px;right:-12px;width:180px;height:180px;border-radius:50%;background:rgba(245,158,11,0.08);filter:blur(45px);pointer-events:none;}
-        .how-right::after{content:'';position:absolute;bottom:-12px;left:-20px;width:200px;height:200px;border-radius:50%;background:rgba(6,182,212,0.08);filter:blur(45px);pointer-events:none;}
-        .how-chat{display:flex;flex-direction:column;gap:14px;padding:18px;position:relative;z-index:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:44px;backdrop-filter:blur(30px);}
-        .how-chat-card{position:relative;max-width:100%;width:100%;padding:22px 24px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.12);border-radius:32px;box-shadow:0 24px 60px rgba(0,0,0,0.20);overflow:hidden;}
-        .how-chat-card::before{content:'';position:absolute;top:18px;left:22px;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px rgba(245,158,11,0.35);}
-        .how-chat-card.user{margin-left:auto;align-self:flex-end;background:linear-gradient(180deg,rgba(6,182,212,0.18),rgba(255,255,255,0.03));border-color:rgba(6,182,212,0.18);box-shadow:0 30px 90px rgba(6,182,212,0.16);}
-        .how-chat-card.user::before{left:auto;right:22px;background:var(--cyan);box-shadow:0 0 18px rgba(6,182,212,0.35);}
-        .how-chat-card.special{background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(6,182,212,0.12));border-color:rgba(245,158,11,0.24);box-shadow:0 32px 96px rgba(245,158,11,0.2);}
-        .how-chat-card.special .how-chat-title{color:#fff;}
-        .how-chat-card::after{content:'';position:absolute;bottom:-8px;left:32px;width:calc(100% - 64px);height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.16),transparent);opacity:0.45;}
-        .how-chat-title{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;}
-        .how-chat-title span{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);}
-        .how-chat-text{font-size:15px;color:rgba(255,255,255,0.78);line-height:1.85;}
-        .how-chat-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.62);margin-top:12px;}
-        .how-chat-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:rgba(255,255,255,0.75);font-weight:600;}
+        .how-feature-row{display:flex;align-items:flex-start;gap:14px;padding:18px;border-radius:18px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:transform 300ms ease,box-shadow 300ms ease,background 300ms ease;}
+        .how-feature-row:hover{transform:translateY(-3px);box-shadow:0 20px 45px rgba(245,158,11,0.12);background:rgba(255,255,255,0.07);}
+        .how-feature-icon{width:52px;height:52px;border-radius:18px;background:rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);flex-shrink:0;}
+        .how-feature-copy{display:flex;flex-direction:column;gap:8px;}
+        .how-feature-title{font-size:16px;font-weight:700;color:#fff;}
+        .how-feature-desc{font-size:14px;color:var(--text-secondary);line-height:1.7;}
+        .how-right{display:flex;flex-direction:column;gap:14px;width:100%;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         .how-feature-row{display:grid;grid-template-columns:52px auto;gap:18px;padding:22px 24px;border-radius:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);transition:transform 300ms ease,box-shadow 300ms ease,background 300ms ease;}
         .how-feature-row:hover{transform:translateY(-3px);box-shadow:0 20px 45px rgba(245,158,11,0.12);background:rgba(255,255,255,0.07);}
         .how-feature-icon{width:52px;height:52px;border-radius:18px;background:rgba(245,158,11,0.14);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);}
         .how-feature-copy{display:flex;flex-direction:column;gap:8px;}
         .how-feature-title{font-size:16px;font-weight:700;color:#fff;}
         .how-feature-desc{font-size:14px;color:var(--text-secondary);line-height:1.7;}
-        @media(max-width:1024px){.how-grid{grid-template-columns:1fr;gap:38px;}.how-scene{min-height:auto;}.how-central{max-width:520px;margin:0 auto;}.how-left{order:2;}.how-right{order:1;}.how-section{padding-top:80px;padding-bottom:90px;}}
-        @media(max-width:768px){.how-section{padding:70px 20px;}.how-grid{gap:28px;}.how-floating{display:none;}.how-central{max-width:360px;}.how-feature-row{grid-template-columns:1fr;}.how-feature-icon{width:46px;height:46px;}.how-section h2{font-size:clamp(28px,5vw,42px);}} 
+        @media(max-width:1024px){.how-grid{grid-template-columns:1fr;gap:40px;}.how-scene{min-height:auto;}.how-central{max-width:520px;margin:0 auto;}.how-left{order:2;}.how-right{order:1;max-width:none;}.how-section{padding:80px 24px;}}
+        @media(max-width:768px){.how-section{padding:80px 18px;}.how-grid{gap:28px;}.how-floating{display:none;}.how-central{width:100%;max-width:none;}.how-feature-row{flex-direction:column;gap:12px;}.how-feature-icon{width:46px;height:46px;align-self:flex-start;}.how-section h2{font-size:clamp(28px,5vw,42px);}} 
         .cards-scene{display:flex;gap:22px;margin-top:58px;perspective:1200px;flex-wrap:wrap;}
         .tilt-card{flex:1;min-width:260px;position:relative;border-radius:22px;transform-style:preserve-3d;transform:perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1);transition:box-shadow var(--dur-base) var(--ease-out);cursor:pointer;will-change:transform;}
         .tilt-inner{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:22px;padding:30px;position:relative;overflow:hidden;height:100%;transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out);}
@@ -848,22 +853,22 @@ export default function LandingPage() {
 
 
         <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
-        <section className="section reveal how-section" id="how">
-          <div style={{maxWidth: '840px', margin: '0 auto 42px'}}>
+<section className="how-section" id="how" style={{maxWidth: '1200px', margin: '0 auto', padding: '110px 24px', boxSizing: 'border-box'}}>
+  <div style={{maxWidth: '820px', margin: '0 auto 48px'}}>
             <div className="eyebrow">HOW IT WORKS</div>
-            <h2 className="sec-title" style={{maxWidth:'860px'}}>How Vegaply helps you apply <em>before everyone else</em></h2>
+    <h2 className="sec-title" style={{maxWidth:'820px'}}>How Vegaply helps you apply <em>before everyone else</em></h2>
             <p style={{fontSize:16, color:'rgba(255,255,255,0.72)', lineHeight:1.8, margin:'22px 0 0', maxWidth:'740px'}}>
               Most job boards only show listings. Vegaply helps you find fresh roles, understand your match, tailor your resume, prepare for interviews, and track every application — from one smart dashboard.
             </p>
             <p className="how-smallline">LinkedIn shows jobs. Vegaply helps you decide, tailor, prepare, and apply faster.</p>
           </div>
 
-          <div className="how-grid">
-            <div className="how-left">
+  <div className="how-grid" style={{display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: '56px', alignItems: 'center'}}>
+    <div className="how-left" style={{position: 'relative', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible', perspective: '1200px'}}>
               <div className="how-scene">
-                <motion.div className="how-central"
-                  animate={prefersReducedMotion ? undefined : { y: [-8, 8, -8] }}
-                  transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}>
+        <motion.div className="how-central" style={{width: 'min(500px, 100%)', minHeight: '340px', margin: '0 auto', zIndex: 5}}
+                  animate={prefersReducedMotion ? undefined : { y: [-4, 4, -4] }}
+                  transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}>
                   <div className="how-card-header">
                     <div style={{display:'flex',alignItems:'center',gap:12}}>
                       <div style={{width:8,height:8,borderRadius:'50%',background:'var(--gold)',boxShadow:'0 0 12px rgba(245,158,11,0.4)'}} />
@@ -937,17 +942,17 @@ export default function LandingPage() {
                 </motion.div>
 
                 {[
-                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'-6%',left:'-6%'}},
-                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'12%',right:'-4%'}},
-                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'46%',left:'-4%'}},
-                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'14%',right:'-4%'}},
-                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'-6%',left:'14%'}},
+                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'30px',left:'-10px'}},
+                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'25px',right:'-10px'}},
+                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'210px',left:'-25px'}},
+                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'35px',right:'-10px'}},
+                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'35px',left:'10px'}},
                 ].map((card, idx) => (
                   <motion.div key={idx}
                     className="how-floating"
-                    style={card.style}
-                    animate={prefersReducedMotion ? undefined : { y: [-10, 10, -10], rotate: [-2, 2, -2] }}
-                    transition={{ repeat: Infinity, duration: 5.5 + idx * 0.4, ease: 'easeInOut', delay: idx * 0.8 }}>
+                    style={{...card.style, width: '180px', padding: '14px', borderRadius: '18px', zIndex: 8}}
+                    animate={prefersReducedMotion ? undefined : { y: [-6, 6, -6] }}
+                    transition={{ repeat: Infinity, duration: 7 + idx * 0.5, ease: 'easeInOut', delay: idx * 0.8 }}>
                     <h3>{card.icon} {card.title}</h3>
                     <p>{card.desc}</p>
                   </motion.div>
@@ -955,32 +960,27 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="how-right">
-              <div className="how-chat">
-                {[
-                  {icon:'🔍',title:'Smart job discovery',text:'Vegaply surfaces the roles with the highest fit, so you only spend time on what truly matters.'},
-                  {icon:'✂️',title:'AI resume tailoring',text:'Your resume rewrites itself for each opening, matching keywords and tone to the job description.'},
-                  {icon:'⚡',title:'One-click apply flow',text:'Submit applications, cover letters, and prep notes in a single, connected action.'},
-                  {icon:'📈',title:'Live progress feed',text:'See every application stage, interview invite, and offer update from one central dashboard.'},
-                  {icon:'🏁',title:'Beat the competition',text:'Early alerts, sponsor filters, and matched leads help you apply faster than 100+ rivals.'},
-                ].map((item, idx) => (
-                  <motion.div key={idx}
-                    className={`how-chat-card ${idx % 2 === 1 ? 'user' : ''} ${idx === 0 ? 'special' : ''}`}
-                    initial={{opacity:0,y:20}}
-                    whileInView={{opacity:1,y:0}}
-                    viewport={{once:true}}
-                    transition={{delay:0.1 + idx * 0.1, duration:0.55, ease:'easeInOut'}}>
-                    <div className="how-chat-title">{item.icon} {item.title}</div>
-                    <div className="how-chat-text">{item.text}</div>
-                    <div className="how-chat-meta">
-                      <span className="how-chat-badge">
-                        {idx === 0 ? 'Fresh' : idx === 1 ? 'Match' : idx === 2 ? 'Speed' : idx === 3 ? 'Live' : 'Priority'}
-                      </span>
-                      <span>{idx === 2 ? 'Chat-style workflow' : 'AI-first experience'}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+            <div className="how-right" style={{display: 'flex', flexDirection: 'column', gap: '14px', width: '100%'}}>
+              {[
+                {icon:'🔍',title:'Smart job discovery',text:'Vegaply surfaces the roles with the highest fit, so you only spend time on what truly matters.'},
+                {icon:'✂️',title:'AI resume tailoring',text:'Your resume rewrites itself for each opening, matching keywords and tone to the job description.'},
+                {icon:'⚡',title:'One-click apply flow',text:'Submit applications, cover letters, and prep notes in a single, connected action.'},
+                {icon:'📈',title:'Live progress feed',text:'See every application stage, interview invite, and offer update from one central dashboard.'},
+                {icon:'🏁',title:'Beat the competition',text:'Early alerts, sponsor filters, and matched leads help you apply faster than 100+ rivals.'},
+              ].map((item, idx) => (
+                <motion.div key={idx}
+                  className="how-feature-row"
+                  initial={{opacity:0,y:10}}
+                  whileInView={{opacity:1,y:0}}
+                  viewport={{once:true}}
+                  transition={{delay:0.1 + idx * 0.1, duration:0.4, ease:'easeOut'}}>
+                  <div className="how-feature-icon">{item.icon}</div>
+                  <div className="how-feature-copy">
+                    <div className="how-feature-title">{item.title}</div>
+                    <div className="how-feature-desc">{item.text}</div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
