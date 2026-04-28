@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { LogoVegaStar } from "@/components/logo/LogoVegaStar";
 
 interface Job {
   job_id: string; job_title: string; employer_name: string; employer_logo?: string;
@@ -3249,19 +3250,7 @@ export default function Home() {
         transition={{duration:0.4,ease:'easeOut'}}
       >
         <div className="topbar-logo" style={{display:'flex',alignItems:'center',gap:8,marginRight:14,flexShrink:0,cursor:'pointer'}} onClick={()=>window.location.href='/'}>
-          <div style={{width:30,height:30,background:'linear-gradient(135deg,var(--gold),var(--gold-hover))',borderRadius:9,border:'1px solid rgba(139,92,246,0.4)',boxShadow:'0 0 16px rgba(245,158,11,0.35)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-            <svg width="22" height="22" viewBox="0 0 200 200">
-              <path d="M100,76 L34,118 L66,113 Z" fill="#fbbf24"/>
-              <path d="M100,76 L166,118 L134,113 Z" fill="#c4b5fd"/>
-              <ellipse cx="100" cy="92" rx="8" ry="16" fill="#f59e0b"/>
-              <circle cx="100" cy="76" r="7" fill="#f59e0b"/>
-              <polygon points="100,66 107,62 100,61" fill="#fcd34d"/>
-              <line x1="96" y1="108" x2="88" y2="126" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="100" y1="109" x2="100" y2="128" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="104" y1="108" x2="112" y2="126" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M82,144 A18,18 0 0,1 118,144" fill="#f59e0b" opacity="0.6"/>
-            </svg>
-          </div>
+          <LogoVegaStar size={28} />
           <span style={{fontFamily:'var(--font-display)',fontSize:18,fontWeight:800,color:'#ffffff',letterSpacing:'-0.5px',lineHeight:1}}>Vega<span style={{fontStyle:'italic',background:'linear-gradient(135deg,#f59e0b,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>ply</span></span>
         </div>
         <div className="topbar-search">

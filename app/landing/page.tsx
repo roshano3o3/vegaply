@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { LogoVegaStar } from '@/components/logo/LogoVegaStar'
 
 export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -615,6 +616,7 @@ export default function LandingPage() {
         @media(max-width:768px){
           nav{padding:16px 20px;}
           .nav-links{display:none;}
+          .logo-mark{width:28px !important;height:28px !important;}
           .section{padding:60px 20px;}
           .feat-grid{grid-template-columns:1fr;}
           .testi-grid{grid-template-columns:1fr;}
@@ -645,9 +647,7 @@ export default function LandingPage() {
         {/* NAV */}
         <nav>
           <Link href="/" className="logo">
-            <div style={{width:30,height:30,background:'var(--gold)',borderRadius:9,border:'1px solid rgba(245,158,11,0.4)',boxShadow:'0 0 16px rgba(245,158,11,0.25)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <svg width="16" height="16" viewBox="0 0 200 200"><path d="M100,76 L34,118 L66,113 Z" fill="var(--gold)"/><path d="M100,76 L166,118 L134,113 Z" fill="var(--gold-hover)"/><ellipse cx="100" cy="92" rx="8" ry="16" fill="var(--gold)"/><circle cx="100" cy="76" r="7" fill="var(--gold)"/><polygon points="100,66 107,62 100,61" fill="#fcd34d"/><line x1="96" y1="108" x2="88" y2="126" stroke="var(--cyan)" strokeWidth="2" strokeLinecap="round"/><line x1="100" y1="109" x2="100" y2="128" stroke="var(--cyan-hover)" strokeWidth="2" strokeLinecap="round"/><line x1="104" y1="108" x2="112" y2="126" stroke="var(--cyan)" strokeWidth="2" strokeLinecap="round"/><path d="M82,144 A18,18 0 0,1 118,144" fill="var(--gold)" opacity="0.6"/></svg>
-            </div>
+            <LogoVegaStar size={32} className="logo-mark" />
             <span className="logo-text">Vega<span>ply</span></span>
           </Link>
           <ul className="nav-links">
