@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -12,6 +12,8 @@ export default function LandingPage() {
   const [c1, setC1] = useState('0')
   const [c2, setC2] = useState('0')
   const [c3, setC3] = useState('0×')
+  const [floatIdx, setFloatIdx] = useState(0)
+  const [ringProgress, setRingProgress] = useState(false)
 
   const prefersReducedMotion = useReducedMotion()
 
@@ -207,6 +209,18 @@ export default function LandingPage() {
     })
   }, [])
 
+  // Rotate floating cards: cycles 0→4 every 3s
+  useEffect(() => {
+    const t = setInterval(() => setFloatIdx(i => (i + 1) % 5), 3000)
+    return () => clearInterval(t)
+  }, [])
+
+  // Kick off the ring fill after mount
+  useEffect(() => {
+    const t = setTimeout(() => setRingProgress(true), 900)
+    return () => clearTimeout(t)
+  }, [])
+
   const tickData = [
     "5 job sources combined",
     "70+ H1B sponsors verified",
@@ -224,6 +238,14 @@ export default function LandingPage() {
     '🎉 Someone in Boston received an offer · 12m ago',
     '🔥 Someone in Chicago applied to Data Scientist · 15m ago',
     '✅ Someone in LA got interview at Notion · 18m ago',
+  ]
+
+  const floatingCards = [
+    {icon:'⚡', title:'Fresh Jobs',      desc:'Posted in last 24h'},
+    {icon:'🤖', title:'AI Match Score',  desc:'Know your fit instantly'},
+    {icon:'✂️', title:'Tailored Resume', desc:'ATS keywords baked in'},
+    {icon:'🎯', title:'Interview Prep',  desc:'Likely Q&A generated'},
+    {icon:'📊', title:'Tracker',         desc:'Applied → Offer pipeline'},
   ]
 
   return (
@@ -414,7 +436,7 @@ export default function LandingPage() {
         .how-feature-row{display:grid;grid-template-columns:52px 1fr;gap:16px;padding:20px 22px;border-radius:20px;background:rgba(255,255,255,0.040);border:1px solid rgba(255,255,255,0.085);transition:background 0.28s ease,border-color 0.28s ease,box-shadow 0.28s ease;position:relative;overflow:hidden;cursor:default;will-change:transform;}
         .how-feature-row:hover{background:rgba(255,255,255,0.065);border-color:rgba(245,158,11,0.20);box-shadow:0 0 0 1px rgba(245,158,11,0.06),0 16px 48px rgba(245,158,11,0.12);}
         .how-feature-icon{width:52px;height:52px;border-radius:18px;background:radial-gradient(circle at 35% 35%,rgba(245,158,11,0.20),rgba(245,158,11,0.09));border:1px solid rgba(245,158,11,0.12);box-shadow:0 0 14px rgba(245,158,11,0.07);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--gold);flex-shrink:0;position:relative;z-index:1;transition:background 0.28s ease,box-shadow 0.28s ease,transform 0.28s ease;}
-        .how-feature-row:hover .how-feature-icon{background:radial-gradient(circle at 35% 35%,rgba(245,158,11,0.30),rgba(245,158,11,0.14));box-shadow:0 0 20px rgba(245,158,11,0.18);transform:scale(1.04);}
+        .how-feature-row:hover .how-feature-icon{background:radial-gradient(circle at 35% 35%,rgba(245,158,11,0.30),rgba(245,158,11,0.14));box-shadow:0 0 20px rgba(245,158,11,0.18);transform:scale(1.04) translateX(4px);}
         .how-feature-copy{display:flex;flex-direction:column;gap:6px;position:relative;z-index:1;align-self:center;}
         .how-feature-title{font-size:15px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;}
         .how-feature-desc{font-size:13px;color:rgba(255,255,255,0.50);line-height:1.6;}
@@ -422,11 +444,42 @@ export default function LandingPage() {
         .how-feature-row:hover .how-feat-accent{opacity:1;}
         .how-feat-sweep{position:absolute;inset:0;background:linear-gradient(105deg,transparent 25%,rgba(245,158,11,0.03) 50%,transparent 75%);pointer-events:none;border-radius:20px;opacity:0;transition:opacity 0.3s ease;z-index:0;}
         .how-feature-row:hover .how-feat-sweep{opacity:1;}
-        .how-bg-wrap{position:relative;overflow:hidden;}
+        .how-bg-wrap{position:relative;}
         .how-orb-1{position:absolute;top:12%;left:8%;width:140px;height:140px;background:radial-gradient(circle,rgba(245,158,11,0.11) 0%,transparent 70%);filter:blur(32px);border-radius:50%;pointer-events:none;z-index:0;animation:howOrbDrift 16s ease-in-out infinite;}
         .how-orb-2{position:absolute;bottom:18%;right:12%;width:110px;height:110px;background:radial-gradient(circle,rgba(6,182,212,0.09) 0%,transparent 70%);filter:blur(28px);border-radius:50%;pointer-events:none;z-index:0;animation:howOrbDrift 22s ease-in-out infinite reverse;}
         @keyframes howOrbDrift{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(10px,-14px) scale(1.05);}66%{transform:translate(-8px,10px) scale(0.97);}}
         @media(prefers-reduced-motion:reduce){.how-orb-1,.how-orb-2{animation:none;}}
+        /* LIVE badge pulse dot */
+        @keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.55);}}
+        .how-live-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:livePulse 2s ease-in-out infinite;flex-shrink:0;display:inline-block;}
+        /* Search bar text shimmer */
+        @keyframes searchPulse{0%,100%{opacity:0.78;}50%{opacity:0.36;}}
+        .how-search-text{animation:searchPulse 3.4s ease-in-out infinite;}
+        /* Hover arrow on feature cards */
+        .how-feat-arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(245,158,11,0.55);opacity:0;transition:opacity 0.22s ease,transform 0.22s ease;pointer-events:none;z-index:3;}
+        .how-feature-row:hover .how-feat-arrow{opacity:1;transform:translateY(-50%) translateX(3px);}
+        /* Hero (large) first feature card */
+        .how-feat-hero{padding:22px 26px !important;}
+        .how-feat-stat{display:flex;align-items:baseline;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(245,158,11,0.10);}
+        .how-feat-stat-num{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--gold);line-height:1;}
+        .how-feat-stat-label{font-size:11px;color:rgba(255,255,255,0.35);}
+        /* 2.4× stat callout block */
+        .how-stat-callout{background:linear-gradient(105deg,rgba(245,158,11,0.07),rgba(245,158,11,0.02) 65%,transparent);border:1px solid rgba(245,158,11,0.13);border-radius:18px;padding:16px 20px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
+        .how-stat-callout::before{content:'';position:absolute;left:0;top:12%;bottom:12%;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(245,158,11,0.32),transparent);}
+        .how-stat-num{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--gold);line-height:1;flex-shrink:0;}
+        .how-stat-body{display:flex;flex-direction:column;gap:3px;}
+        .how-stat-label{font-size:13px;font-weight:600;color:rgba(255,255,255,0.80);line-height:1.35;}
+        .how-stat-footnote{font-size:10.5px;color:rgba(255,255,255,0.26);}
+        /* Social proof strip */
+        .sp-strip{padding:18px 52px;border-top:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.007);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;}
+        .sp-label{font-size:10.5px;letter-spacing:0.10em;text-transform:uppercase;color:rgba(245,158,11,0.55);white-space:nowrap;flex-shrink:0;}
+        .sp-logos{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+        .sp-logo{font-size:12px;font-weight:700;color:rgba(255,255,255,0.20);letter-spacing:-0.02em;text-transform:uppercase;}
+        .sp-stats{display:flex;align-items:center;gap:22px;flex-shrink:0;}
+        .sp-stat{display:flex;flex-direction:column;align-items:center;gap:1px;}
+        .sp-stat-n{font-size:13px;font-weight:700;color:var(--gold);}
+        .sp-stat-l{font-size:10px;color:rgba(255,255,255,0.26);text-align:center;white-space:nowrap;}
+        @media(max-width:768px){.sp-strip{padding:14px 20px;gap:14px;flex-direction:column;align-items:flex-start;}.sp-logos{gap:10px;}.sp-stats{gap:14px;}}
         @media(max-width:1024px){.how-grid{grid-template-columns:1fr;gap:40px;}.how-scene{min-height:auto;}.how-central{max-width:520px;margin:0 auto;}.how-left{order:2;}.how-right{order:1;max-width:none;}.how-section{padding:80px 24px;}}
         @media(max-width:768px){.how-section{padding:80px 18px;}.how-grid{gap:28px;}.how-floating{display:none;}.how-central{width:100%;max-width:none;}.how-feature-row{flex-direction:column;gap:12px;}.how-feature-icon{width:46px;height:46px;align-self:flex-start;}.how-section h2{font-size:clamp(28px,5vw,42px);}} 
         .cards-scene{display:flex;gap:22px;margin-top:58px;perspective:1200px;flex-wrap:wrap;}
@@ -893,6 +946,7 @@ export default function LandingPage() {
         <motion.div className="how-central" style={{width: 'min(450px, 100%)', minHeight: '340px', margin: '0 auto', zIndex: 5}}
                   animate={prefersReducedMotion ? undefined : { y: [-4, 4, -4] }}
                   transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}>
+                  {/* Header — pulsing amber dot on LIVE badge */}
                   <div className="how-card-header">
                     <div style={{display:'flex',alignItems:'center',gap:12}}>
                       <div style={{width:8,height:8,borderRadius:'50%',background:'var(--gold)',boxShadow:'0 0 12px rgba(245,158,11,0.4)'}} />
@@ -901,12 +955,21 @@ export default function LandingPage() {
                         <span style={{fontSize:15,fontWeight:700,color:'#f5f5f7'}}>Vegaply Dashboard</span>
                       </div>
                     </div>
-                    <div className="how-pill">● LIVE</div>
+                    <div className="how-pill" style={{display:'flex',alignItems:'center',gap:6}}>
+                      <span className="how-live-dot"/>LIVE
+                    </div>
                   </div>
 
-                  <div className="how-search">Search 10,000+ fresh jobs…</div>
+                  {/* Search bar — placeholder text gently pulses */}
+                  <div className="how-search">
+                    <span className="how-search-text">Search 10,000+ fresh jobs…</span>
+                  </div>
 
-                  <div className="how-job">
+                  {/* Job rows — stagger in 100ms apart */}
+                  <motion.div className="how-job"
+                    initial={prefersReducedMotion ? false : {opacity:0,y:6}}
+                    animate={{opacity:1,y:0}}
+                    transition={{delay:0.55,duration:0.35,ease:'easeOut'}}>
                     <div className="how-job-left">
                       <div className="how-job-icon">DA</div>
                       <div className="how-job-detail">
@@ -918,13 +981,25 @@ export default function LandingPage() {
                       <span>94%</span>
                       <span className="how-badge">Hot</span>
                     </div>
-                  </div>
-                  <div className="how-job" style={{paddingTop:12}}>
+                  </motion.div>
+
+                  {/* Row with animated ring — fills 0 → 94% on page load */}
+                  <motion.div className="how-job" style={{paddingTop:12}}
+                    initial={prefersReducedMotion ? false : {opacity:0,y:6}}
+                    animate={{opacity:1,y:0}}
+                    transition={{delay:0.65,duration:0.35,ease:'easeOut'}}>
                     <div className="how-job-left">
                       <div className="how-ring">
                         <svg viewBox="0 0 44 44" fill="none">
                           <circle cx="22" cy="22" r="16" stroke="rgba(255,255,255,0.08)" strokeWidth="4"/>
-                          <circle cx="22" cy="22" r="16" stroke="var(--gold)" strokeWidth="4" strokeLinecap="round" strokeDasharray="100.5" strokeDashoffset="18" transform="rotate(-90 22 22)" />
+                          <motion.circle
+                            cx="22" cy="22" r="16"
+                            stroke="var(--gold)" strokeWidth="4" strokeLinecap="round"
+                            strokeDasharray="100.5" transform="rotate(-90 22 22)"
+                            initial={prefersReducedMotion ? {strokeDashoffset:6} : {strokeDashoffset:100.5}}
+                            animate={{strokeDashoffset: ringProgress ? 6 : 100.5}}
+                            transition={prefersReducedMotion ? {duration:0} : {duration:1.6,ease:[0.25,1,0.5,1],delay:0.5}}
+                          />
                         </svg>
                         <div className="how-ring-text">94%</div>
                       </div>
@@ -936,8 +1011,12 @@ export default function LandingPage() {
                     <div className="how-job-meta">
                       <span className="how-badge">Hot</span>
                     </div>
-                  </div>
-                  <div className="how-job">
+                  </motion.div>
+
+                  <motion.div className="how-job"
+                    initial={prefersReducedMotion ? false : {opacity:0,y:6}}
+                    animate={{opacity:1,y:0}}
+                    transition={{delay:0.75,duration:0.35,ease:'easeOut'}}>
                     <div className="how-job-left">
                       <div className="how-job-icon">BA</div>
                       <div className="how-job-detail">
@@ -949,8 +1028,12 @@ export default function LandingPage() {
                       <span>88%</span>
                       <span className="how-badge">New</span>
                     </div>
-                  </div>
-                  <div className="how-job">
+                  </motion.div>
+
+                  <motion.div className="how-job"
+                    initial={prefersReducedMotion ? false : {opacity:0,y:6}}
+                    animate={{opacity:1,y:0}}
+                    transition={{delay:0.85,duration:0.35,ease:'easeOut'}}>
                     <div className="how-job-left">
                       <div className="how-job-icon">DE</div>
                       <div className="how-job-detail">
@@ -962,57 +1045,167 @@ export default function LandingPage() {
                       <span>76%</span>
                       <span className="how-badge">Early Bird</span>
                     </div>
-                  </div>
+                  </motion.div>
                 </motion.div>
 
-                {[
-                  {icon:'⚡',title:'Fresh Jobs',desc:'Posted in last 24h',style:{top:'12px',left:'-105px'}},
-                  {icon:'🤖',title:'AI Match Score',desc:'Know your fit instantly',style:{top:'12px',right:'-105px'}},
-                  {icon:'✂️',title:'Tailored Resume',desc:'ATS keywords baked in',style:{top:'215px',left:'-115px'}},
-                  {icon:'🎯',title:'Interview Prep',desc:'Likely Q&A generated',style:{bottom:'18px',right:'-105px'}},
-                  {icon:'📊',title:'Tracker',desc:'Applied → Offer pipeline',style:{bottom:'18px',left:'-85px'}},
-                ].map((card, idx) => (
-                  <motion.div key={idx}
-                    className="how-floating"
-                    style={{...card.style, width: '160px', padding: '12px 13px', borderRadius: '16px', zIndex: 8}}
-                    animate={prefersReducedMotion ? undefined : { y: [-6, 6, -6] }}
-                    transition={{ repeat: Infinity, duration: 7 + idx * 0.5, ease: 'easeInOut', delay: idx * 0.8 }}>
-                    <h3>{card.icon} {card.title}</h3>
-                    <p>{card.desc}</p>
-                  </motion.div>
-                ))}
+                {/* TOP-LEFT slot — rotates through all 5 cards */}
+                <div style={{position:'absolute',top:'8%',left:'-140px',width:'152px',zIndex:8}}>
+                  {prefersReducedMotion ? (
+                    <div className="how-floating" style={{position:'relative',width:'152px',padding:'12px 13px',borderRadius:'16px'}}>
+                      <h3>{floatingCards[floatIdx].icon} {floatingCards[floatIdx].title}</h3>
+                      <p>{floatingCards[floatIdx].desc}</p>
+                    </div>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      <motion.div key={`tl-${floatIdx}`}
+                        className="how-floating"
+                        style={{position:'relative',width:'152px',padding:'12px 13px',borderRadius:'16px'}}
+                        initial={{opacity:0,y:10,x:-4}}
+                        animate={{opacity:1,y:0,x:0}}
+                        exit={{opacity:0,y:-10,x:4}}
+                        transition={{duration:0.44,ease:'easeInOut'}}>
+                        <h3>{floatingCards[floatIdx].icon} {floatingCards[floatIdx].title}</h3>
+                        <p>{floatingCards[floatIdx].desc}</p>
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
+                </div>
+
+                {/* BOTTOM-RIGHT slot — offset by 2, always shows a different card */}
+                <div style={{position:'absolute',bottom:'8%',right:'-140px',width:'152px',zIndex:8}}>
+                  {prefersReducedMotion ? (
+                    <div className="how-floating" style={{position:'relative',width:'152px',padding:'12px 13px',borderRadius:'16px'}}>
+                      <h3>{floatingCards[(floatIdx+2)%5].icon} {floatingCards[(floatIdx+2)%5].title}</h3>
+                      <p>{floatingCards[(floatIdx+2)%5].desc}</p>
+                    </div>
+                  ) : (
+                    <AnimatePresence mode="wait">
+                      <motion.div key={`br-${(floatIdx+2)%5}`}
+                        className="how-floating"
+                        style={{position:'relative',width:'152px',padding:'12px 13px',borderRadius:'16px'}}
+                        initial={{opacity:0,y:-10,x:4}}
+                        animate={{opacity:1,y:0,x:0}}
+                        exit={{opacity:0,y:10,x:-4}}
+                        transition={{duration:0.44,ease:'easeInOut'}}>
+                        <h3>{floatingCards[(floatIdx+2)%5].icon} {floatingCards[(floatIdx+2)%5].title}</h3>
+                        <p>{floatingCards[(floatIdx+2)%5].desc}</p>
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="how-right" style={{display:'flex',flexDirection:'column',gap:'12px',width:'100%',position:'relative'}}>
-              {/* Subtle vertical guide — sits behind the icon column */}
+            <div className="how-right" style={{display:'flex',flexDirection:'column',gap:'10px',width:'100%',position:'relative'}}>
+              {/* Connector guide line — sits behind icon column */}
               <div style={{position:'absolute',left:'46px',top:'30px',bottom:'30px',width:'1px',background:'linear-gradient(180deg,transparent,rgba(245,158,11,0.07) 15%,rgba(245,158,11,0.07) 85%,transparent)',pointerEvents:'none',zIndex:0}} />
-              {[
-                {icon:'🔍',title:'Smart job discovery',text:'Vegaply surfaces the roles with the highest fit, so you only spend time on what truly matters.'},
-                {icon:'✂️',title:'AI resume tailoring',text:'Your resume rewrites itself for each opening, matching keywords and tone to the job description.'},
-                {icon:'⚡',title:'One-click apply flow',text:'Submit applications, cover letters, and prep notes in a single, connected action.'},
-                {icon:'📈',title:'Live progress feed',text:'See every application stage, interview invite, and offer update from one central dashboard.'},
-                {icon:'🏁',title:'Beat the competition',text:'Early alerts, sponsor filters, and matched leads help you apply faster than 100+ rivals.'},
-              ].map((item, idx) => (
-                <motion.div key={idx}
-                  initial={{opacity:0,y:18}}
-                  whileInView={{opacity:1,y:0}}
-                  viewport={{once:true}}
-                  transition={{delay:0.08 + idx * 0.10, duration:0.5, ease:'easeOut'}}>
-                  <motion.div
-                    className="how-feature-row"
-                    whileHover={{y:-4,scale:1.01}}
-                    transition={{duration:0.25,ease:'easeOut'}}>
-                    <div className="how-feat-accent" />
-                    <div className="how-feat-sweep" />
-                    <div className="how-feature-icon">{item.icon}</div>
-                    <div className="how-feature-copy">
-                      <div className="how-feature-title">{item.title}</div>
-                      <div className="how-feature-desc">{item.text}</div>
+
+              {/* Card 1 — HERO SIZE with stat callout inline */}
+              <motion.div
+                initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+                transition={{delay:0.08,duration:0.5,ease:'easeOut'}}>
+                <motion.div className="how-feature-row how-feat-hero"
+                  whileHover={{y:-4,scale:1.01}} transition={{duration:0.25,ease:'easeOut'}}>
+                  <div className="how-feat-accent"/>
+                  <div className="how-feat-sweep"/>
+                  {/* Filled amber icon */}
+                  <div className="how-feature-icon" style={{background:'rgba(245,158,11,0.20)',border:'1px solid rgba(245,158,11,0.20)'}}>🔍</div>
+                  <div className="how-feature-copy">
+                    <div className="how-feature-title">Smart job discovery</div>
+                    <div className="how-feature-desc">Our AI scans 10,000+ listings daily and ranks them by your skills, salary expectations, and culture fit — no more endless scrolling.</div>
+                    <div className="how-feat-stat">
+                      <span className="how-feat-stat-num">10,000+</span>
+                      <span className="how-feat-stat-label">fresh jobs indexed daily</span>
                     </div>
-                  </motion.div>
+                  </div>
+                  <div className="how-feat-arrow">→</div>
                 </motion.div>
-              ))}
+              </motion.div>
+
+              {/* Card 2 — outlined amber icon */}
+              <motion.div
+                initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+                transition={{delay:0.18,duration:0.5,ease:'easeOut'}}>
+                <motion.div className="how-feature-row"
+                  whileHover={{y:-4,scale:1.01}} transition={{duration:0.25,ease:'easeOut'}}>
+                  <div className="how-feat-accent"/>
+                  <div className="how-feat-sweep"/>
+                  {/* Outlined icon */}
+                  <div className="how-feature-icon" style={{background:'transparent',border:'1.5px solid rgba(245,158,11,0.28)',boxShadow:'none'}}>✂️</div>
+                  <div className="how-feature-copy">
+                    <div className="how-feature-title">AI resume tailoring</div>
+                    <div className="how-feature-desc">Your resume rewrites itself for each opening, matching keywords and tone to the job description.</div>
+                  </div>
+                  <div className="how-feat-arrow">→</div>
+                </motion.div>
+              </motion.div>
+
+              {/* Card 3 — amber-to-orange gradient icon */}
+              <motion.div
+                initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+                transition={{delay:0.28,duration:0.5,ease:'easeOut'}}>
+                <motion.div className="how-feature-row"
+                  whileHover={{y:-4,scale:1.01}} transition={{duration:0.25,ease:'easeOut'}}>
+                  <div className="how-feat-accent"/>
+                  <div className="how-feat-sweep"/>
+                  {/* Gradient icon */}
+                  <div className="how-feature-icon" style={{background:'linear-gradient(135deg,rgba(245,158,11,0.22),rgba(234,88,12,0.12))',border:'1px solid rgba(245,100,0,0.14)'}}>⚡</div>
+                  <div className="how-feature-copy">
+                    <div className="how-feature-title">One-click apply flow</div>
+                    <div className="how-feature-desc">Submit applications, cover letters, and prep notes in a single, connected action.</div>
+                  </div>
+                  <div className="how-feat-arrow">→</div>
+                </motion.div>
+              </motion.div>
+
+              {/* Stat callout — between cards 3 and 4 */}
+              <motion.div
+                initial={{opacity:0,y:14}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+                transition={{delay:0.35,duration:0.5,ease:'easeOut'}}>
+                <div className="how-stat-callout">
+                  <div className="how-stat-num">2.4×</div>
+                  <div className="how-stat-body">
+                    <div className="how-stat-label">more interviews than candidates using LinkedIn alone</div>
+                    <div className="how-stat-footnote">Based on 500+ user reports</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Card 4 — subtle filled icon */}
+              <motion.div
+                initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+                transition={{delay:0.42,duration:0.5,ease:'easeOut'}}>
+                <motion.div className="how-feature-row"
+                  whileHover={{y:-4,scale:1.01}} transition={{duration:0.25,ease:'easeOut'}}>
+                  <div className="how-feat-accent"/>
+                  <div className="how-feat-sweep"/>
+                  {/* Subtle filled icon */}
+                  <div className="how-feature-icon" style={{background:'rgba(245,158,11,0.11)',border:'1px solid rgba(245,158,11,0.08)'}}>📈</div>
+                  <div className="how-feature-copy">
+                    <div className="how-feature-title">Live progress feed</div>
+                    <div className="how-feature-desc">See every application stage, interview invite, and offer update from one central dashboard.</div>
+                  </div>
+                  <div className="how-feat-arrow">→</div>
+                </motion.div>
+              </motion.div>
+
+              {/* Card 5 — outlined with outer glow ring */}
+              <motion.div
+                initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+                transition={{delay:0.50,duration:0.5,ease:'easeOut'}}>
+                <motion.div className="how-feature-row"
+                  whileHover={{y:-4,scale:1.01}} transition={{duration:0.25,ease:'easeOut'}}>
+                  <div className="how-feat-accent"/>
+                  <div className="how-feat-sweep"/>
+                  {/* Outlined + outer glow */}
+                  <div className="how-feature-icon" style={{background:'transparent',border:'1.5px solid rgba(245,158,11,0.22)',boxShadow:'0 0 0 4px rgba(245,158,11,0.04)'}}>🏁</div>
+                  <div className="how-feature-copy">
+                    <div className="how-feature-title">Beat the competition</div>
+                    <div className="how-feature-desc">Early alerts, sponsor filters, and matched leads help you apply faster than 100+ rivals.</div>
+                  </div>
+                  <div className="how-feat-arrow">→</div>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -1020,6 +1213,23 @@ export default function LandingPage() {
         </div>
 
         <div className="glow-line"/>
+
+        {/* SOCIAL PROOF STRIP */}
+        <motion.div initial={{opacity:0,y:16}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
+          <div className="sp-strip">
+            <div className="sp-label">Trusted by job seekers landing roles at</div>
+            <div className="sp-logos">
+              {['Google','Meta','Stripe','Amazon','Netflix','Microsoft'].map(name => (
+                <span key={name} className="sp-logo">{name}</span>
+              ))}
+            </div>
+            <div className="sp-stats">
+              <div className="sp-stat"><span className="sp-stat-n">10,000+</span><span className="sp-stat-l">jobs indexed</span></div>
+              <div className="sp-stat"><span className="sp-stat-n">3 min</span><span className="sp-stat-l">avg tailoring time</span></div>
+              <div className="sp-stat"><span className="sp-stat-n">94%</span><span className="sp-stat-l">interview-rate boost</span></div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* FEATURES */}
         <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:'easeOut'}}>
