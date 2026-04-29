@@ -17,7 +17,8 @@
       "Bash(grep -E \"^sharp$|^canvas$|^jimp$|^satori$|^@vercel\")",
       "Bash(grep -E \"png-to-ico|to-ico|ico$\")",
       "Bash(curl -s -o /dev/null -w \"landing: %{http_code}\\\\n\" http://localhost:3001/landing)",
-      "Bash(curl -s -o /dev/null -w \"logo-preview: %{http_code}\\\\n\" http://localhost:3001/logo-preview)"
+      "Bash(curl -s -o /dev/null -w \"logo-preview: %{http_code}\\\\n\" http://localhost:3001/logo-preview)",
+      "Bash(git checkout *)"
     ]
   }
 }
