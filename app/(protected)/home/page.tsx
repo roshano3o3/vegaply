@@ -2152,6 +2152,10 @@ export default function Home() {
   const handleSearch=async()=>{
     console.log("SEARCH CLICKED",{jobRole,location});
     if(!jobRole||!location){alert("Please enter job role and location");return;}
+    if (typeof window !== "undefined") {
+      localStorage.setItem("vegaply_last_role", jobRole);
+      localStorage.setItem("vegaply_last_location", location);
+    }
     localStorage.setItem("applysmart_jobRole",jobRole);
     localStorage.setItem("applysmart_location",location);
     setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
@@ -2709,6 +2713,18 @@ export default function Home() {
     },3*60*1000);
     return()=>clearInterval(interval);
   },[hasSearched]);
+
+  useEffect(()=>{
+    const urlRole=searchParams.get("role");
+    const urlLoc=searchParams.get("location");
+    if(urlRole&&urlLoc){
+      setJobRole(urlRole);
+      setLocation(urlLoc);
+      setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
+      fetchJobs("normal",urlRole,urlLoc);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
 
   const toggleTheme=()=>{
     const next=!darkMode;

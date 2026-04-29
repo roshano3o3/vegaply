@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   const checkOnboardingAndRedirect = async () => {
-    router.push("/home")
+    router.push("/welcome")
   };
 
   const handleForgotPassword = async () => {
