@@ -18,7 +18,8 @@
       "Bash(grep -E \"png-to-ico|to-ico|ico$\")",
       "Bash(curl -s -o /dev/null -w \"landing: %{http_code}\\\\n\" http://localhost:3001/landing)",
       "Bash(curl -s -o /dev/null -w \"logo-preview: %{http_code}\\\\n\" http://localhost:3001/logo-preview)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(grep -n -B 1 -A 8 \"\\\\.sidebar\\\\s*{|\\\\\\\\.right-panel\\\\s*{|\\\\.main-layout\\\\s*{|\\\\.app-layout\\\\s*{\" \"app/\\(protected\\)/home/page.tsx\")"
     ]
   }
 }
