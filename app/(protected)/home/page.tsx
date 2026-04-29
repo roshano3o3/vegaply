@@ -2943,7 +2943,7 @@ export default function Home() {
         .logout-btn{background:transparent;border:none;color:rgba(255,255,255,0.30);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-primary);letter-spacing:0.1px;padding:6px 10px;border-radius:8px;transition:color 0.18s ease}
 
         /* LAYOUT */
-        .app-layout{display:flex;min-height:calc(100vh - 60px);background:var(--bg-page);position:relative;z-index:1;overflow-x:hidden}
+        .app-layout{display:flex;min-height:calc(100vh - 60px);background:var(--bg-page);position:relative;z-index:1;}
         .sidebar{width:260px;flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
         .content{flex:1;min-width:0;padding:var(--space-6) var(--space-8);max-width:calc(100% - 260px - 320px);display:flex;flex-direction:column;gap:var(--space-6)}
         .right-panel{width:320px;flex-shrink:0;background:var(--bg-surface);border-left:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4);display:flex;flex-direction:column;gap:var(--space-6);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}

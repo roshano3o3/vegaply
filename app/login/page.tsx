@@ -239,11 +239,11 @@ export default function LoginPage() {
               <div className="or-divider"><span>or</span></div>
               <div className="form-group">
                 <label className="form-label">Email</label>
-                <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
+                <input className="form-input" type="email" name="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input className="form-input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
+                <input className="form-input" type="password" name="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
                 <div style={{textAlign:"right",marginTop:6}}>
                   <span onClick={()=>setForgotMode(true)} style={{fontSize:12,color:"rgba(255,255,255,0.3)",cursor:"pointer"}} onMouseEnter={e=>(e.currentTarget.style.color="#818cf8")} onMouseLeave={e=>(e.currentTarget.style.color="rgba(255,255,255,0.3)")}>Forgot password?</span>
                 </div>

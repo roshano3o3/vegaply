@@ -1,72 +1,95 @@
 import { NextResponse } from "next/server";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { resumeText, job } = await req.json();
+    const { resumeText, job, profile } = await req.json();
 
     if (!resumeText || !job) {
       return NextResponse.json({ error: "Missing resumeText or job" }, { status: 400 });
     }
 
-    const prompt = `You are an expert resume writer. Your job is to rephrase a candidate's existing resume content to better match a job description — WITHOUT removing or inventing anything.
+    const profileName = profile?.full_name || `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim();
 
-ABSOLUTE RULES:
-1. PRESERVE every job, project, certification, skill, and bullet point from their resume
-2. NEVER invent metrics, percentages, dollar amounts, or specific numbers
-3. NEVER add experience, skills, or accomplishments not already in their resume
-4. ONLY rephrase existing bullets using job-relevant keywords from the job description
-5. Keep ALL personal info exactly as it appears (name, email, phone, location)
-6. If their resume has 5 jobs, keep all 5. If it has 3 projects, keep all 3.
-7. Skills section: keep all their existing skills, prioritize ordering by job relevance
-8. PRESERVE EXACT BULLET COUNT per job/project. If their original resume has 4 bullets for Job X, output 4 bullets for Job X. Never reduce below the original count. If the original has 3 projects with 1-line descriptions each, keep all 3 with full descriptions.
+    const prompt = `You are an elite resume writer tailoring a REAL candidate's resume for a specific job. Your job: TRANSFORM existing experience into stronger language — NEVER invent.
 
-JOB TITLE: ${job.job_title}
-COMPANY: ${job.employer_name}
-JOB DESCRIPTION: ${job.job_description?.slice(0, 2500) || "Not provided"}
+═══════════════════════════════════════════
+CANDIDATE PROFILE (use exactly if provided, else extract from resume)
+═══════════════════════════════════════════
+Name: ${profileName || "EXTRACT FROM RESUME"}
+Email: ${profile?.email || "EXTRACT FROM RESUME"}
+Phone: ${profile?.phone || "EXTRACT FROM RESUME"}
+LinkedIn: ${profile?.linkedin_url || "EXTRACT FROM RESUME IF PRESENT"}
+Location: ${profile?.location || "EXTRACT FROM RESUME"}
 
-CANDIDATE'S FULL RESUME (this is the ONLY source of truth — extract EVERYTHING):
-${resumeText.slice(0, 5000)}
+═══════════════════════════════════════════
+CANDIDATE'S FULL RESUME (source of truth — ALL content derives from here)
+═══════════════════════════════════════════
+${resumeText}
 
-Return ONLY a JSON object with this exact structure, no preamble. Include ALL sections the candidate has — if they have projects include projects array, if they have certifications include certifications array. Do NOT skip sections:
+═══════════════════════════════════════════
+TARGET JOB
+═══════════════════════════════════════════
+Title: ${job.job_title || ""}
+Company: ${job.employer_name || ""}
+Description: ${(job.job_description || "").slice(0, 2500)}
+Required: ${job.job_highlights?.Qualifications?.join("; ") || ""}
+
+═══════════════════════════════════════════
+RULES — NON-NEGOTIABLE
+═══════════════════════════════════════════
+
+DO:
+✓ Rephrase every bullet using strong action verbs (Led, Architected, Drove, Reduced, Shipped, Owned, Scaled, Delivered, Optimized)
+✓ Reorder bullets within each role so the most JD-relevant ones appear first
+✓ Pull metrics that ARE in the resume forward and emphasize them
+✓ Weave keywords from the JD into bullets ONLY where they truthfully match real experience
+✓ Write a fresh 3–4 sentence professional summary tailored to THIS specific job using ONLY facts from the resume
+✓ Include EVERY job, project, certification, skill, and education entry the candidate has — drop nothing
+
+DO NOT:
+✗ Invent metrics ($X, Y%, N users) — if it's not in the resume, do not create it
+✗ Invent technologies, frameworks, or tools not listed
+✗ Invent companies, titles, or dates
+✗ Add education, certs, or projects not on the resume
+✗ Output the literal phrase "Tailored Resume" anywhere
+
+═══════════════════════════════════════════
+ALLOWED REPHRASING — EXAMPLES
+═══════════════════════════════════════════
+
+Resume: "Worked on Python pipeline for data processing"
+JD wants: "ETL, Python, large datasets"
+✓ "Built Python ETL pipeline powering downstream analytics workflows"
+✗ "Built Python ETL pipeline processing 10M+ records daily"  ← invented number
+
+Resume: "Helped reduce inventory cost by 5%"
+✓ "Drove 5% inventory cost reduction through data-driven optimization"
+✗ "Drove $250K inventory cost reduction"  ← invented dollar amount
+
+═══════════════════════════════════════════
+OUTPUT — Return ONLY valid JSON, no markdown, no explanation
+═══════════════════════════════════════════
 
 {
-  "name": "candidate's actual name",
-  "email": "candidate's actual email",
-  "phone": "candidate's actual phone",
-  "location": "candidate's actual location",
-  "summary": "2-3 sentence summary using ONLY their real background, rephrased for this job",
+  "name": "string",
+  "email": "string",
+  "phone": "string",
+  "linkedin": "string or empty",
+  "location": "string",
+  "summary": "3-4 sentences tailored to this job using only true facts",
   "experience": [
-    {
-      "title": "exact title",
-      "company": "exact company",
-      "dates": "exact dates",
-      "bullets": [
-          "First bullet — rephrased with job keywords, action verb start",
-          "Second bullet — preserve original metrics, integrate job-relevant terminology",
-          "Third bullet — strengthen verbs without inventing achievements",
-          "Fourth bullet if original had 4 — match exact count"
-        ]
-    }
-  ],
-  "projects": [
-    {
-      "name": "exact project name",
-      "description": "Full description rephrased with job keywords. Preserve all metrics, scope, and outcomes from original. Match the original length — if their description was 3 sentences, output 3 sentences."
-    }
+    { "title": "string", "company": "string", "location": "string", "dates": "string", "bullets": ["string"] }
   ],
   "education": [
-    {
-      "degree": "exact degree",
-      "school": "exact school",
-      "dates": "exact dates"
-    }
+    { "degree": "string", "institution": "string", "location": "string", "dates": "string" }
   ],
-  "certifications": ["all their exact certifications"],
-  "skills": ["all their skills, ordered by job relevance"],
-  "keywords_added": ["job keywords incorporated through rephrasing"],
-  "ats_score_estimate": 85
+  "projects": [
+    { "name": "string", "description": "string", "bullets": ["string"] }
+  ],
+  "certifications": ["string"],
+  "skills": { "category": ["skill"] }
 }`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -77,34 +100,26 @@ Return ONLY a JSON object with this exact structure, no preamble. Include ALL se
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1800,
+        model: "claude-sonnet-4-6",
+        max_tokens: 4096,
         temperature: 0,
         messages: [{ role: "user", content: prompt }],
       }),
     });
 
     const data = await response.json();
-    const raw = data?.content?.[0]?.text ?? "";
-    console.log("[generate-resume] Raw AI output length:", raw.length);
+    const text = data?.content?.[0]?.text ?? "{}";
+    const clean = text.replace(/```json|```/g, "").trim();
 
-    const jsonMatch = raw.match(/\{[\s\S]*\}(?=\s*$)/) ?? raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error("[generate-resume] No JSON found in response:", raw.slice(0, 500));
-      return NextResponse.json({ error: "AI did not return JSON", raw: raw.slice(0, 500) }, { status: 500 });
-    }
+    console.log("[generate-resume] raw output length:", text.length);
 
-    let result: any;
-    try {
-      result = JSON.parse(jsonMatch[0]);
-    } catch (parseErr) {
-      console.error("[generate-resume] JSON parse failed. Raw:", jsonMatch[0].slice(0, 1000));
-      return NextResponse.json({ error: "Failed to parse JSON", raw: jsonMatch[0].slice(0, 500) }, { status: 500 });
-    }
-
+    const result = JSON.parse(clean);
     return NextResponse.json(result);
   } catch (error) {
-    console.error("generate-resume error:", error);
-    return NextResponse.json({ error: "Failed to generate resume" }, { status: 500 });
+    console.error("[generate-resume] error:", error);
+    return NextResponse.json(
+      { error: "Failed to generate tailored resume" },
+      { status: 500 }
+    );
   }
 }
