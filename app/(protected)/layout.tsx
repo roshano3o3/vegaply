@@ -29,5 +29,17 @@ export default async function ProtectedLayout({
     redirect('/');
   }
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen w-full relative" style={{
+      background: "radial-gradient(ellipse at top, #1a1530 0%, #0a0a0c 50%, #050507 100%)",
+    }}>
+      {/* Ambient glow blobs — fixed so they stay during scroll */}
+      <div className="fixed top-1/4 left-1/4 w-96 h-96 rounded-full opacity-15 blur-3xl pointer-events-none z-0"
+        style={{ background: "radial-gradient(circle, #6366f1 0%, transparent 70%)" }} />
+      <div className="fixed bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none z-0"
+        style={{ background: "radial-gradient(circle, #f59e0b 0%, transparent 70%)" }} />
+
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
 }
