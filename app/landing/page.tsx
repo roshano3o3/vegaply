@@ -1084,18 +1084,18 @@ export default function VegaplyPro() {
 
         .pin-headline-wrap {
           position: relative;
-          height: 4.8em;
-          overflow: hidden;
+          min-height: 6em;
         }
 
         .pin-headline {
           position: absolute;
           top: 0;
           left: 0;
-          font-size: clamp(32px, 3.5vw, 44px);
+          right: 0;
+          font-size: clamp(28px, 3vw, 40px);
           font-weight: 600;
           letter-spacing: -0.03em;
-          line-height: 1.15;
+          line-height: 1.2;
           color: var(--text);
           width: 100%;
         }
