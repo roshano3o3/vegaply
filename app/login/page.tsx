@@ -97,10 +97,10 @@ export default function LoginPage() {
           --gold-hover:   #fbbf24;
           --gold-subtle:  rgba(245,158,11,0.12);
           --gold-glow:    rgba(245,158,11,0.25);
-          --cyan:         #06b6d4;
-          --cyan-hover:   #22d3ee;
-          --cyan-subtle:  rgba(6,182,212,0.12);
-          --cyan-glow:    rgba(6,182,212,0.25);
+          --cyan:         #fbbf24;
+          --cyan-hover:   #fde68a;
+          --cyan-subtle:  rgba(251,191,36,0.12);
+          --cyan-glow:    rgba(251,191,36,0.20);
           --success: #10b981;
           --warning: #fbbf24;
           --danger:  #ef4444;
@@ -115,24 +115,24 @@ export default function LoginPage() {
           --dur-base: 200ms;
           --dur-slow: 400ms;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        .auth-root { min-height: 100vh; display: flex; background: var(--bg-page); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+        .auth-root { min-height: 100vh; display: flex; background: var(--bg-page); font-family: Inter, system-ui, sans-serif; overflow: hidden; }
         .auth-left { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px 56px; background: var(--bg-page); overflow: hidden; }
         .auth-left::before { content: ''; position: absolute; top: -120px; left: -120px; width: 480px; height: 480px; background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 6s ease-in-out infinite; }
         .auth-left::after { content: ''; position: absolute; bottom: -80px; right: -60px; width: 360px; height: 360px; background: radial-gradient(circle, var(--cyan-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 8s ease-in-out infinite reverse; }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
-        .auth-logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.5px; position: relative; z-index: 1; }
-        .auth-logo span { background: linear-gradient(135deg,var(--gold),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .auth-logo { font-family: Inter, system-ui, sans-serif; font-size: 28px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.5px; position: relative; z-index: 1; }
+        .auth-logo span { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .auth-hero { position: relative; z-index: 1; }
         .auth-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--gold-subtle); border: 1px solid rgba(245,158,11,.22); border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--gold); letter-spacing: 0.5px; margin-bottom: 28px; }
         .auth-eyebrow::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: pulse-dot 2s ease-in-out infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
-        .auth-headline { font-family: 'Playfair Display', serif; font-size: clamp(42px, 4vw, 62px); font-weight: 900; color: var(--text-primary); line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 20px; }
-        .auth-headline em { font-style: italic; background: linear-gradient(135deg,var(--gold) 0%,var(--gold-hover) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .auth-headline { font-family: Inter, system-ui, sans-serif; font-size: clamp(42px, 4vw, 62px); font-weight: 700; color: var(--text-primary); line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 20px; }
+        .auth-headline em { font-style: italic; font-family: Inter, system-ui, sans-serif; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .auth-sub { font-size: 16px; color: var(--text-secondary); line-height: 1.7; font-weight: 300; max-width: 380px; margin-bottom: 48px; }
         .auth-stats { display: flex; gap: 40px; }
-        .auth-stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-bottom: 4px; }
+        .auth-stat-num { font-family: Inter, system-ui, sans-serif; font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-bottom: 4px; }
         .auth-stat-label { font-size: 12px; color: var(--text-tertiary); font-weight: 400; letter-spacing: 0.3px; }
         .auth-ticker { position: relative; z-index: 1; }
         .ticker-title { font-size: 11px; color: var(--text-tertiary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
@@ -151,15 +151,15 @@ export default function LoginPage() {
         .auth-right { width: 480px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: center; padding: 64px 48px; position: relative; }
         .auth-right::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-glow), transparent); }
         .form-tag { font-size: 11px; font-weight: 500; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
-        .form-title { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; margin-bottom: 8px; line-height: 1.1; }
+        .form-title { font-family: Inter, system-ui, sans-serif; font-size: 34px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; margin-bottom: 8px; line-height: 1.1; }
         .form-subtitle { font-size: 14px; color: var(--text-tertiary); margin-bottom: 40px; font-weight: 300; }
         .form-group { margin-bottom: 20px; }
         .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
-        .form-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 18px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 300; color: var(--text-primary); outline: none; transition: all 0.2s; }
+        .form-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 18px; font-size: 15px; font-family: Inter, system-ui, sans-serif; font-weight: 300; color: var(--text-primary); outline: none; transition: all 0.2s; }
         .form-input::placeholder { color: var(--text-tertiary); }
         .form-input:focus { border-color: var(--gold); background: var(--bg-input); box-shadow: 0 0 0 3px var(--gold-subtle); }
         .form-error { background: var(--error-bg); border: 1px solid var(--error-border); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--error); margin-bottom: 20px; }
-        .form-btn { width: 100%; background: var(--gold); color: #1a1a1f; border: none; border-radius: var(--radius-md); padding: 15px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; position: relative; overflow: hidden; transition: all var(--dur-base) var(--ease-out); margin-top: 8px; letter-spacing: 0.3px; }
+        .form-btn { width: 100%; background: var(--gold); color: #1a1a1f; border: none; border-radius: var(--radius-md); padding: 15px; font-size: 15px; font-weight: 600; font-family: Inter, system-ui, sans-serif; cursor: pointer; position: relative; overflow: hidden; transition: all var(--dur-base) var(--ease-out); margin-top: 8px; letter-spacing: 0.3px; }
         .form-btn:hover { background: var(--gold-hover); box-shadow: var(--shadow-glow-gold); transform: translateY(-1px); }
         .form-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .form-loading { display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -170,7 +170,7 @@ export default function LoginPage() {
         .form-footer a:hover { color: var(--gold-hover); }
         .form-enter { animation: formFadeIn 0.5s ease forwards; }
         @keyframes formFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .google-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; color: rgba(255,255,255,0.85); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
+        .google-btn { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: Inter, system-ui, sans-serif; color: rgba(255,255,255,0.85); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
         .google-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.22); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
         .google-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         .or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
@@ -245,7 +245,7 @@ export default function LoginPage() {
                 <label className="form-label">Password</label>
                 <input className="form-input" type="password" name="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
                 <div style={{textAlign:"right",marginTop:6}}>
-                  <span onClick={()=>setForgotMode(true)} style={{fontSize:12,color:"rgba(255,255,255,0.3)",cursor:"pointer"}} onMouseEnter={e=>(e.currentTarget.style.color="#818cf8")} onMouseLeave={e=>(e.currentTarget.style.color="rgba(255,255,255,0.3)")}>Forgot password?</span>
+                  <span onClick={()=>setForgotMode(true)} style={{fontSize:12,color:"rgba(255,255,255,0.3)",cursor:"pointer"}} onMouseEnter={e=>(e.currentTarget.style.color="#fbbf24")} onMouseLeave={e=>(e.currentTarget.style.color="rgba(255,255,255,0.3)")}>Forgot password?</span>
                 </div>
               </div>
               <button className="form-btn" onClick={handleLogin} disabled={loading}>

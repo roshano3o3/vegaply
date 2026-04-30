@@ -74,10 +74,10 @@ export default function SignupPage() {
           --gold-hover:   #fbbf24;
           --gold-subtle:  rgba(245,158,11,0.12);
           --gold-glow:    rgba(245,158,11,0.25);
-          --cyan:         #06b6d4;
-          --cyan-hover:   #22d3ee;
-          --cyan-subtle:  rgba(6,182,212,0.12);
-          --cyan-glow:    rgba(6,182,212,0.25);
+          --cyan:         #fbbf24;
+          --cyan-hover:   #fde68a;
+          --cyan-subtle:  rgba(251,191,36,0.12);
+          --cyan-glow:    rgba(251,191,36,0.20);
           --success: #10b981;
           --warning: #fbbf24;
           --danger:  #ef4444;
@@ -93,7 +93,7 @@ export default function SignupPage() {
           --dur-slow: 400ms;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -101,7 +101,7 @@ export default function SignupPage() {
           min-height: 100vh;
           display: flex;
           background: var(--bg-page);
-          font-family: 'DM Sans', sans-serif;
+          font-family: Inter, system-ui, sans-serif;
           overflow: hidden;
         }
 
@@ -139,7 +139,7 @@ export default function SignupPage() {
         }
 
         .auth-logo {
-          font-family: 'Playfair Display', serif;
+          font-family: Inter, system-ui, sans-serif;
           font-size: 28px;
           font-weight: 900;
           color: var(--text-primary);
@@ -148,7 +148,7 @@ export default function SignupPage() {
           z-index: 1;
         }
         .auth-logo span {
-          background: linear-gradient(135deg,var(--gold),var(--cyan));
+          background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -183,17 +183,18 @@ export default function SignupPage() {
         }
 
         .auth-headline {
-          font-family: 'Playfair Display', serif;
+          font-family: Inter, system-ui, sans-serif;
           font-size: clamp(42px, 4vw, 62px);
-          font-weight: 900;
+          font-weight: 700;
           color: var(--text-primary);
           line-height: 1.05;
-          letter-spacing: -1.5px;
+          letter-spacing: -0.04em;
           margin-bottom: 20px;
         }
         .auth-headline em {
           font-style: italic;
-          background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+          font-family: Inter, system-ui, sans-serif;
+          background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -271,7 +272,7 @@ export default function SignupPage() {
           margin-bottom: 12px;
         }
         .form-title {
-          font-family: 'Playfair Display', serif;
+          font-family: Inter, system-ui, sans-serif;
           font-size: 34px;
           font-weight: 700;
           color: var(--text-primary);
@@ -303,7 +304,7 @@ export default function SignupPage() {
           border-radius: 12px;
           padding: 14px 18px;
           font-size: 15px;
-          font-family: 'DM Sans', sans-serif;
+          font-family: Inter, system-ui, sans-serif;
           font-weight: 300;
           color: var(--text-primary);
           outline: none;
@@ -350,13 +351,13 @@ export default function SignupPage() {
 
         .form-btn {
           width: 100%;
-          background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 50%, var(--cyan) 100%);
+          background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%);
           border: none;
           border-radius: 12px;
           padding: 15px;
           font-size: 15px;
           font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
+          font-family: Inter, system-ui, sans-serif;
           color: var(--text-primary);
           cursor: pointer;
           position: relative;
@@ -401,7 +402,7 @@ export default function SignupPage() {
           transition: color 0.2s;
         }
         .form-footer a:hover { color: var(--gold-light); }
-        .google-btn { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
+        .google-btn { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: Inter, system-ui, sans-serif; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
         .google-btn:hover { background: var(--bg-input-hover); border-color: var(--gold-border); transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow); }
         .google-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         .or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
@@ -423,7 +424,7 @@ export default function SignupPage() {
           margin: 0 auto 20px;
         }
         .success-title {
-          font-family: 'Playfair Display', serif;
+          font-family: Inter, system-ui, sans-serif;
           font-size: 26px;
           font-weight: 700;
           color: var(--text-primary);
