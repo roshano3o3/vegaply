@@ -46,7 +46,14 @@ export default function LoginPage() {
   };
 
   const checkOnboardingAndRedirect = async () => {
-    router.push("/welcome")
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/home"); return; }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarded")
+      .eq("id", user.id)
+      .maybeSingle();
+    router.push("/home");  // /home decides setup vs dashboard internally based on profile.onboarded
   };
 
   const handleForgotPassword = async () => {

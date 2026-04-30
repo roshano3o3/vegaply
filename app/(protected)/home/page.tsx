@@ -2621,6 +2621,7 @@ export default function Home() {
       await supabase.from('profiles').upsert({
         id: user.id,
         onboarded: true,
+        onboarded_at: new Date().toISOString(),
         job_role: jobRole,
         location: location,
         resume_text: resumeText,
