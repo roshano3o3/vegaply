@@ -549,7 +549,7 @@ export default function VegaplyPro() {
 
           {/* Trust line */}
           <p className="hero-trust hero-animate">
-            Built by an F-1 student · 70+ H1B sponsors verified
+            AI-tailored resumes for every job · 70+ H1B sponsors verified
           </p>
         </div>
       </section>
@@ -1270,8 +1270,7 @@ export default function VegaplyPro() {
           </Link>
         </div>
         <p className="cta-trust">
-          ✓ Built by an F-1 student · ✓ 70+ H1B sponsors verified · ✓ Free to
-          start
+          ✓ AI resume tailored to every job · ✓ 70+ H1B sponsors verified · ✓ Free to start
         </p>
       </section>
 
