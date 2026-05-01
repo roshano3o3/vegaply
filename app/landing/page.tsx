@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { LogoVegaStar } from '@/components/logo/LogoVegaStar'
-import { DemoVideoModal } from '@/components/DemoVideoModal'
+import { Play, X } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
@@ -118,7 +118,7 @@ export default function VegaplyPro() {
   const lenisSyncedRef = useRef(false)
 
   // State
-  const [demoOpen, setDemoOpen] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
   const [morphWord, setMorphWord] = useState('scams.')
   const [morphVisible, setMorphVisible] = useState(true)
   const [countersStarted, setCountersStarted] = useState(false)
@@ -128,6 +128,18 @@ export default function VegaplyPro() {
   const [floatIdx, setFloatIdx] = useState(0)
   const [ringProgress, setRingProgress] = useState(false)
   const [navScrolled, setNavScrolled] = useState(false)
+
+  // ─── Demo modal ESC + scroll lock ────────────────────────────────────────────
+  useEffect(() => {
+    if (!showDemo) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowDemo(false) }
+    window.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [showDemo])
 
   // ─── Lenis smooth scroll ────────────────────────────────────────────────────
   useEffect(() => {
@@ -2247,6 +2259,70 @@ export default function VegaplyPro() {
           .footer-top { grid-template-columns: 1fr; }
           .pricing-price { font-size: 44px; }
         }
+
+        .demo-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.92);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          cursor: pointer;
+        }
+        .demo-modal-content {
+          position: relative;
+          width: 100%;
+          max-width: 1200px;
+          aspect-ratio: 16 / 9;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+          cursor: default;
+          background: #000;
+        }
+        .demo-modal-video {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+        .demo-modal-close {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 10;
+          backdrop-filter: blur(8px);
+          transition: background 0.2s;
+        }
+        .demo-modal-close:hover {
+          background: rgba(255,255,255,0.15);
+        }
+        @media (max-width: 768px) {
+          .demo-modal-content {
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+          }
+          .demo-modal-close {
+            top: 8px;
+            right: 8px;
+            width: 36px;
+            height: 36px;
+          }
+        }
       `}</style>
 
       {/* Grain overlay */}
@@ -2366,7 +2442,7 @@ export default function VegaplyPro() {
             <Link href="/signup" className="btn-primary btn-primary-lg">
               Start free →
             </Link>
-            <button className="btn-ghost btn-ghost-lg" onClick={() => setDemoOpen(true)}>Watch demo</button>
+            <button className="btn-ghost btn-ghost-lg" onClick={() => setShowDemo(true)}><Play size={16} />Watch demo</button>
           </div>
 
           {/* Trust line */}
@@ -3177,11 +3253,37 @@ export default function VegaplyPro() {
         </div>
       </footer>
 
-      <DemoVideoModal
-        isOpen={demoOpen}
-        onClose={() => setDemoOpen(false)}
-        videoSrc="/vegaply_brand_film.mp4"
-      />
+      <AnimatePresence>
+        {showDemo && (
+          <motion.div
+            className="demo-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDemo(false)}
+          >
+            <motion.div
+              className="demo-modal-content"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button className="demo-modal-close" onClick={() => setShowDemo(false)} aria-label="Close">
+                <X size={20} />
+              </button>
+              <video
+                src="https://res.cloudinary.com/dykyvevxx/video/upload/v1777610483/vegaply_brand_film_egmevt.mp4"
+                autoPlay
+                controls
+                playsInline
+                className="demo-modal-video"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
