@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { LogoVegaStar } from '@/components/logo/LogoVegaStar'
+import { DemoVideoModal } from '@/components/DemoVideoModal'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
@@ -117,6 +118,7 @@ export default function VegaplyPro() {
   const lenisSyncedRef = useRef(false)
 
   // State
+  const [demoOpen, setDemoOpen] = useState(false)
   const [morphWord, setMorphWord] = useState('scams.')
   const [morphVisible, setMorphVisible] = useState(true)
   const [countersStarted, setCountersStarted] = useState(false)
@@ -2364,7 +2366,7 @@ export default function VegaplyPro() {
             <Link href="/signup" className="btn-primary btn-primary-lg">
               Start free →
             </Link>
-            <button className="btn-ghost btn-ghost-lg">Watch demo</button>
+            <button className="btn-ghost btn-ghost-lg" onClick={() => setDemoOpen(true)}>Watch demo</button>
           </div>
 
           {/* Trust line */}
@@ -3174,6 +3176,12 @@ export default function VegaplyPro() {
           </div>
         </div>
       </footer>
+
+      <DemoVideoModal
+        isOpen={demoOpen}
+        onClose={() => setDemoOpen(false)}
+        videoSrc="/vegaply_brand_film.mp4"
+      />
     </>
   )
 }

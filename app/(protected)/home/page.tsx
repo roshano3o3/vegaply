@@ -1529,11 +1529,29 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
             {job.job_city&&<><span style={{color:'rgba(255,255,255,0.2)',flexShrink:0}}>·</span><span style={{color:'rgba(255,255,255,0.35)',flexShrink:0}}>{job.job_city}</span></>}
           </div>
         </div>
-        {/* Time + save */}
-        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4,flexShrink:0}}>
+        {/* AI Match Circle + save */}
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6,flexShrink:0}}>
           <button style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.5}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#f59e0b":"none"} stroke={saved?"#f59e0b":"rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
           </button>
+          {/* Circular match score */}
+          {(()=>{
+            const score=job.match?.matchScore??successChance;
+            const r=26,circ=2*Math.PI*r,offset=circ*(1-score/100);
+            return(
+              <div style={{position:'relative',width:64,height:64,flexShrink:0}}>
+                <svg width="64" height="64" viewBox="0 0 64 64" style={{transform:'rotate(-90deg)'}}>
+                  <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
+                  <circle cx="32" cy="32" r={r} fill="none" stroke="#06b6d4" strokeWidth="4" strokeLinecap="round"
+                    strokeDasharray={circ} strokeDashoffset={offset} style={{transition:'stroke-dashoffset 0.8s ease'}}/>
+                </svg>
+                <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:1}}>
+                  <span style={{fontSize:16,fontWeight:700,color:'#f5f5f7',lineHeight:1,fontFamily:'Inter,system-ui,sans-serif'}}>{score}</span>
+                  <span style={{fontSize:8,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.35)',fontFamily:'Inter,system-ui,sans-serif'}}>MATCH</span>
+                </div>
+              </div>
+            );
+          })()}
           <span style={{fontFamily:'var(--font-primary)',fontSize:10,fontWeight:400,color:'rgba(255,255,255,0.25)'}}>{ebStatus.label}</span>
         </div>
       </div>
@@ -2012,6 +2030,8 @@ export default function Home() {
     recommendation: string,
     loading: boolean
   }>>({})
+  const [briefingCollapsed, setBriefingCollapsed] = useState(false);
+  const [railPanel, setRailPanel] = useState<'none'|'resume'|'jobs'|'tracker'|'analytics'>('none');
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -2605,6 +2625,9 @@ export default function Home() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
     .map(([name]) => name);
+  const timeOfDay = mounted ? (new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening') : 'morning';
+  const firstName = mounted && userEmail ? userEmail.split('@')[0].split('.')[0] : '';
+
   const getCoachingInsight = (): string => {
     if (!resumeText) return 'Upload your resume to unlock AI coaching';
     if (jobs.length === 0) return 'Search for jobs to see personalized insights';
@@ -3061,7 +3084,7 @@ export default function Home() {
         .job-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);transition:border-color var(--dur-slow) var(--ease-out),transform var(--dur-slow) var(--ease-out),box-shadow var(--dur-slow) var(--ease-out);display:flex;flex-direction:column;gap:var(--space-4)}
         .job-card:hover{border-color:var(--border-normal);transform:translateY(-2px);box-shadow:var(--shadow-md),var(--shadow-glow-gold)}
         .job-card-hot{border-color:rgba(251,191,36,0.25)!important}
-        .job-card-accent{position:absolute;top:0;left:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),#9a74df);border-radius:16px 0 0 16px;opacity:0;transition:opacity 0.2s ease;pointer-events:none}
+        .job-card-accent{position:absolute;top:0;left:0;bottom:0;width:2px;background:linear-gradient(180deg,#f59e0b,rgba(245,158,11,0.2));border-radius:16px 0 0 16px;opacity:0;transition:opacity 0.2s ease;pointer-events:none}
         .job-card:hover .job-card-accent{opacity:1}
         .job-card-hot:hover{box-shadow:0 12px 32px rgba(251,191,36,0.10),inset 0 1px 0 rgba(255,255,255,0.08),0 0 24px rgba(251,191,36,0.10)!important}
 
@@ -3090,8 +3113,8 @@ export default function Home() {
         .action-card-btn.match-btn:hover{box-shadow:0 0 0 rgba(0,0,0,0)}
         .action-card-btn.match-btn.done{background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.22);color:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,0.08)}
         .action-card-btn.interview-btn.done{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.18);color:#34d399;box-shadow:0 0 8px rgba(52,211,153,0.07)}
-        .action-card-btn.skillgap-btn.done{background:rgba(139,92,246,0.07);border-color:rgba(139,92,246,0.22);color:#a78bfa;box-shadow:0 0 8px rgba(139,92,246,0.06)}
-        .action-card-btn.cover-btn.done{background:rgba(236,72,153,0.07);border-color:rgba(236,72,153,0.18);color:#f472b6;box-shadow:0 0 8px rgba(236,72,153,0.06)}
+        .action-card-btn.skillgap-btn.done{background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.22);color:#fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.06)}
+        .action-card-btn.cover-btn.done{background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.18);color:#fbbf24;box-shadow:0 0 8px rgba(245,158,11,0.06)}
         .action-card-btn.tailor-btn.done{background:rgba(251,191,36,0.07);border-color:rgba(251,191,36,0.18);color:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,0.06)}
         .action-card-btn.track-btn{flex:0;padding:7px 12px;transition:all 0.24s ease}
         .action-card-btn.track-btn.tracked{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.18);color:#34d399;box-shadow:0 0 8px rgba(52,211,153,0.07)}
@@ -3259,61 +3282,104 @@ export default function Home() {
       <div style={{position:'fixed',top:'10%',right:'5%',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,rgba(245,158,11,0.04) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientFloat 9s ease-in-out infinite'}}/>
       <div style={{position:'fixed',bottom:'15%',left:'20%',width:380,height:380,borderRadius:'50%',background:'radial-gradient(circle,rgba(142,178,155,0.025) 0%,transparent 70%)',pointerEvents:'none',zIndex:0,animation:'ambientFloat 12s ease-in-out infinite reverse'}}/>
 
-      {/* TOPBAR */}
-      <motion.nav
-        className="topbar"
-        initial={{opacity:0,y:-8}}
-        animate={{opacity:1,y:0}}
-        transition={{duration:0.4,ease:'easeOut'}}
-      >
-        <div className="topbar-logo" style={{display:'flex',alignItems:'center',gap:8,marginRight:14,flexShrink:0,cursor:'pointer'}} onClick={()=>window.location.href='/'}>
-          <LogoVegaStar size={28} />
-          <span style={{fontFamily:'var(--font-display)',fontSize:18,fontWeight:800,color:'#ffffff',letterSpacing:'-0.5px',lineHeight:1}}>Vega<span style={{fontStyle:'italic',background:'linear-gradient(135deg,#f59e0b,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>ply</span></span>
+      {/* COPILOT CSS */}
+      <style>{`
+        .copilot-nav{position:sticky;top:0;z-index:200;height:64px;display:flex;align-items:center;gap:16px;padding:0 20px;background:rgba(10,10,12,0.96);border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(32px);}
+        .copilot-cmd-bar{flex:1;max-width:640px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:24px;padding:0 6px 0 16px;height:48px;transition:border-color .2s,box-shadow .2s;}
+        .copilot-cmd-bar:focus-within{border-color:rgba(245,158,11,0.5);box-shadow:0 0 0 3px rgba(245,158,11,0.10);background:rgba(255,255,255,0.055);}
+        .copilot-cmd-input{flex:1;background:none;border:none;outline:none;font-size:16px;font-weight:400;color:#f5f5f7;font-family:Inter,system-ui,sans-serif;min-width:0;}
+        .copilot-cmd-input::placeholder{color:rgba(255,255,255,0.35);}
+        .copilot-loc-input{width:120px;background:none;border:none;outline:none;font-size:14px;color:#f5f5f7;font-family:Inter,system-ui,sans-serif;flex-shrink:0;border-left:1px solid rgba(255,255,255,0.08);padding-left:12px;}
+        .copilot-loc-input::placeholder{color:rgba(255,255,255,0.3);}
+        .copilot-cmd-sep{width:1px;height:20px;background:rgba(255,255,255,0.09);flex-shrink:0;}
+        .copilot-slash-hint{flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:6px;padding:3px 7px;font-size:11px;color:rgba(255,255,255,0.3);font-family:monospace;line-height:1;user-select:none;}
+        .copilot-search-btn{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#0a0a0c;border:none;border-radius:20px;padding:0 20px;height:36px;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,system-ui,sans-serif;flex-shrink:0;letter-spacing:-.2px;transition:filter .15s;}
+        .copilot-search-btn:hover{filter:brightness(1.1);}
+        .copilot-search-btn:disabled{opacity:.5;cursor:not-allowed;}
+        .copilot-nav-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+        .copilot-mode-pill{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;transition:all .18s;}
+        .copilot-mode-pill.active{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:#f59e0b;}
+        .copilot-refresh{background:none;border:1px solid rgba(255,255,255,0.08);border-radius:8px;width:32px;height:32px;cursor:pointer;color:rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;transition:all .18s;}
+        .copilot-refresh:hover{border-color:rgba(245,158,11,0.25);color:#f59e0b;}
+        .copilot-refresh.spinning svg{animation:spin360 .8s linear infinite}
+        .copilot-avatar-tooltip{display:none;position:absolute;top:calc(100% + 8px);right:0;background:#1c1c22;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 10px;font-size:11px;color:rgba(255,255,255,0.6);white-space:nowrap;z-index:20;}
+        .user-avatar:hover .copilot-avatar-tooltip{display:block;}
+        .copilot-hero{padding:20px 24px 0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+        .copilot-greeting{font-size:24px;font-weight:700;color:#f5f5f7;letter-spacing:-.6px;margin:0;line-height:1.2;}
+        .copilot-greeting-sub{font-size:14px;color:rgba(255,255,255,0.35);margin:0;font-weight:400;}
+        .copilot-amber{color:#f59e0b;font-weight:700;}
+        .copilot-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px;}
+        .copilot-stat-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:18px 20px 14px;transition:border-color .2s,transform .2s cubic-bezier(0.16,1,0.3,1);}
+        .copilot-stat-card:hover{border-color:rgba(245,158,11,0.2);transform:translateY(-2px);}
+        .copilot-stat-label{font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:8px;}
+        .copilot-stat-num{font-size:36px;font-weight:600;line-height:1;letter-spacing:-1.5px;color:#f5f5f7;}
+        .copilot-stat-sparkline{display:flex;justify-content:flex-end;margin-top:6px;}
+        .copilot-stat-delta{font-size:11px;font-weight:500;margin-top:4px;}
+        .copilot-stat-sub{font-size:10px;color:rgba(255,255,255,0.22);margin-top:2px;}
+        .copilot-grid{display:flex;gap:0;min-height:calc(100vh - 240px);}
+        .copilot-rail{width:64px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:6px;border-right:1px solid rgba(255,255,255,0.05);position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;}
+        .copilot-rail-btn{position:relative;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;color:rgba(255,255,255,0.5);user-select:none;}
+        .copilot-rail-btn:hover{background:rgba(255,255,255,0.07);color:#f5f5f7;}
+        .copilot-rail-btn.active{background:rgba(245,158,11,0.08);color:#f5f5f7;box-shadow:inset 3px 0 0 0 #f59e0b;}
+        .copilot-rail-tooltip{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#1c1c22;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:500;font-family:Inter,system-ui,sans-serif;color:rgba(255,255,255,0.75);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:50;}
+        .copilot-rail-btn:hover .copilot-rail-tooltip{opacity:1;}
+        .copilot-rail-panel{width:256px;flex-shrink:0;padding:12px;border-right:1px solid rgba(255,255,255,0.05);overflow-y:auto;max-height:calc(100vh - 64px);position:sticky;top:64px;}
+        .copilot-center{flex:1;min-width:0;padding:14px 20px;max-width:760px;}
+        .copilot-briefing{width:288px;flex-shrink:0;padding:16px;border-left:1px solid rgba(255,255,255,0.05);overflow-y:auto;max-height:calc(100vh - 64px);position:sticky;top:64px;display:flex;flex-direction:column;gap:0;}
+        .copilot-briefing-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.05);}
+        .copilot-briefing-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);}
+        .copilot-briefing-toggle{background:none;border:none;width:28px;height:28px;cursor:pointer;color:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .18s;}
+        .copilot-briefing-toggle:hover{background:rgba(255,255,255,0.05);color:#f59e0b;}
+        .copilot-mini-card{border-radius:8px;padding:12px;margin-bottom:6px;transition:background .15s;}
+        .copilot-mini-card:hover{background:rgba(255,255,255,0.02);}
+        .copilot-mini-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:6px;}
+        .copilot-mini-value{font-size:14px;font-weight:500;color:#f5f5f7;line-height:1.5;}
+        .copilot-expand-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);width:22px;height:52px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-right:none;border-radius:8px 0 0 8px;cursor:pointer;color:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;z-index:10;transition:all .18s;}
+        .copilot-expand-btn:hover{background:rgba(245,158,11,0.08);color:#f59e0b;}
+        @media(max-width:1280px){.copilot-briefing{display:none;}}
+        @media(max-width:1024px){.copilot-rail{display:none;}.copilot-rail-panel{display:none;}}
+        @media(max-width:900px){.copilot-stats{grid-template-columns:repeat(2,1fr);}.copilot-hero{padding:12px 14px 0;}}
+        @media(max-width:600px){.copilot-stats{grid-template-columns:1fr 1fr;padding:10px 12px;}.copilot-cmd-bar{display:none;}}
+      `}</style>
+
+      {/* COPILOT NAV */}
+      <motion.nav className="copilot-nav" initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} transition={{duration:0.4,ease:'easeOut'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginRight:14,flexShrink:0,cursor:'pointer'}} onClick={()=>window.location.href='/'}>
+          <LogoVegaStar size={26}/>
+          <span style={{fontFamily:'var(--font-display)',fontSize:17,fontWeight:800,color:'#ffffff',letterSpacing:'-0.5px',lineHeight:1}}>Vega<span style={{fontStyle:'italic',background:'linear-gradient(135deg,#f59e0b,#fbbf24,#fde68a)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>ply</span></span>
         </div>
-        <div className="topbar-search">
-          <div className="topbar-search-box">
-            <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
-            <div className="topbar-sep"/>
-            <input className="topbar-input-loc" type="text" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
-          </div>
-          <motion.button className="search-btn" whileHover={{scale:1.04,filter:'brightness(1.12)'}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
-          <motion.button className={`eb-btn${activeMode==='earlybird'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>{const newMode=activeMode==='earlybird'?'all':'earlybird';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
-          <motion.button className={`h1b-btn${activeMode==='h1b'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>{const newMode=activeMode==='h1b'?'all':'h1b';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>🌐 H1B</motion.button>
-          {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            {isRefreshing?"Refreshing…":"Refresh"}
+        <div className="copilot-cmd-bar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input className="copilot-cmd-input" type="text" placeholder="Ask Vegaply — e.g. Data Analyst, H1B, under 6h" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
+          <div className="copilot-cmd-sep"/>
+          <input className="copilot-loc-input" type="text" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
+          <span className="copilot-slash-hint">/</span>
+          <button className="copilot-search-btn" onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</button>
+        </div>
+        <div className="copilot-nav-right">
+          <button className={`copilot-mode-pill${activeMode==='earlybird'?' active':''}`} onClick={()=>{const m=activeMode==='earlybird'?'all':'earlybird';setActiveMode(m);if(m!=='all')setActiveTab('results');}}>⚡ Early Bird</button>
+          <button className={`copilot-mode-pill${activeMode==='h1b'?' active':''}`} onClick={()=>{const m=activeMode==='h1b'?'all':'h1b';setActiveMode(m);if(m!=='all')setActiveTab('results');}}>🌐 H1B</button>
+          {hasSearched&&<button className={`copilot-refresh${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           </button>}
-        </div>
-        <div className="topbar-right">
-          {/* Mobile: search toggle */}
-          <button className="mob-search-btn theme-toggle" onClick={()=>setShowMobileSearch(s=>!s)} style={{color:showMobileSearch?"#f59e0b":"inherit"}} title="Search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <button className="mob-search-btn theme-toggle" onClick={()=>setShowMobileSearch(s=>!s)} style={{color:showMobileSearch?'#f59e0b':'inherit'}} title="Search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
-          {/* Mobile: early bird quick-access */}
           <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:13,cursor:"pointer",color:"#fbbf24",alignItems:"center",gap:4,minHeight:36}}>⚡</button>
-          {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
-          {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
-          {mounted&&autoApplyCount>0&&<span className="nav-pill" style={{background:"rgba(245,158,11,0.1)",color:"#f59e0b",border:"1px solid rgba(245,158,11,0.25)"}}>{autoApplyCount}/30 Applied</span>}
-          {mounted&&prefTitles.length>0&&<span className="nav-pill" style={{background:"rgba(245,158,11,0.1)",color:"#f59e0b",border:"1px solid rgba(245,158,11,0.25)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}} onClick={()=>setShowPreferences(true)}><span style={{width:6,height:6,borderRadius:"50%",background:"#f59e0b",display:"inline-block",flexShrink:0}}/>Prefs active</span>}
-          {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
-          {mounted&&userEmail&&<span className="topbar-email" style={{fontSize:11,color:"rgba(255,255,255,0.2)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userEmail}</span>}
+          {mounted&&userEmail&&<div className="user-avatar" style={{position:'relative'}} title={userEmail}>{avatarLetter}<span className="copilot-avatar-tooltip">{userEmail}</span></div>}
           <button className="theme-toggle" onClick={toggleTheme} title={darkMode?"Switch to light mode":"Switch to dark mode"}>
-            {darkMode
-              ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-              : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            }
+            {darkMode?<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>}
           </button>
           <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
-          {/* Mobile: sign out icon */}
           <button className="mob-signout-btn theme-toggle" onClick={handleLogout} title="Sign out" style={{color:"rgba(239,68,68,0.6)"}}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
       </motion.nav>
 
-      {/* MOBILE SEARCH PANEL — conditionally rendered, hidden on desktop via CSS */}
+      {/* MOBILE SEARCH PANEL */}
       {showMobileSearch&&(
-        <div className="mobile-search-panel" style={{position:"sticky",top:56,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
+        <div className="mobile-search-panel" style={{position:"sticky",top:60,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
           <div style={{display:"flex",gap:8}}>
@@ -3327,111 +3393,169 @@ export default function Home() {
         </div>
       )}
 
-      <motion.div className="app-layout" initial={{opacity:0,y:8,scale:0.99}} animate={{opacity:1,y:0,scale:1}} transition={{duration:0.5,ease:[0.34,1.56,0.64,1]}}>
-        {/* SIDEBAR */}
-        <motion.aside className="sidebar" initial={{opacity:0,x:-16}} animate={{opacity:1,x:0}} transition={{duration:0.4,delay:0.1,ease:'easeOut'}}>
-          <div className="sidebar-card">
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-              <div className="sidebar-card-title">🎯 AI Resume Match</div>
-              <button onClick={loadResumeHistory} style={{fontSize:10,color:"#f59e0b",background:"none",border:"1px solid rgba(245,158,11,0.2)",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontFamily:"inherit"}}>History</button>
-            </div>
-            <div className="sidebar-card-sub">Upload PDF for AI matching & auto-apply</div>
-            <ResumePanel
-              resumeText={resumeText}
-              fileName={resumeFileName}
-              onResume={async(t,n)=>{
-                setResumeText(t);setResumeFileName(n);
-                lsSet("applysmart_resume",t);lsSet("applysmart_resume_name",n);
-                const{data:{user}}=await supabase.auth.getUser();
-                if(!user)return;
-                await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
-              }}
-              onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
-            />
-            {autoApplyCount>0&&<div style={{fontSize:11,color:"#f59e0b",textAlign:"center",marginTop:7,fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
-          </div>
+      {/* HERO GREETING */}
+      <motion.div className="copilot-hero" initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{duration:0.4,delay:0.1,ease:'easeOut'}}>
+        <h1 className="copilot-greeting">Good {timeOfDay}, <span className="copilot-amber">{firstName||'there'}</span>.</h1>
+        <p className="copilot-greeting-sub"><span className="copilot-amber">{panelFreshJobs.length}</span> fresh roles ready · <span className="copilot-amber">{jobs.length}</span> total found</p>
+      </motion.div>
 
-          {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
-
-          <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
-
-          <div className="sidebar-card">
-            <div className="sidebar-card-title">Filters</div>
-            <div className="filter-label">Job Type</div>
-            <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
-              <option value="ALL">All Types</option>
-              <option value="FULLTIME">Full-time</option>
-              <option value="PARTTIME">Part-time</option>
-              <option value="CONTRACTOR">Contract</option>
-              <option value="INTERN">Internship</option>
-            </select>
-            <div className="filter-label">Date Posted</div>
-            <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
-              <option value="ANY">Any Time</option>
-              <option value="TODAY">Today</option>
-              <option value="WEEK">This Week</option>
-              <option value="MONTH">This Month</option>
-            </select>
-            <div className="toggle-row">
-              <span>Remote Only</span>
-              <button className={`toggle${filterRemote?" on":""}`} onClick={()=>{setFilterRemote(!filterRemote);setCurrentPage(1);}}/>
-            </div>
-          </div>
-
-          <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
-
-          {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
-
-          {/* PREFERENCES */}
-          <div className="sidebar-card" style={{marginTop:4}}>
-            <div className="sidebar-card-title">⚙️ Job Preferences</div>
-            <div className="sidebar-card-sub">Active filters for your job search</div>
-            {mounted&&prefTitles.length>0?(
-              <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:10}}>
-                {prefTitles.map((t,i)=>(
-                  <span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:20,background:"rgba(245,158,11,0.12)",color:"#fbbf24",border:"1px solid rgba(245,158,11,0.25)"}}>{t}</span>
-                ))}
+      {/* STATS ROW */}
+      <div className="copilot-stats">
+        {([
+          {label:'Jobs Found',   value:jobs.length,           sub:'available now',  numColor:'#f5f5f7', spark:[10,14,11,18,22,19,25,jobs.length||28], delta:'+12 today',  deltaPos:true},
+          {label:'Early Bird',  value:panelFreshJobs.length,  sub:'⚡ fresh today', numColor:'#f59e0b', spark:[4,6,5,9,12,10,14,panelFreshJobs.length||16], delta:'+8 today', deltaPos:true},
+          {label:'H1B Verified',value:panelH1bJobs.length,    sub:'sponsoring',     numColor:'#f5f5f7', spark:[8,10,9,14,16,13,18,panelH1bJobs.length||20], delta:'+5 today',  deltaPos:true},
+          {label:'Applied Today',value:autoApplyCount,         sub:'of 30 limit',   numColor:'#f5f5f7', spark:[0,1,0,2,1,3,2,autoApplyCount||0],            delta:autoApplyCount>0?`${autoApplyCount} sent`:'—', deltaPos:autoApplyCount>0},
+        ] as {label:string;value:number;sub:string;numColor:string;spark:number[];delta:string;deltaPos:boolean}[]).map((s,i)=>{
+          const sparkMax=Math.max(...s.spark,1);
+          const W=60,H=20,pts=s.spark.map((v,j)=>`${Math.round(j*(W/(s.spark.length-1))||0)},${Math.round(H-1-(v/sparkMax)*(H-2))}`).join(' ');
+          const lastX=W,lastY=Math.round(H-1-(s.spark[s.spark.length-1]/sparkMax)*(H-2));
+          return(
+            <motion.div key={s.label} className="copilot-stat-card" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:0.15+i*0.08}}>
+              <div className="copilot-stat-label">{s.label}</div>
+              <div className="copilot-stat-num" style={{color:s.numColor}}>
+                <motion.span key={s.value} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.4}}>{s.value}</motion.span>
               </div>
-            ):(
-              <div style={{fontSize:11,color:"rgba(255,255,255,0.25)",marginBottom:10}}>No preferences set</div>
-            )}
-            <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(245,158,11,0.15)")} onMouseLeave={e=>(e.currentTarget.style.background="rgba(245,158,11,0.08)")}>
-              ⚙️ Edit Preferences
-            </button>
-          </div>
+              <div className="copilot-stat-sub">{s.sub}</div>
+              <div className="copilot-stat-sparkline">
+                <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} fill="none">
+                  <polyline points={pts} stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" fill="none"/>
+                  <circle cx={lastX} cy={lastY} r="3" fill="#f59e0b"/>
+                </svg>
+              </div>
+              <div className="copilot-stat-delta" style={{color:s.deltaPos?'#10b981':'#ef4444'}}>{s.delta}</div>
+            </motion.div>
+          );
+        })}
+      </div>
 
-          {/* SHARE VEGAPLY */}
-          <div className="sidebar-card" style={{marginTop:4,background:"rgba(245,158,11,0.05)",borderColor:"rgba(245,158,11,0.15)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              <div className="sidebar-card-title" style={{margin:0,color:"#fbbf24"}}>Know someone job hunting?</div>
+      {/* MAIN COPILOT GRID */}
+      <div className="copilot-grid">
+
+        {/* 64px ICON RAIL */}
+        <nav className="copilot-rail">
+          {([
+            {svg:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>, id:'resume', tip:'Resume & Filters', activeFor:'resume'},
+            {svg:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>, id:'jobs', tip:'Jobs', activeFor:'results', onClick:()=>setActiveTab('results')},
+            {svg:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>, id:'tracker', tip:'Tracker', activeFor:'tracker', onClick:()=>setActiveTab('tracker')},
+            {svg:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>, id:'analytics', tip:'Analytics', activeFor:'analytics', onClick:()=>setActiveTab('analytics')},
+          ] as {svg:React.ReactNode;id:string;tip:string;activeFor:string;onClick?:()=>void}[]).map(item=>{
+            const isActive=railPanel===item.id||(item.activeFor!=='resume'&&activeTab===item.activeFor);
+            return(
+              <div
+                key={item.tip}
+                className={`copilot-rail-btn${isActive?' active':''}`}
+                onClick={()=>{
+                  if(item.onClick)item.onClick();
+                  setRailPanel(prev=>prev===item.id?'none':item.id as 'none'|'resume'|'jobs'|'tracker'|'analytics');
+                }}
+                title={item.tip}
+              >
+                {item.svg}
+                <span className="copilot-rail-tooltip">{item.tip}</span>
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* RESUME SLIDE PANEL */}
+        {railPanel==='resume'&&(
+          <div className="copilot-rail-panel">
+            <div style={{fontSize:10,fontWeight:700,letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:12}}>Resume &amp; Filters</div>
+            <div className="sidebar-card">
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+                <div className="sidebar-card-title">🎯 AI Resume Match</div>
+                <button onClick={loadResumeHistory} style={{fontSize:10,color:"#f59e0b",background:"none",border:"1px solid rgba(245,158,11,0.2)",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontFamily:"inherit"}}>History</button>
+              </div>
+              <div className="sidebar-card-sub">Upload PDF for AI matching &amp; auto-apply</div>
+              <ResumePanel
+                resumeText={resumeText}
+                fileName={resumeFileName}
+                onResume={async(t,n)=>{
+                  setResumeText(t);setResumeFileName(n);
+                  lsSet("applysmart_resume",t);lsSet("applysmart_resume_name",n);
+                  const{data:{user}}=await supabase.auth.getUser();
+                  if(!user)return;
+                  await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                }}
+                onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
+              />
+              {autoApplyCount>0&&<div style={{fontSize:11,color:"#f59e0b",textAlign:"center",marginTop:7,fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
             </div>
-            <div className="sidebar-card-sub">Share Vegaply — help them apply first</div>
-            <button
-              onClick={async()=>{
-                const shareData={title:"Vegaply",text:"I'm using Vegaply to find jobs before everyone else applies 🚀 Try it free:",url:"https://vegaply.com"};
-                if(typeof navigator.share==="function"&&navigator.canShare&&navigator.canShare(shareData)){
-                  try{await navigator.share(shareData);}catch{}
-                }else{
-                  try{
-                    await navigator.clipboard.writeText("https://vegaply.com");
-                    setShareToast(true);
-                    setTimeout(()=>setShareToast(false),2500);
-                  }catch{}
-                }
-              }}
-              style={{width:"100%",background:"rgba(245,158,11,0.12)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}
-              onMouseEnter={e=>(e.currentTarget.style.background="rgba(245,158,11,0.2)")}
-              onMouseLeave={e=>(e.currentTarget.style.background="rgba(245,158,11,0.12)")}
-            >
-              {shareToast?"✓ Link copied!":"Share Vegaply →"}
-            </button>
+            {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
+            <div style={{height:1,background:"rgba(255,255,255,0.05)",margin:"8px 0"}}/>
+            <div className="sidebar-card">
+              <div className="sidebar-card-title">Filters</div>
+              <div className="filter-label">Job Type</div>
+              <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
+                <option value="ALL">All Types</option>
+                <option value="FULLTIME">Full-time</option>
+                <option value="PARTTIME">Part-time</option>
+                <option value="CONTRACTOR">Contract</option>
+                <option value="INTERN">Internship</option>
+              </select>
+              <div className="filter-label">Date Posted</div>
+              <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
+                <option value="ANY">Any Time</option>
+                <option value="TODAY">Today</option>
+                <option value="WEEK">This Week</option>
+                <option value="MONTH">This Month</option>
+              </select>
+              <div className="toggle-row">
+                <span>Remote Only</span>
+                <button className={`toggle${filterRemote?" on":""}`} onClick={()=>{setFilterRemote(!filterRemote);setCurrentPage(1);}}/>
+              </div>
+            </div>
+            <div style={{height:1,background:"rgba(255,255,255,0.05)",margin:"8px 0"}}/>
+            {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
+            <div className="sidebar-card" style={{marginTop:4}}>
+              <div className="sidebar-card-title">⚙️ Job Preferences</div>
+              <div className="sidebar-card-sub">Active filters for your job search</div>
+              {mounted&&prefTitles.length>0?(
+                <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:10}}>
+                  {prefTitles.map((t,i)=>(
+                    <span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:20,background:"rgba(245,158,11,0.12)",color:"#fbbf24",border:"1px solid rgba(245,158,11,0.25)"}}>{t}</span>
+                  ))}
+                </div>
+              ):(
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.25)",marginBottom:10}}>No preferences set</div>
+              )}
+              <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(245,158,11,0.15)")} onMouseLeave={e=>(e.currentTarget.style.background="rgba(245,158,11,0.08)")}>
+                ⚙️ Edit Preferences
+              </button>
+            </div>
+            <div className="sidebar-card" style={{marginTop:4,background:"rgba(245,158,11,0.05)",borderColor:"rgba(245,158,11,0.15)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <div className="sidebar-card-title" style={{margin:0,color:"#fbbf24"}}>Know someone job hunting?</div>
+              </div>
+              <div className="sidebar-card-sub">Share Vegaply — help them apply first</div>
+              <button
+                onClick={async()=>{
+                  const shareData={title:"Vegaply",text:"I'm using Vegaply to find jobs before everyone else applies 🚀 Try it free:",url:"https://vegaply.com"};
+                  if(typeof navigator.share==="function"&&navigator.canShare&&navigator.canShare(shareData)){
+                    try{await navigator.share(shareData);}catch{}
+                  }else{
+                    try{
+                      await navigator.clipboard.writeText("https://vegaply.com");
+                      setShareToast(true);
+                      setTimeout(()=>setShareToast(false),2500);
+                    }catch{}
+                  }
+                }}
+                style={{width:"100%",background:"rgba(245,158,11,0.12)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}
+                onMouseEnter={e=>(e.currentTarget.style.background="rgba(245,158,11,0.2)")}
+                onMouseLeave={e=>(e.currentTarget.style.background="rgba(245,158,11,0.12)")}
+              >
+                {shareToast?"✓ Link copied!":"Share Vegaply →"}
+              </button>
+            </div>
           </div>
-        </motion.aside>
+        )}
 
-        {/* MAIN */}
-        <main className="content">
-          {/* Mobile filters row — hidden on desktop via CSS, shown on mobile */}
+        {/* CENTER COLUMN */}
+        <div className="copilot-center">
+          {/* Mobile filters row */}
           <div className="mob-filters-row" style={{display:"none",gap:8,marginBottom:14,alignItems:"center"}}>
             <button className="mob-filters-btn" onClick={()=>setShowMobileSidebar(true)} style={{background:darkMode?"rgba(245,158,11,0.1)":"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:20,padding:"7px 14px",fontSize:12,fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",alignItems:"center",gap:6,minHeight:36}}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
@@ -3510,7 +3634,7 @@ export default function Home() {
               {autoOpenDone&&<div style={{background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:12,fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:8}}>🚀 Opened top 3 matches in new tabs!</div>}
 
               {currentLoading&&(
-                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
+                <div style={{display:'flex',flexDirection:'column',gap:'12px',padding:'14px 0'}}>
                   {[...Array(5)].map((_,i)=><SkeletonRow key={i}/>)}
                 </div>
               )}
@@ -3521,7 +3645,7 @@ export default function Home() {
                     Showing <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{(currentPage-1)*JOBS_PER_PAGE+1}–{Math.min(currentPage*JOBS_PER_PAGE,displayJobs.length)}</strong> of <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{displayJobs.length}</strong> jobs
                     {isEbMode&&<span style={{color:"#f59e0b",fontWeight:600}}> · ⚡ All posted today</span>}
                   </div>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
+                  <div style={{display:'flex',flexDirection:'column',gap:'12px',padding:'14px 0'}}>
                     <AnimatePresence mode="popLayout">
                     {paginatedJobs.map((job,idx)=>(
                       <JobCard
@@ -3618,122 +3742,77 @@ export default function Home() {
             </>
           )}
           </motion.div>
-        </main>
+        </div>
 
-        {/* RIGHT PANEL — AI Intelligence */}
-        <motion.aside
-          className="right-panel"
-          initial={{opacity:0,x:16}}
-          animate={{opacity:1,x:0}}
-          transition={{duration:0.45,delay:0.15,ease:'easeOut'}}
-          style={{background:'rgba(22,24,34,0.90)',borderLeft:'1px solid rgba(255,255,255,0.06)',padding:'18px 14px',overflowY:'auto',display:'flex',flexDirection:'column',gap:20}}
-        >
-
-          {/* TODAY'S ACTIVITY */}
-          <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Today's Activity</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
-              {([
-                {label:'Jobs Found',    value:jobs.length,           sub:'Available now', color:'rgba(255,255,255,0.85)'},
-                {label:'Early Bird',   value:panelFreshJobs.length,  sub:'⚡ Fresh',       color:'#d6b268'},
-                {label:'H1B Jobs',     value:panelH1bJobs.length,    sub:'Verified',      color:'#8eb29b'},
-                {label:'Low Comp',     value:panelLowComp.length,    sub:'Apply first',   color:'var(--gold)'},
-              ] as {label:string;value:number;sub:string;color:string}[]).map((stat,i)=>(
-                <motion.div key={stat.label} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:0.3+i*0.08}}
-                  style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:13,padding:'12px 11px',position:'relative',overflow:'hidden'}}
-                >
-                  <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)'}}/>
-                  <div style={{fontSize:9,fontWeight:600,letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:5,fontFamily:'var(--font-primary)'}}>{stat.label}</div>
-                  <div style={{fontSize:24,fontWeight:800,fontFamily:'var(--font-display)',color:stat.color,letterSpacing:'-1px',lineHeight:1}}>
-                    <motion.span key={stat.value} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.5,ease:[0.16,1,0.3,1]}}>{stat.value}</motion.span>
-                  </div>
-                  <div style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.30)',marginTop:3,fontFamily:'var(--font-primary)'}}>{stat.sub}</div>
-                </motion.div>
-              ))}
+        {/* TODAY'S BRIEFING */}
+        {!briefingCollapsed&&(
+          <div className="copilot-briefing">
+            <div className="copilot-briefing-header">
+              <span className="copilot-briefing-title">Today&apos;s Briefing</span>
+              <button className="copilot-briefing-toggle" onClick={()=>setBriefingCollapsed(true)} title="Collapse">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
             </div>
-          </div>
-
-          {/* AI COACHING INSIGHT */}
-          <div style={{background:'linear-gradient(135deg,rgba(245,158,11,0.08),rgba(154,116,223,0.05))',border:'1px solid rgba(245,158,11,0.15)',borderRadius:14,padding:'13px 14px'}}>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(245,158,11,0.6)',marginBottom:8,fontFamily:'var(--font-primary)'}}>AI Career Coach</div>
-            <p style={{fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.55)',lineHeight:1.65,margin:0,fontFamily:'var(--font-primary)'}}>{getCoachingInsight()}</p>
-          </div>
-
-          {/* APPLICATION TRACKER */}
-          <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Application Tracker</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
-              {([
-                {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     color:'var(--gold)'},
-                {label:'Interview', value:trackedApps.filter(a=>a.status==='Interviewing').length, color:'#8eb29b'},
-                {label:'Offer',     value:trackedApps.filter(a=>a.status==='Offer').length,       color:'#d6b268'},
-                {label:'Rejected',  value:trackedApps.filter(a=>a.status==='Rejected').length,    color:'rgba(239,68,68,0.65)'},
-              ] as {label:string;value:number;color:string}[]).map(col=>(
-                <div key={col.label} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10,padding:'9px 5px',textAlign:'center'}}>
-                  <div style={{fontSize:7,fontWeight:700,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.22)',marginBottom:4,fontFamily:'var(--font-primary)'}}>{col.label}</div>
-                  <div style={{fontSize:20,fontWeight:800,fontFamily:'var(--font-display)',color:col.color,letterSpacing:'-0.5px'}}>{col.value}</div>
-                </div>
-              ))}
+            <div className="copilot-mini-card">
+              <div className="copilot-mini-label">Hot Jobs</div>
+              <div className="copilot-mini-value"><span className="copilot-amber">{hotCount}</span> under 6h · act fast</div>
             </div>
-          </div>
-
-          {/* AI MATCH SCORES */}
-          {jobs.filter(j=>j.match).length>0&&(
-            <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Your Match Scores</div>
-              {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,4).map((j,i)=>{
-                const pct=j.match!.matchScore;
-                const barColor=pct>=70?'linear-gradient(90deg,var(--gold),#8eb29b)':pct>=50?'linear-gradient(90deg,#d6b268,#c9922a)':'linear-gradient(90deg,rgba(239,68,68,0.7),rgba(220,38,38,0.7))';
-                return(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                    <div style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.45)',width:60,flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:'var(--font-primary)'}}>{j.employer_name?.split(' ')[0]}</div>
-                    <div style={{flex:1,height:3,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
-                      <motion.div initial={{width:0}} animate={{width:`${pct}%`}} transition={{duration:0.8,ease:'easeOut'}} style={{height:'100%',borderRadius:999,background:barColor}}/>
-                    </div>
-                    <div style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',width:28,textAlign:'right' as const,fontFamily:'var(--font-primary)'}}>{pct}%</div>
-                  </div>
-                );
-              })}
+            <div className="copilot-mini-card">
+              <div className="copilot-mini-label">Applied Today</div>
+              <div className="copilot-mini-value"><span className="copilot-amber">{autoApplyCount}</span> / 30 auto-applied</div>
             </div>
-          )}
-
-          {/* TOP COMPANIES HIRING */}
-          {topCompaniesList.length>0&&(
-            <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Top Hiring Now</div>
-              <div style={{display:'flex',flexDirection:'column',gap:5}}>
-                {topCompaniesList.map((name,i)=>{
-                  const logo=getLogoStyle(name);
+            {topCompaniesList.length>0&&(
+              <div className="copilot-mini-card">
+                <div className="copilot-mini-label">Top Company</div>
+                <div className="copilot-mini-value">{topCompaniesList[0]}</div>
+              </div>
+            )}
+            {jobs.filter(j=>j.match).length>0&&(
+              <div className="copilot-mini-card">
+                <div className="copilot-mini-label">Match Scores</div>
+                {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,3).map((j,i)=>{
+                  const pct=j.match!.matchScore;
                   return(
-                    <div key={name} style={{display:'flex',alignItems:'center',gap:9,padding:'7px 10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10}}>
-                      <div style={{width:24,height:24,borderRadius:7,background:logo.bg,color:logo.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,flexShrink:0,fontFamily:'var(--font-display)'}}>{name[0].toUpperCase()}</div>
-                      <span style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.55)',fontFamily:'var(--font-primary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>{name}</span>
-                      <span style={{fontSize:9,fontWeight:600,color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-primary)',flexShrink:0}}>#{i+1}</span>
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+                      <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',width:48,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{j.employer_name?.split(' ')[0]}</div>
+                      <div style={{flex:1,height:2,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
+                        <motion.div initial={{width:0}} animate={{width:`${pct}%`}} transition={{duration:0.7,ease:'easeOut'}} style={{height:'100%',borderRadius:999,background:pct>=70?'linear-gradient(90deg,#f59e0b,#fbbf24)':pct>=50?'linear-gradient(90deg,#d6b268,#c9922a)':'linear-gradient(90deg,rgba(239,68,68,0.7),rgba(220,38,38,0.7))'}}/>
+                      </div>
+                      <div style={{fontSize:9,color:'rgba(255,255,255,0.35)',width:24,textAlign:'right' as const}}>{pct}%</div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {/* LIVE ACTIVITY */}
-          <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Live Activity</div>
-            {[
-              {dot:'#8eb29b',text:'Someone in Austin applied to ML Engineer at Stripe',time:'2m'},
-              {dot:'#d6b268',text:'Someone in NYC got interview at Figma',time:'5m'},
-              {dot:'var(--gold)',text:'Someone in Seattle found H1B role',time:'8m'},
-            ].map((item,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'7px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                <div style={{width:6,height:6,borderRadius:'50%',background:item.dot,marginTop:3,flexShrink:0}}/>
-                <div style={{fontSize:10,fontWeight:400,color:'rgba(255,255,255,0.35)',lineHeight:1.5,flex:1,fontFamily:'var(--font-primary)'}}>{item.text}</div>
-                <div style={{fontSize:9,color:'rgba(255,255,255,0.18)',flexShrink:0,fontFamily:'var(--font-primary)'}}>{item.time}</div>
+            )}
+            <div className="copilot-mini-card">
+              <div className="copilot-mini-label">Tracker</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:4}}>
+                {([
+                  {l:'Applied',value:trackedApps.filter(a=>a.status==='Applied').length},
+                  {l:'Interview',value:trackedApps.filter(a=>a.status==='Interviewing').length},
+                  {l:'Offer',value:trackedApps.filter(a=>a.status==='Offer').length},
+                  {l:'Rejected',value:trackedApps.filter(a=>a.status==='Rejected').length},
+                ] as {l:string;value:number}[]).map(col=>(
+                  <div key={col.l} style={{textAlign:'center',background:'rgba(255,255,255,0.03)',borderRadius:7,padding:'6px 4px'}}>
+                    <div style={{fontSize:7,fontWeight:700,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.2)',marginBottom:2}}>{col.l}</div>
+                    <div style={{fontSize:16,fontWeight:700,color:'rgba(255,255,255,0.65)'}}>{col.value}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="copilot-mini-card">
+              <div className="copilot-mini-label">AI Coach</div>
+              <div className="copilot-mini-value" style={{fontSize:11,lineHeight:1.6}}>{getCoachingInsight()}</div>
+            </div>
           </div>
+        )}
+        {briefingCollapsed&&(
+          <button className="copilot-expand-btn" onClick={()=>setBriefingCollapsed(false)} title="Expand briefing">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+        )}
 
-        </motion.aside>
-      </motion.div>
+      </div>
 
       {/* MODALS */}
       {selectedJob&&<JobModal job={selectedJob} saved={savedJobs.has(selectedJob.job_id)} onToggleSave={()=>toggleSave(selectedJob.job_id)} onClose={()=>setSelectedJob(null)} earlyBirdMode={isEbMode} onAddToTracker={()=>addToTracker(selectedJob)} isTracked={!!trackedApps.find(a=>a.job.job_id===selectedJob.job_id)}/>}
