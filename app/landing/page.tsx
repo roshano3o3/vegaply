@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { LogoVegaStar } from '@/components/logo/LogoVegaStar'
+import { MatchScoreDemo } from '@/components/MatchScoreDemo'
 import { Play, X } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -565,6 +566,10 @@ export default function VegaplyPro() {
           ))}
         </div>
       </div>
+
+      {/* ── MATCH SCORE DEMO ───────────────────────────────────────────────────── */}
+      <MatchScoreDemo />
+      {/* ── /MATCH SCORE DEMO ──────────────────────────────────────────────────── */}
 
       {/* ── ACTIVITY FEED ──────────────────────────────────────────────────────── */}
       <div className="activity-section reveal" id="activity">
