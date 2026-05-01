@@ -541,7 +541,10 @@ export default function VegaplyPro() {
             <Link href="/signup" className="btn-primary btn-primary-lg">
               Start free →
             </Link>
-            <button className="btn-ghost btn-ghost-lg" onClick={() => setShowDemo(true)}><Play size={16} />Watch demo</button>
+            <button className="btn-ghost btn-ghost-lg btn-watch-demo" onClick={() => setShowDemo(true)}>
+              <span className="watch-demo-icon"><Play size={16} /></span>
+              Watch demo
+            </button>
           </div>
 
           {/* Trust line */}

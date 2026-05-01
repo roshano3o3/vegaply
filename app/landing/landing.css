@@ -1906,3 +1906,94 @@ body {
   .footer-top { grid-template-columns: 1fr; }
   .pricing-price { font-size: 44px; }
 }
+
+/* ── WATCH DEMO BUTTON — enhanced visual treatment ─────────────────────────── */
+
+/* Breathing border glow — layered on top of .btn-ghost base styles */
+.btn-watch-demo {
+  position: relative;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text);
+  animation: watchDemoGlow 3s ease-in-out infinite;
+  /* extend the transition to include box-shadow */
+  transition: background 0.25s ease, border-color 0.25s ease,
+    color 0.2s ease, transform 0.25s var(--ease-out), box-shadow 0.25s ease;
+}
+
+@keyframes watchDemoGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04),
+                0 0 14px rgba(245, 158, 11, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.28),
+                0 0 22px rgba(245, 158, 11, 0.14),
+                0 0 44px rgba(245, 158, 11, 0.05);
+    border-color: rgba(245, 158, 11, 0.55);
+  }
+}
+
+/* Hover — override .btn-ghost:hover's translateY with a scale */
+.btn-watch-demo:hover {
+  transform: scale(1.05);
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.65);
+  color: var(--text);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.4),
+              0 0 28px rgba(245, 158, 11, 0.22),
+              0 0 56px rgba(245, 158, 11, 0.08);
+  animation: none; /* freeze the breathing; hover glow takes over */
+}
+
+/* ── Play icon — ripple rings ── */
+.watch-demo-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* transition covers the hover bounce */
+  transition: transform 0.35s var(--ease-spring);
+}
+
+/* Two staggered rings that expand and fade */
+.watch-demo-icon::before,
+.watch-demo-icon::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(245, 158, 11, 0.55);
+  opacity: 0;
+  animation: watchDemoRipple 2.6s ease-out infinite;
+  pointer-events: none;
+}
+
+.watch-demo-icon::after {
+  animation-delay: 1.3s;
+}
+
+@keyframes watchDemoRipple {
+  0%   { transform: scale(0.65); opacity: 0.7; }
+  100% { transform: scale(2.4);  opacity: 0;   }
+}
+
+/* On hover: freeze ripples, spring-bounce the icon */
+.btn-watch-demo:hover .watch-demo-icon {
+  transform: scale(1.18) rotate(-10deg);
+}
+
+.btn-watch-demo:hover .watch-demo-icon::before,
+.btn-watch-demo:hover .watch-demo-icon::after {
+  animation-play-state: paused;
+  opacity: 0;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .btn-watch-demo { animation: none; }
+  .watch-demo-icon::before,
+  .watch-demo-icon::after { animation: none; }
+  .btn-watch-demo:hover .watch-demo-icon { transform: none; }
+}
