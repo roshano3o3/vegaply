@@ -1493,7 +1493,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
   return(
     <motion.div
-      className="job-card"
+      className={`job-card${hot?' job-card-hot':''}${job.match&&job.match.matchScore>85?' job-card-high-match':''}`}
       layout
       initial={{opacity:0,y:18,scale:0.97}}
       animate={{opacity:1,y:0,scale:1}}
@@ -1527,7 +1527,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
         {/* ZONE B: SIGNAL STRIP — contextual badges + actions */}
         <div className="card-signals">
-          {ebStatus.isHotJob&&<span className="csig csig-hot">🔥 HOT</span>}
+          {ebStatus.isHotJob&&<span className="csig csig-hot"><span className="hot-dot"/>{`🔥 HOT`}</span>}
           {ebStatus.isEarly&&!ebStatus.isHotJob&&<span className="csig csig-early">⚡ Early</span>}
           {h1bStatus&&<span className={`csig ${h1bStatus.sponsors?'csig-h1b':'csig-h1b-maybe'}`}>{h1bStatus.sponsors?'✓ H1B':'∼ H1B'}</span>}
           {(()=>{const src=getApplySource(job);return<span className={`csig ${src.direct?'csig-direct':'csig-indirect'}`}>{src.direct?'🎯':'🔗'} {src.label}</span>;})()}
@@ -1859,6 +1859,7 @@ export default function Home() {
   const [isMatching,setIsMatching]=useState(false);const [matchProgress,setMatchProgress]=useState(0);
   const [autoOpenDone,setAutoOpenDone]=useState(false);const [trackedApps,setTrackedApps]=useState<TrackedApp[]>([]);
   const [mounted,setMounted]=useState(false);const [userEmail,setUserEmail]=useState("");
+  const [showAvatarMenu,setShowAvatarMenu]=useState(false);
   const [refreshToast,setRefreshToast]=useState(false);const [isRefreshing,setIsRefreshing]=useState(false);
   const [darkMode,setDarkMode]=useState(true);
   const [showWelcomeTour,setShowWelcomeTour]=useState(false);
@@ -2630,9 +2631,10 @@ export default function Home() {
       <style>{`
         :root {
           /* === BACKGROUNDS === */
-          --bg-page:      #0a0a0c;
-          --bg-surface:   #141418;
-          --bg-elevated:  #1c1c22;
+          --bg-page:      #07090d;
+          --bg-panel:     #11141b;
+          --bg-card:      #161a23;
+          --bg-elevated:  #1d2230;
           --bg-input:     #1a1a1f;
           --bg-hover:     rgba(255,255,255,0.03);
 
@@ -2647,6 +2649,7 @@ export default function Home() {
           --border-normal: rgba(255,255,255,0.10);
           --border-strong: rgba(255,255,255,0.18);
           --border-focus:  rgba(245,158,11,0.45);
+          --border-hairline: rgba(255,255,255,0.06);
 
           /* === ACCENT: AMBER GOLD (human actions, brand) === */
           --gold:         #f59e0b;
@@ -2749,7 +2752,12 @@ export default function Home() {
         .ai-tool-new{font-size:var(--text-xs);padding:1px 5px;border-radius:var(--radius-full);background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-border);font-weight:700;text-transform:uppercase;letter-spacing:var(--ls-wide);margin-left:auto;flex-shrink:0}
 
         /* === RIGHT PANEL HERO === */
-        .briefing-hero{background:linear-gradient(135deg,var(--gold-dim),rgba(255,255,255,0.01));border:1px solid var(--gold-border);border-radius:var(--radius-md);padding:var(--space-4);margin-bottom:var(--space-3)}
+        .briefing-hero{background:linear-gradient(135deg,var(--bg-card) 0%,var(--bg-elevated) 100%);border:1px solid var(--gold-border);border-radius:var(--radius-md);padding:var(--space-5);margin-bottom:var(--space-3)}
+        .briefing-hero-hdr{font-family:var(--font-primary);font-size:var(--text-base);font-weight:600;color:var(--text-primary);margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2)}
+        .rp-primary{background:var(--bg-card);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-4)}
+        .rp-primary-hdr{font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;color:var(--text-primary);margin-bottom:var(--space-3)}
+        .rp-secondary{border-top:1px solid var(--border-hairline);padding-top:var(--space-3)}
+        .rp-secondary-hdr{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:500;letter-spacing:var(--ls-wider);text-transform:uppercase;color:var(--text-tertiary);margin-bottom:var(--space-2)}
 
         /* === GLOBAL KEYFRAMES (for reuse across components) === */
         @keyframes fadeIn {
@@ -2841,7 +2849,7 @@ export default function Home() {
         @keyframes premiumShimmer{0%{background-position:0% center}100%{background-position:200% center}}
 
         /* TOPBAR */
-        .topbar{position:sticky;top:0;z-index:50;height:64px;padding:0 24px;display:flex;align-items:center;gap:var(--space-4);background:rgba(7,8,11,0.98);border-bottom:1px solid var(--gold-subtle);backdrop-filter:blur(32px);box-shadow:0 1px 0 var(--gold-bg),0 8px 48px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.04)}
+        .topbar{position:sticky;top:0;z-index:50;height:64px;padding:0 24px;display:flex;align-items:center;gap:var(--space-4);background:var(--bg-panel);border-bottom:1px solid var(--gold-subtle);backdrop-filter:blur(32px);box-shadow:0 1px 0 var(--gold-bg),0 8px 48px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.04)}
         .topbar-logo{font-family:var(--font-display);font-size:var(--text-md);font-weight:700;color:#fff;letter-spacing:var(--ls-tight);flex-shrink:0;margin-right:var(--space-2);cursor:pointer;display:flex;align-items:center}
         .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#f59e0b,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-search{display:flex;align-items:center;gap:var(--space-2);flex:1;max-width:580px}
@@ -2864,7 +2872,7 @@ export default function Home() {
         .h1b-btn{height:36px;padding:0 14px;background:transparent;border:1px solid var(--cyan-border);border-radius:9px;color:var(--cyan-text);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.18s ease;flex-shrink:0;letter-spacing:var(--ls-normal)}
         .h1b-btn:hover{background:var(--cyan-bg);border-color:var(--cyan-glow);color:var(--cyan-text)}
         .h1b-btn.active{background:var(--cyan-subtle);color:var(--cyan-text);border-color:var(--cyan-muted);box-shadow:0 0 0 3px var(--cyan-bg)}
-        .refresh-btn{height:36px;padding:0 12px;background:transparent;border:1px solid rgba(255,255,255,0.07);border-radius:9px;color:var(--text-disabled);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:500;cursor:pointer;transition:all 0.18s ease;flex-shrink:0;display:flex;align-items:center;gap:5px}
+        .refresh-btn{height:32px;padding:0 12px;background:transparent;border:1px solid var(--border-hairline);border-radius:9px;color:var(--text-secondary);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:500;cursor:pointer;transition:all 0.18s ease;flex-shrink:0;display:flex;align-items:center;gap:5px}
         .refresh-btn:hover{color:var(--text-secondary);border-color:var(--text-disabled);background:rgba(255,255,255,0.04)}
         .refresh-btn:disabled{opacity:0.35;cursor:not-allowed}
         .refresh-btn.spinning svg{animation:spin360 .8s linear infinite}
@@ -2878,6 +2886,27 @@ export default function Home() {
         .user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#c97a0a,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:var(--text-sm);font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 2px 10px var(--gold-glow)}
         .logout-btn{background:transparent;border:none;color:var(--text-disabled);font-size:var(--text-xs);font-weight:500;cursor:pointer;font-family:var(--font-primary);letter-spacing:var(--ls-normal);padding:6px 10px;border-radius:8px;transition:color 0.18s ease}
         .logout-btn:hover{color:var(--text-secondary)}
+        .avatar-menu-btn{position:relative;cursor:pointer;flex-shrink:0}
+        .avatar-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:200px;background:var(--bg-elevated);border:1px solid var(--border-hairline);border-radius:var(--radius-md);box-shadow:0 16px 40px rgba(0,0,0,0.6);padding:var(--space-2);z-index:200;display:flex;flex-direction:column;gap:2px}
+        .avatar-menu-email{padding:var(--space-2) var(--space-3);font-size:var(--text-xs);color:var(--text-tertiary);font-family:var(--font-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid var(--border-hairline);margin-bottom:var(--space-1)}
+        .avatar-menu-item{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);font-size:var(--text-sm);color:var(--text-secondary);cursor:pointer;background:none;border:none;font-family:var(--font-primary);width:100%;text-align:left;transition:background 0.15s ease}
+        .avatar-menu-item:hover{background:rgba(255,255,255,0.06);color:var(--text-primary)}
+        .avatar-menu-item.danger{color:rgba(239,68,68,0.7)}
+        .avatar-menu-item.danger:hover{background:rgba(239,68,68,0.08);color:#ef4444}
+
+        /* === CTA TIER SYSTEM === */
+        .btn-tier-1{height:40px;padding:0 20px;background:var(--gold);color:#0a0a0a;border:none;border-radius:9px;font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;transition:all 0.18s ease;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px var(--gold-glow)}
+        .btn-tier-1:hover{background:var(--gold-hover);box-shadow:0 6px 22px var(--gold-muted);transform:translateY(-1px)}
+        .btn-tier-1:active{transform:scale(0.97)}
+        .btn-tier-1:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+        .btn-tier-2{height:34px;padding:0 12px;background:transparent;border:1px solid var(--gold-border);color:var(--gold-text);border-radius:8px;font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;cursor:pointer;transition:all 0.18s ease;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+        .btn-tier-2:hover{background:var(--gold-bg);border-color:var(--gold-glow);color:var(--gold)}
+        .btn-tier-2:disabled{opacity:0.35;cursor:not-allowed}
+        .btn-tier-3{height:32px;padding:0 12px;background:transparent;border:1px solid var(--border-hairline);color:var(--text-secondary);border-radius:8px;font-family:var(--font-primary);font-size:var(--text-xs);font-weight:500;cursor:pointer;transition:all 0.18s ease;display:inline-flex;align-items:center;gap:5px}
+        .btn-tier-3:hover{background:var(--bg-elevated);color:var(--text-primary);border-color:rgba(255,255,255,0.10)}
+        .btn-tier-3:disabled{opacity:0.35;cursor:not-allowed}
+        .btn-tier-text{background:none;border:none;color:var(--text-tertiary);font-family:var(--font-primary);font-size:var(--text-xs);font-weight:500;cursor:pointer;padding:2px 0;transition:color 0.18s ease;text-decoration:none}
+        .btn-tier-text:hover{color:var(--text-secondary);text-decoration:underline}
 
         /* COMMAND STRIP */
         .cmd-strip{display:flex;align-items:stretch;background:rgba(10,11,16,0.97);border:1px solid rgba(255,255,255,0.07);border-radius:13px;overflow:hidden;margin-bottom:var(--space-4);box-shadow:0 4px 24px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04)}
@@ -2896,9 +2925,9 @@ export default function Home() {
         .briefing-label-ai{color:var(--cyan-muted)}
         .briefing-label-gold{color:var(--gold-muted)}
         .briefing-label-green{color:rgba(52,211,153,0.55)}
-        .briefing-stat-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;position:relative;overflow:hidden;transition:border-color 0.2s ease,background 0.2s ease}
+        .briefing-stat-card{background:var(--bg-elevated);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;position:relative;overflow:hidden;transition:border-color 0.2s ease,background 0.2s ease}
         .briefing-stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)}
-        .briefing-stat-card:hover{border-color:rgba(255,255,255,0.11);background:rgba(255,255,255,0.06)}
+        .briefing-stat-card:hover{border-color:rgba(255,255,255,0.11);background:var(--bg-elevated)}
         .briefing-value{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;letter-spacing:var(--ls-tight);line-height:1;margin-bottom:2px}
         .briefing-sub-label{font-size:var(--text-xs);font-weight:700;letter-spacing:var(--ls-wider);text-transform:uppercase;color:var(--text-disabled);font-family:var(--font-primary)}
         .briefing-bar-row{display:flex;align-items:center;gap:7px;margin-bottom:var(--space-2)}
@@ -2927,9 +2956,9 @@ export default function Home() {
 
         /* LAYOUT */
         .app-layout{display:flex;min-height:calc(100vh - 64px);background:var(--bg-page);position:relative;z-index:1;}
-        .sidebar{width:264px;flex-shrink:0;background:rgba(11,12,17,0.98);border-right:1px solid rgba(255,255,255,0.06);padding:18px 14px 60px 14px;display:flex;flex-direction:column;gap:var(--space-3);position:sticky;top:var(--space-16);height:calc(100vh - 64px);overflow-y:auto}
+        .sidebar{width:264px;flex-shrink:0;background:var(--bg-panel);border-right:1px solid rgba(255,255,255,0.06);padding:18px 14px 60px 14px;display:flex;flex-direction:column;gap:var(--space-3);position:sticky;top:var(--space-16);height:calc(100vh - 64px);overflow-y:auto}
         .content{flex:1;min-width:0;padding:var(--space-5) 28px;max-width:calc(100% - 264px - 316px);display:flex;flex-direction:column;gap:var(--space-4)}
-        .right-panel{width:316px;flex-shrink:0;background:rgba(10,11,16,0.98);border-left:1px solid rgba(255,255,255,0.06);padding:18px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:var(--space-16);height:calc(100vh - 64px);overflow-y:auto}
+        .right-panel{width:316px;flex-shrink:0;background:var(--bg-panel);border-left:1px solid rgba(255,255,255,0.06);padding:18px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:var(--space-16);height:calc(100vh - 64px);overflow-y:auto}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100% - 264px)}}
         @media(max-width:1024px){.topbar-search-box{min-width:0}.topbar-right .nav-pill{display:none}.topbar-email{display:none}}
 
@@ -2968,7 +2997,7 @@ export default function Home() {
         .live-time{font-family:var(--font-primary);font-size:var(--text-xs);color:var(--text-tertiary);margin-left:var(--space-2);flex-shrink:0}
 
         /* SIDEBAR */
-        .sidebar-card{background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.07);border-radius:13px;padding:14px;transition:border-color 0.2s ease,background 0.2s ease;position:relative;overflow:hidden}
+        .sidebar-card{background:var(--bg-card);border:1px solid rgba(255,255,255,0.07);border-radius:13px;padding:14px;transition:border-color 0.2s ease,background 0.2s ease;position:relative;overflow:hidden}
         .sidebar-card:hover{border-color:rgba(255,255,255,0.11);background:rgba(255,255,255,0.032)}
         .sidebar-card-title{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:700;letter-spacing:var(--ls-wider);text-transform:uppercase;color:var(--text-tertiary);margin-bottom:10px}
         .sidebar-card-sub{font-size:var(--text-xs);color:var(--text-disabled);margin-bottom:10px;line-height:1.6}
@@ -3028,10 +3057,12 @@ export default function Home() {
         @media(prefers-reduced-motion:reduce){.job-card,.job-card *{transition:none!important;animation:none!important}.cmd-strip,.cmd-metric-value,.briefing-value{animation:none!important}}
 
         /* CARD SHELL */
-        .job-card{background:linear-gradient(180deg,#131620 0%,#0c0f18 100%);border:1px solid rgba(255,255,255,0.08);border-radius:15px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.4);transition:border-color 0.22s ease,box-shadow 0.22s ease,transform 0.22s ease;display:flex;flex-direction:column;position:relative;cursor:pointer}
+        .job-card{background:var(--bg-card);border:1px solid rgba(255,255,255,0.08);border-radius:15px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.4);transition:border-color 0.22s ease,box-shadow 0.22s ease,transform 0.22s ease;display:flex;flex-direction:column;position:relative;cursor:pointer}
         .job-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--gold-border) 35%,var(--gold-subtle) 65%,transparent 100%);pointer-events:none;z-index:1}
         .job-card:hover{border-color:var(--gold-glow);box-shadow:0 20px 56px rgba(0,0,0,0.7),0 0 0 1px var(--gold-bg),0 0 40px var(--gold-dim);transform:translateY(-3px)}
-        .job-card-hot{border-color:var(--gold-border)!important}
+        .job-card-hot{background:linear-gradient(180deg,rgba(255,107,53,0.04) 0%,var(--bg-card) 60%)!important;border:1px solid rgba(255,107,53,0.25)!important;box-shadow:0 0 0 1px rgba(255,107,53,0.15),0 8px 32px rgba(255,107,53,0.06)!important}
+        .job-card-hot:hover{border-color:rgba(255,107,53,0.45)!important;box-shadow:0 0 0 1px rgba(255,107,53,0.30),0 12px 40px rgba(255,107,53,0.10)!important}
+        .job-card-high-match{border-left:3px solid var(--cyan)!important}
 
         /* CARD BODY & FOOTER */
         .card-body{padding:14px 14px 10px;display:flex;flex-direction:column;gap:var(--space-2);flex:1}
@@ -3060,6 +3091,7 @@ export default function Home() {
         .card-signals{display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap;padding:5px 0;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05)}
         .csig{display:inline-flex;align-items:center;font-size:var(--text-xs);font-weight:700;padding:2px 7px;border-radius:4px;font-family:var(--font-primary);letter-spacing:var(--ls-normal)}
         .csig-hot{background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(239,68,68,0.12));color:#f97316;border:1px solid rgba(249,115,22,0.25);animation:hotGlow 2s ease infinite}
+        .hot-dot{width:5px;height:5px;border-radius:50%;background:#f97316;display:inline-block;margin-right:4px;animation:live-pulse 2s ease-in-out infinite;vertical-align:middle;flex-shrink:0}
         .csig-early{background:var(--gold-bg);color:#f59e0b;border:1px solid var(--gold-border)}
         .csig-h1b{background:rgba(142,178,155,0.08);color:#8eb29b;border:1px solid rgba(142,178,155,0.18)}
         .csig-h1b-maybe{background:rgba(214,178,104,0.06);color:#d6b268;border:1px solid rgba(214,178,104,0.14)}
@@ -3099,8 +3131,8 @@ export default function Home() {
         .card-tools{display:flex;gap:var(--space-1)}
 
         /* ACTION BUTTONS */
-        .action-card-btn{flex:1;min-width:0;border-radius:7px;padding:6px 8px;font-size:var(--text-xs);font-weight:600;font-family:var(--font-primary);letter-spacing:var(--ls-normal);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--space-1);border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:var(--text-tertiary);transition:all 0.18s ease;white-space:nowrap}
-        .action-card-btn:hover{background:var(--gold-bg);border-color:var(--gold-border);color:#f59e0b}
+        .action-card-btn{flex:1;min-width:0;border-radius:7px;padding:6px 8px;font-size:var(--text-xs);font-weight:600;font-family:var(--font-primary);letter-spacing:var(--ls-normal);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--space-1);border:1px solid var(--gold-border);background:transparent;color:var(--gold-text);transition:all 0.18s ease;white-space:nowrap}
+        .action-card-btn:hover{background:var(--gold-bg);border-color:var(--gold-glow);color:var(--gold)}
         .action-card-btn.match-btn{background:var(--cyan-dim);border-color:var(--cyan-subtle);color:var(--cyan-muted)}
         .action-card-btn.match-btn:hover{background:var(--cyan-bg);border-color:var(--cyan-glow);color:var(--cyan-text)}
         .action-card-btn.match-btn.done{background:var(--gold-bg);border-color:var(--gold-border);color:#f59e0b}
@@ -3143,6 +3175,7 @@ export default function Home() {
         @keyframes cardGlow{0%,100%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}50%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05),0 0 20px var(--gold-bg)}}
         @keyframes cardPulse{0%,100%{border-color:rgba(255,255,255,0.08)}50%{border-color:var(--gold-border)}}
         @keyframes hotGlow{0%,100%{box-shadow:0 2px 6px rgba(249,115,22,0.2)}50%{box-shadow:0 2px 14px rgba(249,115,22,0.5)}}
+        @keyframes live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.35;transform:scale(0.6)}}
         @keyframes buttonShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         @keyframes btnShimmer{0%{background-position:0% center}100%{background-position:200% center}}
         @keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 var(--gold-dim)}50%{box-shadow:0 0 0 4px var(--gold-bg)}}
@@ -3326,15 +3359,34 @@ export default function Home() {
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
           {mounted&&autoApplyCount>0&&<span className="nav-pill" style={{background:"var(--gold-bg)",color:"#f59e0b",border:"1px solid var(--gold-glow)"}}>{autoApplyCount}/30 Applied</span>}
           {mounted&&prefTitles.length>0&&<span className="nav-pill" style={{background:"var(--gold-bg)",color:"#f59e0b",border:"1px solid var(--gold-glow)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}} onClick={()=>setShowPreferences(true)}><span style={{width:6,height:6,borderRadius:"50%",background:"#f59e0b",display:"inline-block",flexShrink:0}}/>Prefs active</span>}
-          {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
-          {mounted&&userEmail&&<span className="topbar-email" style={{fontSize:'var(--text-xs)',color:"var(--text-disabled)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userEmail}</span>}
-          <button className="theme-toggle" onClick={toggleTheme} title={darkMode?"Switch to light mode":"Switch to dark mode"}>
-            {darkMode
-              ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-              : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            }
-          </button>
-          <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
+          {mounted&&(
+            <div className="avatar-menu-btn" onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setShowAvatarMenu(false);}}>
+              <div
+                className="user-avatar"
+                tabIndex={0}
+                title="Account"
+                style={{cursor:'pointer',outline:'none'}}
+                onClick={()=>setShowAvatarMenu(v=>!v)}
+                onKeyDown={e=>e.key==='Enter'&&setShowAvatarMenu(v=>!v)}
+              >{avatarLetter}</div>
+              {showAvatarMenu&&(
+                <div className="avatar-menu">
+                  {userEmail&&<div className="avatar-menu-email">{userEmail}</div>}
+                  <button className="avatar-menu-item" onClick={()=>{toggleTheme();setShowAvatarMenu(false);}}>
+                    {darkMode
+                      ?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                      :<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    }
+                    {darkMode?'Light mode':'Dark mode'}
+                  </button>
+                  <button className="avatar-menu-item danger" onClick={()=>{handleLogout();setShowAvatarMenu(false);}}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           {/* Mobile: sign out icon */}
           <button className="mob-signout-btn theme-toggle" onClick={handleLogout} title="Sign out" style={{color:"rgba(239,68,68,0.6)"}}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -3666,20 +3718,18 @@ export default function Home() {
             <span style={{fontFamily:'var(--font-primary)',fontSize:'var(--text-xs)',fontWeight:700,letterSpacing:'var(--ls-wider)',textTransform:'uppercase',color:'var(--text-disabled)'}}>Command Briefing</span>
           </div>
 
-          {/* 1 — AI COACH (hero, top position) */}
+          {/* 1 — AI COACH (hero) */}
           <div className="briefing-hero">
-            <div style={{display:'flex',alignItems:'center',gap:'var(--space-2)',marginBottom:'var(--space-3)'}}>
-              <span style={{fontSize:'var(--text-base)',fontWeight:700,color:'var(--gold)',fontFamily:'var(--font-primary)'}}>AI Coach</span>
+            <div className="briefing-hero-hdr">
+              <span style={{fontSize:'var(--text-base)',color:'var(--gold)'}}>✦</span>
+              <span>AI Coach</span>
             </div>
             <p style={{fontSize:'var(--text-sm)',fontWeight:400,color:'var(--text-secondary)',lineHeight:1.75,margin:0,fontFamily:'var(--font-primary)'}}>{getCoachingInsight()}</p>
           </div>
 
-          {/* 2 — MARKET PULSE — 2×2 stat grid (primary) */}
-          <div className="briefing-section">
-            <div className="briefing-header">
-              <span className="briefing-label briefing-label-gold" style={{fontSize:'var(--text-sm)'}}>Market Pulse</span>
-              <div className="briefing-rule"/>
-            </div>
+          {/* 2 — MARKET PULSE (primary) */}
+          <div className="rp-primary">
+            <div className="rp-primary-hdr">Market Pulse</div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
               {([
                 {label:'Jobs Found',  value:jobs.length,           color:'var(--text-primary)'},
@@ -3703,12 +3753,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 3 — TODAY'S TOP MATCH (replaces Tracker mini-grid) */}
-          <div className="briefing-section">
-            <div className="briefing-header">
-              <span className="briefing-label briefing-label-ai" style={{fontSize:'var(--text-sm)'}}>Today's Top Match</span>
-              <div className="briefing-rule"/>
-            </div>
+          {/* 3 — TODAY'S TOP MATCH (primary) */}
+          <div className="rp-primary">
+            <div className="rp-primary-hdr">Today's Top Match</div>
             {topMatchJob?(
               <motion.div
                 initial={{opacity:0,y:6}}
@@ -3737,11 +3784,8 @@ export default function Home() {
 
           {/* 4 — TOP HIRING (secondary) */}
           {topCompaniesList.length>0&&(
-            <div className="briefing-section">
-              <div className="briefing-header">
-                <span className="briefing-label briefing-label-gold" style={{fontSize:'var(--text-xs)',letterSpacing:'var(--ls-wider)',textTransform:'uppercase'}}>Top Hiring</span>
-                <div className="briefing-rule"/>
-              </div>
+            <div className="rp-secondary">
+              <div className="rp-secondary-hdr">Top Hiring</div>
               <div style={{display:'flex',flexDirection:'column',gap:'var(--space-1)'}}>
                 {topCompaniesList.map((name,i)=>{
                   const logo=getLogoStyle(name);
@@ -3766,11 +3810,8 @@ export default function Home() {
           )}
 
           {/* 5 — LIVE ACTIVITY (secondary) */}
-          <div className="briefing-section">
-            <div className="briefing-header">
-              <span className="briefing-label briefing-label-green" style={{fontSize:'var(--text-xs)',letterSpacing:'var(--ls-wider)',textTransform:'uppercase'}}>Live Activity</span>
-              <div className="briefing-rule"/>
-            </div>
+          <div className="rp-secondary">
+            <div className="rp-secondary-hdr">Live Activity</div>
             {[
               {dot:'#8eb29b',text:'Applied to ML Engineer at Stripe · Austin',time:'2m'},
               {dot:'#d6b268',text:'Interview at Figma · New York',time:'5m'},
