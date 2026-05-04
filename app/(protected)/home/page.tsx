@@ -38,7 +38,7 @@ interface JobWithMatch extends Job {
 }
 type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
-type TabType = "results"|"earlybird"|"saved"|"tracker"|"analytics";
+type TabType = "results"|"saved"|"tracker"|"analytics";
 const JOBS_PER_PAGE = 50;
 
 const H1B_SPONSORS = new Set([
@@ -1885,7 +1885,8 @@ export default function Home() {
   const [generatingResume, setGeneratingResume] = useState(false);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
-  const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'>('all');
+  const [activeFilters,setActiveFilters]=useState<Set<string>>(new Set());
+  const toggleFilter=(f:string)=>{setActiveFilters(prev=>{if(f==='all')return new Set();const n=new Set(prev);n.has(f)?n.delete(f):n.add(f);return n;});setCurrentPage(1);};
   const [quickMatches, setQuickMatches] = useState<Record<string, {
     score: number,
     matching: string[],
@@ -2046,7 +2047,7 @@ export default function Home() {
     if(!jobRole||!location){alert("Please enter job role and location first");return;}
     localStorage.setItem("applysmart_jobRole",jobRole);
     localStorage.setItem("applysmart_location",location);
-    setHasSearched(true);setActiveTab("earlybird");setCurrentPage(1);
+    setHasSearched(true);setActiveTab("results");setActiveFilters(prev=>{const n=new Set(prev);n.add('earlybird');return n;});setCurrentPage(1);
     await fetchJobs("earlybird",jobRole,location);
   };
 
@@ -2066,7 +2067,7 @@ export default function Home() {
     setShowMobileSearch(false);
     localStorage.setItem("applysmart_jobRole",role);
     localStorage.setItem("applysmart_location",loc);
-    setHasSearched(true);setActiveTab("earlybird");setCurrentPage(1);
+    setHasSearched(true);setActiveTab("results");setActiveFilters(prev=>{const n=new Set(prev);n.add('earlybird');return n;});setCurrentPage(1);
     await fetchJobs("earlybird",role,loc);
   };
 
@@ -2093,7 +2094,7 @@ export default function Home() {
   const handleSkillGap=async(job:JobWithMatch)=>{
     if(job.skillGap){setSkillGapJob(job);return;}
     if(!resumeText){alert("Upload your resume first!");return;}
-    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
+    const isEb=earlyBirdJobs.some(j=>j.job_id===job.job_id);const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
     setList(list.map(j=>j.job_id===job.job_id?{...j,skillGapLoading:true}:j));
     try{
       const res=await fetch("/api/skillgap",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
@@ -2107,7 +2108,7 @@ export default function Home() {
   const handleCoverLetter=async(job:JobWithMatch)=>{
     if(job.coverLetter){setCoverLetterJob(job);return;}
     if(!resumeText){alert("Upload your resume first!");return;}
-    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
+    const isEb=earlyBirdJobs.some(j=>j.job_id===job.job_id);const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
     setList(list.map(j=>j.job_id===job.job_id?{...j,coverLetterLoading:true}:j));
     try{const res=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const data:MatchResult=await res.json();const updated={...job,coverLetter:data.coverLetter,coverLetterLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setCoverLetterJob(updated);}
     catch{setList(list.map(j=>j.job_id===job.job_id?{...j,coverLetterLoading:false}:j));}
@@ -2116,7 +2117,7 @@ export default function Home() {
   const handleTailor=async(job:JobWithMatch)=>{
     if(job.tailor){setTailorJob(job);return;}
     if(!resumeText){alert("Upload your resume first!");return;}
-    const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
+    const isEb=earlyBirdJobs.some(j=>j.job_id===job.job_id);const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
     setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:true}:j));
     try{const res=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const tailor:TailorResult=await res.json();const updated={...job,tailor,tailorLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setTailorJob(updated);}catch(err){console.error('[Tailor] failed:',err);setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:false}:j));setAutoApplyToast("⚠️ Tailor analysis failed — please try again");setTimeout(()=>setAutoApplyToast(""),4000);}
   };
@@ -2452,17 +2453,21 @@ export default function Home() {
 
   const isH1B = (job: any): boolean => isH1bSponsor(job.employer_name)
 
-  const modeFilteredJobs=activeMode==='earlybird'
-    ?jobs.filter(j=>getEarlyBirdStatus(j).isEarly)
-    :activeMode==='h1b'
-    ?jobs.filter(isH1B)
-    :jobs;
+  const chipFilteredJobs=(()=>{
+    let list=[...jobs];
+    if(activeFilters.has('earlybird'))list=list.filter(j=>getEarlyBirdStatus(j).isEarly);
+    if(activeFilters.has('h1b'))list=list.filter(isH1B);
+    if(activeFilters.has('hot'))list=list.filter(j=>getEarlyBirdStatus(j).isHotJob);
+    if(activeFilters.has('applied'))list=list.filter(j=>trackedApps.some(a=>a.job.job_id===j.job_id));
+    return list;
+  })();
+  const modeFilteredJobs=chipFilteredJobs;
   const smartEbCount=jobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
   const h1bCount=jobs.filter(isH1B).length;
   const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
 
-  const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(j=>getEarlyBirdStatus(j).isEarly):allSaved;
-  const isEbMode=activeTab==="earlybird";
+  const displayJobs=activeTab==="results"?filterJobs(chipFilteredJobs):allSaved;
+  const isEbMode=activeFilters.has('earlybird');
   const hotCount=jobs.filter(j=>getEarlyBirdStatus(j).isHotJob).length;
   const totalPages=Math.ceil(displayJobs.length/JOBS_PER_PAGE);
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
@@ -2471,6 +2476,7 @@ export default function Home() {
   const totalSearched=allJobs.length;
 
   // AI Intelligence Panel computed values
+  const topMatchJob=resumeText?jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0))[0]:undefined;
   const panelFreshJobs = jobs.filter(j => getEarlyBirdStatus(j).isEarly);
   const panelHotJobs   = jobs.filter(j => getEarlyBirdStatus(j).isHotJob);
   const panelH1bJobs   = jobs.filter(j => getH1BStatus(j) !== null);
@@ -2538,15 +2544,11 @@ export default function Home() {
     if(!hasSearched||!jobRole||!location||isRefreshing)return;
     setIsRefreshing(true);
     try{
-      const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole,location,earlyBird:activeTab==="earlybird"})});
+      const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole,location,earlyBird:false})});
       if(!res.ok)throw new Error(`HTTP ${res.status}`);
       const data=await res.json();
       const newJobs:JobWithMatch[]=data?.data||[];
-      if(activeTab==="earlybird"){
-        if(newJobs.length>earlyBirdJobs.length){setEarlyBirdJobs(newJobs);setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);}
-      }else{
-        if(newJobs.length>jobs.length){setJobs(newJobs);setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);}
-      }
+      if(newJobs.length>jobs.length){setJobs(newJobs);setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);}
     }catch(err){console.error("handleRefresh error:",err);}
     setIsRefreshing(false);
   };
@@ -2585,13 +2587,12 @@ export default function Home() {
     if(!hasSearched)return;
     const interval=setInterval(async()=>{
       if(!hasSearchedRef.current||!jobRoleRef.current||!locationRef.current)return;
-      const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:jobRoleRef.current,location:locationRef.current,earlyBird:activeTabRef.current==="earlybird"})}).catch(()=>null);
+      const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:jobRoleRef.current,location:locationRef.current,earlyBird:false})}).catch(()=>null);
       if(!res||!res.ok)return;
       const data=await res.json().catch(()=>null);
       if(!data)return;
       const newJobs:JobWithMatch[]=data?.data||[];
-      if(activeTabRef.current==="earlybird"){if(newJobs.length>0)setEarlyBirdJobs(prev=>{if(newJobs.length>prev.length){setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);return newJobs;}return prev;});}
-      else{setJobs(prev=>{if(newJobs.length>prev.length){setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);return newJobs;}return prev;});}
+      setJobs(prev=>{if(newJobs.length>prev.length){setRefreshToast(true);setTimeout(()=>setRefreshToast(false),3000);return newJobs;}return prev;});
     },3*60*1000);
     return()=>clearInterval(interval);
   },[hasSearched]);
@@ -2726,6 +2727,29 @@ export default function Home() {
           --ls-wide:   0.05em;
           --ls-wider:  0.1em;
         }
+
+        /* === MODE SWITCHER === */
+        .mode-switcher{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius-md);padding:3px;flex-shrink:0}
+        .mode-btn{background:transparent;border:none;padding:5px var(--space-3);border-radius:7px;font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all var(--dur-base) var(--ease-smooth);white-space:nowrap;display:flex;align-items:center;gap:4px;line-height:1}
+        .mode-btn:hover{color:var(--text-primary)}
+        .mode-btn.active{background:var(--gold-bg);color:var(--gold);box-shadow:0 0 0 1px var(--gold-border)}
+
+        /* === FILTER CHIP BAR === */
+        .filter-chip-bar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0}
+        .filter-chip-bar::-webkit-scrollbar{display:none}
+        .fchip{display:inline-flex;align-items:center;gap:5px;padding:5px var(--space-3);border-radius:var(--radius-full);font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;cursor:pointer;transition:all var(--dur-base) var(--ease-smooth);border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:var(--text-secondary);white-space:nowrap;user-select:none}
+        .fchip:hover{background:rgba(255,255,255,0.06);color:var(--text-primary)}
+        .fchip.active{background:var(--gold-bg);border-color:var(--gold-border);color:var(--gold-text)}
+        .fchip.chip-all.active{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);color:var(--text-primary)}
+
+        /* === SIDEBAR SECTIONS === */
+        .sidebar-section-hdr{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:700;letter-spacing:var(--ls-wider);text-transform:uppercase;color:var(--text-disabled);padding:var(--space-3) 0 var(--space-2);border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:var(--space-2)}
+        .ai-tool-btn{width:100%;display:flex;align-items:center;gap:var(--space-2);padding:7px var(--space-2);border-radius:var(--radius-sm);background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);color:var(--text-secondary);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:500;cursor:pointer;transition:all var(--dur-fast) var(--ease-smooth);text-align:left;margin-bottom:4px}
+        .ai-tool-btn:hover{background:rgba(255,255,255,0.05);color:var(--text-primary);border-color:rgba(255,255,255,0.09)}
+        .ai-tool-new{font-size:var(--text-xs);padding:1px 5px;border-radius:var(--radius-full);background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-border);font-weight:700;text-transform:uppercase;letter-spacing:var(--ls-wide);margin-left:auto;flex-shrink:0}
+
+        /* === RIGHT PANEL HERO === */
+        .briefing-hero{background:linear-gradient(135deg,var(--gold-dim),rgba(255,255,255,0.01));border:1px solid var(--gold-border);border-radius:var(--radius-md);padding:var(--space-4);margin-bottom:var(--space-3)}
 
         /* === GLOBAL KEYFRAMES (for reuse across components) === */
         @keyframes fadeIn {
@@ -3266,20 +3290,38 @@ export default function Home() {
             <input className="topbar-input-loc" type="text" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           </div>
           <motion.button className="search-btn" whileHover={{scale:1.04,filter:'brightness(1.12)'}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
-          <motion.button className={`eb-btn${activeMode==='earlybird'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>{const newMode=activeMode==='earlybird'?'all':'earlybird';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
-          <motion.button className={`h1b-btn${activeMode==='h1b'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>{const newMode=activeMode==='h1b'?'all':'h1b';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>🌐 H1B</motion.button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             {isRefreshing?"Refreshing…":"Refresh"}
           </button>}
+        </div>
+        {/* MODE SWITCHER — Search / Saved / Tracker / Analytics */}
+        <div className="mode-switcher" role="tablist" aria-label="App mode">
+          {([
+            {id:'results',   icon:'🔍', label:'Search'},
+            {id:'saved',     icon:'🔖', label:'Saved'},
+            {id:'tracker',   icon:'📋', label:'Tracker'},
+            {id:'analytics', icon:'📊', label:'Analytics'},
+          ] as {id:TabType;icon:string;label:string}[]).map((m,idx,arr)=>(
+            <button
+              key={m.id}
+              role="tab"
+              aria-selected={activeTab===m.id}
+              className={`mode-btn${activeTab===m.id?' active':''}`}
+              onClick={()=>{setActiveTab(m.id);setCurrentPage(1);}}
+              onKeyDown={e=>{
+                if(e.key==='ArrowRight'){e.preventDefault();setActiveTab(arr[(idx+1)%arr.length].id);}
+                if(e.key==='ArrowLeft'){e.preventDefault();setActiveTab(arr[(idx-1+arr.length)%arr.length].id);}
+                if(e.key==='Enter'){setActiveTab(m.id);setCurrentPage(1);}
+              }}
+            >{m.icon} {m.label}</button>
+          ))}
         </div>
         <div className="topbar-right">
           {/* Mobile: search toggle */}
           <button className="mob-search-btn theme-toggle" onClick={()=>setShowMobileSearch(s=>!s)} style={{color:showMobileSearch?"#f59e0b":"inherit"}} title="Search">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
-          {/* Mobile: early bird quick-access */}
-          <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:'var(--text-sm)',cursor:"pointer",color:"#fbbf24",alignItems:"center",gap:'var(--space-1)',minHeight:36}}>⚡</button>
           {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
           {mounted&&autoApplyCount>0&&<span className="nav-pill" style={{background:"var(--gold-bg)",color:"#f59e0b",border:"1px solid var(--gold-glow)"}}>{autoApplyCount}/30 Applied</span>}
@@ -3307,7 +3349,6 @@ export default function Home() {
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:'var(--text-base)'}}/>
           <div style={{display:"flex",gap:'var(--space-2)'}}>
             <button className="search-btn" style={{flex:1,height:44,fontSize:'var(--text-base)'}} onClick={handleMobileSearch} disabled={loading}>{loading?"Searching…":"Search"}</button>
-            <button className="eb-btn" style={{height:44,fontSize:'var(--text-sm)'}} onClick={handleMobileEarlyBird} disabled={ebLoading}>{ebLoading?"…":"⚡"}</button>
           </div>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} style={{width:"100%",justifyContent:"center",height:40}} onClick={handleRefresh} disabled={isRefreshing}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -3319,12 +3360,14 @@ export default function Home() {
       <motion.div className="app-layout" initial={{opacity:0,y:8,scale:0.99}} animate={{opacity:1,y:0,scale:1}} transition={{duration:0.5,ease:[0.34,1.56,0.64,1]}}>
         {/* SIDEBAR */}
         <motion.aside className="sidebar" initial={{opacity:0,x:-16}} animate={{opacity:1,x:0}} transition={{duration:0.4,delay:0.1,ease:'easeOut'}}>
+
+          {/* ── YOUR PROFILE ── */}
+          <div className="sidebar-section-hdr" style={{marginTop:0,paddingTop:0}}>Your Profile</div>
           <div className="sidebar-card">
-            <div className="module-header">
-              <span className="module-title module-title-gold">AI Resume Match</span>
+            <div className="module-header" style={{marginBottom:6}}>
+              <span className="module-title module-title-gold">Resume</span>
               <button onClick={loadResumeHistory} style={{fontSize:'var(--text-xs)',color:"var(--gold-text)",background:"none",border:"1px solid var(--gold-border)",borderRadius:4,padding:"2px 7px",cursor:"pointer",fontFamily:"inherit",letterSpacing:'var(--ls-wide)',fontWeight:700}}>HISTORY</button>
             </div>
-            <div className="sidebar-card-sub" style={{marginTop:-4}}>Upload PDF — AI scores every job instantly</div>
             <ResumePanel
               resumeText={resumeText}
               fileName={resumeFileName}
@@ -3337,17 +3380,31 @@ export default function Home() {
               }}
               onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
             />
-            {autoApplyCount>0&&<div style={{fontSize:'var(--text-xs)',color:"#f59e0b",textAlign:"center",marginTop:7,fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
+            {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
+            {autoApplyCount>0&&<div style={{fontSize:'var(--text-xs)',color:"var(--gold)",textAlign:"center",marginTop:6,fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
           </div>
 
-          {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
+          {/* ── AI TOOLS ── */}
+          <div className="sidebar-section-hdr">AI Tools</div>
+          <div style={{display:'flex',flexDirection:'column',gap:0}}>
+            <button className="ai-tool-btn" onClick={()=>{const j=topMatchJob||jobs[0];if(j)handleAutoApply(j);}}>
+              <span>✨</span> Auto-Apply
+              <span className="ai-tool-new">NEW</span>
+            </button>
+            <button className="ai-tool-btn" onClick={()=>{const j=topMatchJob||jobs[0];if(j){if((j as any).coverLetter)setCoverLetterJob(j);else setSelectedJob(j);}}}>
+              <span>📝</span> Cover Letter Generator
+            </button>
+            <button className="ai-tool-btn" onClick={()=>{const j=topMatchJob||jobs[0];if(j){if((j as any).skillGap)setSkillGapJob(j);else setSelectedJob(j);}}}>
+              <span>🎯</span> Skill Gap Analysis
+            </button>
+            <button className="ai-tool-btn" onClick={()=>{const j=topMatchJob||jobs[0];if(j)setInterviewJob(j);}}>
+              <span>🎤</span> Interview Simulator
+            </button>
+          </div>
 
-          <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
-
+          {/* ── FILTERS ── */}
+          <div className="sidebar-section-hdr">Filters</div>
           <div className="sidebar-card">
-            <div className="module-header">
-              <span className="module-title module-title-white">Filters</span>
-            </div>
             <div className="filter-label">Job Type</div>
             <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
               <option value="ALL">All Types</option>
@@ -3369,57 +3426,40 @@ export default function Home() {
             </div>
           </div>
 
-          <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
+          {/* ── NOTIFICATIONS ── */}
+          <div className="sidebar-section-hdr">Notifications</div>
+          <div className="sidebar-card">
+            {hasSearched
+              ?<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>
+              :<div style={{fontSize:'var(--text-xs)',color:"var(--text-disabled)"}}>Search first to set up job alerts</div>
+            }
+          </div>
 
-          {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
-
-          {/* PREFERENCES */}
-          <div className="sidebar-card" style={{marginTop:'var(--space-1)'}}>
-            <div className="module-header">
-              <span className="module-title module-title-white">Preferences</span>
-            </div>
-            <div className="sidebar-card-sub" style={{marginTop:-4}}>Active filters for your job search</div>
-            {mounted&&prefTitles.length>0?(
-              <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:10}}>
+          {/* ── MORE ── */}
+          <div className="sidebar-section-hdr">More</div>
+          <div className="sidebar-card">
+            {mounted&&prefTitles.length>0&&(
+              <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:'var(--space-2)'}}>
                 {prefTitles.map((t,i)=>(
                   <span key={i} style={{fontSize:'var(--text-xs)',fontWeight:600,padding:"3px 8px",borderRadius:20,background:"var(--gold-subtle)",color:"#fbbf24",border:"1px solid var(--gold-glow)"}}>{t}</span>
                 ))}
               </div>
-            ):(
-              <div style={{fontSize:'var(--text-xs)',color:"var(--text-disabled)",marginBottom:10}}>No preferences set</div>
             )}
-            <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"var(--gold-bg)",border:"1px solid var(--gold-border)",borderRadius:10,padding:"8px 0",fontSize:'var(--text-sm)',fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}} onMouseEnter={e=>(e.currentTarget.style.background="var(--gold-border)")} onMouseLeave={e=>(e.currentTarget.style.background="var(--gold-bg)")}>
-              ⚙️ Edit Preferences
+            <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"var(--gold-bg)",border:"1px solid var(--gold-border)",borderRadius:10,padding:"8px 0",fontSize:'var(--text-sm)',fontWeight:600,color:"var(--gold)",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s",marginBottom:'var(--space-2)'}}>
+              ⚙️ Preferences
             </button>
-          </div>
-
-          {/* SHARE VEGAPLY */}
-          <div className="sidebar-card" style={{marginTop:'var(--space-1)',background:"var(--gold-dim)",borderColor:"var(--gold-border)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:'var(--space-2)',marginBottom:6}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              <div className="sidebar-card-title" style={{margin:0,color:"#fbbf24"}}>Know someone job hunting?</div>
-            </div>
-            <div className="sidebar-card-sub">Share Vegaply — help them apply first</div>
             <button
               onClick={async()=>{
                 const shareData={title:"Vegaply",text:"I'm using Vegaply to find jobs before everyone else applies 🚀 Try it free:",url:"https://vegaply.com"};
-                if(typeof navigator.share==="function"&&navigator.canShare&&navigator.canShare(shareData)){
-                  try{await navigator.share(shareData);}catch{}
-                }else{
-                  try{
-                    await navigator.clipboard.writeText("https://vegaply.com");
-                    setShareToast(true);
-                    setTimeout(()=>setShareToast(false),2500);
-                  }catch{}
-                }
+                if(typeof navigator.share==="function"&&navigator.canShare&&navigator.canShare(shareData)){try{await navigator.share(shareData);}catch{}}
+                else{try{await navigator.clipboard.writeText("https://vegaply.com");setShareToast(true);setTimeout(()=>setShareToast(false),2500);}catch{}}
               }}
-              style={{width:"100%",background:"var(--gold-subtle)",border:"1px solid var(--gold-glow)",borderRadius:10,padding:"8px 0",fontSize:'var(--text-sm)',fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}
-              onMouseEnter={e=>(e.currentTarget.style.background="var(--gold-border)")}
-              onMouseLeave={e=>(e.currentTarget.style.background="var(--gold-subtle)")}
+              style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"8px 0",fontSize:'var(--text-sm)',fontWeight:600,color:"var(--text-secondary)",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}
             >
-              {shareToast?"✓ Link copied!":"Share Vegaply →"}
+              {shareToast?"✓ Link copied!":"👥 Refer a Friend →"}
             </button>
           </div>
+
         </motion.aside>
 
         {/* MAIN */}
@@ -3433,75 +3473,43 @@ export default function Home() {
             {jobRole&&location&&<span className="mob-filters-btn" style={{fontSize:'var(--text-xs)',color:darkMode?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.4)",background:"none",border:"none",padding:0,minHeight:"auto"}}>{jobRole} · {location}</span>}
           </div>
 
-          {/* MISSION CONTROL STRIP */}
-          {hasSearched&&!currentLoading&&(
-            <motion.div
-              className="cmd-strip"
-              initial={{opacity:0,y:-6}}
-              animate={{opacity:1,y:0}}
-              transition={{duration:0.35,ease:[0.16,1,0.3,1]}}
-            >
-              <div className="cmd-metric">
-                <div className="cmd-metric-value" style={{color:'var(--text-primary)'}}>
-                  <motion.span key={displayJobs.length} initial={{opacity:0,y:3}} animate={{opacity:1,y:0}} transition={{duration:0.5}}>{displayJobs.length}</motion.span>
-                </div>
-                <div className="cmd-metric-label">Roles Found</div>
-              </div>
-              <div className="cmd-metric">
-                <div className="cmd-metric-value" style={{color:'#d6b268'}}>
-                  <motion.span key={smartEbCount} initial={{opacity:0,y:3}} animate={{opacity:1,y:0}} transition={{duration:0.5,delay:0.05}}>{smartEbCount}</motion.span>
-                </div>
-                <div className="cmd-metric-label"><span className="cmd-metric-dot" style={{background:'#d6b268'}}/>Early Bird</div>
-              </div>
-              <div className="cmd-metric">
-                <div className="cmd-metric-value" style={{color:'#8eb29b'}}>
-                  <motion.span key={h1bCount} initial={{opacity:0,y:3}} animate={{opacity:1,y:0}} transition={{duration:0.5,delay:0.10}}>{h1bCount}</motion.span>
-                </div>
-                <div className="cmd-metric-label"><span className="cmd-metric-dot" style={{background:'#8eb29b'}}/>H1B Ready</div>
-              </div>
-              <div className="cmd-metric">
-                <div className="cmd-metric-value" style={{color:'#f59e0b'}}>
-                  <motion.span key={autoApplyCount} initial={{opacity:0,y:3}} animate={{opacity:1,y:0}} transition={{duration:0.5,delay:0.15}}>{autoApplyCount}</motion.span>
-                </div>
-                <div className="cmd-metric-label"><span className="cmd-metric-dot" style={{background:'#f59e0b'}}/>Applied Today</div>
-              </div>
-              {hotCount>0&&(
-                <div className="cmd-metric">
-                  <div className="cmd-metric-value" style={{color:'#ef4444'}}>
-                    <motion.span key={hotCount} initial={{opacity:0,y:3}} animate={{opacity:1,y:0}} transition={{duration:0.5,delay:0.20}}>{hotCount}</motion.span>
-                  </div>
-                  <div className="cmd-metric-label"><span className="cmd-metric-dot" style={{background:'#ef4444'}}/>Under 6h</div>
-                </div>
-              )}
+          {/* SMART FILTER CHIP BAR */}
+          {hasSearched&&(
+            <motion.div className="filter-chip-bar" initial={{opacity:0,y:-4}} animate={{opacity:1,y:0}} transition={{duration:0.3,ease:[0.16,1,0.3,1]}}>
+              {([
+                {id:'all',       label:'All',          count:jobs.length,       emoji:''},
+                {id:'earlybird', label:'Early Bird',   count:smartEbCount,      emoji:'⚡'},
+                {id:'h1b',       label:'H1B',          count:h1bCount,          emoji:'🌐'},
+                {id:'hot',       label:'Under 6h',     count:hotCount,          emoji:'🔥'},
+                {id:'applied',   label:'Applied',      count:autoApplyCount,    emoji:'✅'},
+              ] as {id:string;label:string;count:number;emoji:string}[]).map((chip,i)=>{
+                const isAllChip=chip.id==='all';
+                const isActive=isAllChip?activeFilters.size===0:activeFilters.has(chip.id);
+                return(
+                  <motion.button
+                    key={chip.id}
+                    className={`fchip${chip.id==='all'?' chip-all':''}${isActive?' active':''}`}
+                    onClick={()=>toggleFilter(chip.id)}
+                    initial={{opacity:0,y:-4}}
+                    animate={{opacity:1,y:0}}
+                    transition={{duration:0.3,delay:i*0.04,ease:[0.16,1,0.3,1]}}
+                    whileTap={{scale:0.96}}
+                  >
+                    {chip.emoji&&<span>{chip.emoji}</span>}
+                    {chip.label}
+                    <motion.span
+                      className="fchip-count"
+                      key={chip.count}
+                      initial={{opacity:0}}
+                      animate={{opacity:1}}
+                      transition={{duration:0.6,ease:'easeOut'}}
+                    >· {chip.count}</motion.span>
+                  </motion.button>
+                );
+              })}
             </motion.div>
           )}
 
-          <div className="tabs-row">
-            <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
-              Results {modeFilteredJobs.length>0&&<span style={{background:'var(--gold-border)',color:'#f59e0b',fontSize:'var(--text-xs)',fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{filterJobs(modeFilteredJobs).length}</span>}
-              {activeTab==="results"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#f59e0b,#fbbf24)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
-            </button>
-            <button className={`tab tab-eb${activeTab==="earlybird"?" active":""}`} onClick={()=>{setActiveTab("earlybird");setCurrentPage(1);}}>
-              <span style={{display:"inline-flex",alignItems:"center",gap:6}}>
-                <span style={{width:7,height:7,borderRadius:"50%",background:"#34d399",boxShadow:"0 0 6px rgba(52,211,153,0.8)",display:"inline-block",animation:"ebPulse 2s ease-in-out infinite",flexShrink:0}}/>
-                ⚡ Early Bird
-              </span>
-              {earlyBirdJobs.length>0&&<span style={{background:'rgba(251,191,36,0.2)',color:'#fbbf24',fontSize:'var(--text-xs)',fontWeight:700,padding:'2px 8px',borderRadius:100,marginLeft:6,border:'1px solid rgba(251,191,36,0.35)'}}>{earlyBirdJobs.length}</span>}
-              {activeTab==="earlybird"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#fbbf24,#f97316)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
-            </button>
-            <button className={`tab${activeTab==="saved"?" active":""}`} onClick={()=>{setActiveTab("saved");setCurrentPage(1);}}>
-              Saved {savedJobs.size>0&&<span style={{background:'var(--gold-border)',color:'#f59e0b',fontSize:'var(--text-xs)',fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{savedJobs.size}</span>}
-              {activeTab==="saved"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#f59e0b,#fbbf24)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
-            </button>
-            <button className={`tab tab-tracker${activeTab==="tracker"?" active":""}`} onClick={()=>setActiveTab("tracker")}>
-              Tracker {trackedApps.length>0&&<span style={{background:'var(--gold-border)',color:'#f59e0b',fontSize:'var(--text-xs)',fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{trackedApps.length}</span>}
-              {activeTab==="tracker"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#f59e0b,#f59e0b)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
-            </button>
-            <button className={`tab tab-analytics${activeTab==="analytics"?" active":""}`} onClick={()=>setActiveTab("analytics")}>
-              Analytics
-              {activeTab==="analytics"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#34d399,#10b981)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
-            </button>
-          </div>
 
           <motion.div key={activeTab} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.3,ease:[0.16,1,0.3,1]}}>
           {activeTab==="tracker"&&<TrackerView lm={!darkMode} apps={trackedApps}
@@ -3511,36 +3519,25 @@ export default function Home() {
           />}
           {activeTab==="analytics"&&<AnalyticsView lm={!darkMode} apps={trackedApps} savedCount={savedJobs.size} totalSearched={totalSearched}/>}
 
-          {(activeTab==="results"||activeTab==="earlybird"||activeTab==="saved")&&(
+          {(activeTab==="results"||activeTab==="saved")&&(
             <>
-              {activeTab==="results"&&activeMode==='h1b'&&hasSearched&&(
+              {activeTab==="results"&&activeFilters.has('h1b')&&hasSearched&&(
                 <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} style={{background:'linear-gradient(135deg,rgba(52,211,153,0.06),var(--success-subtle))',border:'1px solid rgba(52,211,153,0.12)',borderRadius:12,padding:'10px 20px',marginBottom:'var(--space-3)',display:'flex',alignItems:'center',gap:10,fontSize:'var(--text-sm)',color:'#34d399'}}>
-                  🌐 Showing only verified H1B sponsoring companies · <strong style={{color:'#34d399'}}>{modeFilteredJobs.length} jobs found</strong>
+                  🌐 Showing only verified H1B sponsoring companies · <strong style={{color:'#34d399'}}>{chipFilteredJobs.length} jobs found</strong>
                 </motion.div>
               )}
-              {activeTab==="results"&&activeMode==='earlybird'&&hasSearched&&(
-                <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} style={{background:'linear-gradient(135deg,rgba(251,191,36,0.06),rgba(249,115,22,0.04))',border:'1px solid rgba(251,191,36,0.12)',borderRadius:12,padding:'10px 20px',marginBottom:'var(--space-3)',display:'flex',alignItems:'center',gap:10,fontSize:'var(--text-sm)',color:'#fbbf24'}}>
-                  ⚡ Jobs posted in the last 24 hours · Apply before hundreds of others · <strong>{modeFilteredJobs.length} fresh jobs</strong>
+              {activeTab==="results"&&isEbMode&&hasSearched&&(
+                <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} className="eb-banner">
+                  <div>
+                    <div style={{fontSize:'var(--text-base)',fontWeight:700,color:"#f59e0b",marginBottom:2}}>⚡ Early Bird Filter Active</div>
+                    <div style={{fontSize:'var(--text-xs)',color:"var(--gold-muted)"}}>Jobs posted in the last 24 hours — minimal competition</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:18}}>
+                    <div style={{textAlign:"center"}}><div style={{fontSize:'var(--text-lg)',fontWeight:700,color:darkMode?"#fff":"#111"}}>{smartEbCount}</div><div style={{fontSize:'var(--text-xs)',color:darkMode?"var(--text-disabled)":"rgba(0,0,0,0.4)"}}>Fresh Jobs</div></div>
+                    <div style={{width:1,height:28,background:"rgba(255,255,255,0.06)"}}/>
+                    <div style={{textAlign:"center"}}><div style={{fontSize:'var(--text-lg)',fontWeight:700,color:"#ef4444"}}>{hotCount}</div><div style={{fontSize:'var(--text-xs)',color:darkMode?"var(--text-disabled)":"rgba(0,0,0,0.4)"}}>🔥 Under 6h</div></div>
+                  </div>
                 </motion.div>
-              )}
-              {activeTab==="earlybird"&&earlyBirdJobs.length>0&&!ebLoading&&(
-                <>
-                  <div style={{background:'linear-gradient(135deg,rgba(251,191,36,0.08),rgba(249,115,22,0.06))',border:'1px solid rgba(251,191,36,0.15)',borderRadius:12,padding:'10px 20px',margin:'0 0 12px 0',display:'flex',alignItems:'center',gap:10,fontSize:'var(--text-sm)',color:'#fbbf24'}}>
-                    <span style={{fontSize:'var(--text-md)'}}>⚡</span>
-                    <span>You&apos;re seeing jobs posted in the last 24 hours — <strong>apply now before hundreds of others do</strong></span>
-                  </div>
-                  <div className="eb-banner">
-                    <div>
-                      <div style={{fontSize:'var(--text-base)',fontWeight:700,color:"#f59e0b",marginBottom:2}}>⚡ Early Bird Mode Active</div>
-                      <div style={{fontSize:'var(--text-xs)',color:"var(--gold-muted)"}}>Jobs posted in the last 24 hours — minimal competition</div>
-                    </div>
-                    <div style={{display:"flex",alignItems:"center",gap:18}}>
-                      <div style={{textAlign:"center"}}><div style={{fontSize:'var(--text-lg)',fontWeight:700,color:darkMode?"#fff":"#111"}}>{earlyBirdJobs.length}</div><div style={{fontSize:'var(--text-xs)',color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>Fresh Jobs</div></div>
-                      <div style={{width:1,height:28,background:darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}}/>
-                      <div style={{textAlign:"center"}}><div style={{fontSize:'var(--text-lg)',fontWeight:700,color:"#ef4444"}}>{hotCount}</div><div style={{fontSize:'var(--text-xs)',color:darkMode?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.4)"}}>🔥 Under 6h</div></div>
-                    </div>
-                  </div>
-                </>
               )}
 
               {autoOpenDone&&<div style={{background:"var(--success-subtle)",border:"1px solid var(--success-subtle)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:'var(--text-sm)',fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:'var(--space-2)'}}>🚀 Opened top 3 matches in new tabs!</div>}
@@ -3605,14 +3602,14 @@ export default function Home() {
               )}
 
               {!currentLoading&&paginatedJobs.length===0&&(
-                activeTab==="results"&&activeMode==='h1b'&&hasSearched?(
+                activeTab==="results"&&activeFilters.has('h1b')&&hasSearched?(
                   <div style={{textAlign:'center',padding:'60px 20px'}}>
                     <div style={{fontSize:'var(--text-2xl)',marginBottom:'var(--space-4)'}}>🌐</div>
                     <div style={{fontSize:'var(--text-md)',fontWeight:700,color:'var(--text-secondary)',marginBottom:'var(--space-2)'}}>No H1B sponsors found for this role</div>
                     <div style={{fontSize:'var(--text-base)',color:'var(--text-tertiary)',marginBottom:'var(--space-5)'}}>Try &quot;Software Engineer&quot;, &quot;Data Scientist&quot; or &quot;Product Manager&quot; — most H1B sponsors hire for tech roles</div>
                     <div style={{display:'flex',gap:'var(--space-2)',justifyContent:'center',flexWrap:'wrap'}}>
                       {['Software Engineer','Data Scientist','Product Manager'].map(r=>(
-                        <button key={r} onClick={()=>{setJobRole(r);setActiveMode('all');}} style={{background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.2)',borderRadius:100,padding:'7px 16px',fontSize:'var(--text-sm)',color:'#8eb29b',cursor:'pointer',fontFamily:'inherit'}}>{r}</button>
+                        <button key={r} onClick={()=>{setJobRole(r);setActiveFilters(new Set());}} style={{background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.2)',borderRadius:100,padding:'7px 16px',fontSize:'var(--text-sm)',color:'#8eb29b',cursor:'pointer',fontFamily:'inherit'}}>{r}</button>
                       ))}
                     </div>
                   </div>
@@ -3621,13 +3618,6 @@ export default function Home() {
                     <div style={{fontSize:'var(--text-2xl)',marginBottom:'var(--space-3)'}}>🔖</div>
                     <h3 style={{fontSize:'var(--text-md)',color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>No saved jobs</h3>
                     <p style={{fontSize:'var(--text-sm)',color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)"}}>Bookmark jobs to see them here</p>
-                  </div>
-                ):activeTab==="earlybird"?(
-                  <div style={{textAlign:"center",padding:"56px 24px",background:darkMode?"rgba(255,255,255,0.015)":"rgba(0,0,0,0.02)",borderRadius:12,border:`1px dashed ${darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
-                    <div style={{fontSize:'var(--text-2xl)',marginBottom:'var(--space-3)'}}>⚡</div>
-                    <h3 style={{fontSize:'var(--text-md)',color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",marginBottom:6,fontWeight:700}}>No fresh jobs found for this search</h3>
-                    <p style={{fontSize:'var(--text-sm)',color:darkMode?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.35)",marginBottom:'var(--space-4)'}}>Try a broader search term like &quot;Software Engineer&quot; or &quot;Data Analyst&quot;</p>
-                    <button onClick={()=>setActiveTab("results")} style={{background:'rgba(214,178,104,0.11)',border:'1px solid rgba(214,178,104,0.22)',borderRadius:100,padding:'8px 20px',fontSize:'var(--text-sm)',color:'#d6b268',cursor:'pointer',fontFamily:'inherit'}}>← Back to Results</button>
                   </div>
                 ):(
                   <motion.div
@@ -3676,10 +3666,18 @@ export default function Home() {
             <span style={{fontFamily:'var(--font-primary)',fontSize:'var(--text-xs)',fontWeight:700,letterSpacing:'var(--ls-wider)',textTransform:'uppercase',color:'var(--text-disabled)'}}>Command Briefing</span>
           </div>
 
-          {/* TODAY'S ACTIVITY — 2×2 stat grid */}
+          {/* 1 — AI COACH (hero, top position) */}
+          <div className="briefing-hero">
+            <div style={{display:'flex',alignItems:'center',gap:'var(--space-2)',marginBottom:'var(--space-3)'}}>
+              <span style={{fontSize:'var(--text-base)',fontWeight:700,color:'var(--gold)',fontFamily:'var(--font-primary)'}}>AI Coach</span>
+            </div>
+            <p style={{fontSize:'var(--text-sm)',fontWeight:400,color:'var(--text-secondary)',lineHeight:1.75,margin:0,fontFamily:'var(--font-primary)'}}>{getCoachingInsight()}</p>
+          </div>
+
+          {/* 2 — MARKET PULSE — 2×2 stat grid (primary) */}
           <div className="briefing-section">
             <div className="briefing-header">
-              <span className="briefing-label briefing-label-gold">Market Pulse</span>
+              <span className="briefing-label briefing-label-gold" style={{fontSize:'var(--text-sm)'}}>Market Pulse</span>
               <div className="briefing-rule"/>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
@@ -3705,72 +3703,43 @@ export default function Home() {
             </div>
           </div>
 
-          {/* AI COACHING INSIGHT */}
+          {/* 3 — TODAY'S TOP MATCH (replaces Tracker mini-grid) */}
           <div className="briefing-section">
             <div className="briefing-header">
-              <span className="briefing-label briefing-label-ai">AI Coach</span>
+              <span className="briefing-label briefing-label-ai" style={{fontSize:'var(--text-sm)'}}>Today's Top Match</span>
               <div className="briefing-rule"/>
             </div>
-            <div className="briefing-coach">
-              <p style={{fontSize:'var(--text-sm)',fontWeight:400,color:'var(--text-secondary)',lineHeight:1.7,margin:0,fontFamily:'var(--font-primary)'}}>{getCoachingInsight()}</p>
-            </div>
-          </div>
-
-          {/* APPLICATION TRACKER */}
-          <div className="briefing-section">
-            <div className="briefing-header">
-              <span className="briefing-label">Tracker</span>
-              <div className="briefing-rule"/>
-            </div>
-            <div className="briefing-tracker-grid">
-              {([
-                {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     color:'#f59e0b'},
-                {label:'Interview', value:trackedApps.filter(a=>a.status==='Interviewing').length, color:'#8eb29b'},
-                {label:'Offer',     value:trackedApps.filter(a=>a.status==='Offer').length,       color:'#d6b268'},
-                {label:'Rejected',  value:trackedApps.filter(a=>a.status==='Rejected').length,    color:'rgba(239,68,68,0.6)'},
-              ] as {label:string;value:number;color:string}[]).map(col=>(
-                <div key={col.label} className="briefing-tracker-cell">
-                  <div className="briefing-tracker-val" style={{color:col.color}}>{col.value}</div>
-                  <div className="briefing-tracker-lbl">{col.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* AI MATCH SCORES */}
-          {jobs.filter(j=>j.match).length>0&&(
-            <div className="briefing-section">
-              <div className="briefing-header">
-                <span className="briefing-label briefing-label-ai">Match Scores</span>
-                <div className="briefing-rule"/>
-              </div>
-              {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,4).map((j,i)=>{
-                const pct=j.match!.matchScore;
-                const barColor=pct>=70?'linear-gradient(90deg,#f59e0b,#8eb29b)':pct>=50?'linear-gradient(90deg,#d6b268,#c9922a)':'linear-gradient(90deg,rgba(239,68,68,0.7),rgba(220,38,38,0.5))';
-                return(
-                  <div key={i} className="briefing-bar-row">
-                    <div className="briefing-co-name">{j.employer_name?.split(' ')[0]}</div>
-                    <div className="briefing-bar-track">
-                      <motion.div
-                        className="briefing-bar-fill"
-                        initial={{width:0}}
-                        animate={{width:`${pct}%`}}
-                        transition={{duration:0.9,ease:'easeOut',delay:i*0.1}}
-                        style={{background:barColor}}
-                      />
-                    </div>
-                    <div className="briefing-bar-val">{pct}%</div>
+            {topMatchJob?(
+              <motion.div
+                initial={{opacity:0,y:6}}
+                animate={{opacity:1,y:0}}
+                transition={{duration:0.4,ease:'easeOut'}}
+                style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:'var(--radius-md)',padding:'var(--space-3)',display:'flex',flexDirection:'column',gap:'var(--space-2)'}}
+              >
+                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'var(--space-2)'}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:'var(--text-sm)',fontWeight:600,color:'var(--text-primary)',fontFamily:'var(--font-primary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{topMatchJob.job_title}</div>
+                    <div style={{fontSize:'var(--text-xs)',color:'var(--text-tertiary)',fontFamily:'var(--font-primary)',marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{topMatchJob.employer_name}</div>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <div style={{flexShrink:0,background:'var(--gold-bg)',border:'1px solid var(--gold-border)',borderRadius:'var(--radius-sm)',padding:'2px 8px',fontSize:'var(--text-xs)',fontWeight:700,color:'var(--gold)',fontFamily:'var(--font-primary)'}}>{topMatchJob.match!.matchScore}%</div>
+                </div>
+                <button
+                  onClick={()=>setSelectedJob(topMatchJob)}
+                  style={{width:'100%',background:'var(--gold-bg)',border:'1px solid var(--gold-border)',borderRadius:'var(--radius-sm)',padding:'6px var(--space-3)',fontSize:'var(--text-xs)',fontWeight:600,color:'var(--gold)',cursor:'pointer',fontFamily:'var(--font-primary)',transition:'background 0.15s ease',textAlign:'center'}}
+                  onMouseEnter={e=>(e.currentTarget.style.background='var(--gold-border)')}
+                  onMouseLeave={e=>(e.currentTarget.style.background='var(--gold-bg)')}
+                >Jump to it →</button>
+              </motion.div>
+            ):(
+              <div style={{fontSize:'var(--text-xs)',color:'var(--text-disabled)',fontFamily:'var(--font-primary)',padding:'var(--space-2) 0'}}>Upload your resume to see your best match</div>
+            )}
+          </div>
 
-          {/* TOP COMPANIES HIRING */}
+          {/* 4 — TOP HIRING (secondary) */}
           {topCompaniesList.length>0&&(
             <div className="briefing-section">
               <div className="briefing-header">
-                <span className="briefing-label briefing-label-gold">Top Hiring</span>
+                <span className="briefing-label briefing-label-gold" style={{fontSize:'var(--text-xs)',letterSpacing:'var(--ls-wider)',textTransform:'uppercase'}}>Top Hiring</span>
                 <div className="briefing-rule"/>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:'var(--space-1)'}}>
@@ -3796,10 +3765,10 @@ export default function Home() {
             </div>
           )}
 
-          {/* LIVE ACTIVITY */}
+          {/* 5 — LIVE ACTIVITY (secondary) */}
           <div className="briefing-section">
             <div className="briefing-header">
-              <span className="briefing-label briefing-label-green">Live</span>
+              <span className="briefing-label briefing-label-green" style={{fontSize:'var(--text-xs)',letterSpacing:'var(--ls-wider)',textTransform:'uppercase'}}>Live Activity</span>
               <div className="briefing-rule"/>
             </div>
             {[
