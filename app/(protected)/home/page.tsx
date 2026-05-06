@@ -1773,7 +1773,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
       ):autoApplyResult==="low_match"?(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{width:"100%",height:40,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.18)",fontSize:12,fontWeight:600,color:"#fbbf24"}}>⚠️ Low Match</div>
-          {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:12,color:"rgba(245,245,247,0.4)",textDecoration:"underline",padding:"2px 0"}}>Apply manually →</a>}
+          {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:'var(--text-xs)',color:'var(--text-tertiary)',padding:'var(--space-2) 0',fontFamily:'var(--font-primary)',textDecoration:'none'}} onMouseEnter={e=>(e.currentTarget.style.textDecoration='underline')} onMouseLeave={e=>(e.currentTarget.style.textDecoration='none')}>or apply via {job.job_apply_link.includes('greenhouse')?'Greenhouse':job.job_apply_link.includes('linkedin')?'LinkedIn':job.job_apply_link.includes('indeed')?'Indeed':job.job_apply_link.includes('lever')?'Lever':job.job_apply_link.includes('workday')?'Workday':'job board'} ↗</a>}
         </div>
       ):isAutoApplying?(
         <div style={{width:"100%",height:52,display:"flex",alignItems:"center",justifyContent:"center",gap:8,borderRadius:14,background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.18)",fontSize:13,fontWeight:700,color:"#f59e0b"}}><div className="spin-sm"/>Analyzing…</div>
@@ -1787,7 +1787,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           >
             <Sparkles size={15}/>{hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply with AI Resume"}<ArrowRight size={15}/>
           </motion.button>
-          {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:12,color:"rgba(245,245,247,0.4)",textDecoration:"underline",padding:"2px 0"}}>Apply manually →</a>}
+          {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:'var(--text-xs)',color:'var(--text-tertiary)',padding:'var(--space-2) 0',fontFamily:'var(--font-primary)',textDecoration:'none'}} onMouseEnter={e=>(e.currentTarget.style.textDecoration='underline')} onMouseLeave={e=>(e.currentTarget.style.textDecoration='none')}>or apply via {job.job_apply_link.includes('greenhouse')?'Greenhouse':job.job_apply_link.includes('linkedin')?'LinkedIn':job.job_apply_link.includes('indeed')?'Indeed':job.job_apply_link.includes('lever')?'Lever':job.job_apply_link.includes('workday')?'Workday':'job board'} ↗</a>}
         </div>
       )}
 
@@ -3597,6 +3597,25 @@ export default function Home() {
             </div>
           )}
 
+          {/* STAT BAR */}
+          {allJobs.length>0&&(
+            <div style={{display:'flex',alignItems:'stretch',width:'100%',background:'var(--bg-surface)',borderRadius:12,marginBottom:12,border:'1px solid rgba(255,255,255,0.06)',overflow:'hidden'}}>
+              {([
+                {label:'ROLES FOUND',   value:jobs.length,                                             dot:null,            color:'rgba(255,255,255,0.85)'},
+                {label:'EARLY BIRD',    value:panelFreshJobs.length,                                   dot:'#34d399',       color:'#34d399'},
+                {label:'H1B READY',     value:panelH1bJobs.length,                                     dot:null,            color:'#8eb29b'},
+                {label:'APPLIED TODAY', value:trackedApps.filter((a)=>a.status==='Applied').length,    dot:null,            color:'var(--gold)'},
+                {label:'UNDER 6H',      value:hotCount,                                                dot:'#f97316',       color:'#f97316'},
+              ] as {label:string;value:number;dot:string|null;color:string}[]).map((stat,i,arr)=>(
+                <div key={stat.label} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flex:1,padding:'10px 6px',borderRight:i<arr.length-1?'1px solid rgba(255,255,255,0.06)':'none'}}>
+                  {stat.dot&&<span style={{width:6,height:6,borderRadius:'50%',background:stat.dot,display:'inline-block',marginBottom:4,boxShadow:`0 0 5px ${stat.dot}`}}/>}
+                  <div style={{fontSize:'var(--text-xl)',fontWeight:800,fontFamily:'var(--font-display)',color:stat.color,letterSpacing:'-0.5px',lineHeight:1}}>{stat.value}</div>
+                  <div style={{fontSize:'var(--text-xs)',fontWeight:700,letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.28)',marginTop:3,fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
               Results {modeFilteredJobs.length>0&&<span style={{background:'rgba(245,158,11,0.18)',color:'#f59e0b',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{filterJobs(modeFilteredJobs).length}</span>}
@@ -3786,10 +3805,11 @@ export default function Home() {
           transition={{duration:0.45,delay:0.15,ease:'easeOut'}}
           style={{background:'rgba(22,24,34,0.90)',borderLeft:'1px solid rgba(255,255,255,0.06)',padding:'18px 14px',overflowY:'auto',display:'flex',flexDirection:'column',gap:20}}
         >
+          <div style={{fontSize:'var(--text-xs)',fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'var(--gold)',fontFamily:'var(--font-primary)',paddingBottom:6,borderBottom:'1px solid rgba(245,158,11,0.15)'}}>Command Briefing</div>
 
-          {/* TODAY'S ACTIVITY */}
+          {/* MARKET PULSE */}
           <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Today's Activity</div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Market Pulse</div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
               {([
                 {label:'Jobs Found',    value:jobs.length,           sub:'Available now', color:'rgba(255,255,255,0.85)'},
@@ -3811,15 +3831,15 @@ export default function Home() {
             </div>
           </div>
 
-          {/* AI COACHING INSIGHT */}
+          {/* AI COACH */}
           <div style={{background:'linear-gradient(135deg,rgba(245,158,11,0.08),rgba(154,116,223,0.05))',border:'1px solid rgba(245,158,11,0.15)',borderRadius:14,padding:'13px 14px'}}>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(245,158,11,0.6)',marginBottom:8,fontFamily:'var(--font-primary)'}}>AI Career Coach</div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(245,158,11,0.6)',marginBottom:8,fontFamily:'var(--font-primary)'}}>AI Coach</div>
             <p style={{fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.55)',lineHeight:1.65,margin:0,fontFamily:'var(--font-primary)'}}>{getCoachingInsight()}</p>
           </div>
 
-          {/* APPLICATION TRACKER */}
+          {/* TRACKER */}
           <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Application Tracker</div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Tracker</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
               {([
                 {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     color:'var(--gold)'},
@@ -3838,7 +3858,7 @@ export default function Home() {
           {/* AI MATCH SCORES */}
           {jobs.filter(j=>j.match).length>0&&(
             <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Your Match Scores</div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>AI Match Scores</div>
               {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,4).map((j,i)=>{
                 const pct=j.match!.matchScore;
                 const barColor=pct>=70?'linear-gradient(90deg,var(--gold),#8eb29b)':pct>=50?'linear-gradient(90deg,#d6b268,#c9922a)':'linear-gradient(90deg,rgba(239,68,68,0.7),rgba(220,38,38,0.7))';
@@ -3858,7 +3878,7 @@ export default function Home() {
           {/* TOP COMPANIES HIRING */}
           {topCompaniesList.length>0&&(
             <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Top Hiring Now</div>
+              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Top Hiring</div>
               <div style={{display:'flex',flexDirection:'column',gap:5}}>
                 {topCompaniesList.map((name,i)=>{
                   const logo=getLogoStyle(name);
@@ -3874,9 +3894,9 @@ export default function Home() {
             </div>
           )}
 
-          {/* LIVE ACTIVITY */}
+          {/* LIVE */}
           <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Live Activity</div>
+            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Live</div>
             {[
               {dot:'#8eb29b',text:'Someone in Austin applied to ML Engineer at Stripe',time:'2m'},
               {dot:'#d6b268',text:'Someone in NYC got interview at Figma',time:'5m'},
