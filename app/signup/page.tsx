@@ -1,8 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -13,6 +16,7 @@ export default function SignupPage() {
   const [canResend, setCanResend] = useState(false);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   useEffect(() => {
     if (!success) return;
     setCountdown(60); setCanResend(false);
@@ -37,7 +41,7 @@ export default function SignupPage() {
     setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/home` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/home` },
     });
     if (error) { setError(error.message); setGoogleLoading(false); }
   };
@@ -46,12 +50,31 @@ export default function SignupPage() {
     if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/home`,
+      },
+    });
+    console.log("[signup] response:", JSON.stringify(data, null, 2), "error:", error);
     if (error) {
       setError(error.message);
-    } else {
-      setSuccess(true);
+      setLoading(false);
+      return;
     }
+    // Duplicate email: Supabase returns identities=[] when email already registered
+    if (data.user && data.user.identities?.length === 0) {
+      setError("An account with this email already exists. Try signing in instead.");
+      setLoading(false);
+      return;
+    }
+    // No email confirmation required — session available immediately, redirect now
+    if (data.session) {
+      router.push("/home");
+      return;
+    }
+    setSuccess(true);
     setLoading(false);
   };
 
@@ -546,14 +569,25 @@ export default function SignupPage() {
 
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input
-                  className="form-input"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSignup()}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    className="form-input"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSignup()}
+                    style={{ paddingRight: 44 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(p => !p)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", color: "var(--text-tertiary)", padding: 0, display: "flex", alignItems: "center" }}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {password.length > 0 && (
                   <div className="strength-bar">
                     {[1,2,3].map(i => (
