@@ -1,6 +1,162 @@
 // FILE: app/api/jobs/route.ts
 import { NextResponse } from "next/server";
 
+// ── Strip HTML tags from raw description text ────────────────────────────────
+function stripHtml(text: string): string {
+  return text
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/?(h[1-6]|p|div|span|strong|em|ul|ol|li|a|b|i)[^>]*>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ").trim();
+}
+
+// ── Build a role-specific brief — strips company boilerplate ─────────────────
+function buildJobBrief(job: {
+  job_description?: string;
+  job_title?: string;
+  employer_name?: string;
+  job_city?: string;
+  job_highlights?: { Responsibilities?: string[] };
+}): string {
+  // Priority 1: structured responsibilities highlights
+  const responsibilities = job.job_highlights?.Responsibilities;
+  if (Array.isArray(responsibilities) && responsibilities.length > 0) {
+    const bullets = responsibilities.slice(0, 2).filter(Boolean).map((b: string) => b.trim());
+    if (bullets.length > 0) {
+      const joined = bullets.join(" • ");
+      return joined.length > 240 ? joined.slice(0, 237) + "..." : joined;
+    }
+  }
+
+  // Priority 2: job description body — detect and skip company blurbs
+  const desc = stripHtml(job.job_description || "").trim();
+  if (desc && desc.length > 50) {
+    const looksLikeCompanyBlurb =
+      /^[A-Z][\w]+ (is a|is an|was founded|, founded|builds|powers|operates)/i.test(desc) ||
+      /^(about us|our company|we are a|our mission|founded in|headquartered)/i.test(desc) ||
+      /^[A-Z][\w]+ is the (largest|leading|world's|premier)/i.test(desc);
+
+    if (!looksLikeCompanyBlurb) {
+      const cutAt = desc.lastIndexOf(". ", 200);
+      const trimmed = cutAt > 80 ? desc.slice(0, cutAt + 1) : desc.slice(0, 200);
+      return trimmed.trim();
+    }
+
+    // It's a blurb — look for the first role-specific sentence after the intro
+    const afterIntro = desc.search(
+      /\.\s+(We are looking|We're looking|We seek|The role|This role|As a|You will|You'll|Join us|The team|Our team)/i
+    );
+    if (afterIntro > 0 && afterIntro < desc.length - 50) {
+      const realStart = desc.slice(afterIntro + 2);
+      const cut = realStart.lastIndexOf(". ", 200);
+      const trimmed = cut > 80 ? realStart.slice(0, cut + 1) : realStart.slice(0, 200);
+      return trimmed.trim();
+    }
+  }
+
+  // Priority 3: fallback — generic but informative
+  const title = job.job_title || "Open role";
+  const employer = job.employer_name || "the company";
+  const location = job.job_city || "";
+  return location ? `${title} at ${employer} — ${location}` : `${title} role at ${employer}`;
+}
+
+// ── Shared location-filter constants ─────────────────────────────────────────
+const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
+
+const US_MARKERS = [
+  'us','usa','unitedstates','america',
+  'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
+  'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
+  'austin','tx','dallas','houston','sanantonio','ftworth',
+  'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
+  'phoenix','az','philadelphia','pa','pittsburgh',
+  'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
+  'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
+  'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
+  'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
+  'remote','usremote','remoteus',
+];
+
+const NON_US_MARKERS = [
+  // Western Europe
+  'germany','berlin','munich','frankfurt','hamburg','cologne','dusseldorf','stuttgart',
+  'uk','unitedkingdom','england','london','manchester','birmingham','leeds','glasgow','scotland','wales',
+  'france','paris','lyon','marseille','toulouse','bordeaux',
+  'ireland','dublin','cork',
+  'spain','madrid','barcelona','seville','valencia',
+  'netherlands','amsterdam','rotterdam','utrecht','thehague',
+  'italy','rome','milan','naples','turin','florence',
+  'portugal','lisbon','porto',
+  'belgium','brussels','antwerp',
+  'switzerland','zurich','geneva','bern',
+  'austria','vienna','graz',
+  'sweden','stockholm','gothenburg','malmo',
+  'norway','oslo','bergen',
+  'denmark','copenhagen','aarhus',
+  'finland','helsinki','tampere',
+  'poland','warsaw','krakow','wroclaw','lodz',
+  // Eastern Europe
+  'czechrepublic','prague','brno',
+  'hungary','budapest',
+  'romania','bucharest','cluj',
+  'ukraine','kyiv','kharkiv','lviv',
+  'russia','moscow','saintpetersburg',
+  // Middle East
+  'dubai','uae','unitedarabemirates','abudhabi','sharjah',
+  'israel','telaviv','jerusalem','haifa',
+  'turkey','istanbul','ankara','izmir',
+  'saudiarabia','riyadh','jeddah',
+  'qatar','doha','kuwait','bahrain',
+  // South Asia — India (most critical for "us" false positives)
+  'india','bharat',
+  'bengaluru','bangalore',
+  'hyderabad','mumbai','bombay',
+  'delhi','newdelhi','ncr',
+  'noida','gurgaon','gurugram','faridabad',
+  'pune','chennai','madras',
+  'kolkata','calcutta',
+  'ahmedabad','jaipur','lucknow',
+  'coimbatore','indore','nagpur','surat','vadodara','bhopal',
+  'kochi','cochin','trivandrum','thiruvananthapuram',
+  'visakhapatnam','vizag','patna','chandigarh',
+  // Pakistan
+  'pakistan','karachi','lahore','islamabad','rawalpindi',
+  // Bangladesh
+  'bangladesh','dhaka','chittagong',
+  // Sri Lanka
+  'srilanka','colombo',
+  // East/SE Asia
+  'japan','tokyo','osaka','kyoto','yokohama',
+  'china','beijing','shanghai','shenzhen','guangzhou','chengdu','hangzhou','hongkong',
+  'singapore',
+  'southkorea','korea','seoul','busan',
+  'taiwan','taipei',
+  'vietnam','hochiminh','hanoi',
+  'thailand','bangkok','chiangmai',
+  'indonesia','jakarta','surabaya','bali',
+  'malaysia','kualalumpur','penang',
+  'philippines','manila','cebu','davao',
+  // Oceania
+  'australia','sydney','melbourne','brisbane','perth','adelaide','canberra',
+  'newzealand','auckland','wellington','christchurch',
+  // Americas (non-US)
+  'canada','toronto','vancouver','montreal','ottawa','calgary','edmonton',
+  'mexico','mexicocity','guadalajara','monterrey',
+  'brazil','saopaulo','riodejaneiro','brasilia','salvador',
+  'argentina','buenosaires','cordoba',
+  'colombia','bogota','medellin',
+  'chile','santiago',
+  // Africa
+  'southafrica','johannesburg','capetown','durban',
+  'nigeria','lagos','abuja',
+  'kenya','nairobi',
+  'egypt','cairo',
+  'ghana','accra',
+];
+
 // ── Normalised job shape shared by all sources ───────────────────────────────
 interface NormalisedJob {
   job_id: string;
@@ -14,6 +170,7 @@ interface NormalisedJob {
   job_posted_at_datetime_utc: string | null;
   job_apply_link: string;
   job_description: string;
+  job_brief: string;
   job_employment_type: string;
   job_is_remote?: boolean;
   job_highlights?: { Qualifications?: string[]; Responsibilities?: string[]; Benefits?: string[] };
@@ -59,22 +216,27 @@ async function fetchAdzuna(jobRole: string, location: string, earlyBird: boolean
     const pages = await Promise.all(pageRequests);
     const jobs: any[] = pages.flat();
     console.log("[Adzuna] jobs fetched:", jobs.length);
-    return jobs.map(job => ({
-      job_id: `adzuna-${job.id}`,
-      job_title: job.title,
-      employer_name: job.company?.display_name || "",
-      employer_logo: null,
-      job_city: job.location?.display_name || "",
-      job_country: "US",
-      job_posted_at_timestamp: job.created
-        ? Math.floor(new Date(job.created).getTime() / 1000)
-        : 0,
-      job_posted_at_datetime_utc: job.created ?? null,
-      job_apply_link: job.redirect_url ?? "",
-      job_description: job.description ?? "",
-      job_employment_type: job.contract_time || "",
-      source: "adzuna",
-    }));
+    return jobs.map(job => {
+      const normalized: NormalisedJob = {
+        job_id: `adzuna-${job.id}`,
+        job_title: job.title,
+        employer_name: job.company?.display_name || "",
+        employer_logo: null,
+        job_city: job.location?.display_name || "",
+        job_country: "US",
+        job_posted_at_timestamp: job.created
+          ? Math.floor(new Date(job.created).getTime() / 1000)
+          : 0,
+        job_posted_at_datetime_utc: job.created ?? null,
+        job_apply_link: job.redirect_url ?? "",
+        job_description: job.description ?? "",
+        job_brief: "",
+        job_employment_type: job.contract_time || "",
+        source: "adzuna",
+      };
+      normalized.job_brief = buildJobBrief(normalized);
+      return normalized;
+    });
   } catch (err) {
     console.error("[Adzuna] error:", err);
     return [];
@@ -99,73 +261,42 @@ async function fetchRemotive(jobRole: string, location: string): Promise<Normali
     const data = await res.json();
     const jobs: any[] = data?.jobs ?? [];
     console.log("[Remotive] jobs fetched:", jobs.length);
-    const mapped: NormalisedJob[] = jobs.map(job => ({
-      job_id: String(job.id),
-      job_title: job.title,
-      employer_name: job.company_name,
-      employer_logo: job.company_logo ?? null,
-      job_city: "Remote",
-      job_country: "Worldwide",
-      job_posted_at_timestamp: Math.floor(new Date(job.publication_date).getTime() / 1000),
-      job_posted_at_datetime_utc: job.publication_date ?? null,
-      job_apply_link: job.apply_url || job.url,
-      job_description: job.description ?? "",
-      job_employment_type: job.job_type ?? "",
-      job_is_remote: true,
-      source: "remotive",
-    }));
+    const mapped: NormalisedJob[] = jobs.map(job => {
+      const n: NormalisedJob = {
+        job_id: String(job.id),
+        job_title: job.title,
+        employer_name: job.company_name,
+        employer_logo: job.company_logo ?? null,
+        job_city: "Remote",
+        job_country: "Worldwide",
+        job_posted_at_timestamp: Math.floor(new Date(job.publication_date).getTime() / 1000),
+        job_posted_at_datetime_utc: job.publication_date ?? null,
+        job_apply_link: job.apply_url || job.url,
+        job_description: job.description ?? "",
+        job_brief: "",
+        job_employment_type: job.job_type ?? "",
+        job_is_remote: true,
+        source: "remotive",
+      };
+      n.job_brief = buildJobBrief(n);
+      return n;
+    });
     const roleLower = (jobRole || '').toLowerCase().trim();
     const filtered = roleLower
       ? mapped.filter(j => j.job_title?.toLowerCase().includes(roleLower))
       : mapped;
     console.log("[Remotive] jobs after role filter:", filtered.length);
-    // --- LOCATION FILTER ---
+    // --- LOCATION FILTER (uses shared module-level constants) ---
     const locRaw = (location || '').toLowerCase().trim();
     const locNorm = locRaw.replace(/[\s.,\-]/g, '');
-    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
     const isDefaultUS = US_ALIASES.includes(locNorm);
-    const US_MARKERS = [
-      'us','usa','unitedstates','america',
-      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
-      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
-      'austin','tx','dallas','houston','sanantonio','ftworth',
-      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
-      'phoenix','az','philadelphia','pa','pittsburgh',
-      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
-      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
-      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
-      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
-      'remote','usremote','remoteus'
-    ];
-    const NON_US_MARKERS = [
-      'germany','berlin','munich','frankfurt','hamburg',
-      'uk','london','england','manchester','scotland',
-      'france','paris','lyon','marseille',
-      'ireland','dublin','cork',
-      'spain','madrid','barcelona',
-      'netherlands','amsterdam','rotterdam','utrecht',
-      'canada','toronto','vancouver','montreal','ottawa',
-      'mexico','mexicocity','guadalajara',
-      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
-      'japan','tokyo','osaka',
-      'singapore',
-      'australia','sydney','melbourne','brisbane',
-      'brazil','saopaulo','riodejaneiro',
-      'china','shanghai','beijing','shenzhen','hongkong',
-      'italy','rome','milan',
-      'poland','warsaw','krakow',
-      'portugal','lisbon','porto',
-      'southafrica','johannesburg','capetown',
-      'belgium','brussels','switzerland','zurich','geneva',
-      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
-      'dubai','uae','israel','telaviv','turkey','istanbul'
-    ];
     const locationFiltered = filtered.filter(j => {
       const rawCity = (j.job_city || '').toLowerCase();
       const normCity = rawCity.replace(/[\s.,\-]/g, '');
       if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
       if (isDefaultUS) {
-        if (!normCity) return true;
+        // Exclude jobs with no city signal — safer than admitting unknown-origin jobs
+        if (!normCity) return false;
         return US_MARKERS.some(m => normCity.includes(m));
       }
       return normCity.includes(locNorm);
@@ -204,7 +335,7 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
     const normalised: NormalisedJob[] = [];
     for (const { company, jobs } of results as { company: string; jobs: any[] }[]) {
       for (const job of jobs) {
-        normalised.push({
+        const gh: NormalisedJob = {
           job_id: `${company}-${job.id}`,
           job_title: job.title,
           employer_name: company.charAt(0).toUpperCase() + company.slice(1),
@@ -217,9 +348,12 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
           job_posted_at_datetime_utc: job.updated_at ?? null,
           job_apply_link: job.absolute_url ?? "",
           job_description: job.content ?? "",
+          job_brief: "",
           job_employment_type: "",
           source: "greenhouse",
-        });
+        };
+        gh.job_brief = buildJobBrief(gh);
+        normalised.push(gh);
       }
     }
     console.log("[Greenhouse] jobs fetched:", normalised.length);
@@ -232,52 +366,16 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
         })
       : normalised;
     console.log("[Greenhouse] jobs after role filter:", filtered.length);
-    // --- LOCATION FILTER ---
+    // --- LOCATION FILTER (shared constants) ---
     const locRaw = (location || '').toLowerCase().trim();
     const locNorm = locRaw.replace(/[\s.,\-]/g, '');
-    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
     const isDefaultUS = US_ALIASES.includes(locNorm);
-    const US_MARKERS = [
-      'us','usa','unitedstates','america',
-      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
-      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
-      'austin','tx','dallas','houston','sanantonio','ftworth',
-      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
-      'phoenix','az','philadelphia','pa','pittsburgh',
-      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
-      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
-      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
-      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
-      'remote','usremote','remoteus'
-    ];
-    const NON_US_MARKERS = [
-      'germany','berlin','munich','frankfurt','hamburg',
-      'uk','london','england','manchester','scotland',
-      'france','paris','lyon','marseille',
-      'ireland','dublin','cork',
-      'spain','madrid','barcelona',
-      'netherlands','amsterdam','rotterdam','utrecht',
-      'canada','toronto','vancouver','montreal','ottawa',
-      'mexico','mexicocity','guadalajara',
-      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
-      'japan','tokyo','osaka',
-      'singapore',
-      'australia','sydney','melbourne','brisbane',
-      'brazil','saopaulo','riodejaneiro',
-      'china','shanghai','beijing','shenzhen','hongkong',
-      'italy','rome','milan',
-      'poland','warsaw','krakow',
-      'portugal','lisbon','porto',
-      'southafrica','johannesburg','capetown',
-      'belgium','brussels','switzerland','zurich','geneva',
-      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
-      'dubai','uae','israel','telaviv','turkey','istanbul'
-    ];
     const locationFiltered = filtered.filter(j => {
       const rawCity = (j.job_city || '').toLowerCase();
       const normCity = rawCity.replace(/[\s.,\-]/g, '');
       if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
       if (isDefaultUS) {
+        // All 25 GREENHOUSE_COMPANIES are US-based, so empty city is safe to admit
         if (!normCity) return true;
         return US_MARKERS.some(m => normCity.includes(m));
       }
@@ -310,69 +408,38 @@ async function fetchTheMuse(jobRole: string, location: string): Promise<Normalis
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.name?.toLowerCase().includes(roleLower));
     console.log("[TheMuse] jobs fetched:", jobs.length, "| matching:", filtered.length);
-    const mapped: NormalisedJob[] = filtered.map(job => ({
-      job_id: `themuse-${job.id}`,
-      job_title: job.name,
-      employer_name: job.company?.name || "",
-      employer_logo: null,
-      job_city: job.locations?.[0]?.name || "",
-      job_country: "",
-      job_posted_at_timestamp: job.publication_date
-        ? Math.floor(new Date(job.publication_date).getTime() / 1000)
-        : 0,
-      job_posted_at_datetime_utc: job.publication_date ?? null,
-      job_apply_link: job.refs?.landing_page || "",
-      job_description: job.contents ?? "",
-      job_employment_type: job.type ?? "",
-      source: "themuse",
-    }));
-    // --- LOCATION FILTER ---
+    const mapped: NormalisedJob[] = filtered.map(job => {
+      const tm: NormalisedJob = {
+        job_id: `themuse-${job.id}`,
+        job_title: job.name,
+        employer_name: job.company?.name || "",
+        employer_logo: null,
+        job_city: job.locations?.[0]?.name || "",
+        job_country: "",
+        job_posted_at_timestamp: job.publication_date
+          ? Math.floor(new Date(job.publication_date).getTime() / 1000)
+          : 0,
+        job_posted_at_datetime_utc: job.publication_date ?? null,
+        job_apply_link: job.refs?.landing_page || "",
+        job_description: job.contents ?? "",
+        job_brief: "",
+        job_employment_type: job.type ?? "",
+        source: "themuse",
+      };
+      tm.job_brief = buildJobBrief(tm);
+      return tm;
+    });
+    // --- LOCATION FILTER (shared constants) ---
     const locRaw = (location || '').toLowerCase().trim();
     const locNorm = locRaw.replace(/[\s.,\-]/g, '');
-    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
     const isDefaultUS = US_ALIASES.includes(locNorm);
-    const US_MARKERS = [
-      'us','usa','unitedstates','america',
-      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
-      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
-      'austin','tx','dallas','houston','sanantonio','ftworth',
-      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
-      'phoenix','az','philadelphia','pa','pittsburgh',
-      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
-      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
-      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
-      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
-      'remote','usremote','remoteus'
-    ];
-    const NON_US_MARKERS = [
-      'germany','berlin','munich','frankfurt','hamburg',
-      'uk','london','england','manchester','scotland',
-      'france','paris','lyon','marseille',
-      'ireland','dublin','cork',
-      'spain','madrid','barcelona',
-      'netherlands','amsterdam','rotterdam','utrecht',
-      'canada','toronto','vancouver','montreal','ottawa',
-      'mexico','mexicocity','guadalajara',
-      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
-      'japan','tokyo','osaka',
-      'singapore',
-      'australia','sydney','melbourne','brisbane',
-      'brazil','saopaulo','riodejaneiro',
-      'china','shanghai','beijing','shenzhen','hongkong',
-      'italy','rome','milan',
-      'poland','warsaw','krakow',
-      'portugal','lisbon','porto',
-      'southafrica','johannesburg','capetown',
-      'belgium','brussels','switzerland','zurich','geneva',
-      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
-      'dubai','uae','israel','telaviv','turkey','istanbul'
-    ];
     const locationFiltered = mapped.filter(j => {
       const rawCity = (j.job_city || '').toLowerCase();
       const normCity = rawCity.replace(/[\s.,\-]/g, '');
       if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
       if (isDefaultUS) {
-        if (!normCity) return true;
+        // Exclude jobs with no city signal — safer than admitting unknown-origin jobs
+        if (!normCity) return false;
         return US_MARKERS.some(m => normCity.includes(m));
       }
       return normCity.includes(locNorm);
@@ -405,72 +472,44 @@ async function fetchArbeitnow(jobRole: string, location: string): Promise<Normal
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.title?.toLowerCase().includes(roleLower));
     console.log("[Arbeitnow] jobs fetched:", jobs.length, "| matching:", filtered.length);
-    const mapped: NormalisedJob[] = filtered.map(job => ({
-      job_id: `arbeitnow-${job.slug}`,
-      job_title: job.title,
-      employer_name: job.company_name || "",
-      employer_logo: null,
-      job_city: job.location || "",
-      job_country: "",
-      job_posted_at_timestamp: job.created_at ?? 0,
-      job_posted_at_datetime_utc: job.created_at
-        ? new Date(job.created_at * 1000).toISOString()
-        : null,
-      job_apply_link: job.url || "",
-      job_description: job.description ?? "",
-      job_employment_type: job.job_types?.[0] ?? "",
-      job_is_remote: job.remote ?? false,
-      source: "arbeitnow",
-    }));
-    // --- LOCATION FILTER ---
+    const mapped: NormalisedJob[] = filtered.map(job => {
+      const an: NormalisedJob = {
+        job_id: `arbeitnow-${job.slug}`,
+        job_title: job.title,
+        employer_name: job.company_name || "",
+        employer_logo: null,
+        job_city: job.location || "",
+        job_country: "",
+        job_posted_at_timestamp: job.created_at ?? 0,
+        job_posted_at_datetime_utc: job.created_at
+          ? new Date(job.created_at * 1000).toISOString()
+          : null,
+        job_apply_link: job.url || "",
+        job_description: job.description ?? "",
+        job_brief: "",
+        job_employment_type: job.job_types?.[0] ?? "",
+        job_is_remote: job.remote ?? false,
+        source: "arbeitnow",
+      };
+      an.job_brief = buildJobBrief(an);
+      return an;
+    });
+    // --- LOCATION FILTER (shared constants) ---
     const locRaw = (location || '').toLowerCase().trim();
     const locNorm = locRaw.replace(/[\s.,\-]/g, '');
-    const US_ALIASES = ['', 'us', 'usa', 'unitedstates', 'america', 'any'];
     const isDefaultUS = US_ALIASES.includes(locNorm);
-    const US_MARKERS = [
-      'us','usa','unitedstates','america',
-      'newyork','ny','manhattan','brooklyn','queens','bronx','sanfrancisco','sf','bayarea',
-      'seattle','wa','chicago','il','losangeles','la','sandiego','sanjose',
-      'austin','tx','dallas','houston','sanantonio','ftworth',
-      'boston','ma','denver','co','atlanta','ga','miami','fl','tampa','orlando','jacksonville',
-      'phoenix','az','philadelphia','pa','pittsburgh',
-      'washington','dc','portland','or','nashville','tn','charlotte','nc','raleigh','durham',
-      'minneapolis','mn','detroit','mi','annarbor','indianapolis','in','columbus','oh','cleveland','cincinnati',
-      'kansascity','stlouis','mo','saltlakecity','ut','lasvegas','nv','reno',
-      'newjersey','nj','newark','connecticut','ct','maryland','md','virginia','va',
-      'remote','usremote','remoteus'
-    ];
-    const NON_US_MARKERS = [
-      'germany','berlin','munich','frankfurt','hamburg',
-      'uk','london','england','manchester','scotland',
-      'france','paris','lyon','marseille',
-      'ireland','dublin','cork',
-      'spain','madrid','barcelona',
-      'netherlands','amsterdam','rotterdam','utrecht',
-      'canada','toronto','vancouver','montreal','ottawa',
-      'mexico','mexicocity','guadalajara',
-      'india','bangalore','mumbai','delhi','hyderabad','pune','chennai',
-      'japan','tokyo','osaka',
-      'singapore',
-      'australia','sydney','melbourne','brisbane',
-      'brazil','saopaulo','riodejaneiro',
-      'china','shanghai','beijing','shenzhen','hongkong',
-      'italy','rome','milan',
-      'poland','warsaw','krakow',
-      'portugal','lisbon','porto',
-      'southafrica','johannesburg','capetown',
-      'belgium','brussels','switzerland','zurich','geneva',
-      'sweden','stockholm','norway','oslo','denmark','copenhagen','finland','helsinki',
-      'dubai','uae','israel','telaviv','turkey','istanbul'
-    ];
+    // Arbeitnow is a German-origin board — most listings are EU/global.
+    // Skip it entirely for US searches to avoid India/EU jobs bleeding through.
+    if (isDefaultUS) {
+      console.log("[Arbeitnow] skipped — US search, German-origin board");
+      return [];
+    }
     const locationFiltered = mapped.filter(j => {
       const rawCity = (j.job_city || '').toLowerCase();
       const normCity = rawCity.replace(/[\s.,\-]/g, '');
       if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
-      if (isDefaultUS) {
-        if (!normCity) return true;
-        return US_MARKERS.some(m => normCity.includes(m));
-      }
+      // Exclude jobs with no city info — safer default than admitting unknowns
+      if (!normCity) return false;
       return normCity.includes(locNorm);
     });
     console.log("[Arbeitnow] after location filter:", locationFiltered.length);
@@ -485,20 +524,36 @@ async function fetchArbeitnow(jobRole: string, location: string): Promise<Normal
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { jobRole, location, earlyBird = false } = body;
+    const { jobRole, jobRoles: jobRolesInput, location, earlyBird = false } = body;
 
-    if (!jobRole || !location) {
+    // Support legacy jobRole (string) and new jobRoles (string[]) — cap at 3 roles
+    const rawRoles: string[] = Array.isArray(jobRolesInput) && jobRolesInput.length > 0
+      ? jobRolesInput
+      : typeof jobRole === 'string'
+        ? jobRole.split(',').map((r: string) => r.trim()).filter(Boolean)
+        : [];
+    const roles = rawRoles.slice(0, 3);
+
+    if (!roles.length || !location) {
       return NextResponse.json({ data: [], total: 0 });
     }
 
-    // Fetch all sources in parallel; each has its own error boundary
-    const [adzunaJobs, remotiveJobs, greenhouseJobs, themuseJobs, arbeitnowJobs] = await Promise.all([
-      fetchAdzuna(jobRole, location, earlyBird),
-      fetchRemotive(jobRole, location),
-      fetchGreenhouse(jobRole, location),
-      fetchTheMuse(jobRole, location),
-      fetchArbeitnow(jobRole, location),
-    ]);
+    // Fan out: one full pipeline per role in parallel, then merge
+    const perRoleResults = await Promise.all(
+      roles.map(role => Promise.all([
+        fetchAdzuna(role, location, earlyBird),
+        fetchRemotive(role, location),
+        fetchGreenhouse(role, location),
+        fetchTheMuse(role, location),
+        fetchArbeitnow(role, location),
+      ]))
+    );
+
+    const adzunaJobs  = perRoleResults.flatMap(r => r[0]);
+    const remotiveJobs   = perRoleResults.flatMap(r => r[1]);
+    const greenhouseJobs = perRoleResults.flatMap(r => r[2]);
+    const themuseJobs    = perRoleResults.flatMap(r => r[3]);
+    const arbeitnowJobs  = perRoleResults.flatMap(r => r[4]);
 
     console.log("Adzuna jobs:", adzunaJobs.length);
     console.log("Remotive jobs:", remotiveJobs.length);
@@ -552,6 +607,18 @@ export async function POST(req: Request) {
     }
 
     console.log("[Jobs] Final total:", finalJobs.length);
+
+    // Dev-mode brief quality check
+    if (process.env.NODE_ENV !== "production") {
+      const briefMap = new Map<string, number>();
+      finalJobs.forEach(j => {
+        const key = (j.job_brief || "").slice(0, 50);
+        briefMap.set(key, (briefMap.get(key) || 0) + 1);
+      });
+      const dupes = [...briefMap.entries()].filter(([_, n]) => n > 1);
+      if (dupes.length > 0) console.warn("[brief] duplicate briefs detected:", dupes);
+    }
+
     return NextResponse.json({ data: finalJobs, total: finalJobs.length });
   } catch (error) {
     console.error(error);
