@@ -4,12 +4,59 @@ import { NextResponse } from "next/server";
 // ── Strip HTML tags from raw description text ────────────────────────────────
 function stripHtml(text: string): string {
   return text
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/?(h[1-6]|p|div|span|strong|em|ul|ol|li|a|b|i)[^>]*>/gi, " ")
-    .replace(/<[^>]*>/g, " ")
+    // Remove script/style blocks entirely (including content)
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    // Block-level closures → space to preserve word boundaries
+    .replace(/<\/?(h[1-6]|p|div|section|article|header|footer|li|tr|td|th|br|hr)[^>]*>/gi, " ")
+    // All remaining tags
+    .replace(/<[^>]+>/g, "")
+    // Named HTML entities — common typographic ones first
+    .replace(/&rsquo;/gi, "'").replace(/&lsquo;/gi, "'")
+    .replace(/&rdquo;/gi, "”").replace(/&ldquo;/gi, "“")
+    .replace(/&mdash;/gi, "—").replace(/&ndash;/gi, "–")
+    .replace(/&hellip;/gi, "...").replace(/&bull;/gi, "•")
     .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    // Numeric entities
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([\da-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
     .replace(/\s+/g, " ").trim();
+}
+
+// ── Escape special regex chars in a plain string ─────────────────────────────
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// ── Detect company-intro boilerplate paragraphs ───────────────────────────────
+const BLURB_STARTERS = [
+  "about us", "our company", "our story", "who we are", "our mission",
+  "founded in", "headquartered in", "we are a", "we're a",
+  "join us in", "join our team", "join a team",
+  "at our company", "be part of",
+];
+
+function isCompanyBlurb(text: string, employerName?: string): boolean {
+  const lower = text.toLowerCase();
+  // Employer-name intro: "Robinhood is a..." / "At Robinhood, we..."
+  if (employerName && employerName.trim().length > 1) {
+    const eName = escapeRegex(employerName.trim());
+    if (
+      new RegExp(`^${eName}\\s+(is a|is an|was founded|builds|powers|operates|enables|helps|connects)`, "i").test(text) ||
+      new RegExp(`^${eName}\\s+is the\\s+(largest|leading|world|premier|fastest|most)`, "i").test(text) ||
+      new RegExp(`^at\\s+${eName}[,.]`, "i").test(text)
+    ) return true;
+  }
+  // Generic opener patterns
+  if (BLURB_STARTERS.some(s => lower.startsWith(s))) return true;
+  // Unknown company opener: "Acme Corp is a leading..."
+  if (/^[A-Z][A-Za-z0-9&.\- ]+ (is a|is an|was founded|builds|powers|operates|enables|connects)/i.test(text)) return true;
+  // High "we/our" density in first 150 chars = company voice, not role voice
+  const intro = text.slice(0, 150);
+  const weCount = (intro.match(/\b(we|our|us)\b/gi) || []).length;
+  if (weCount >= 4) return true;
+  return false;
 }
 
 // ── Build a role-specific brief — strips company boilerplate ─────────────────
@@ -23,7 +70,10 @@ function buildJobBrief(job: {
   // Priority 1: structured responsibilities highlights
   const responsibilities = job.job_highlights?.Responsibilities;
   if (Array.isArray(responsibilities) && responsibilities.length > 0) {
-    const bullets = responsibilities.slice(0, 2).filter(Boolean).map((b: string) => b.trim());
+    const bullets = responsibilities
+      .slice(0, 2)
+      .filter(Boolean)
+      .map((b: string) => stripHtml(b).trim());
     if (bullets.length > 0) {
       const joined = bullets.join(" • ");
       return joined.length > 240 ? joined.slice(0, 237) + "..." : joined;
@@ -33,12 +83,7 @@ function buildJobBrief(job: {
   // Priority 2: job description body — detect and skip company blurbs
   const desc = stripHtml(job.job_description || "").trim();
   if (desc && desc.length > 50) {
-    const looksLikeCompanyBlurb =
-      /^[A-Z][\w]+ (is a|is an|was founded|, founded|builds|powers|operates)/i.test(desc) ||
-      /^(about us|our company|we are a|our mission|founded in|headquartered)/i.test(desc) ||
-      /^[A-Z][\w]+ is the (largest|leading|world's|premier)/i.test(desc);
-
-    if (!looksLikeCompanyBlurb) {
+    if (!isCompanyBlurb(desc, job.employer_name)) {
       const cutAt = desc.lastIndexOf(". ", 200);
       const trimmed = cutAt > 80 ? desc.slice(0, cutAt + 1) : desc.slice(0, 200);
       return trimmed.trim();
@@ -46,7 +91,7 @@ function buildJobBrief(job: {
 
     // It's a blurb — look for the first role-specific sentence after the intro
     const afterIntro = desc.search(
-      /\.\s+(We are looking|We're looking|We seek|The role|This role|As a|You will|You'll|Join us|The team|Our team)/i
+      /\.\s+(We are looking|We're looking|We seek|The role|This role|As a|You will|You'll|The team|Our team|In this role)/i
     );
     if (afterIntro > 0 && afterIntro < desc.length - 50) {
       const realStart = desc.slice(afterIntro + 2);

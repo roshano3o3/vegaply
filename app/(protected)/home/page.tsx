@@ -155,6 +155,14 @@ function normalizeJobDescription(text?: string): string {
   return result;
 }
 
+function safeText(str?: string): string {
+  if (!str) return "";
+  return str.replace(/<[^>]+>/g, " ")
+            .replace(/&[a-z]+;/gi, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+}
+
 function ScoreRing({ score }: { score: number }) {
   const r = 22, circ = 2 * Math.PI * r, offset = circ - (score / 100) * circ, color = scoreColor(score);
   return (
@@ -1054,12 +1062,15 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
           {Object.entries(BREAKDOWN_LABELS).map(([key, labelText]) => {
             const item = aiResult.breakdown[key];
             if (!item) return null;
-            const barColor = item.score >= 70 ? "#10b981" : item.score >= 45 ? "#f59e0b" : "#ef4444";
+            const neverEntered = item.score === 0 && !item.passed;
+            const barColor = neverEntered ? "rgba(255,255,255,0.12)" : item.score >= 70 ? "#10b981" : item.score >= 45 ? "#f59e0b" : "#ef4444";
+            const indicator = item.passed ? "✓" : neverEntered ? "–" : "✗";
+            const labelColor = item.passed ? t2 : neverEntered ? t3 : "rgba(239,68,68,0.8)";
             return (
               <div key={key} title={item.feedback}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-                  <span style={{fontSize:10,color:item.passed?t2:"rgba(239,68,68,0.8)",fontWeight:500}}>{item.passed?"✓":"✗"} {labelText}</span>
-                  <span style={{fontSize:10,fontWeight:600,color:barColor}}>{item.score}</span>
+                  <span style={{fontSize:10,color:labelColor,fontWeight:500}}>{indicator} {labelText}</span>
+                  <span style={{fontSize:10,fontWeight:600,color:barColor}}>{neverEntered?"—":item.score}</span>
                 </div>
                 <div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:99,overflow:"hidden"}}>
                   <div style={{height:"100%",width:`${item.score}%`,background:barColor,borderRadius:99,transition:"width .8s ease"}}/>
@@ -1429,28 +1440,51 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
   const t={t1:lm?"#111":"#fff",t2:lm?"rgba(0,0,0,0.55)":"rgba(255,255,255,0.45)",t3:lm?"rgba(0,0,0,0.4)":"rgba(255,255,255,0.3)",t4:lm?"rgba(0,0,0,0.28)":"rgba(255,255,255,0.22)",bd:lm?"rgba(0,0,0,0.08)":"rgba(255,255,255,0.06)",bg:lm?"rgba(0,0,0,0.03)":"rgba(255,255,255,0.03)"};
 
   const getJobDescription = (): { text: string; available: boolean } => {
-    // Prefer server-computed brief (boilerplate-free); fall back to client-side processing
-    if (job.job_brief && job.job_brief.length > 20) {
-      return { text: job.job_brief, available: true };
-    }
-    const raw = job.job_description || (job as any).description || (job as any).summary || '';
-    if (!raw || typeof raw !== 'string') {
-      return { text: 'Description unavailable. Open source posting for details.', available: false };
-    }
-    const cleaned = normalizeJobDescription(raw);
-    if (!cleaned) return { text: 'Description unavailable. Open source posting for details.', available: false };
-    // Client-side boilerplate detection as fallback
-    const looksLikeBlurb =
-      /^[A-Z][\w]+ (is a|is an|was founded|, founded|builds|powers|operates)/i.test(cleaned) ||
-      /^(about us|our company|we are a|our mission|founded in|headquartered)/i.test(cleaned);
-    if (looksLikeBlurb) {
-      const afterIntro = cleaned.search(/\.\s+(We are looking|We're looking|The role|This role|As a|You will|You'll|Join us)/i);
-      if (afterIntro > 0) {
-        const realStart = cleaned.slice(afterIntro + 2);
-        return { text: realStart.slice(0, 240), available: true };
+    const titleFallback = `${job.job_title || (job as any).title || 'Open role'} role at ${job.employer_name || (job as any).company || 'the company'}`;
+    const _compute = (): { text: string; available: boolean } => {
+      const guard = (candidate: string): { text: string; available: boolean } | null => {
+        const clean = safeText(candidate);
+        if (clean.length >= 30 && !clean.startsWith('<') && !clean.startsWith('&')) {
+          return { text: clean, available: true };
+        }
+        return null;
+      };
+
+      // Priority 1: server-computed brief
+      if (job.job_brief) {
+        const r = guard(job.job_brief);
+        if (r) return r;
       }
+
+      // Priority 2: client-side processing of raw description
+      const raw = job.job_description || (job as any).description || (job as any).summary || '';
+      if (raw && typeof raw === 'string') {
+        const cleaned = normalizeJobDescription(raw);
+        if (cleaned) {
+          const looksLikeBlurb =
+            /^[A-Z][\w]+ (is a|is an|was founded|, founded|builds|powers|operates)/i.test(cleaned) ||
+            /^(about us|our company|we are a|our mission|founded in|headquartered)/i.test(cleaned);
+          if (looksLikeBlurb) {
+            const afterIntro = cleaned.search(/\.\s+(We are looking|We're looking|The role|This role|As a|You will|You'll|Join us)/i);
+            if (afterIntro > 0) {
+              const r = guard(cleaned.slice(afterIntro + 2, afterIntro + 242));
+              if (r) return r;
+            }
+          } else {
+            const r = guard(cleaned.slice(0, 240));
+            if (r) return r;
+          }
+        }
+      }
+
+      return { text: titleFallback, available: false };
+    };
+    const result = _compute();
+    const clean = safeText(result.text);
+    if (clean.length < 30 || clean.startsWith('<') || clean.startsWith('&')) {
+      return { text: titleFallback, available: false };
     }
-    return { text: cleaned.slice(0, 240), available: true };
+    return { text: clean, available: result.available };
   };
 
   const ebStatus = getEarlyBirdStatus(job);
@@ -1514,7 +1548,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* DESCRIPTION */}
       <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.50)',lineHeight:1.6,margin:0,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const}}>
-        {getJobDescription().text}
+        {safeText(getJobDescription().text)}
       </p>
 
       {/* Quick Match Preview */}
@@ -1725,12 +1759,10 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         </div>
       ):resumeReady?(
         <div className="card-match-prompt">
-          <Sparkles size={11}/>
           <span>Click Match to score this role</span>
         </div>
       ):(
-        <div className="card-match-prompt">
-          <Sparkles size={11}/>
+        <div className="card-match-prompt" style={{opacity:0.6}}>
           <span>Upload resume to see match score</span>
         </div>
       )}
@@ -1953,7 +1985,7 @@ export default function Home() {
   const [autoApplyLoadingStep, setAutoApplyLoadingStep] = useState<string | null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
-  const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'|'hot'>('all');
+  const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'|'hot'|'applied'>('all');
   const [quickMatches, setQuickMatches] = useState<Record<string, {
     score: number,
     matching: string[],
@@ -2478,16 +2510,20 @@ export default function Home() {
 
   const isH1B = (job: any): boolean => isH1bSponsor(job.employer_name)
 
+  const appliedJobIds=new Set(trackedApps.filter(a=>a.status==='Applied').map(a=>a.job.job_id));
   const modeFilteredJobs=activeMode==='earlybird'
     ?jobs.filter(j=>getEarlyBirdStatus(j).isEarly)
     :activeMode==='h1b'
     ?jobs.filter(isH1B)
     :activeMode==='hot'
     ?jobs.filter(j=>getEarlyBirdStatus(j).isHotJob)
+    :activeMode==='applied'
+    ?jobs.filter(j=>appliedJobIds.has(j.job_id))
     :jobs;
-  const smartEbCount=jobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
-  const h1bCount=jobs.filter(isH1B).length;
-  const allSaved=[...jobs,...earlyBirdJobs].filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
+  const allJobs=[...jobs,...earlyBirdJobs];
+  const smartEbCount=allJobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
+  const h1bCount=allJobs.filter(isH1B).length;
+  const allSaved=allJobs.filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
   
   // DEBUG: Verify filter logic
   if (typeof window !== 'undefined' && activeMode !== 'all') {
@@ -2518,11 +2554,10 @@ export default function Home() {
   const activeFilterCount=filterWorkArr.length+filterEmpType.length+(filterEasyApply?1:0)+(filterSalary!=="any"?1:0)+filterExpLevel.length+(filterVisaH1b?1:0)+(filterVisaNoCitizen?1:0)+filterCompanySize.length+filterSource.length;
   const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(j=>getEarlyBirdStatus(j).isEarly):allSaved;
   const isEbMode=activeTab==="earlybird";
-  const hotCount=jobs.filter(j=>getEarlyBirdStatus(j).isHotJob).length;
+  const hotCount=allJobs.filter(j=>getEarlyBirdStatus(j).isHotJob).length;
   const totalPages=Math.ceil(displayJobs.length/JOBS_PER_PAGE);
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
   const currentLoading=isEbMode?ebLoading:loading;
-  const allJobs=[...jobs,...earlyBirdJobs];
   const totalSearched=allJobs.length;
 
   // AI Intelligence Panel computed values
@@ -3534,9 +3569,9 @@ export default function Home() {
           </div>
 
           {/* SMART FILTER CHIP BAR */}
-          {hasSearched&&jobs.length>0&&(
+          {hasSearched&&allJobs.length>0&&(
             <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',paddingBottom:10}}>
-              {([ ['all','All','',jobs.length], ['earlybird','Early Bird','⚡',smartEbCount], ['h1b','H1B','🌐',h1bCount], ['hot','Under 6h','🔥',hotCount] ] as [typeof activeMode,string,string,number][]).map(([mode,label,icon,count])=>{
+              {([ ['all','All','',allJobs.length], ['earlybird','Early Bird','⚡',smartEbCount], ['h1b','H1B','🌐',h1bCount], ['hot','Under 6h','🔥',hotCount] ] as [typeof activeMode,string,string,number][]).map(([mode,label,icon,count])=>{
                 const active=activeMode===mode;
                 return(
                   <button
@@ -3550,13 +3585,13 @@ export default function Home() {
                   </button>
                 );
               })}
-              {trackedApps.filter(a=>a.status==="Applied").length>0&&(
+              {appliedJobIds.size>0&&(
                 <button
-                  onClick={()=>setActiveTab('tracker')}
-                  style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 13px',borderRadius:999,border:'1px solid rgba(16,185,129,0.25)',background:'rgba(16,185,129,0.06)',color:'#34d399',fontSize:11,fontWeight:500,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
+                  onClick={()=>{setActiveMode('applied');setActiveTab('results');setCurrentPage(1);}}
+                  style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 13px',borderRadius:999,border:`1px solid ${activeMode==='applied'?'rgba(52,211,153,0.45)':'rgba(16,185,129,0.25)'}`,background:activeMode==='applied'?'rgba(52,211,153,0.16)':'rgba(16,185,129,0.06)',color:activeMode==='applied'?'#34d399':'#34d399',fontSize:11,fontWeight:activeMode==='applied'?700:500,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
                 >
                   ✅ Applied
-                  <span style={{fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:999,background:'rgba(16,185,129,0.14)',color:'#34d399',border:'1px solid rgba(16,185,129,0.25)'}}>{trackedApps.filter(a=>a.status==="Applied").length}</span>
+                  <span style={{fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:999,background:activeMode==='applied'?'rgba(52,211,153,0.25)':'rgba(16,185,129,0.14)',color:'#34d399',border:`1px solid ${activeMode==='applied'?'rgba(52,211,153,0.35)':'rgba(16,185,129,0.25)'}`}}>{appliedJobIds.size}</span>
                 </button>
               )}
             </div>
