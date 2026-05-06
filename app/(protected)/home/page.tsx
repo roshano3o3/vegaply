@@ -684,58 +684,6 @@ function InterviewSimulatorModal({ job, onClose }: { job: Job; onClose: () => vo
   );
 }
 
-function AutoApplyModal({ job, tailoredResume, score, onClose, onApply }: { job: JobWithMatch; tailoredResume: string; score: number; onClose: () => void; onApply: () => Promise<void> }) {
-  const [copied, setCopied] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const scoreColor = score >= 70 ? "#10b981" : score >= 50 ? "#f59e0b" : "#ef4444";
-  const scoreLabel = score >= 70 ? "Good Match" : score >= 50 ? "Moderate Match" : "Low Match";
-  
-  const handleConfirmApply = async () => {
-    setConfirming(true);
-    await onApply();
-    setConfirming(false);
-  };
-
-  return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
-        <div className="modal-head">
-          <div style={{ fontSize: 32 }}>⚡</div>
-          <div>
-            <h2 className="modal-title">Auto Apply Ready</h2>
-            <p className="modal-sub">{job.job_title} at {job.employer_name}</p>
-          </div>
-        </div>
-        
-        <div style={{ background: `${scoreColor}0d`, border: `1px solid ${scoreColor}28`, borderRadius: 8, padding: "16px 14px", marginBottom: 16 }}>
-          <div style={{ fontSize: 12, color: scoreColor, fontWeight: 600, marginBottom: 6 }}>ATS MATCH SCORE</div>
-          <div style={{ fontSize: 28, color: scoreColor, fontWeight: 800, marginBottom: 4 }}>{score}%</div>
-          <div style={{ fontSize: 11, color: scoreColor }}>{scoreLabel}</div>
-        </div>
-
-        {score < 50 && (
-          <div style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 8, padding: "12px 14px", fontSize: 13, color: "rgba(239,68,68,0.8)", marginBottom: 16 }}>
-            ⚠️ Low ATS match. Review carefully before submitting — your tailored resume may still help.
-          </div>
-        )}
-        
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: 16 }}>
-          Your resume has been optimized for this job. The ATS score reflects keyword alignment.
-        </div>
-        
-        <div style={{ display: "flex", gap: 10 }}>
-          <button className="ghost-btn" style={{ flex: 1 }} onClick={() => { navigator.clipboard.writeText(tailoredResume); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>
-            {copied ? "✓ Copied!" : "📋 Copy Resume"}
-          </button>
-          <button className="apply-btn" style={{ flex: 2 }} onClick={handleConfirmApply} disabled={confirming}>
-            {confirming ? "Applying..." : "Confirm & Apply →"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function TailorModal({ job, tailor, onClose }: { job: JobWithMatch; tailor: any; onClose: () => void }) {
   const [copied,setCopied]=useState<number|null>(null);
@@ -1757,13 +1705,15 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
         </button>
       </div>
 
-      {/* MATCH SCORE BAR — above Apply */}
-      {job.matchLoading&&(
-        <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"#f59e0b"}}>
-          <div className="spin-sm"/>Analyzing match…
+      {/* MATCH SCORE BAR — always rendered (3 states) */}
+      {job.matchLoading?(
+        <div className="card-match-bar">
+          <div className="card-match-track">
+            <div className="card-match-skeleton"/>
+          </div>
+          <span style={{fontSize:10,color:"rgba(255,255,255,0.22)",whiteSpace:"nowrap"}}>Scoring…</span>
         </div>
-      )}
-      {job.match&&!job.matchLoading&&(
+      ):job.match?(
         <div className="card-match-bar">
           <div className="card-match-track">
             <div className="card-match-fill" style={{width:`${job.match.matchScore}%`}}/>
@@ -1773,54 +1723,42 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
             {job.match.matchScore>=85&&<Sparkles size={11}/>}
           </span>
         </div>
-      )}
-      {!job.match&&!job.matchLoading&&!resumeReady&&(
+      ):resumeReady?(
+        <div className="card-match-prompt">
+          <Sparkles size={11}/>
+          <span>Click Match to score this role</span>
+        </div>
+      ):(
         <div className="card-match-prompt">
           <Sparkles size={11}/>
           <span>Upload resume to see match score</span>
         </div>
       )}
 
-      {/* HERO APPLY */}
-      {job.job_apply_link&&(
-        <a
-          href={job.job_apply_link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="apply-cta"
-          onClick={e=>e.stopPropagation()}
-        >
-          <Sparkles className="apply-sparkle" size={15}/>
-          <span>{hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply with AI Resume"}</span>
-          <ArrowRight className="apply-arrow" size={15}/>
-        </a>
+      {/* HERO APPLY — triggers AI tailoring flow */}
+      {autoApplyResult==="applied"?(
+        <div style={{width:"100%",height:52,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:14,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.18)",fontSize:13,fontWeight:700,color:"#34d399"}}>✅ Applied</div>
+      ):autoApplyResult==="low_match"?(
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          <div style={{width:"100%",height:40,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.18)",fontSize:12,fontWeight:600,color:"#fbbf24"}}>⚠️ Low Match</div>
+          {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:12,color:"rgba(245,245,247,0.4)",textDecoration:"underline",padding:"2px 0"}}>Apply manually →</a>}
+        </div>
+      ):isAutoApplying?(
+        <div style={{width:"100%",height:52,display:"flex",alignItems:"center",justifyContent:"center",gap:8,borderRadius:14,background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.18)",fontSize:13,fontWeight:700,color:"#f59e0b"}}><div className="spin-sm"/>Analyzing…</div>
+      ):(
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          <motion.button
+            onClick={e=>{e.stopPropagation();onAutoApply();}}
+            whileHover={{scale:1.02}}
+            whileTap={{scale:0.98}}
+            style={{width:"100%",height:52,borderRadius:14,border:"none",fontSize:13,fontWeight:700,background:"linear-gradient(180deg,#fbbf24 0%,#f59e0b 100%)",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 4px 14px rgba(245,158,11,0.30),inset 0 1px 0 rgba(255,255,255,0.20)",letterSpacing:"-0.3px",fontFamily:"var(--font-primary)"}}
+          >
+            <Sparkles size={15}/>{hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply with AI Resume"}<ArrowRight size={15}/>
+          </motion.button>
+          {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:12,color:"rgba(245,245,247,0.4)",textDecoration:"underline",padding:"2px 0"}}>Apply manually →</a>}
+        </div>
       )}
 
-      {/* Auto Apply — secondary */}
-      {(autoApplyResult==="applied"||autoApplyResult==="low_match"||isAutoApplying)?(
-        isAutoApplying?(
-          <div style={{textAlign:'center',fontSize:10,fontWeight:600,color:"#f59e0b"}}>
-            <span className="spin-sm" style={{display:'inline-block',verticalAlign:'middle',marginRight:4}}/>{autoApplyLoadingStep||'Processing…'}
-          </div>
-        ):autoApplyResult==="applied"?(
-          <div style={{textAlign:'center',fontSize:10,fontWeight:600,color:"#34d399"}}>✅ Applied</div>
-        ):(
-          <div style={{padding:'7px 10px',borderRadius:8,background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',textAlign:'center',fontSize:11,fontWeight:600,color:'#fbbf24',lineHeight:1.4}}>
-            ⚠️ Low Match{autoApplyScore!==undefined?` — ${autoApplyScore}%`:''} · Review Before Applying
-          </div>
-        )
-      ):(
-        <motion.button
-          onClick={e=>{e.stopPropagation();onAutoApply();}}
-          disabled={isAutoApplying}
-          title="AI scores your resume, tracks as Applied, and opens the job link"
-          whileHover={{color:'rgba(255,255,255,0.45)',borderColor:'rgba(255,255,255,0.12)'}}
-          whileTap={{scale:0.97}}
-          style={{width:"100%",padding:"5px",borderRadius:8,border:"1px solid rgba(255,255,255,0.05)",fontSize:10,fontWeight:500,cursor:"pointer",fontFamily:'var(--font-primary)',background:"transparent",display:"flex",alignItems:"center",justifyContent:"center",gap:5,transition:'all 0.15s ease',color:"rgba(255,255,255,0.20)"}}
-        >
-          ⚡ Auto Apply
-        </motion.button>
-      )}
     </motion.div>
   );
 }
@@ -2015,7 +1953,7 @@ export default function Home() {
   const [autoApplyLoadingStep, setAutoApplyLoadingStep] = useState<string | null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
-  const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'>('all');
+  const [activeMode,setActiveMode]=useState<'all'|'earlybird'|'h1b'|'hot'>('all');
   const [quickMatches, setQuickMatches] = useState<Record<string, {
     score: number,
     matching: string[],
@@ -2024,7 +1962,10 @@ export default function Home() {
     loading: boolean
   }>>({})
   const [userProfile, setUserProfile] = useState<{is_pro: boolean; daily_applications: number; last_reset_date: string | null} | null>(null);
-  const [autoApplyModal, setAutoApplyModal] = useState<{job: JobWithMatch; tailoredResume: string; score: number} | null>(null);
+  const [autoApplyModal, setAutoApplyModal] = useState<{job:JobWithMatch;tailoredBullets:{original:string;tailored:string;reason:string}[];keywordsAdded:string[];score:number;atsTip:string}|null>(null);
+  const [generatedResume, setGeneratedResume] = useState<any>(null);
+  const [generatingResume, setGeneratingResume] = useState(false);
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
 
   const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
   const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
@@ -2271,96 +2212,111 @@ export default function Home() {
     setInterviewJob(job);
   };
 
- const handleAutoApply = async (job: JobWithMatch) => {
-  if (!resumeText) {
-    alert("Upload your resume first to use Auto Apply!");
-    return;
-  }
-
-  const limit = userProfile?.is_pro ? 40 : 10;
-  if (userProfile && userProfile.daily_applications >= limit) {
-    setAutoApplyToast(
-      `You've used your ${limit} ${userProfile.is_pro ? 'Pro' : 'free'} applications today. ${userProfile.is_pro ? 'Resets tomorrow!' : 'Upgrade to Pro for 40/day!'}`
-    );
-    setTimeout(() => setAutoApplyToast(null), 6000);
-    return;
-  }
-
-  if (autoApplyResults[job.job_id] === "applied") return;
-
-  setAutoApplying(job.job_id);
-  setAutoApplyLoadingStep("Sending application...");
-
-  try {
-  const resumeId =
-     resumeHistory?.[0]?.id || localStorage.getItem("resumeId");
-    if (!resumeId) {
-      setAutoApplyToast("⚠️ No resume ID found. Please re-upload your resume.");
-      setTimeout(() => setAutoApplyToast(null), 5000);
-      setAutoApplying(null);
-      setAutoApplyLoadingStep(null);
+  const handleAutoApply=async(job:JobWithMatch)=>{
+    if(!resumeText){alert("Upload your resume first to use Auto Apply!");return;}
+    const today=new Date().toISOString().slice(0,10);
+    if(autoApplyCount>=30){
+      setAutoApplyToast("Daily limit reached (30/30). Resets tomorrow!");
+      setTimeout(()=>setAutoApplyToast(null),4000);
       return;
     }
-
-    const res = await fetch("/api/autoapply", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jobId: job.job_id,
-        resumeId,
-        mode: "email",
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      setAutoApplyToast(data.reason || "⚠️ Auto Apply failed. Please try again or apply manually.");
-      setTimeout(() => setAutoApplyToast(null), 5000);
-      setAutoApplying(null);
-      setAutoApplyLoadingStep(null);
-      return;
+    if(autoApplyResults[job.job_id]==="applied")return;
+    setAutoApplying(job.job_id);
+    try{
+      setAutoApplyToast("Tailoring resume...");
+      const tailorRes=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+      let tailorData=await tailorRes.json();
+      setAutoApplyToast("Checking ATS score...");
+      const matchRes=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+      const matchData:MatchResult=await matchRes.json();
+      let score=matchData.matchScore??0;
+      let missingSkills:string[]=matchData.missingSkills??[];
+      if(score<60&&missingSkills.length>0){
+        setAutoApplyToast("Re-tailoring for better match...");
+        const instruction=`Previous ATS score was ${Math.round(score)}%. Focus on these missing keywords: ${missingSkills.slice(0,8).join(", ")}. Rewrite bullets to include these terms.`;
+        const reTailorRes=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job,instruction})});
+        tailorData=await reTailorRes.json();
+        const reMatchRes=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+        const reMatchData:MatchResult=await reMatchRes.json();
+        score=reMatchData.matchScore??score;
+        missingSkills=reMatchData.missingSkills??missingSkills;
+      }
+      const finalScore=Math.round(score);
+      setAutoApplyScores(prev=>({...prev,[job.job_id]:finalScore}));
+      setAutoApplyToast(null);
+      setAutoApplyModal({job,tailoredBullets:tailorData.tailoredBullets??[],keywordsAdded:tailorData.keywordsAdded??[],score:finalScore,atsTip:tailorData.atsTip??""});
+    }catch(err){
+      console.error("[AutoApply] failed:",err);
+      setAutoApplyResults(prev=>({...prev,[job.job_id]:"low_match"}));
+      setAutoApplyToast("⚠️ Could not analyze match — please review the job before applying");
+      setTimeout(()=>setAutoApplyToast(null),5000);
     }
-
-    setAutoApplyResults((prev) => ({
-      ...prev,
-      [job.job_id]: "applied",
-    }));
-
-    setTrackedApps((prev) => {
-      const alreadyTracked = prev.find((a) => a.job.job_id === job.job_id);
-      if (alreadyTracked) return prev;
-
-      const next = [
-        ...prev,
-        {
-          job,
-          status: "Applied" as AppStatus,
-          appliedDate: new Date().toISOString(),
-          notes: "Applied via Auto Apply",
-          id: data.trackingId || `${job.job_id}-${Date.now()}`,
-        },
-      ];
-
-      localStorage.setItem("applysmart_tracker", JSON.stringify(next));
-      return next;
-    });
-
-    setAutoApplyToast(`✅ Application sent to ${job.employer_name || "company"}`);
-    setTimeout(() => setAutoApplyToast(null), 4000);
-
     setAutoApplying(null);
-    setAutoApplyLoadingStep(null);
-  } catch (err) {
-    console.error("[AutoApply] request failed:", err);
-    setAutoApplyToast("⚠️ Could not process Auto Apply — please try again");
-    setTimeout(() => setAutoApplyToast(null), 5000);
-    setAutoApplying(null);
-    setAutoApplyLoadingStep(null);
-  }
-};
+  };
+
+  const handleConfirmApply=async()=>{
+    if(!autoApplyModal)return;
+    const{job,score}=autoApplyModal;
+    const today=new Date().toISOString().slice(0,10);
+    const applyLink=job.job_apply_link||(job as any).url;
+    if(applyLink)window.open(applyLink,"_blank");
+    setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
+    const newCount=autoApplyCount+1;
+    setAutoApplyCount(newCount);
+    localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
+    setAutoApplyResults(prev=>({...prev,[job.job_id]:"applied"}));
+    fetch("/api/autoapply-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:userEmail,jobTitle:job.job_title,company:job.employer_name,location:[job.job_city,job.job_state,job.job_country].filter(Boolean).join(", "),appliedDate:new Date().toISOString(),score,userName:userEmail.split("@")[0]})}).catch(err=>console.error("[AutoApply] email failed:",err));
+    setAutoApplyToast(`✅ Applied to ${job.employer_name} — confirmation email sent`);
+    setTimeout(()=>setAutoApplyToast(null),5000);
+    setAutoApplyModal(null);
+    setGeneratedResume(null);
+  };
+
+  const handleGenerateResume=async()=>{
+    if(!autoApplyModal)return;
+    setGeneratingResume(true);
+    try{
+      const res=await fetch("/api/generate-resume",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job:autoApplyModal.job})});
+      const data=await res.json();
+      setGeneratedResume(data);
+    }catch(err){console.error("Resume generation failed:",err);}
+    setGeneratingResume(false);
+  };
+
+  const handleDownloadResume=async()=>{
+    if(!generatedResume||!autoApplyModal)return;
+    const{jsPDF}=await import("jspdf");
+    const doc=new jsPDF();
+    const job=autoApplyModal.job;
+    const pageWidth=doc.internal.pageSize.getWidth();
+    const margin=20;
+    const maxWidth=pageWidth-margin*2;
+    let y=20;
+    doc.setFontSize(18);doc.setFont("helvetica","bold");doc.text("Tailored Resume",margin,y);y+=8;
+    doc.setFontSize(10);doc.setFont("helvetica","normal");doc.setTextColor(100);
+    doc.text(`Tailored for: ${job.job_title} at ${job.employer_name}`,margin,y);y+=6;
+    doc.setDrawColor(245,158,11);doc.setLineWidth(0.5);doc.line(margin,y,pageWidth-margin,y);y+=8;
+    doc.setFontSize(12);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("PROFESSIONAL SUMMARY",margin,y);y+=6;
+    doc.setFontSize(10);doc.setFont("helvetica","normal");
+    const summaryLines=doc.splitTextToSize(generatedResume.summary||"",maxWidth);
+    doc.text(summaryLines,margin,y);y+=summaryLines.length*5+8;
+    if(generatedResume.experience?.length>0){
+      doc.setFontSize(12);doc.setFont("helvetica","bold");doc.text("EXPERIENCE",margin,y);y+=6;
+      generatedResume.experience.forEach((exp:any)=>{
+        doc.setFontSize(11);doc.setFont("helvetica","bold");doc.text(`${exp.title} — ${exp.company}`,margin,y);y+=5;
+        doc.setFontSize(10);doc.setFont("helvetica","normal");
+        exp.bullets?.forEach((bullet:string)=>{const lines=doc.splitTextToSize(`• ${bullet}`,maxWidth-4);doc.text(lines,margin+4,y);y+=lines.length*5;});
+        y+=4;
+      });
+    }
+    if(generatedResume.skills?.length>0){
+      doc.setFontSize(12);doc.setFont("helvetica","bold");doc.text("SKILLS",margin,y);y+=6;
+      doc.setFontSize(10);doc.setFont("helvetica","normal");
+      const skillLines=doc.splitTextToSize(generatedResume.skills.join(" • "),maxWidth);
+      doc.text(skillLines,margin,y);
+    }
+    doc.save(`Resume_${job.employer_name}_${job.job_title}.pdf`.replace(/\s+/g,"_"));
+  };
 
   const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
   const toggleSave=(jobId:string)=>setSavedJobs(prev=>{const n=new Set(prev);n.has(jobId)?n.delete(jobId):n.add(jobId);return n;});
@@ -2413,18 +2369,21 @@ export default function Home() {
       }
       // Remote toggle (sidebar) — use detectArrangement so non-flagged remote jobs aren't excluded
       if(filterRemote&&detectArrangement(job)!=="remote")return false;
-      // Date posted — check both datetime string and timestamp
+      // Date posted — minutes-based for fine-grained time filters
       if(filterDate!=="ANY"){
-        let days=9999;
+        let mins=9999*60;
         if(job.job_posted_at_datetime_utc){
-          days=(Date.now()-new Date(job.job_posted_at_datetime_utc).getTime())/86400000;
+          mins=(Date.now()-new Date(job.job_posted_at_datetime_utc).getTime())/60000;
         }else if(job.job_posted_at_timestamp&&job.job_posted_at_timestamp>0){
-          days=(Date.now()/1000-job.job_posted_at_timestamp)/86400;
+          mins=(Date.now()/1000-job.job_posted_at_timestamp)/60;
         }
-        if(filterDate==="TODAY"&&days>1)return false;
-        if(filterDate==="3DAYS"&&days>3)return false;
-        if(filterDate==="WEEK"&&days>7)return false;
-        if(filterDate==="MONTH"&&days>30)return false;
+        if(filterDate==="15MIN"&&mins>15)return false;
+        if(filterDate==="1H"&&mins>60)return false;
+        if(filterDate==="6H"&&mins>360)return false;
+        if((filterDate==="24H"||filterDate==="TODAY")&&mins>1440)return false;
+        if(filterDate==="3DAYS"&&mins>4320)return false;
+        if(filterDate==="WEEK"&&mins>10080)return false;
+        if(filterDate==="MONTH"&&mins>43200)return false;
       }
       // Pref-title matching — intentionally excludes filterEmpType from hasExplicitFilters
       // so that selecting "Full-time" doesn't disable pref-title and cause count to go UP (B7 fix)
@@ -2523,6 +2482,8 @@ export default function Home() {
     ?jobs.filter(j=>getEarlyBirdStatus(j).isEarly)
     :activeMode==='h1b'
     ?jobs.filter(isH1B)
+    :activeMode==='hot'
+    ?jobs.filter(j=>getEarlyBirdStatus(j).isHotJob)
     :jobs;
   const smartEbCount=jobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
   const h1bCount=jobs.filter(isH1B).length;
@@ -3072,6 +3033,7 @@ export default function Home() {
         .card-match-track{flex:1;height:6px;border-radius:999px;background:rgba(255,255,255,0.06);overflow:hidden}
         .card-match-fill{height:100%;background:linear-gradient(90deg,#06b6d4 0%,#f59e0b 100%);border-radius:999px;transition:width 800ms cubic-bezier(0.4,0,0.2,1);animation:match-fill-in 800ms cubic-bezier(0.4,0,0.2,1) forwards}
         @keyframes match-fill-in{from{width:0%}}
+        .card-match-skeleton{height:100%;width:55%;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.10) 50%,rgba(255,255,255,0.05) 100%);background-size:200% 100%;animation:skeletonWave 1.8s linear infinite}
         .card-match-pct{font-size:11px;font-weight:700;color:rgba(255,255,255,0.82);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;letter-spacing:-0.2px}
         .card-match-prompt{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,0.25);font-family:var(--font-primary);padding:2px 0}
 
@@ -3293,8 +3255,6 @@ export default function Home() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
             Filters{activeFilterCount>0?` · ${activeFilterCount}`:''}
           </motion.button>
-          <motion.button className={`eb-btn${activeMode==='earlybird'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.97}} onClick={()=>{const newMode=activeMode==='earlybird'?'all':'earlybird';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>{ebLoading?"Scanning…":"⚡ Early Bird"}</motion.button>
-          <motion.button className={`h1b-btn${activeMode==='h1b'?' active':''}`} whileHover={{scale:1.02}} whileTap={{scale:0.98}} onClick={()=>{const newMode=activeMode==='h1b'?'all':'h1b';setActiveMode(newMode);if(newMode!=='all')setActiveTab('results');}}>🌐 H1B</motion.button>
           {hasSearched&&<button className={`refresh-btn${isRefreshing?" spinning":""}`} onClick={handleRefresh} disabled={isRefreshing} title="Refresh jobs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             {isRefreshing?"Refreshing…":"Refresh"}
@@ -3307,19 +3267,55 @@ export default function Home() {
           </button>
           {/* Mobile: early bird quick-access */}
           <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:13,cursor:"pointer",color:"#fbbf24",alignItems:"center",gap:4,minHeight:36}}>⚡</button>
-          {mounted&&earlyBirdJobs.length>0&&<span className="nav-pill pill-eb">⚡ {earlyBirdJobs.length} Early</span>}
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
-          {mounted&&autoApplyCount>0&&<span className="nav-pill" style={{background:"rgba(245,158,11,0.1)",color:"#f59e0b",border:"1px solid rgba(245,158,11,0.25)"}}>{autoApplyCount}/30 Applied</span>}
-          {mounted&&prefTitles.length>0&&<span className="nav-pill" style={{background:"rgba(245,158,11,0.1)",color:"#f59e0b",border:"1px solid rgba(245,158,11,0.25)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}} onClick={()=>setShowPreferences(true)}><span style={{width:6,height:6,borderRadius:"50%",background:"#f59e0b",display:"inline-block",flexShrink:0}}/>Prefs active</span>}
-          {mounted&&userEmail&&<div className="user-avatar" title={userEmail}>{avatarLetter}</div>}
-          {mounted&&userEmail&&<span style={{fontSize:11,color:"rgba(255,255,255,0.2)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userEmail}</span>}
-          <button className="theme-toggle" onClick={toggleTheme} title={darkMode?"Switch to light mode":"Switch to dark mode"}>
-            {darkMode
-              ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-              : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            }
-          </button>
-          <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
+          {mounted&&prefTitles.length>0&&<span className="nav-pill" style={{background:"rgba(245,158,11,0.1)",color:"#f59e0b",border:"1px solid rgba(245,158,11,0.25)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}} onClick={()=>setShowPreferences(true)}><span style={{width:6,height:6,borderRadius:"50%",background:"#f59e0b",display:"inline-block",flexShrink:0}}/>Prefs</span>}
+          {/* Avatar dropdown */}
+          {mounted&&(
+            <div style={{position:'relative'}}>
+              <div
+                className="user-avatar"
+                title={userEmail}
+                onClick={()=>setShowAvatarMenu(v=>!v)}
+                style={{cursor:'pointer',userSelect:'none'}}
+              >
+                {avatarLetter}
+              </div>
+              {showAvatarMenu&&(
+                <>
+                  <div style={{position:'fixed',inset:0,zIndex:199}} onClick={()=>setShowAvatarMenu(false)}/>
+                  <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,minWidth:220,background:'var(--bg-surface)',border:'1px solid var(--border-subtle)',borderRadius:12,padding:8,zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,0.5)',animation:'scaleInSoft 0.15s var(--ease-out) both',transformOrigin:'top right'}}>
+                    {userEmail&&(
+                      <div style={{padding:'8px 12px 10px',borderBottom:'1px solid var(--border-subtle)',marginBottom:6}}>
+                        <div style={{fontSize:10,fontWeight:600,color:'var(--text-tertiary)',textTransform:'uppercase',letterSpacing:'0.8px',marginBottom:3}}>Signed in as</div>
+                        <div style={{fontSize:12,fontWeight:500,color:'var(--text-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userEmail}</div>
+                      </div>
+                    )}
+                    <button
+                      onClick={()=>{toggleTheme();setShowAvatarMenu(false);}}
+                      style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:8,border:'none',background:'transparent',color:'var(--text-secondary)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'var(--font-primary)',transition:'background 0.15s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.background='var(--bg-hover)')}
+                      onMouseLeave={e=>(e.currentTarget.style.background='transparent')}
+                    >
+                      {darkMode
+                        ?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        :<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                      }
+                      {darkMode?'Light mode':'Dark mode'}
+                    </button>
+                    <button
+                      onClick={()=>{handleLogout();setShowAvatarMenu(false);}}
+                      style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:8,border:'none',background:'transparent',color:'rgba(239,68,68,0.75)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'var(--font-primary)',transition:'background 0.15s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.background='rgba(239,68,68,0.08)')}
+                      onMouseLeave={e=>(e.currentTarget.style.background='transparent')}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           {/* Mobile: sign out icon */}
           <button className="mob-signout-btn theme-toggle" onClick={handleLogout} title="Sign out" style={{color:"rgba(239,68,68,0.6)"}}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -3353,23 +3349,13 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Row 2: Salary + Date Posted */}
-          <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:10}}>
-            <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-              <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Salary</span>
-              {([['any','Any'],['s50k','$50k+'],['s80k','$80k+'],['s100k','$100k+'],['s130k','$130k+'],['s160k','$160k+'],['s200k','$200k+']] as [string,string][]).map(([val,label])=>{
-                const on=filterSalary===val;
-                return <button key={val} onClick={()=>{setFilterSalary(val);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
-              })}
-            </div>
-            <div style={{width:1,height:20,background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
-            <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-              <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Posted</span>
-              {([['ANY','Any'],['TODAY','24h'],['3DAYS','3d'],['WEEK','Week'],['MONTH','Month']] as [string,string][]).map(([val,label])=>{
-                const on=filterDate===val;
-                return <button key={val} onClick={()=>{setFilterDate(val);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
-              })}
-            </div>
+          {/* Row 2: Date Posted */}
+          <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+            <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Posted</span>
+            {([['ANY','Any'],['15MIN','<15m'],['1H','1h'],['6H','6h'],['24H','24h'],['3DAYS','3d'],['WEEK','Week'],['MONTH','Month']] as [string,string][]).map(([val,label])=>{
+              const on=filterDate===val;
+              return <button key={val} onClick={()=>{setFilterDate(val);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
+            })}
           </div>
 
           {/* Row 3: Experience Level */}
@@ -3471,8 +3457,11 @@ export default function Home() {
             <div className="filter-label">Date Posted</div>
             <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
               <option value="ANY">Any Time</option>
-              <option value="TODAY">Past 24h</option>
-              <option value="3DAYS">Past 3 days</option>
+              <option value="15MIN">Under 15 min</option>
+              <option value="1H">1 hour</option>
+              <option value="6H">6 hours</option>
+              <option value="24H">24 hours</option>
+              <option value="3DAYS">3 days</option>
               <option value="WEEK">This Week</option>
               <option value="MONTH">This Month</option>
             </select>
@@ -3543,6 +3532,35 @@ export default function Home() {
             </button>
             {jobRole&&location&&<span className="mob-filters-btn" style={{fontSize:11,color:darkMode?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.4)",background:"none",border:"none",padding:0,minHeight:"auto"}}>{jobRole} · {location}</span>}
           </div>
+
+          {/* SMART FILTER CHIP BAR */}
+          {hasSearched&&jobs.length>0&&(
+            <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',paddingBottom:10}}>
+              {([ ['all','All','',jobs.length], ['earlybird','Early Bird','⚡',smartEbCount], ['h1b','H1B','🌐',h1bCount], ['hot','Under 6h','🔥',hotCount] ] as [typeof activeMode,string,string,number][]).map(([mode,label,icon,count])=>{
+                const active=activeMode===mode;
+                return(
+                  <button
+                    key={mode}
+                    onClick={()=>{setActiveMode(mode);setActiveTab('results');setCurrentPage(1);}}
+                    style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 13px',borderRadius:999,border:`1px solid ${active?'rgba(245,158,11,0.55)':'rgba(255,255,255,0.09)'}`,background:active?'rgba(245,158,11,0.16)':'rgba(255,255,255,0.03)',color:active?'#fbbf24':'rgba(255,255,255,0.40)',fontSize:11,fontWeight:active?700:500,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
+                  >
+                    {icon&&<span>{icon}</span>}
+                    {label}
+                    <span style={{fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:999,background:active?'rgba(245,158,11,0.25)':'rgba(255,255,255,0.06)',color:active?'#fbbf24':'rgba(255,255,255,0.28)',border:`1px solid ${active?'rgba(245,158,11,0.35)':'rgba(255,255,255,0.07)'}`}}>{count}</span>
+                  </button>
+                );
+              })}
+              {trackedApps.filter(a=>a.status==="Applied").length>0&&(
+                <button
+                  onClick={()=>setActiveTab('tracker')}
+                  style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 13px',borderRadius:999,border:'1px solid rgba(16,185,129,0.25)',background:'rgba(16,185,129,0.06)',color:'#34d399',fontSize:11,fontWeight:500,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
+                >
+                  ✅ Applied
+                  <span style={{fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:999,background:'rgba(16,185,129,0.14)',color:'#34d399',border:'1px solid rgba(16,185,129,0.25)'}}>{trackedApps.filter(a=>a.status==="Applied").length}</span>
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
@@ -3847,40 +3865,92 @@ export default function Home() {
       {matchPanelJob&&<ResumeMatchPanel job={matchPanelJob} onClose={()=>setMatchPanelJob(null)} resumeText={resumeText}/>}
       {coverLetterJob?.coverLetter&&<CoverLetterModal job={coverLetterJob} coverLetter={coverLetterJob.coverLetter} onClose={()=>setCoverLetterJob(null)}/>}
       {skillGapJob?.skillGap&&<SkillGapModal job={skillGapJob} result={skillGapJob.skillGap} onClose={()=>setSkillGapJob(null)}/>}
-      {autoApplyModal&&<AutoApplyModal job={autoApplyModal.job} tailoredResume={autoApplyModal.tailoredResume} score={autoApplyModal.score} onClose={()=>setAutoApplyModal(null)} onApply={async()=>{
-        const today=new Date().toISOString().slice(0,10);
-        try{
-          // Open job application link
-          if(autoApplyModal.job.job_apply_link) window.open(autoApplyModal.job.job_apply_link, "_blank");
-          
-          // Send confirmation email
-          await fetch("/api/autoapply-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:userEmail,jobTitle:autoApplyModal.job.job_title,company:autoApplyModal.job.employer_name,location:autoApplyModal.job.job_city,appliedDate:new Date().toISOString(),score:autoApplyModal.score,userName:userEmail?.split('@')[0]})}).catch(err=>console.error('Email send failed:',err));
-          
-          // Move to Applied in Kanban
-          setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===autoApplyModal.job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===autoApplyModal.job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job:autoApplyModal.job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:autoApplyModal.job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
-          
-          // Increment daily applications
-          if(userProfile){
-            const newDaily = userProfile.daily_applications + 1;
-            setUserProfile({...userProfile, daily_applications: newDaily});
-            const uid=(await supabase.auth.getUser()).data.user?.id;
-            if(uid) await supabase.from('profiles').update({daily_applications: newDaily}).eq('id',uid);
-          }
-          
-          setAutoApplyResults(prev=>({...prev,[autoApplyModal.job.job_id]:"applied"}));
-          const newCount=autoApplyCount+1;
-          setAutoApplyCount(newCount);
-          localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
-          
-          setAutoApplyToast(`✅ Applied to ${autoApplyModal.job.job_title} at ${autoApplyModal.job.employer_name}! Confirmation email sent.`);
-          setTimeout(()=>setAutoApplyToast(null),4000);
-          setAutoApplyModal(null);
-        }catch(err){
-          console.error('[AutoApply] confirm failed:',err);
-          setAutoApplyToast("⚠️ Apply failed — please try again");
-          setTimeout(()=>setAutoApplyToast(null),4000);
-        }
-      }}/>}
+      {autoApplyModal&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}}>
+          <div style={{background:"#0e0e16",border:"1px solid rgba(245,158,11,0.25)",borderRadius:16,padding:24,maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 8px 48px rgba(0,0,0,0.6)"}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#f59e0b",marginBottom:2}}>Auto Apply Preview</div>
+                <div style={{fontSize:15,fontWeight:700,color:"#fff"}}>{autoApplyModal.job.job_title}</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>{autoApplyModal.job.employer_name}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:22,fontWeight:800,color:autoApplyModal.score>=70?"#34d399":autoApplyModal.score>=50?"#fbbf24":"#f87171"}}>{autoApplyModal.score}%</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",fontWeight:600}}>ATS MATCH</div>
+              </div>
+            </div>
+            {autoApplyModal.score<50&&(
+              <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"#f87171",marginBottom:14,fontWeight:500}}>
+                ⚠️ Low ATS match after 2 passes. Consider applying manually with a more targeted resume.
+              </div>
+            )}
+            {autoApplyModal.tailoredBullets.length>0&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:8}}>Tailored Bullets</div>
+                {autoApplyModal.tailoredBullets.map((b,i)=>(
+                  <div key={i} style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.12)",borderRadius:8,padding:"8px 10px",marginBottom:6}}>
+                    <div style={{fontSize:11,color:"#fbbf24",fontWeight:600,marginBottom:2}}>✦ {b.tailored}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{b.reason}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {autoApplyModal.keywordsAdded.length>0&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Keywords Added</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:5}}>{autoApplyModal.keywordsAdded.map((k,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:6,background:"rgba(52,211,153,0.08)",color:"#34d399",border:"1px solid rgba(52,211,153,0.18)"}}>{k}</span>)}</div>
+              </div>
+            )}
+            {autoApplyModal.atsTip&&<div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.14)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"rgba(245,158,11,0.75)",marginBottom:16}}>💡 {autoApplyModal.atsTip}</div>}
+            <div style={{display:"flex",gap:10}}>
+              {autoApplyModal.score>=70?(
+                <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+              ):generatedResume?(
+                <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
+                  <div style={{background:"rgba(6,182,212,0.06)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:10,padding:"12px 14px",maxHeight:280,overflowY:"auto"}}>
+                    <div style={{fontSize:12,color:"#06b6d4",fontWeight:700,marginBottom:8}}>✦ Tailored Resume — Est. {generatedResume.ats_score_estimate}% ATS Score</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginBottom:4}}>Professional Summary</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.75)",marginBottom:10,lineHeight:1.5}}>{generatedResume.summary}</div>
+                    {generatedResume.experience?.map((exp:any,i:number)=>(
+                      <div key={i} style={{marginBottom:8}}>
+                        <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600}}>{exp.title} — {exp.company}</div>
+                        {exp.bullets?.map((b:string,j:number)=>(
+                          <div key={j} style={{fontSize:10,color:"rgba(255,255,255,0.65)",marginLeft:8,marginTop:2}}>• {b}</div>
+                        ))}
+                      </div>
+                    ))}
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:8,marginBottom:4}}>Keywords Added</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                      {generatedResume.keywords_added?.map((k:string)=>(
+                        <span key={k} style={{fontSize:10,padding:"2px 6px",borderRadius:4,background:"rgba(6,182,212,0.12)",color:"#06b6d4"}}>{k}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={handleDownloadResume} style={{padding:"9px 0",borderRadius:9,background:"rgba(6,182,212,0.12)",border:"1px solid rgba(6,182,212,0.3)",color:"#06b6d4",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    ⬇ Download Tailored Resume PDF
+                  </button>
+                  <button onClick={handleConfirmApply} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    Apply with Tailored Resume →
+                  </button>
+                </div>
+              ):(
+                <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
+                  <button disabled style={{padding:"8px 0",borderRadius:9,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"rgba(239,68,68,0.6)",fontSize:11,fontWeight:700,cursor:"not-allowed"}}>
+                    ✗ Score too low ({autoApplyModal.score}% / need 70%+)
+                  </button>
+                  <button onClick={handleGenerateResume} disabled={generatingResume} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#06b6d4,#0891b2)",border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    {generatingResume?"Generating tailored resume…":"✦ Generate Tailored Resume for this Job"}
+                  </button>
+                  <button onClick={handleConfirmApply} style={{padding:"8px 0",borderRadius:9,background:"transparent",border:"1px solid rgba(245,158,11,0.3)",color:"rgba(245,158,11,0.7)",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+                    Apply manually anyway →
+                  </button>
+                </div>
+              )}
+              <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MOBILE SIDEBAR BOTTOM SHEET */}
       {showMobileSidebar&&(
@@ -3920,7 +3990,11 @@ export default function Home() {
               <div className="filter-label">Date Posted</div>
               <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
                 <option value="ANY">Any Time</option>
-                <option value="TODAY">Today</option>
+                <option value="15MIN">Under 15 min</option>
+                <option value="1H">1 hour</option>
+                <option value="6H">6 hours</option>
+                <option value="24H">24 hours</option>
+                <option value="3DAYS">3 days</option>
                 <option value="WEEK">This Week</option>
                 <option value="MONTH">This Month</option>
               </select>
