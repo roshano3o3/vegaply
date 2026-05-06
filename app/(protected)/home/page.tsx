@@ -358,7 +358,7 @@ function ResumePanel({ resumeText, fileName, onResume, onClear }: { resumeText: 
         </div>
         <div><div style={{fontSize:11,fontWeight:700,color:"#10b981"}}>Resume loaded</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)",marginTop:1,maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fileName}</div></div>
       </div>
-      <button className="ghost-btn" onClick={onClear} style={{fontSize:10}}>Change</button>
+      <button className="ghost-btn" onClick={onClear} style={{fontSize:'var(--text-xs)',padding:'var(--space-1) var(--space-2)',border:'1px solid var(--border-hairline)',color:'var(--text-secondary)',borderRadius:4}}>Change</button>
     </div>
   );
   return (
@@ -2919,10 +2919,10 @@ export default function Home() {
         .logout-btn{background:transparent;border:none;color:rgba(255,255,255,0.30);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-primary);letter-spacing:0.1px;padding:6px 10px;border-radius:8px;transition:color 0.18s ease}
 
         /* LAYOUT */
-        .app-layout{display:flex;min-height:calc(100vh - 60px);background:var(--bg-page);position:relative;z-index:1}
-        .sidebar{width:260px;flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+        .app-layout{display:flex;align-items:flex-start;min-height:100vh;background:var(--bg-page);position:relative;z-index:1}
+        .sidebar{width:260px;flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:0;height:100vh;overflow-y:auto}
         .content{flex:1;min-width:0;padding:var(--space-6) var(--space-8);max-width:calc(100vw - 260px - 320px);display:flex;flex-direction:column;gap:var(--space-6)}
-        .right-panel{width:320px;flex-shrink:0;background:var(--bg-surface);border-left:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4);display:flex;flex-direction:column;gap:var(--space-6);position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+        .right-panel{width:320px;flex-shrink:0;background:var(--bg-surface);border-left:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4);display:flex;flex-direction:column;gap:var(--space-6);position:sticky;top:0;height:100vh;overflow-y:auto}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
 
         /* RIGHT PANEL COMPONENTS */
@@ -3273,7 +3273,7 @@ export default function Home() {
         <div className="topbar-search">
           <div className="topbar-search-box">
             <div style={{position:'relative',display:'flex',alignItems:'center',flex:1,minWidth:0}}>
-              <input className="topbar-input" type="text" placeholder="Software Engineer, Data Scientist…" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{paddingRight:jobRole.split(',').filter(s=>s.trim()).length>=2?44:undefined}}/>
+              <input className="topbar-input" type="text" placeholder="Software Engineer, Data Scientist…" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{paddingRight:jobRole.split(',').filter(s=>s.trim()).length>=2?60:undefined}}/>
               {jobRole.split(',').filter(s=>s.trim()).length>=2&&(
                 <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'rgba(245,158,11,0.18)',border:'1px solid rgba(245,158,11,0.35)',borderRadius:100,padding:'2px 7px',fontSize:10,fontWeight:700,color:'#fbbf24',pointerEvents:'none',whiteSpace:'nowrap'}}>{jobRole.split(',').filter((s:string)=>s.trim()).length} roles</span>
               )}
