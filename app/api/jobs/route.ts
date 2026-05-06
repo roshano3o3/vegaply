@@ -60,13 +60,13 @@ function isCompanyBlurb(text: string, employerName?: string): boolean {
 }
 
 // ── Build a role-specific brief — strips company boilerplate ─────────────────
-function buildJobBrief(job: {
+async function buildJobBrief(job: {
   job_description?: string;
   job_title?: string;
   employer_name?: string;
   job_city?: string;
   job_highlights?: { Responsibilities?: string[] };
-}): string {
+}): Promise<string> {
   // Priority 1: structured responsibilities highlights
   const responsibilities = job.job_highlights?.Responsibilities;
   if (Array.isArray(responsibilities) && responsibilities.length > 0) {
@@ -98,6 +98,38 @@ function buildJobBrief(job: {
       const cut = realStart.lastIndexOf(". ", 200);
       const trimmed = cut > 80 ? realStart.slice(0, cut + 1) : realStart.slice(0, 200);
       return trimmed.trim();
+    }
+
+    // Blurb — regex extraction failed — ask AI for a role-specific summary
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (apiKey) {
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 100,
+            messages: [{
+              role: "user",
+              content: `Extract a 1-2 sentence role-specific summary from this job description. Focus only on what the candidate will DO, not company background. If no role info exists, return "null".\n\nJob: ${job.job_title} at ${job.employer_name}\nDescription: ${desc.slice(0, 1000)}\n\nReturn ONLY the summary, no preamble.`,
+            }],
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const brief = data.content?.[0]?.text?.trim();
+          if (brief && brief !== "null" && brief.length > 20) {
+            return brief.slice(0, 200);
+          }
+        }
+      } catch {
+        // AI call failed — fall through to generic fallback
+      }
     }
   }
 
@@ -261,7 +293,7 @@ async function fetchAdzuna(jobRole: string, location: string, earlyBird: boolean
     const pages = await Promise.all(pageRequests);
     const jobs: any[] = pages.flat();
     console.log("[Adzuna] jobs fetched:", jobs.length);
-    return jobs.map(job => {
+    return Promise.all(jobs.map(async job => {
       const normalized: NormalisedJob = {
         job_id: `adzuna-${job.id}`,
         job_title: job.title,
@@ -279,9 +311,9 @@ async function fetchAdzuna(jobRole: string, location: string, earlyBird: boolean
         job_employment_type: job.contract_time || "",
         source: "adzuna",
       };
-      normalized.job_brief = buildJobBrief(normalized);
+      normalized.job_brief = await buildJobBrief(normalized);
       return normalized;
-    });
+    }));
   } catch (err) {
     console.error("[Adzuna] error:", err);
     return [];
@@ -306,7 +338,7 @@ async function fetchRemotive(jobRole: string, location: string): Promise<Normali
     const data = await res.json();
     const jobs: any[] = data?.jobs ?? [];
     console.log("[Remotive] jobs fetched:", jobs.length);
-    const mapped: NormalisedJob[] = jobs.map(job => {
+    const mapped: NormalisedJob[] = await Promise.all(jobs.map(async job => {
       const n: NormalisedJob = {
         job_id: String(job.id),
         job_title: job.title,
@@ -323,9 +355,9 @@ async function fetchRemotive(jobRole: string, location: string): Promise<Normali
         job_is_remote: true,
         source: "remotive",
       };
-      n.job_brief = buildJobBrief(n);
+      n.job_brief = await buildJobBrief(n);
       return n;
-    });
+    }));
     const roleLower = (jobRole || '').toLowerCase().trim();
     const filtered = roleLower
       ? mapped.filter(j => j.job_title?.toLowerCase().includes(roleLower))
@@ -377,30 +409,34 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
     for (const { company, jobs } of results) {
       console.log(`[Greenhouse] ${company}: ${(jobs as any[]).length} jobs`);
     }
-    const normalised: NormalisedJob[] = [];
+    // Collect raw job objects, then generate briefs in parallel
+    const rawPairs: Array<{ company: string; job: any }> = [];
     for (const { company, jobs } of results as { company: string; jobs: any[] }[]) {
       for (const job of jobs) {
-        const gh: NormalisedJob = {
-          job_id: `${company}-${job.id}`,
-          job_title: job.title,
-          employer_name: company.charAt(0).toUpperCase() + company.slice(1),
-          employer_logo: null,
-          job_city: job.location?.name ?? "",
-          job_country: "",
-          job_posted_at_timestamp: job.updated_at
-            ? Math.floor(new Date(job.updated_at).getTime() / 1000)
-            : 0,
-          job_posted_at_datetime_utc: job.updated_at ?? null,
-          job_apply_link: job.absolute_url ?? "",
-          job_description: job.content ?? "",
-          job_brief: "",
-          job_employment_type: "",
-          source: "greenhouse",
-        };
-        gh.job_brief = buildJobBrief(gh);
-        normalised.push(gh);
+        rawPairs.push({ company, job });
       }
     }
+    const normalised: NormalisedJob[] = await Promise.all(rawPairs.map(async ({ company, job }) => {
+      const gh: NormalisedJob = {
+        job_id: `${company}-${job.id}`,
+        job_title: job.title,
+        employer_name: company.charAt(0).toUpperCase() + company.slice(1),
+        employer_logo: null,
+        job_city: job.location?.name ?? "",
+        job_country: "",
+        job_posted_at_timestamp: job.updated_at
+          ? Math.floor(new Date(job.updated_at).getTime() / 1000)
+          : 0,
+        job_posted_at_datetime_utc: job.updated_at ?? null,
+        job_apply_link: job.absolute_url ?? "",
+        job_description: job.content ?? "",
+        job_brief: "",
+        job_employment_type: "",
+        source: "greenhouse",
+      };
+      gh.job_brief = await buildJobBrief(gh);
+      return gh;
+    }));
     console.log("[Greenhouse] jobs fetched:", normalised.length);
     const roleLower = (jobRole || '').toLowerCase().trim();
     const roleWords = roleLower.split(/\s+/).filter(Boolean);
@@ -453,7 +489,7 @@ async function fetchTheMuse(jobRole: string, location: string): Promise<Normalis
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.name?.toLowerCase().includes(roleLower));
     console.log("[TheMuse] jobs fetched:", jobs.length, "| matching:", filtered.length);
-    const mapped: NormalisedJob[] = filtered.map(job => {
+    const mapped: NormalisedJob[] = await Promise.all(filtered.map(async job => {
       const tm: NormalisedJob = {
         job_id: `themuse-${job.id}`,
         job_title: job.name,
@@ -471,9 +507,9 @@ async function fetchTheMuse(jobRole: string, location: string): Promise<Normalis
         job_employment_type: job.type ?? "",
         source: "themuse",
       };
-      tm.job_brief = buildJobBrief(tm);
+      tm.job_brief = await buildJobBrief(tm);
       return tm;
-    });
+    }));
     // --- LOCATION FILTER (shared constants) ---
     const locRaw = (location || '').toLowerCase().trim();
     const locNorm = locRaw.replace(/[\s.,\-]/g, '');
@@ -517,7 +553,7 @@ async function fetchArbeitnow(jobRole: string, location: string): Promise<Normal
     const roleLower = jobRole.toLowerCase();
     const filtered = jobs.filter(job => job.title?.toLowerCase().includes(roleLower));
     console.log("[Arbeitnow] jobs fetched:", jobs.length, "| matching:", filtered.length);
-    const mapped: NormalisedJob[] = filtered.map(job => {
+    const mapped: NormalisedJob[] = await Promise.all(filtered.map(async job => {
       const an: NormalisedJob = {
         job_id: `arbeitnow-${job.slug}`,
         job_title: job.title,
@@ -536,9 +572,9 @@ async function fetchArbeitnow(jobRole: string, location: string): Promise<Normal
         job_is_remote: job.remote ?? false,
         source: "arbeitnow",
       };
-      an.job_brief = buildJobBrief(an);
+      an.job_brief = await buildJobBrief(an);
       return an;
-    });
+    }));
     // --- LOCATION FILTER (shared constants) ---
     const locRaw = (location || '').toLowerCase().trim();
     const locNorm = locRaw.replace(/[\s.,\-]/g, '');
