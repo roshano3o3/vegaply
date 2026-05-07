@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -9,6 +10,8 @@ export default function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleReset = async () => {
     setError("");
@@ -128,11 +131,21 @@ export default function ResetPasswordPage() {
             {error && <div className="form-error">⚠ {error}</div>}
             <div className="form-group">
               <label className="form-label">New Password</label>
-              <input className="form-input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleReset()}/>
+              <div style={{ position: "relative" }}>
+                <input className="form-input" type={showNewPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleReset()} style={{ paddingRight: 44 }}/>
+                <button type="button" onClick={() => setShowNewPassword(p => !p)} aria-label={showNewPassword ? "Hide password" : "Show password"} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", color: "var(--text-tertiary)", padding: 0, display: "flex", alignItems: "center" }}>
+                  {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">Confirm Password</label>
-              <input className="form-input" type="password" placeholder="••••••••" value={confirm} onChange={(e) => setConfirm(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleReset()}/>
+              <div style={{ position: "relative" }}>
+                <input className="form-input" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" value={confirm} onChange={(e) => setConfirm(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleReset()} style={{ paddingRight: 44 }}/>
+                <button type="button" onClick={() => setShowConfirmPassword(p => !p)} aria-label={showConfirmPassword ? "Hide password" : "Show password"} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", color: "var(--text-tertiary)", padding: 0, display: "flex", alignItems: "center" }}>
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
             <button className="form-btn" onClick={handleReset} disabled={loading}>
               {loading ? <span className="form-loading"><span className="form-spinner"/> Updating…</span> : "Update Password →"}

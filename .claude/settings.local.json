@@ -26,7 +26,20 @@
       "Bash(rm -rf .next)",
       "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" http://localhost:3001/login)",
       "Bash(curl -s -o /dev/null -w \"home:  %{http_code}\\\\n\" http://localhost:3001/home)",
-      "Read(//c/Users/roshan/**)"
+      "Read(//c/Users/roshan/**)",
+      "Bash(Test-Path *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\roshan\\\\applysmart\\\\app\\\\\\(protected\\)\\\\home\\\\page.tsx\")",
+      "Bash(Measure-Object -Line)",
+      "Bash(Select-Object -ExpandProperty Lines)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(node C:\\\\Users\\\\roshan\\\\AppData\\\\Local\\\\Temp\\\\pass1_typography.js)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\roshan\\\\applysmart\\\\lib\" -Recurse -File | Where-Object { $_.Extension -match '\\\\.\\(ts|tsx|js\\)$' } | Select-Object -ExpandProperty FullName | Sort-Object)",
+      "Bash(Select-String -Path \".env.local\" -Pattern \"SUPABASE|SERVICE_ROLE\")",
+      "Bash(Select-Object -ExpandProperty Line)",
+      "Bash(git restore *)",
+      "Bash(dir \"C:\\\\Users\\\\roshan\" /ad /b)",
+      "PowerShell(Out-File *)",
+      "Bash(Select-String -Path \"app/\\(protected\\)/home/page.tsx\" -Pattern \"activity-grid\")"
     ]
   }
 }

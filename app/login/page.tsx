@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [forgotMsg, setForgotMsg] = useState("");
   const [forgotError, setForgotError] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     // Debug logging for Supabase configuration
@@ -40,7 +42,7 @@ export default function LoginPage() {
     setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/home` },
     });
     if (error) { setError(error.message); setGoogleLoading(false); }
   };
@@ -250,7 +252,12 @@ export default function LoginPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input className="form-input" type="password" name="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()}/>
+                <div style={{ position: "relative" }}>
+                  <input className="form-input" type={showPassword ? "text" : "password"} name="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} style={{ paddingRight: 44 }}/>
+                  <button type="button" onClick={() => setShowPassword(p => !p)} aria-label={showPassword ? "Hide password" : "Show password"} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", color: "var(--text-tertiary)", padding: 0, display: "flex", alignItems: "center" }}>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 <div style={{textAlign:"right",marginTop:6}}>
                   <span onClick={()=>setForgotMode(true)} style={{fontSize:12,color:"rgba(255,255,255,0.3)",cursor:"pointer"}} onMouseEnter={e=>(e.currentTarget.style.color="#fbbf24")} onMouseLeave={e=>(e.currentTarget.style.color="rgba(255,255,255,0.3)")}>Forgot password?</span>
                 </div>
