@@ -1072,7 +1072,7 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
                   <span style={{fontSize:10,color:labelColor,fontWeight:500}}>{indicator} {labelText}</span>
                   <span style={{fontSize:10,fontWeight:600,color:barColor}}>{neverEntered?"—":item.score}</span>
                 </div>
-                <div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:99,overflow:"hidden"}}>
+                <div style={{height:4,background:"rgba(255,255,255,0.05)",borderRadius:99,overflow:"hidden"}}>
                   <div style={{height:"100%",width:`${item.score}%`,background:barColor,borderRadius:99,transition:"width .8s ease"}}/>
                 </div>
               </div>
@@ -1083,9 +1083,9 @@ function ResumeStrengthMeter({ resumeText, lm }: { resumeText: string; lm?: bool
         {/* Red flags */}
         {aiResult.redFlags.length > 0 && (
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:"rgba(239,68,68,0.7)",marginBottom:5}}>⚠ Red Flags</div>
+            <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.2px",color:"rgba(239,68,68,0.45)",marginBottom:5}}>⚠ Red Flags</div>
             {aiResult.redFlags.map((f,i) => (
-              <div key={i} style={{fontSize:11,color:"#fca5a5",padding:"4px 8px",background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:6,marginBottom:4,lineHeight:1.4}}>{f}</div>
+              <div key={i} style={{fontSize:11,color:"rgba(239,68,68,0.60)",padding:"4px 8px",background:"rgba(239,68,68,0.04)",border:"1px solid rgba(239,68,68,0.08)",borderRadius:6,marginBottom:4,lineHeight:1.4}}>{f}</div>
             ))}
           </div>
         )}
@@ -1405,7 +1405,7 @@ function getLogoStyle(name: string): { bg: string; color: string } {
 
 function SkeletonRow() {
   return (
-    <div style={{display:'flex',alignItems:'center',gap:14,padding:'14px 18px',background:'rgba(13,18,32,0.6)',border:'1px solid rgba(93,104,130,0.08)',borderRadius:14,position:'relative',overflow:'hidden'}}>
+    <div style={{display:'flex',alignItems:'center',gap:14,padding:'14px 18px',background:'rgba(13,18,32,0.6)',border:'1px solid rgba(93,104,130,0.08)',borderRadius:16,position:'relative',overflow:'hidden'}}>
       <div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.022) 50%,transparent 100%)',animation:'skeletonShimmer 1.6s ease-in-out infinite'}}/>
       <div style={{width:40,height:40,borderRadius:8,background:'rgba(93,104,130,0.1)',flexShrink:0}}/>
       <div style={{flex:1,display:'flex',flexDirection:'column',gap:7}}>
@@ -1493,63 +1493,57 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
   return(
     <motion.div
-      className="job-card"
+      className={`job-card${ebStatus.isHotJob?' job-card-hot':ebStatus.isEarly?' job-card-eb':''}`}
       layout
       initial={{opacity:0,y:16}}
       animate={{opacity:1,y:0}}
       exit={{opacity:0,scale:0.96}}
-      whileHover={{y:-3,boxShadow:'0 16px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(245,158,11,0.22)',borderColor:'rgba(245,158,11,0.30)',transition:{duration:0.2}}}
+      whileHover={{y:-2}}
       transition={{duration:0.35,delay:Math.min((index??0)*0.05,0.25),ease:[0.25,0.46,0.45,0.94]}}
-      style={{background:'linear-gradient(180deg,#1e2130 0%,#1a1d2a 100%)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:18,padding:'20px 20px 16px',position:'relative',overflow:'hidden',cursor:'pointer',boxShadow:'0 2px 12px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)',transition:'all 0.22s cubic-bezier(0.34,1.56,0.64,1)',display:'flex',flexDirection:'column',gap:16}}
     >
       {/* TOP SHIMMER LINE */}
-      <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(245,158,11,0.2),transparent)',pointerEvents:'none'}}/>
-      {/* LEFT ACCENT BAR */}
-      <div className="job-card-accent"/>
+      <div style={{position:'absolute',top:0,left:'2px',right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)',pointerEvents:'none'}}/>
 
-      {/* HEADER ROW */}
-      <div style={{display:'flex',alignItems:'flex-start',gap:16}}>
-        {/* Company logo */}
-        <div
-          style={{width:40,height:40,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,fontWeight:800,flexShrink:0,border:'1px solid rgba(255,255,255,0.08)',fontFamily:'var(--font-display)',background:logoStyle.bg,color:logoStyle.color,overflow:'hidden',cursor:'pointer'}}
-          onClick={onClick}
-        >
-          {job.employer_logo
-            ? <img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>
-            : (job.employer_name||'?')[0].toUpperCase()
-          }
-        </div>
-        {/* Title + company + city */}
-        <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={onClick}>
-          <div style={{fontFamily:'var(--font-display)',fontSize:15,fontWeight:700,color:'rgba(255,255,255,0.92)',letterSpacing:'-0.3px',lineHeight:1.3,marginBottom:6,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>
-            {job.job_title}
+      {/* ZONE 1 — HEADER */}
+      <div className="card-zone-header">
+        <div className="card-header">
+          <div
+            className="card-logo"
+            style={{background:logoStyle.bg,color:logoStyle.color}}
+            onClick={onClick}
+          >
+            {job.employer_logo
+              ? <img src={job.employer_logo} alt={job.employer_name} onError={e=>{(e.target as HTMLImageElement).style.display="none";}} style={{width:"100%",height:"100%",objectFit:"contain"}}/>
+              : (job.employer_name||'?')[0].toUpperCase()
+            }
           </div>
-          <div style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:500,color:'rgba(255,255,255,0.50)',display:'flex',alignItems:'center',gap:6}}>
-            <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{job.employer_name}</span>
-            {job.job_city&&<><span style={{color:'rgba(255,255,255,0.2)',flexShrink:0}}>·</span><span style={{color:'rgba(255,255,255,0.35)',flexShrink:0}}>{job.job_city}</span></>}
+          <div className="card-title-block" style={{cursor:'pointer'}} onClick={onClick}>
+            <div className="card-title">{job.job_title}</div>
+            <div className="card-meta">
+              <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{job.employer_name}</span>
+              {job.job_city&&<><span style={{color:'rgba(255,255,255,0.18)',flexShrink:0}}>·</span><span style={{color:'var(--text-tertiary)',flexShrink:0}}>{job.job_city}</span></>}
+              <span style={{color:'rgba(255,255,255,0.18)',flexShrink:0,marginLeft:'auto'}}>·</span>
+              <span style={{fontFamily:'var(--font-primary)',fontSize:10,color:'var(--text-tertiary)',flexShrink:0,whiteSpace:'nowrap'}}>{ebStatus.label}</span>
+            </div>
           </div>
-        </div>
-        {/* Time + save */}
-        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4,flexShrink:0}}>
-          <button style={{background:"none",border:"none",cursor:"pointer",padding:2,opacity:0.5}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill={saved?"#f59e0b":"none"} stroke={saved?"#f59e0b":"rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          <button style={{background:saved?'rgba(245,158,11,0.12)':'rgba(255,255,255,0.04)',border:saved?'1px solid rgba(245,158,11,0.25)':'1px solid rgba(255,255,255,0.07)',cursor:"pointer",padding:'5px 7px',borderRadius:6,transition:'all 0.15s ease',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={e=>{e.stopPropagation();onToggleSave();}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={saved?"#f59e0b":"none"} stroke={saved?"#f59e0b":"rgba(255,255,255,0.45)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
           </button>
-          <span style={{fontFamily:'var(--font-primary)',fontSize:10,fontWeight:400,color:'rgba(255,255,255,0.25)'}}>{ebStatus.label}</span>
         </div>
       </div>
 
-      {/* BADGES ROW */}
-      <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
-        {ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:800,padding:'3px 8px',borderRadius:999,letterSpacing:'0.3px',background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',boxShadow:'0 2px 8px rgba(249,115,22,0.25)',fontFamily:'var(--font-primary)',animation:'hotGlow 2s ease infinite'}}>🔥 HOT</span>}
-        {ebStatus.isEarly&&!ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:'rgba(245,158,11,0.10)',color:'#f59e0b',border:'1px solid rgba(245,158,11,0.20)',fontFamily:'var(--font-primary)'}}>⚡ Still Early</span>}
-        {h1bStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:h1bStatus.sponsors?'rgba(142,178,155,0.10)':'rgba(214,178,104,0.08)',color:h1bStatus.sponsors?'#8eb29b':'#d6b268',border:h1bStatus.sponsors?'1px solid rgba(142,178,155,0.20)':'1px solid rgba(214,178,104,0.18)',fontFamily:'var(--font-primary)'}}>{h1bStatus.sponsors?'✓ H1B':'~ H1B Likely'}</span>}
-        {(()=>{const hrs=ebStatus.hoursOld;const count=hrs<=1?'~2':hrs<=3?'~8':hrs<=6?'~18':hrs<=12?'~40':hrs<=24?'~80':hrs<=48?'~150':'200+';const isLow=hrs<=12;return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:isLow?'rgba(142,178,155,0.08)':'rgba(239,68,68,0.06)',color:isLow?'#8eb29b':'rgba(239,68,68,0.6)',border:isLow?'1px solid rgba(142,178,155,0.16)':'1px solid rgba(239,68,68,0.12)',fontFamily:'var(--font-primary)'}}>👤 {count} applicants</span>})()}
-      </div>
+      {/* ZONE 2 — CONTENT */}
+      <div className="card-zone-content">
+        <div className="card-badge-strip">
+          {ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:800,padding:'3px 8px',borderRadius:999,letterSpacing:'0.3px',background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',boxShadow:'0 2px 8px rgba(249,115,22,0.25)',fontFamily:'var(--font-primary)',animation:'hotGlow 2s ease infinite'}}>🔥 HOT</span>}
+          {ebStatus.isEarly&&!ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:'rgba(245,158,11,0.10)',color:'#f59e0b',border:'1px solid rgba(245,158,11,0.20)',fontFamily:'var(--font-primary)'}}>⚡ Still Early</span>}
+          {h1bStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:h1bStatus.sponsors?'rgba(142,178,155,0.10)':'rgba(214,178,104,0.08)',color:h1bStatus.sponsors?'#8eb29b':'#d6b268',border:h1bStatus.sponsors?'1px solid rgba(142,178,155,0.20)':'1px solid rgba(214,178,104,0.18)',fontFamily:'var(--font-primary)'}}>{h1bStatus.sponsors?'✓ H1B':'~ H1B Likely'}</span>}
+          {(()=>{const hrs=ebStatus.hoursOld;const count=hrs<=1?'~2':hrs<=3?'~8':hrs<=6?'~18':hrs<=12?'~40':hrs<=24?'~80':hrs<=48?'~150':'200+';const isLow=hrs<=12;return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:isLow?'rgba(142,178,155,0.08)':'rgba(239,68,68,0.06)',color:isLow?'#8eb29b':'rgba(239,68,68,0.6)',border:isLow?'1px solid rgba(142,178,155,0.16)':'1px solid rgba(239,68,68,0.12)',fontFamily:'var(--font-primary)'}}>👤 {count} applicants</span>})()}
+        </div>
 
-      {/* DESCRIPTION */}
-      <p style={{fontFamily:'var(--font-primary)',fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.50)',lineHeight:1.6,margin:0,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const}}>
-        {safeText(getJobDescription().text)}
-      </p>
+        <p className="card-desc">
+          {safeText(getJobDescription().text)}
+        </p>
 
       {/* Quick Match Preview */}
       {qm ? (
@@ -1558,12 +1552,13 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.3 }}
           style={{
-            background: 'rgba(245,158,11,0.06)',
-            border: '1px solid rgba(245,158,11,0.15)',
+            background: 'rgba(6,182,212,0.05)',
+            border: '1px solid rgba(6,182,212,0.10)',
+            borderLeft: '2px solid rgba(6,182,212,0.45)',
             borderRadius: 10,
             padding: '10px 12px',
-            marginBottom: 10,
-            marginTop: 6
+            marginBottom: 12,
+            marginTop: 8
           }}
         >
           {qm.loading ? (
@@ -1616,9 +1611,9 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
                       height: '100%',
                       borderRadius: 99,
                       background: qm.score >= 70
-                        ? 'linear-gradient(90deg, var(--gold), #8eb29b)'
+                        ? 'linear-gradient(90deg, #06b6d4, #34d399)'
                         : qm.score >= 50
-                          ? 'linear-gradient(90deg, #d6b268, #c9922a)'
+                          ? 'linear-gradient(90deg, #f59e0b, #d97706)'
                           : 'linear-gradient(90deg, rgba(239,68,68,0.7), rgba(220,38,38,0.7))'
                     }}
                   />
@@ -1627,9 +1622,9 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
                   fontSize: 11,
                   fontWeight: 800,
                   color: qm.score >= 70
-                    ? '#8eb29b'
+                    ? '#34d399'
                     : qm.score >= 50
-                      ? '#d6b268'
+                      ? '#f59e0b'
                       : 'rgba(239,68,68,0.7)',
                   fontFamily: 'Georgia, serif',
                   letterSpacing: '-0.5px'
@@ -1702,11 +1697,13 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           )}
         </motion.div>
       ) : null}
+      </div>{/* end card-zone-content */}
 
-      {/* ACTION PILLS — compact row */}
+      {/* ZONE 3 — CTA */}
+      <div className="card-zone-cta">
       <div className="action-pills">
         <button
-          className={`action-pill${job.match?" done":""}`}
+          className={`action-pill match-tier${job.match?" done":""}`}
           onClick={e=>{e.stopPropagation();onMatchResume();}}
           disabled={!!job.matchLoading}
           title="AI match score"
@@ -1714,7 +1711,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {job.matchLoading?<><div className="spin-sm"/>…</>:<><Sparkles size={11}/>{job.match?`${job.match.matchScore}% Match`:"Match"}</>}
         </button>
         <button
-          className={`action-pill${job.interview?" done-green":""}`}
+          className={`action-pill prep-tier${job.interview?" done-green":""}`}
           onClick={e=>{e.stopPropagation();onInterview();}}
           disabled={!!job.interviewLoading}
           title="AI interview prep"
@@ -1722,7 +1719,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {job.interviewLoading?<><div className="spin-sm"/>…</>:<><Mic2 size={11}/>{job.interview?"Prep ✓":"Prep"}</>}
         </button>
         <button
-          className={`action-pill${job.tailor?" done":""}`}
+          className={`action-pill match-tier${job.tailor?" done":""}`}
           onClick={e=>{e.stopPropagation();onTailor();}}
           disabled={!!job.tailorLoading}
           title="AI tailor resume"
@@ -1769,27 +1766,28 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
 
       {/* HERO APPLY — triggers AI tailoring flow */}
       {autoApplyResult==="applied"?(
-        <div style={{width:"100%",height:52,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:14,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.18)",fontSize:13,fontWeight:700,color:"#34d399"}}>✅ Applied</div>
+        <div style={{width:"100%",height:44,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.18)",fontSize:13,fontWeight:700,color:"#34d399"}}>✅ Applied</div>
       ):autoApplyResult==="low_match"?(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{width:"100%",height:40,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.18)",fontSize:12,fontWeight:600,color:"#fbbf24"}}>⚠️ Low Match</div>
           {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:'var(--text-xs)',color:'var(--text-tertiary)',padding:'var(--space-2) 0',fontFamily:'var(--font-primary)',textDecoration:'none'}} onMouseEnter={e=>(e.currentTarget.style.textDecoration='underline')} onMouseLeave={e=>(e.currentTarget.style.textDecoration='none')}>or apply via {job.job_apply_link.includes('greenhouse')?'Greenhouse':job.job_apply_link.includes('linkedin')?'LinkedIn':job.job_apply_link.includes('indeed')?'Indeed':job.job_apply_link.includes('lever')?'Lever':job.job_apply_link.includes('workday')?'Workday':'job board'} ↗</a>}
         </div>
       ):isAutoApplying?(
-        <div style={{width:"100%",height:52,display:"flex",alignItems:"center",justifyContent:"center",gap:8,borderRadius:14,background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.18)",fontSize:13,fontWeight:700,color:"#f59e0b"}}><div className="spin-sm"/>Analyzing…</div>
+        <div style={{width:"100%",height:44,display:"flex",alignItems:"center",justifyContent:"center",gap:8,borderRadius:12,background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.18)",fontSize:13,fontWeight:700,color:"#f59e0b"}}><div className="spin-sm"/>Analyzing…</div>
       ):(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <motion.button
             onClick={e=>{e.stopPropagation();onAutoApply();}}
             whileHover={{scale:1.02}}
             whileTap={{scale:0.98}}
-            style={{width:"100%",height:52,borderRadius:14,border:"none",fontSize:13,fontWeight:700,background:"linear-gradient(180deg,#fbbf24 0%,#f59e0b 100%)",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 4px 14px rgba(245,158,11,0.30),inset 0 1px 0 rgba(255,255,255,0.20)",letterSpacing:"-0.3px",fontFamily:"var(--font-primary)"}}
+            className="apply-cta"
           >
             <Sparkles size={15}/>{hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply with AI Resume"}<ArrowRight size={15}/>
           </motion.button>
           {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:'var(--text-xs)',color:'var(--text-tertiary)',padding:'var(--space-2) 0',fontFamily:'var(--font-primary)',textDecoration:'none'}} onMouseEnter={e=>(e.currentTarget.style.textDecoration='underline')} onMouseLeave={e=>(e.currentTarget.style.textDecoration='none')}>or apply via {job.job_apply_link.includes('greenhouse')?'Greenhouse':job.job_apply_link.includes('linkedin')?'LinkedIn':job.job_apply_link.includes('indeed')?'Indeed':job.job_apply_link.includes('lever')?'Lever':job.job_apply_link.includes('workday')?'Workday':'job board'} ↗</a>}
         </div>
       )}
+      </div>{/* end card-zone-cta */}
 
     </motion.div>
   );
@@ -2707,9 +2705,9 @@ export default function Home() {
       <style>{`
         :root {
           /* === BACKGROUNDS === */
-          --bg-page:      #0a0a0c;
-          --bg-surface:   #141418;
-          --bg-elevated:  #1c1c22;
+          --bg-page:      #050508;
+          --bg-surface:   #111116;
+          --bg-elevated:  #1a1a21;
           --bg-input:     #1a1a1f;
           --bg-hover:     rgba(255,255,255,0.03);
 
@@ -2718,6 +2716,7 @@ export default function Home() {
           --text-secondary: #a1a1aa;
           --text-tertiary:  #6b6b75;
           --text-disabled:  #404048;
+          --text-quaternary: rgba(255,255,255,0.22);
 
           /* === BORDERS === */
           --border-subtle: rgba(255,255,255,0.06);
@@ -2765,9 +2764,9 @@ export default function Home() {
           --radius-full: 9999px;
 
           /* === SHADOWS === */
-          --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-          --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-          --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+          --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+          --shadow-md: 0 4px 12px rgba(0,0,0,0.55);
+          --shadow-lg: 0 12px 32px rgba(0,0,0,0.65);
           --shadow-glow-gold: 0 0 24px rgba(245,158,11,0.20);
           --shadow-glow-cyan: 0 0 24px rgba(6,182,212,0.20);
 
@@ -2789,6 +2788,10 @@ export default function Home() {
           --text-xl:   28px;
           --text-2xl:  40px;
           --text-3xl:  56px;
+
+          /* === DEPTH TOKENS (semantic aliases — light-mode safe) === */
+          --layer-raised: #22222b;
+          --layer-cta:    rgba(255,255,255,0.022);
         }
 
         /* === GLOBAL KEYFRAMES (for reuse across components) === */
@@ -2881,18 +2884,18 @@ export default function Home() {
         @keyframes premiumShimmer{0%{background-position:0% center}100%{background-position:200% center}}
 
         /* TOPBAR */
-        .topbar{position:sticky;top:0;z-index:50;height:60px;padding:0 var(--space-5);display:flex;align-items:center;gap:var(--space-4);background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);backdrop-filter:blur(20px)}
-        .topbar-logo{font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;flex-shrink:0;margin-right:8px;cursor:pointer;display:flex;align-items:center}
-        .topbar-logo span{font-style:italic;background:linear-gradient(135deg,#f59e0b,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .topbar-search{display:flex;align-items:center;gap:8px;flex:1;max-width:560px}
-        .topbar-search-box{flex:1 1 auto;max-width:640px;min-width:400px;display:flex;align-items:center;height:40px;background:var(--bg-input);border:1px solid var(--border-normal);border-radius:var(--radius-md);overflow:hidden;transition:border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out)}
-        .topbar-search-box:focus-within{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--gold-subtle)}
-        .topbar-input{flex:1 1 200px;min-width:160px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm)}
-        .topbar-input::placeholder{color:var(--text-tertiary)}
-        .topbar-input-loc{flex:0 0 140px;width:140px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm);border-left:1px solid var(--border-subtle)}
-        .topbar-input-loc::placeholder{color:var(--text-tertiary)}
+        .topbar{position:sticky;top:0;z-index:50;height:72px;padding:0 var(--space-5);display:flex;align-items:center;gap:var(--space-4);background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);backdrop-filter:blur(20px);box-shadow:0 4px 28px rgba(0,0,0,0.38)}
+        .topbar-logo{flex-shrink:0;margin-right:12px;cursor:pointer;display:flex;align-items:center;gap:7px}
+        .topbar-logo span{font-family:var(--font-display);font-size:15px;font-weight:800;font-style:italic;color:#f8f1df;letter-spacing:-0.4px;line-height:1}
+        .topbar-search{display:flex;align-items:center;gap:10px;flex:1;max-width:580px}
+        .topbar-search-box{flex:1 1 auto;max-width:640px;min-width:400px;display:flex;align-items:center;height:48px;background:var(--bg-input);border:1px solid var(--border-normal);border-radius:var(--radius-lg);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.28);transition:border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out)}
+        .topbar-search-box:focus-within{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(245,158,11,0.12),inset 0 0 0 1px rgba(245,158,11,0.08)}
+        .topbar-input{flex:1 1 200px;min-width:160px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-base)}
+        .topbar-input::placeholder{color:var(--text-quaternary)}
+        .topbar-input-loc{flex:0 0 140px;width:140px;height:100%;padding:0 var(--space-4);background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-base);border-left:1px solid var(--border-subtle)}
+        .topbar-input-loc::placeholder{color:var(--text-quaternary)}
         .topbar-sep{width:1px;height:24px;background:var(--border-subtle);flex-shrink:0}
-        .search-btn{height:40px;padding:0 var(--space-5);background:var(--gold);color:#1a1a1f;border:none;border-radius:var(--radius-md);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:600;cursor:pointer;transition:background var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);flex-shrink:0}
+        .search-btn{height:48px;padding:0 var(--space-5);background:var(--gold);color:#1a1a1f;border:none;border-radius:var(--radius-md);font-family:var(--font-primary);font-size:var(--text-sm);font-weight:700;letter-spacing:0.4px;cursor:pointer;transition:background var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);flex-shrink:0}
         .search-btn:hover{background:var(--gold-hover);box-shadow:var(--shadow-glow-gold)}
         .search-btn:active{transform:scale(0.97)}
         .search-btn:disabled{opacity:0.35;cursor:not-allowed}
@@ -2911,7 +2914,7 @@ export default function Home() {
         @keyframes spin360{to{transform:rotate(360deg)}}
         @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
         .refresh-toast{position:fixed;bottom:28px;right:28px;background:rgba(9,12,23,0.97);border:1px solid rgba(52,211,153,0.28);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;color:#34d399;display:flex;align-items:center;gap:8px;z-index:600;backdrop-filter:blur(16px);animation:toastSlideUp var(--dur-base) var(--ease-out) both}
-        .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+        .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
         .nav-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
         .pill-eb{background:rgba(251,191,36,0.07);color:#fbbf24;border:1px solid rgba(251,191,36,0.18)}
         .pill-tracker{background:rgba(245,158,11,0.09);color:#f59e0b;border:1px solid rgba(245,158,11,0.2)}
@@ -2920,30 +2923,33 @@ export default function Home() {
 
         /* LAYOUT */
         .app-layout{display:flex;align-items:flex-start;width:100%;min-height:100vh;background:var(--bg-page);position:relative;z-index:1}
-        .sidebar{width:260px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:var(--space-5);position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden}
-        .content{flex:1;min-width:0;overflow-y:auto;padding:var(--space-6) var(--space-8);max-width:calc(100vw - 260px - 320px);display:flex;flex-direction:column;gap:var(--space-6)}
-        .right-panel{width:320px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-left:1px solid var(--border-subtle);padding:var(--space-5) var(--space-4);display:flex;flex-direction:column;gap:var(--space-6);position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden}
+        .sidebar{width:260px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-4) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:0;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden}
+        .content{flex:1;min-width:0;overflow-y:auto;padding:var(--space-5) var(--space-6);max-width:calc(100vw - 260px - 300px);display:flex;flex-direction:column;gap:var(--space-5)}
+        .right-panel{width:300px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-left:1px solid rgba(255,255,255,0.045);padding:var(--space-4) var(--space-4);display:flex;flex-direction:column;gap:0;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;box-shadow:-6px 0 20px rgba(0,0,0,0.22)}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
 
         /* RIGHT PANEL COMPONENTS */
-        .right-label{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:var(--space-4)}
-        .activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
-        .activity-card{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-1);transition:border-color var(--dur-base) var(--ease-out)}
-        .activity-card:hover{border-color:var(--border-normal)}
-        .activity-label{font-family:var(--font-primary);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)}
-        .activity-number{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px;line-height:1.1}
+        .right-label{font-family:var(--font-primary);font-size:9px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:var(--text-quaternary);margin-bottom:10px}
+        .right-panel-section{margin-bottom:var(--space-5)}
+        .right-panel-section:last-child{margin-bottom:0}
+        .activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+        .activity-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:13px;padding:12px 11px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.25);transition:border-color var(--dur-base) var(--ease-out)}
+        .activity-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent)}
+        .activity-card:hover{border-color:rgba(255,255,255,0.11)}
+        .activity-label{font-family:var(--font-primary);font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:4px}
+        .activity-number{font-family:var(--font-display);font-size:24px;font-weight:800;color:rgba(255,255,255,0.85);letter-spacing:-1px;line-height:1}
         .activity-number.gold{color:var(--gold)}
         .activity-number.cyan{color:var(--cyan)}
-        .activity-sub{font-family:var(--font-primary);font-size:var(--text-xs);color:var(--text-secondary);display:flex;align-items:center;gap:4px}
-        .coach-card{background:var(--cyan-subtle);border:1px solid rgba(6,182,212,0.25);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);transition:border-color var(--dur-base) var(--ease-out)}
-        .coach-card:hover{border-color:var(--cyan);box-shadow:0 0 12px var(--cyan-subtle)}
-        .coach-card-label{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--cyan)}
-        .coach-card-text{font-family:var(--font-primary);font-size:var(--text-sm);color:var(--text-primary);line-height:1.5}
-        .tracker-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
-        .tracker-pill{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3) var(--space-2);display:flex;flex-direction:column;align-items:center;gap:2px;transition:border-color var(--dur-base) var(--ease-out)}
-        .tracker-pill:hover{border-color:var(--border-normal)}
-        .tracker-label{font-family:var(--font-primary);font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-tertiary)}
-        .tracker-number{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--text-primary);line-height:1}
+        .activity-sub{font-family:var(--font-primary);font-size:10px;color:rgba(255,255,255,0.28);display:flex;align-items:center;gap:4px;margin-top:2px}
+        .coach-card{background:linear-gradient(135deg,rgba(245,158,11,0.04),rgba(154,116,223,0.025));border:1px solid rgba(245,158,11,0.10);border-radius:13px;padding:13px 14px;display:flex;flex-direction:column;gap:7px;box-shadow:0 1px 4px rgba(0,0,0,0.3);transition:border-color var(--dur-base) var(--ease-out)}
+        .coach-card:hover{border-color:rgba(245,158,11,0.18)}
+        .coach-card-label{font-family:var(--font-primary);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(245,158,11,0.50)}
+        .coach-card-text{font-family:var(--font-primary);font-size:12px;color:rgba(255,255,255,0.55);line-height:1.65}
+        .tracker-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+        .tracker-pill{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:9px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:border-color var(--dur-base) var(--ease-out)}
+        .tracker-pill:hover{border-color:rgba(255,255,255,0.10)}
+        .tracker-label{font-family:var(--font-primary);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.22)}
+        .tracker-number{font-family:var(--font-display);font-size:20px;font-weight:800;color:rgba(255,255,255,0.85);line-height:1}
         .tracker-number.applied{color:var(--success)}
         .tracker-number.interview{color:var(--gold)}
         .tracker-number.offer{color:var(--cyan)}
@@ -2960,17 +2966,21 @@ export default function Home() {
         .live-time{font-family:var(--font-primary);font-size:10px;color:var(--text-tertiary);margin-left:var(--space-2);flex-shrink:0}
 
         /* SIDEBAR */
-        .sidebar-card{background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out)}
+        .sidebar-section{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+        .sidebar-section:last-child{border-bottom:none}
+        .sidebar-section-label{font-family:var(--font-primary);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-quaternary);margin-bottom:var(--space-2);padding-left:1px;display:flex;align-items:center;gap:6px}
+        .sidebar-section-label::before{content:'';width:2px;height:9px;background:rgba(245,158,11,0.22);border-radius:1px;flex-shrink:0}
+        .sidebar-card{background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out)}
         .sidebar-card:hover{border-color:var(--border-normal);background:var(--bg-hover)}
-        .sidebar-card-title{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:var(--space-4)}
-        .sidebar-card-sub{font-size:11px;color:var(--text-tertiary);margin-bottom:10px;line-height:1.5}
+        .sidebar-card-title{font-family:var(--font-primary);font-size:var(--text-xs);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:var(--space-3)}
+        .sidebar-card-sub{font-size:11px;color:var(--text-tertiary);margin-bottom:8px;line-height:1.5}
         .resume-drop{border:1.5px dashed rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.02);padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s ease;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.22);line-height:1.7;font-family:var(--font-primary)}
-        .resume-drop:hover,.resume-drop.dragging{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}
+        .resume-drop:hover,.resume-drop.dragging{border-color:rgba(245,158,11,0.30);background:rgba(245,158,11,0.03)}
         .filter-label{font-size:var(--text-xs);font-weight:500;color:var(--text-tertiary);font-family:var(--font-primary);margin-bottom:6px}
         .filter-select{width:100%;height:36px;padding:0 var(--space-3);background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-primary);font-family:var(--font-primary);font-size:var(--text-sm);cursor:pointer;outline:none;margin-bottom:7px;transition:border-color var(--dur-base) var(--ease-out)}
         .filter-select:hover{border-color:var(--border-normal)}
         .filter-select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--gold-subtle)}
-        .resume-drop:hover,.resume-drop.dragging{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04)}
+        .resume-drop:hover,.resume-drop.dragging{border-color:rgba(245,158,11,0.30);background:rgba(245,158,11,0.03)}
         .dark-input{width:100%;background:rgba(13,18,32,0.8);border:1px solid rgba(93,104,130,0.15);border-radius:8px;padding:8px 12px;font-size:12px;font-family:var(--font-primary);color:rgba(255,255,255,0.8);outline:none;transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1);margin-bottom:6px}
         .dark-input::placeholder{color:rgba(255,255,255,0.18)}
         .dark-input:focus{border-color:rgba(245,158,11,0.5);box-shadow:0 0 0 3px rgba(245,158,11,0.08),inset 0 0 0 1px rgba(245,158,11,0.1)}
@@ -2996,15 +3006,22 @@ export default function Home() {
         .toggle.on::after{left:19px}
 
         /* TABS — pill style */
-        .tabs-row{display:flex;align-items:center;gap:var(--space-6);border-bottom:1px solid var(--border-subtle);padding-bottom:var(--space-3);margin-bottom:0;flex-shrink:0}
-        .tab{position:relative;background:transparent;border:none;padding:var(--space-2) 0;font-family:var(--font-primary);font-size:var(--text-sm);font-weight:500;color:var(--text-tertiary);cursor:pointer;display:flex;align-items:center;gap:var(--space-2);transition:color var(--dur-base) var(--ease-out);white-space:nowrap}
-        .tab:hover{color:var(--text-secondary)}
+        .tabs-row{display:flex;align-items:center;gap:20px;border-bottom:1px solid var(--border-subtle);padding-bottom:var(--space-3);margin-bottom:0;flex-shrink:0}
+        .tab{position:relative;background:transparent;border:none;padding:var(--space-2) 0;font-family:var(--font-primary);font-size:12px;font-weight:500;color:var(--text-quaternary);cursor:pointer;display:flex;align-items:center;gap:var(--space-2);transition:color var(--dur-base) var(--ease-out);white-space:nowrap}
+        .tab:hover{color:var(--text-tertiary)}
         .tab.active{color:var(--text-primary);font-weight:600}
         .tab.active::after{content:'';position:absolute;bottom:-13px;left:0;right:0;height:2px;background:var(--gold);border-radius:var(--radius-full);animation:scaleIn var(--dur-slow) var(--ease-out)}
-        .tab-count{background:var(--bg-hover);color:var(--text-tertiary);font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--radius-full);border:1px solid var(--border-subtle)}
+        .tab-count{background:var(--bg-hover);color:var(--text-quaternary);font-size:10px;font-weight:600;padding:1px 6px;border-radius:var(--radius-full);border:1px solid var(--border-subtle)}
         .tab.active .tab-count{background:var(--gold-subtle);color:var(--gold);border-color:rgba(245,158,11,0.25)}
         .results-count{font-family:var(--font-primary);font-size:var(--text-sm);color:var(--text-secondary)}
         .results-count strong{color:var(--text-primary);font-weight:600}
+        /* STAT BAR */
+        .stat-bar{display:flex;align-items:stretch;width:100%;background:rgba(255,255,255,0.025);border-radius:10px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.05);overflow:hidden}
+        .stat-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:9px 5px;border-right:1px solid rgba(255,255,255,0.05)}
+        .stat-item:last-child{border-right:none}
+        .stat-item-dot{width:5px;height:5px;border-radius:50%;margin-bottom:3px;flex-shrink:0}
+        .stat-item-val{font-family:var(--font-display);font-size:20px;font-weight:800;color:rgba(255,255,255,0.85);letter-spacing:-0.5px;line-height:1}
+        .stat-item-label{font-family:var(--font-primary);font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.27);margin-top:3px;white-space:nowrap}
         .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--space-16) var(--space-8);gap:var(--space-5);text-align:center}
         .empty-icon{width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:var(--gold-subtle);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-xl);font-size:32px;color:var(--gold);box-shadow:var(--shadow-glow-gold)}
         .empty-title{font-family:var(--font-display);font-size:var(--text-xl);font-weight:600;color:var(--text-primary);letter-spacing:-0.5px}
@@ -3014,16 +3031,47 @@ export default function Home() {
         .empty-chip:hover{color:var(--text-primary);border-color:var(--gold);background:var(--gold-subtle);transform:translateY(-1px)}
 
         /* JOB GRID — 2-col */
-        .jobs-list{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:12px!important;padding:14px 16px!important}
+        .jobs-list{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:14px!important;padding:14px 0!important}
         @media(max-width:900px){.jobs-list{grid-template-columns:1fr!important}}
-        .job-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);transition:border-color var(--dur-slow) var(--ease-out),transform var(--dur-slow) var(--ease-out),box-shadow var(--dur-slow) var(--ease-out);display:flex;flex-direction:column;gap:var(--space-4)}
-        .job-card:hover{border-color:var(--border-normal);transform:translateY(-2px);box-shadow:var(--shadow-md),var(--shadow-glow-gold)}
-        .job-card-hot{border-color:rgba(251,191,36,0.25)!important}
-        .job-card-accent{position:absolute;top:0;left:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),#9a74df);border-radius:16px 0 0 16px;opacity:0;transition:opacity 0.2s ease;pointer-events:none}
-        .job-card:hover .job-card-accent{opacity:1}
-        .job-card-hot:hover{box-shadow:0 12px 32px rgba(251,191,36,0.10),inset 0 1px 0 rgba(255,255,255,0.08),0 0 24px rgba(251,191,36,0.10)!important}
+        .job-card{background:linear-gradient(170deg,#1c1c24 0%,#111116 100%);border:1px solid rgba(255,255,255,0.09);border-left:2px solid rgba(255,255,255,0.05);border-radius:16px;padding:0;display:flex;flex-direction:column;gap:0;box-shadow:0 4px 16px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.05);transition:border-color 200ms ease,border-left-color 220ms ease,transform 220ms ease,box-shadow 220ms ease;position:relative;overflow:hidden;cursor:pointer}
+        .job-card:hover{border-color:rgba(255,255,255,0.14);border-left-color:var(--gold);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.60),0 0 0 1px rgba(245,158,11,0.12),inset 0 1px 0 rgba(255,255,255,0.06)}
+        .job-card-hot{border-left-color:rgba(249,115,22,0.45)!important}
+        .job-card-eb{border-left-color:rgba(245,158,11,0.32)!important}
+        .job-card-hot:hover{border-left-color:rgba(249,115,22,0.75)!important;box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 1px rgba(249,115,22,0.15)!important}
+
+        /* JOB CARD 3-ZONE SHELL — clean inner zones, no negative margins */
+        .card-zone-header{background:var(--layer-raised);border-bottom:1px solid rgba(255,255,255,0.07);border-radius:16px 16px 0 0;padding:14px 16px 12px;transition:background var(--dur-base) var(--ease-out)}
+        .job-card:hover .card-zone-header{background:#272734}
+        .card-zone-content{display:flex;flex-direction:column;gap:14px;padding:13px 16px 14px}
+        .card-zone-cta{background:var(--layer-cta);border-top:1px solid rgba(255,255,255,0.045);border-radius:0 0 16px 16px;padding:10px 16px 14px;display:flex;flex-direction:column;gap:10px}
+        .card-zone-cta .action-pills{border-top:none;padding-top:0}
+
+        /* SIDEBAR TILE — section content container */
+        .sidebar-tile{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-3);display:flex;flex-direction:column;gap:var(--space-3);transition:border-color var(--dur-base) var(--ease-out)}
+        .sidebar-tile:hover{border-color:var(--border-normal)}
+
+        /* LIVE STAT STRIP — quiet inline strip, cards stay the hero */
+        .live-stat-strip{display:flex;align-items:center;gap:16px;padding:5px 0 8px;border-bottom:1px solid var(--border-subtle);margin-bottom:8px;flex-shrink:0}
+        .lst-item{display:flex;align-items:center;gap:4px;white-space:nowrap}
+        .lst-val{font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-0.3px;line-height:1}
+        .lst-lbl{font-size:9px;font-weight:600;letter-spacing:0.9px;text-transform:uppercase;color:var(--text-quaternary)}
+        .lst-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+        .lst-sep{width:1px;height:12px;background:var(--border-subtle);flex-shrink:0}
+        .lst-live{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(52,211,153,0.75);padding:2px 6px;border-radius:4px;background:rgba(52,211,153,0.07)}
+        .lst-pulse{width:4px;height:4px;border-radius:50%;background:#34d399;animation:pulse 2s ease-in-out infinite;box-shadow:0 0 4px rgba(52,211,153,0.6);flex-shrink:0}
 
         /* JOB CARD COMPONENTS */
+        .job-card-accent{display:none}
+        .card-header{display:flex;align-items:flex-start;gap:14px}
+        .card-logo{width:44px;height:44px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;font-family:var(--font-display);border:1px solid rgba(255,255,255,0.08);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,0.05)}
+        .card-title-block{flex:1;min-width:0}
+        .card-title{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:-0.4px;line-height:1.3;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:5px}
+        .card-meta{font-family:var(--font-primary);font-size:12px;font-weight:500;color:var(--text-secondary);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+        .card-badge-strip{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+        .card-desc{font-family:var(--font-primary);font-size:13px;font-weight:400;color:rgba(255,255,255,0.40);line-height:1.65;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+        .card-tool-strip{display:flex;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)}
+        .card-tool-strip .action-pill:hover{transform:translateY(-1px)}
+        .card-cta{display:flex;flex-direction:column;gap:5px}
         .job-header{display:flex;align-items:flex-start;gap:var(--space-3)}
         .job-logo{width:44px;height:44px;flex-shrink:0;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--gold) 0%,#c97a0a 100%);color:#1a1a1f;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:var(--text-md);font-weight:700}
         .job-title{font-family:var(--font-display);font-size:var(--text-md);font-weight:600;color:var(--text-primary);letter-spacing:-0.2px;line-height:1.3}
@@ -3056,27 +3104,30 @@ export default function Home() {
         .action-card-btn:disabled{opacity:0.3;cursor:not-allowed}
 
         /* COMPACT ACTION PILLS */
-        .action-pills{display:flex;gap:6px;flex-wrap:wrap}
+        .action-pills{display:flex;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)}
         .action-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:6px;background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.38);font-family:var(--font-primary);font-size:11px;font-weight:500;cursor:pointer;transition:all 0.18s ease;white-space:nowrap;letter-spacing:0.1px}
         .action-pill:hover{background:rgba(245,158,11,0.10);border-color:rgba(245,158,11,0.28);color:#fbbf24}
         .action-pill.done{color:rgba(245,158,11,0.8);border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.06)}
         .action-pill.done-green{color:#34d399;border-color:rgba(52,211,153,0.2);background:rgba(52,211,153,0.06)}
-        .action-pill:disabled{opacity:0.3;cursor:not-allowed}
+        .action-pill:disabled{opacity:0.4;cursor:not-allowed;border-color:rgba(255,255,255,0.05);background:transparent}
+        .action-pill.match-tier{background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.16);color:rgba(245,158,11,0.65)}
+        .action-pill.match-tier:hover{background:rgba(245,158,11,0.10);border-color:rgba(245,158,11,0.28);color:#fbbf24}
+        .action-pill.prep-tier{background:rgba(6,182,212,0.05);border-color:rgba(6,182,212,0.14);color:rgba(6,182,212,0.6)}
+        .action-pill.prep-tier:hover{background:rgba(6,182,212,0.10);border-color:rgba(6,182,212,0.26);color:#22d3ee}
 
         /* MATCH SCORE BAR */
         .card-match-bar{display:flex;align-items:center;gap:10px;padding:2px 0;margin:4px 0}
-        .card-match-track{flex:1;height:6px;border-radius:999px;background:rgba(255,255,255,0.06);overflow:hidden}
+        .card-match-track{flex:1;height:4px;border-radius:999px;background:rgba(255,255,255,0.06);overflow:hidden}
         .card-match-fill{height:100%;background:linear-gradient(90deg,#06b6d4 0%,#f59e0b 100%);border-radius:999px;transition:width 800ms cubic-bezier(0.4,0,0.2,1);animation:match-fill-in 800ms cubic-bezier(0.4,0,0.2,1) forwards}
         @keyframes match-fill-in{from{width:0%}}
         .card-match-skeleton{height:100%;width:55%;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.10) 50%,rgba(255,255,255,0.05) 100%);background-size:200% 100%;animation:skeletonWave 1.8s linear infinite}
-        .card-match-pct{font-size:11px;font-weight:700;color:rgba(255,255,255,0.82);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;letter-spacing:-0.2px}
+        .card-match-pct{font-family:var(--font-display);font-size:11px;font-weight:700;color:rgba(255,255,255,0.82);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;letter-spacing:-0.2px}
         .card-match-prompt{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,0.25);font-family:var(--font-primary);padding:2px 0}
 
         /* HERO APPLY BUTTON */
-        .apply-cta{width:100%;height:52px;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#fbbf24 0%,#f59e0b 100%);border:none;border-radius:14px;color:#fff;font-family:var(--font-primary);font-size:14px;font-weight:700;letter-spacing:-0.3px;cursor:pointer;text-decoration:none;box-shadow:0 4px 14px rgba(245,158,11,0.30),0 0 0 1px rgba(245,158,11,0.20),inset 0 1px 0 rgba(255,255,255,0.20);animation:apply-glow 3s ease-in-out infinite;transition:transform 0.15s ease,box-shadow 0.15s ease}
-        .apply-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(245,158,11,0.45),0 0 0 1px rgba(245,158,11,0.35),inset 0 1px 0 rgba(255,255,255,0.25)}
-        .apply-cta:active{transform:translateY(0);box-shadow:0 2px 8px rgba(245,158,11,0.20),0 0 0 1px rgba(245,158,11,0.15),inset 0 1px 0 rgba(255,255,255,0.15)}
-        @keyframes apply-glow{0%,100%{box-shadow:0 4px 14px rgba(245,158,11,0.30),0 0 0 1px rgba(245,158,11,0.20),inset 0 1px 0 rgba(255,255,255,0.20)}50%{box-shadow:0 6px 20px rgba(245,158,11,0.45),0 0 0 1px rgba(245,158,11,0.30),inset 0 1px 0 rgba(255,255,255,0.25)}}
+        .apply-cta{width:100%;height:40px;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#fbbf24 0%,#f59e0b 100%);border:none;border-radius:9px;color:#fff;font-family:var(--font-primary);font-size:13px;font-weight:700;letter-spacing:-0.2px;cursor:pointer;text-decoration:none;box-shadow:0 2px 8px rgba(245,158,11,0.16),0 0 0 1px rgba(245,158,11,0.12),inset 0 1px 0 rgba(255,255,255,0.14);transition:transform 0.15s ease,box-shadow 0.18s ease}
+        .apply-cta:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(245,158,11,0.28),0 0 0 1px rgba(245,158,11,0.22),inset 0 1px 0 rgba(255,255,255,0.18)}
+        .apply-cta:active{transform:translateY(0);box-shadow:0 1px 6px rgba(245,158,11,0.18),inset 0 1px 0 rgba(255,255,255,0.12)}
         .apply-sparkle{animation:sparkle-twinkle 4s ease-in-out infinite}
         @keyframes sparkle-twinkle{0%,90%,100%{transform:scale(1) rotate(0deg);opacity:1}95%{transform:scale(1.3) rotate(15deg);opacity:0.8}}
         .apply-arrow{transition:transform 200ms ease}
@@ -3116,7 +3167,7 @@ export default function Home() {
         @keyframes ebPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.2;transform:scale(0.6)}}
         @keyframes cardGlow{0%,100%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05)}50%{box-shadow:0 2px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05),0 0 20px rgba(245,158,11,0.08)}}
         @keyframes cardPulse{0%,100%{border-color:rgba(255,255,255,0.08)}50%{border-color:rgba(245,158,11,0.15)}}
-        @keyframes hotGlow{0%,100%{box-shadow:0 2px 6px rgba(249,115,22,0.2)}50%{box-shadow:0 2px 14px rgba(249,115,22,0.5)}}
+        @keyframes hotGlow{0%,100%{opacity:1}50%{opacity:0.85}}
         @keyframes buttonShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         @keyframes btnShimmer{0%{background-position:0% center}100%{background-position:200% center}}
         @keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.0)}50%{box-shadow:0 0 0 4px rgba(245,158,11,0.08)}}
@@ -3148,13 +3199,13 @@ export default function Home() {
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
         /* THEME TOGGLE */
-        .theme-toggle{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);transition:all 0.26s cubic-bezier(0.34,1.56,0.64,1);flex-shrink:0}
+        .theme-toggle{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);transition:all 0.26s cubic-bezier(0.34,1.56,0.64,1);flex-shrink:0}
         .theme-toggle:hover{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.25);color:#f59e0b;box-shadow:0 0 12px rgba(245,158,11,0.08)}
 
         /* LIGHT MODE */
         [data-theme="light"] body{background:#f4f5f9;color:#0f0f14}
         [data-theme="light"] .topbar{background:rgba(255,255,255,0.95);border-bottom-color:rgba(0,0,0,0.07)}
-        [data-theme="light"] .topbar-logo{color:#0f0f14}
+        [data-theme="light"] .topbar-logo span{color:#1a1111}
         [data-theme="light"] .topbar-input{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.09);color:#0f0f14}
         [data-theme="light"] .topbar-input::placeholder{color:rgba(0,0,0,0.3)}
         [data-theme="light"] .topbar-input:focus{background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.35)}
@@ -3190,15 +3241,44 @@ export default function Home() {
         [data-theme="light"] .overlay{background:rgba(0,0,0,0.4);backdrop-filter:blur(12px)}
         [data-theme="light"] .refresh-toast{background:rgba(255,255,255,0.97);border-color:rgba(52,211,153,0.4)}
         [data-theme="light"] .eb-banner{background:rgba(251,191,36,0.04);border-color:rgba(251,191,36,0.15)}
+        [data-theme="light"] .job-card{background:linear-gradient(160deg,#ffffff 0%,#f8f8fa 100%);border:1px solid rgba(0,0,0,0.07);border-left:2px solid rgba(0,0,0,0.05);box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+        [data-theme="light"] .job-card:hover{border-color:rgba(0,0,0,0.1);border-left-color:var(--gold);box-shadow:0 6px 20px rgba(0,0,0,0.10),0 0 0 1px rgba(245,158,11,0.12)}
+        [data-theme="light"] .job-card-hot{border-left-color:rgba(249,115,22,0.4)!important}
+        [data-theme="light"] .job-card-eb{border-left-color:rgba(245,158,11,0.3)!important}
+        [data-theme="light"] .card-desc{color:rgba(0,0,0,0.55)}
+        [data-theme="light"] .card-tool-strip{border-top-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .activity-card{background:rgba(0,0,0,0.03);border-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .coach-card{background:linear-gradient(135deg,rgba(245,158,11,0.05),rgba(154,116,223,0.03));border-color:rgba(245,158,11,0.12)}
+        [data-theme="light"] .tracker-pill{background:rgba(0,0,0,0.02);border-color:rgba(0,0,0,0.06)}
+        [data-theme="light"] .stat-bar{background:rgba(0,0,0,0.02);border-color:rgba(0,0,0,0.06)}
+        [data-theme="light"] .stat-item{border-right-color:rgba(0,0,0,0.06)}
+        [data-theme="light"] .stat-item-val{color:rgba(0,0,0,0.75)}
+        [data-theme="light"] .stat-item-label{color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .card-zone-header{background:rgba(0,0,0,0.025);border-bottom-color:rgba(0,0,0,0.06)}
+        [data-theme="light"] .job-card:hover .card-zone-header{background:rgba(0,0,0,0.04)}
+        [data-theme="light"] .card-zone-cta{background:rgba(0,0,0,0.015);border-top-color:rgba(0,0,0,0.05)}
+        [data-theme="light"] .sidebar-tile{background:rgba(0,0,0,0.025);border-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .live-stat-strip{border-bottom-color:rgba(0,0,0,0.07)}
+        [data-theme="light"] .lst-val{color:rgba(0,0,0,0.75)}
+        [data-theme="light"] .lst-lbl{color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .lst-sep{background:rgba(0,0,0,0.08)}
+        [data-theme="light"] .right-panel{background:rgba(0,0,0,0.025)}
+        [data-theme="light"] .activity-card{background:rgba(0,0,0,0.03);border-color:rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+        [data-theme="light"] .sidebar-section{border-bottom-color:rgba(0,0,0,0.05)}
+        [data-theme="light"] .sidebar-section-label{color:rgba(0,0,0,0.35)}
+        [data-theme="light"] .sidebar-section-label::before{background:rgba(245,158,11,0.4)}
+        [data-theme="light"] .action-pills{border-top-color:rgba(0,0,0,0.07)}
         [data-theme="light"] .mobile-sidebar-backdrop{background:rgba(0,0,0,0.4)}
         [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
         @media(max-width:900px){.sidebar{display:none}.content{padding:20px 16px;max-width:100%}}
 
         /* ── MOBILE ── */
         @media(max-width:768px){
-          .topbar{padding:0 14px;height:56px;gap:8px}
+          .topbar{padding:0 14px;height:64px;gap:8px}
+          .live-stat-strip{gap:10px}
+          .lst-lbl{display:none}
           .topbar-search{display:none}
-          .topbar-logo{font-size:18px;margin-right:0}
+          .topbar-logo{margin-right:0}
           .topbar-right{gap:6px}
           .topbar-right .nav-pill{display:none}
           .topbar-right>span{display:none}
@@ -3254,21 +3334,13 @@ export default function Home() {
         animate={{opacity:1,y:0}}
         transition={{duration:0.4,ease:'easeOut'}}
       >
-        <div style={{display:'flex',alignItems:'center',gap:8,marginRight:14,flexShrink:0,cursor:'pointer'}} onClick={()=>window.location.href='/'}>
-          <div style={{width:30,height:30,background:'linear-gradient(135deg,var(--gold),var(--gold-hover))',borderRadius:9,border:'1px solid rgba(139,92,246,0.4)',boxShadow:'0 0 16px rgba(245,158,11,0.35)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-            <svg width="16" height="16" viewBox="0 0 200 200">
-              <path d="M100,76 L34,118 L66,113 Z" fill="#fbbf24"/>
-              <path d="M100,76 L166,118 L134,113 Z" fill="#c4b5fd"/>
-              <ellipse cx="100" cy="92" rx="8" ry="16" fill="#f59e0b"/>
-              <circle cx="100" cy="76" r="7" fill="#f59e0b"/>
-              <polygon points="100,66 107,62 100,61" fill="#fcd34d"/>
-              <line x1="96" y1="108" x2="88" y2="126" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="100" y1="109" x2="100" y2="128" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="104" y1="108" x2="112" y2="126" stroke="#6d28d9" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M82,144 A18,18 0 0,1 118,144" fill="#f59e0b" opacity="0.6"/>
+        <div className="topbar-logo" onClick={()=>window.location.href='/'}>
+          <div style={{width:24,height:24,background:'linear-gradient(135deg,#fbbf24,#f59e0b)',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,boxShadow:'0 1px 6px rgba(245,158,11,0.28),inset 0 1px 0 rgba(255,255,255,0.18)'}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10Z" fill="#111116"/>
             </svg>
           </div>
-          <span style={{fontFamily:'var(--font-display)',fontSize:18,fontWeight:800,color:'#ffffff',letterSpacing:'-0.5px',lineHeight:1}}>Vega<span style={{fontStyle:'italic',background:'linear-gradient(135deg,#f59e0b,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>ply</span></span>
+          <span>Vegaply</span>
         </div>
         <div className="topbar-search">
           <div className="topbar-search-box">
@@ -3360,7 +3432,7 @@ export default function Home() {
 
       {/* FILTERS PANEL */}
       {showFiltersPanel&&(
-        <div style={{position:'sticky',top:56,left:0,right:0,zIndex:180,background:darkMode?'rgba(8,8,12,0.97)':'rgba(255,255,255,0.98)',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)'}`,backdropFilter:'blur(20px)',padding:'12px 20px',display:'flex',flexDirection:'column',gap:10}}>
+        <div style={{position:'sticky',top:72,left:0,right:0,zIndex:180,background:darkMode?'rgba(8,8,12,0.97)':'rgba(255,255,255,0.98)',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)'}`,backdropFilter:'blur(20px)',padding:'12px 20px',display:'flex',flexDirection:'column',gap:10}}>
           {/* Row 1: Work + Employment Type + Easy Apply */}
           <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:10}}>
             <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
@@ -3437,7 +3509,7 @@ export default function Home() {
 
       {/* MOBILE SEARCH PANEL — conditionally rendered, hidden on desktop via CSS */}
       {showMobileSearch&&(
-        <div className="mobile-search-panel" style={{position:"sticky",top:56,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
+        <div className="mobile-search-panel" style={{position:"sticky",top:72,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
           <div style={{display:"flex",gap:8}}>
@@ -3454,107 +3526,104 @@ export default function Home() {
       <motion.div className="app-layout" initial={{opacity:0,y:8,scale:0.99}} animate={{opacity:1,y:0,scale:1}} transition={{duration:0.5,ease:[0.34,1.56,0.64,1]}}>
         {/* SIDEBAR */}
         <motion.aside className="sidebar" initial={{opacity:0,x:-16}} animate={{opacity:1,x:0}} transition={{duration:0.4,delay:0.1,ease:'easeOut'}}>
-          <div className="sidebar-card">
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-              <div className="sidebar-card-title">🎯 AI Resume Match</div>
-              <button onClick={loadResumeHistory} style={{fontSize:10,color:"#f59e0b",background:"none",border:"1px solid rgba(245,158,11,0.2)",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontFamily:"inherit"}}>History</button>
-            </div>
-            <div className="sidebar-card-sub">Upload PDF for AI matching & auto-apply</div>
-            <ResumePanel
-              resumeText={resumeText}
-              fileName={resumeFileName}
-              onResume={async(t,n)=>{
-                setResumeText(t);setResumeFileName(n);
-                lsSet("applysmart_resume",t);lsSet("applysmart_resume_name",n);
-                const{data:{user}}=await supabase.auth.getUser();
-                if(!user)return;
-                await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
-              }}
-              onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
-            />
-            {autoApplyCount>0&&<div style={{fontSize:11,color:"#f59e0b",textAlign:"center",marginTop:7,fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
-          </div>
 
-          {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
-
-          <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
-
-          <div className="sidebar-card">
-            <div className="sidebar-card-title">Filters</div>
-            <div className="filter-label">Job Type</div>
-            <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
-              <option value="ALL">All Types</option>
-              <option value="FULLTIME">Full-time</option>
-              <option value="PARTTIME">Part-time</option>
-              <option value="CONTRACTOR">Contract</option>
-              <option value="INTERN">Internship</option>
-            </select>
-            <div className="filter-label">Date Posted</div>
-            <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
-              <option value="ANY">Any Time</option>
-              <option value="15MIN">Under 15 min</option>
-              <option value="1H">1 hour</option>
-              <option value="6H">6 hours</option>
-              <option value="24H">24 hours</option>
-              <option value="3DAYS">3 days</option>
-              <option value="WEEK">This Week</option>
-              <option value="MONTH">This Month</option>
-            </select>
-            <div className="toggle-row">
-              <span>Remote Only</span>
-              <button className={`toggle${filterRemote?" on":""}`} onClick={()=>{setFilterRemote(!filterRemote);setCurrentPage(1);}}/>
-            </div>
-          </div>
-
-          <div style={{height:1,background:"rgba(255,255,255,0.05)"}}/>
-
-          {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
-
-          {/* PREFERENCES */}
-          <div className="sidebar-card" style={{marginTop:4}}>
-            <div className="sidebar-card-title">⚙️ Job Preferences</div>
-            <div className="sidebar-card-sub">Active filters for your job search</div>
-            {mounted&&prefTitles.length>0?(
-              <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:10}}>
-                {prefTitles.map((t,i)=>(
-                  <span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:20,background:"rgba(245,158,11,0.12)",color:"#fbbf24",border:"1px solid rgba(245,158,11,0.25)"}}>{t}</span>
-                ))}
+          {/* SECTION: RESUME */}
+          <div className="sidebar-section">
+            <div className="sidebar-section-label">Resume</div>
+            <div className="sidebar-tile">
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{fontSize:11,color:"var(--text-tertiary)",fontFamily:"var(--font-primary)"}}>Upload PDF for AI matching</span>
+                <button onClick={loadResumeHistory} style={{fontSize:10,color:"var(--gold)",background:"none",border:"1px solid rgba(245,158,11,0.2)",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontFamily:"inherit"}}>History</button>
               </div>
-            ):(
-              <div style={{fontSize:11,color:"rgba(255,255,255,0.25)",marginBottom:10}}>No preferences set</div>
-            )}
-            <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(245,158,11,0.15)")} onMouseLeave={e=>(e.currentTarget.style.background="rgba(245,158,11,0.08)")}>
-              ⚙️ Edit Preferences
-            </button>
+              <ResumePanel
+                resumeText={resumeText}
+                fileName={resumeFileName}
+                onResume={async(t,n)=>{
+                  setResumeText(t);setResumeFileName(n);
+                  lsSet("applysmart_resume",t);lsSet("applysmart_resume_name",n);
+                  const{data:{user}}=await supabase.auth.getUser();
+                  if(!user)return;
+                  await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                }}
+                onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
+              />
+              {autoApplyCount>0&&<div style={{fontSize:10,color:"var(--gold)",textAlign:"center",fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
+              {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
+            </div>
           </div>
 
-          {/* SHARE VEGAPLY */}
-          <div className="sidebar-card" style={{marginTop:4,background:"rgba(245,158,11,0.05)",borderColor:"rgba(245,158,11,0.15)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              <div className="sidebar-card-title" style={{margin:0,color:"#fbbf24"}}>Know someone job hunting?</div>
+          {/* SECTION: REFINE */}
+          <div className="sidebar-section">
+            <div className="sidebar-section-label">
+              Refine
+              {(filterType!=="ALL"||filterDate!=="ANY"||filterRemote)&&<span style={{fontSize:9,fontWeight:700,padding:"1px 5px",borderRadius:3,background:"rgba(245,158,11,0.2)",color:"var(--gold)",marginLeft:4}}>{(filterType!=="ALL"?1:0)+(filterDate!=="ANY"?1:0)+(filterRemote?1:0)} active</span>}
             </div>
-            <div className="sidebar-card-sub">Share Vegaply — help them apply first</div>
-            <button
-              onClick={async()=>{
-                const shareData={title:"Vegaply",text:"I'm using Vegaply to find jobs before everyone else applies 🚀 Try it free:",url:"https://vegaply.com"};
-                if(typeof navigator.share==="function"&&navigator.canShare&&navigator.canShare(shareData)){
-                  try{await navigator.share(shareData);}catch{}
-                }else{
-                  try{
-                    await navigator.clipboard.writeText("https://vegaply.com");
-                    setShareToast(true);
-                    setTimeout(()=>setShareToast(false),2500);
-                  }catch{}
-                }
-              }}
-              style={{width:"100%",background:"rgba(245,158,11,0.12)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:10,padding:"8px 0",fontSize:12,fontWeight:600,color:"#f59e0b",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}
-              onMouseEnter={e=>(e.currentTarget.style.background="rgba(245,158,11,0.2)")}
-              onMouseLeave={e=>(e.currentTarget.style.background="rgba(245,158,11,0.12)")}
-            >
-              {shareToast?"✓ Link copied!":"Share Vegaply →"}
-            </button>
+            <div className="sidebar-tile">
+              <div className="filter-label">Job Type</div>
+              <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
+                <option value="ALL">All Types</option>
+                <option value="FULLTIME">Full-time</option>
+                <option value="PARTTIME">Part-time</option>
+                <option value="CONTRACTOR">Contract</option>
+                <option value="INTERN">Internship</option>
+              </select>
+              <div className="filter-label">Date Posted</div>
+              <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
+                <option value="ANY">Any Time</option>
+                <option value="15MIN">Under 15 min</option>
+                <option value="1H">1 hour</option>
+                <option value="6H">6 hours</option>
+                <option value="24H">24 hours</option>
+                <option value="3DAYS">3 days</option>
+                <option value="WEEK">This Week</option>
+                <option value="MONTH">This Month</option>
+              </select>
+              <div className="toggle-row">
+                <span>Remote Only</span>
+                <button className={`toggle${filterRemote?" on":""}`} onClick={()=>{setFilterRemote(!filterRemote);setCurrentPage(1);}}/>
+              </div>
+            </div>
           </div>
+
+          {/* SECTION: TOOLS */}
+          <div className="sidebar-section">
+            <div className="sidebar-section-label">Tools</div>
+            <div className="sidebar-tile">
+              {hasSearched&&<AlertPanel jobRole={jobRole} location={location} jobs={allJobs}/>}
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {mounted&&prefTitles.length>0&&(
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                    {prefTitles.map((t,i)=>(
+                      <span key={i} style={{fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:20,background:"rgba(245,158,11,0.10)",color:"var(--gold)",border:"1px solid rgba(245,158,11,0.20)"}}>{t}</span>
+                    ))}
+                  </div>
+                )}
+                <button onClick={()=>setShowPreferences(true)} style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid var(--border-subtle)",borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:600,color:"var(--text-secondary)",cursor:"pointer",fontFamily:"inherit",transition:"all 0.18s"}} onMouseEnter={e=>(e.currentTarget.style.color="var(--gold)")} onMouseLeave={e=>(e.currentTarget.style.color="var(--text-secondary)")}>
+                  ⚙️ Preferences
+                </button>
+                <button
+                  onClick={async()=>{
+                    const shareData={title:"Vegaply",text:"I'm using Vegaply to find jobs before everyone else applies 🚀 Try it free:",url:"https://vegaply.com"};
+                    if(typeof navigator.share==="function"&&navigator.canShare&&navigator.canShare(shareData)){
+                      try{await navigator.share(shareData);}catch{}
+                    }else{
+                      try{
+                        await navigator.clipboard.writeText("https://vegaply.com");
+                        setShareToast(true);
+                        setTimeout(()=>setShareToast(false),2500);
+                      }catch{}
+                    }
+                  }}
+                  style={{width:"100%",background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.15)",borderRadius:8,padding:"7px 0",fontSize:11,fontWeight:600,color:"rgba(245,158,11,0.75)",cursor:"pointer",fontFamily:"inherit",transition:"all 0.18s"}}
+                  onMouseEnter={e=>(e.currentTarget.style.background="rgba(245,158,11,0.12)")}
+                  onMouseLeave={e=>(e.currentTarget.style.background="rgba(245,158,11,0.06)")}
+                >
+                  {shareToast?"✓ Copied!":"Share Vegaply →"}
+                </button>
+              </div>
+            </div>
+          </div>
+
         </motion.aside>
 
         {/* MAIN */}
@@ -3577,18 +3646,18 @@ export default function Home() {
                   <button
                     key={mode}
                     onClick={()=>{setActiveMode(mode);setActiveTab('results');setCurrentPage(1);}}
-                    style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 13px',borderRadius:999,border:`1px solid ${active?'rgba(245,158,11,0.55)':'rgba(255,255,255,0.09)'}`,background:active?'rgba(245,158,11,0.16)':'rgba(255,255,255,0.03)',color:active?'#fbbf24':'rgba(255,255,255,0.40)',fontSize:11,fontWeight:active?700:500,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
+                    style={{display:'inline-flex',alignItems:'center',gap:4,padding:'4px 11px',borderRadius:999,border:`1px solid ${active?'rgba(245,158,11,0.45)':'rgba(255,255,255,0.07)'}`,background:active?'rgba(245,158,11,0.12)':'transparent',color:active?'#fbbf24':'rgba(255,255,255,0.35)',fontSize:11,fontWeight:active?700:400,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
                   >
                     {icon&&<span>{icon}</span>}
                     {label}
-                    <span style={{fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:999,background:active?'rgba(245,158,11,0.25)':'rgba(255,255,255,0.06)',color:active?'#fbbf24':'rgba(255,255,255,0.28)',border:`1px solid ${active?'rgba(245,158,11,0.35)':'rgba(255,255,255,0.07)'}`}}>{count}</span>
+                    <span style={{fontSize:9,fontWeight:700,padding:'1px 5px',borderRadius:999,background:active?'rgba(245,158,11,0.2)':'rgba(255,255,255,0.05)',color:active?'#fbbf24':'rgba(255,255,255,0.22)',border:`1px solid ${active?'rgba(245,158,11,0.28)':'rgba(255,255,255,0.06)'}`}}>{count}</span>
                   </button>
                 );
               })}
               {appliedJobIds.size>0&&(
                 <button
                   onClick={()=>{setActiveMode('applied');setActiveTab('results');setCurrentPage(1);}}
-                  style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 13px',borderRadius:999,border:`1px solid ${activeMode==='applied'?'rgba(52,211,153,0.45)':'rgba(16,185,129,0.25)'}`,background:activeMode==='applied'?'rgba(52,211,153,0.16)':'rgba(16,185,129,0.06)',color:activeMode==='applied'?'#34d399':'#34d399',fontSize:11,fontWeight:activeMode==='applied'?700:500,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
+                  style={{display:'inline-flex',alignItems:'center',gap:4,padding:'4px 11px',borderRadius:999,border:`1px solid ${activeMode==='applied'?'rgba(52,211,153,0.40)':'rgba(16,185,129,0.18)'}`,background:activeMode==='applied'?'rgba(52,211,153,0.10)':'transparent',color:'#34d399',fontSize:11,fontWeight:activeMode==='applied'?700:400,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
                 >
                   ✅ Applied
                   <span style={{fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:999,background:activeMode==='applied'?'rgba(52,211,153,0.25)':'rgba(16,185,129,0.14)',color:'#34d399',border:`1px solid ${activeMode==='applied'?'rgba(52,211,153,0.35)':'rgba(16,185,129,0.25)'}`}}>{appliedJobIds.size}</span>
@@ -3597,22 +3666,39 @@ export default function Home() {
             </div>
           )}
 
-          {/* STAT BAR */}
+          {/* LIVE STAT STRIP */}
           {allJobs.length>0&&(
-            <div style={{display:'flex',alignItems:'stretch',width:'100%',background:'var(--bg-surface)',borderRadius:12,marginBottom:12,border:'1px solid rgba(255,255,255,0.06)',overflow:'hidden'}}>
-              {([
-                {label:'ROLES FOUND',   value:jobs.length,                                             dot:null,            color:'rgba(255,255,255,0.85)'},
-                {label:'EARLY BIRD',    value:panelFreshJobs.length,                                   dot:'#34d399',       color:'#34d399'},
-                {label:'H1B READY',     value:panelH1bJobs.length,                                     dot:null,            color:'#8eb29b'},
-                {label:'APPLIED TODAY', value:trackedApps.filter((a)=>a.status==='Applied').length,    dot:null,            color:'var(--gold)'},
-                {label:'UNDER 6H',      value:hotCount,                                                dot:'#f97316',       color:'#f97316'},
-              ] as {label:string;value:number;dot:string|null;color:string}[]).map((stat,i,arr)=>(
-                <div key={stat.label} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flex:1,padding:'10px 6px',borderRight:i<arr.length-1?'1px solid rgba(255,255,255,0.06)':'none'}}>
-                  {stat.dot&&<span style={{width:6,height:6,borderRadius:'50%',background:stat.dot,display:'inline-block',marginBottom:4,boxShadow:`0 0 5px ${stat.dot}`}}/>}
-                  <div style={{fontSize:'var(--text-xl)',fontWeight:800,fontFamily:'var(--font-display)',color:stat.color,letterSpacing:'-0.5px',lineHeight:1}}>{stat.value}</div>
-                  <div style={{fontSize:'var(--text-xs)',fontWeight:700,letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.28)',marginTop:3,fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}>{stat.label}</div>
-                </div>
-              ))}
+            <div className="live-stat-strip">
+              <div className="lst-item">
+                <span className="lst-val">{jobs.length}</span>
+                <span className="lst-lbl">Roles</span>
+              </div>
+              <div className="lst-sep"/>
+              <div className="lst-item">
+                <span className="lst-dot" style={{background:'#34d399'}}/>
+                <span className="lst-val" style={{color:'#34d399'}}>{panelFreshJobs.length}</span>
+                <span className="lst-lbl">Early Bird</span>
+              </div>
+              <div className="lst-sep"/>
+              <div className="lst-item">
+                <span className="lst-val" style={{color:'#8eb29b'}}>{panelH1bJobs.length}</span>
+                <span className="lst-lbl">H1B</span>
+              </div>
+              <div className="lst-sep"/>
+              <div className="lst-item">
+                <span className="lst-val" style={{color:'var(--gold)'}}>{trackedApps.filter((a)=>a.status==='Applied').length}</span>
+                <span className="lst-lbl">Applied</span>
+              </div>
+              <div className="lst-sep"/>
+              <div className="lst-item">
+                <span className="lst-dot" style={{background:'#f97316'}}/>
+                <span className="lst-val" style={{color:'#f97316'}}>{hotCount}</span>
+                <span className="lst-lbl">Under 6h</span>
+              </div>
+              <div className="lst-live">
+                <div className="lst-pulse"/>
+                Live
+              </div>
             </div>
           )}
 
@@ -3803,53 +3889,53 @@ export default function Home() {
           initial={{opacity:0,x:16}}
           animate={{opacity:1,x:0}}
           transition={{duration:0.45,delay:0.15,ease:'easeOut'}}
-          style={{background:'rgba(22,24,34,0.90)',borderLeft:'1px solid rgba(255,255,255,0.06)',padding:'18px 14px',overflowY:'auto',display:'flex',flexDirection:'column',gap:20}}
+          style={{background:'var(--bg-elevated)',borderLeft:'1px solid var(--border-subtle)',padding:'16px 14px 24px',overflowY:'auto',display:'flex',flexDirection:'column',gap:0}}
         >
-          <div style={{fontSize:'var(--text-xs)',fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'var(--gold)',fontFamily:'var(--font-primary)',paddingBottom:6,borderBottom:'1px solid rgba(245,158,11,0.15)'}}>Command Briefing</div>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'var(--text-quaternary)',fontFamily:'var(--font-primary)',paddingTop:12,paddingBottom:11,marginBottom:4,borderBottom:'1px solid var(--border-subtle)'}}>Command Briefing</div>
+
+          {/* AI COACH — flagship section, shown first */}
+          <div className="right-panel-section">
+            <div className="right-label">AI Coach</div>
+            <div className="coach-card">
+              <div className="coach-card-label">Insight</div>
+              <p className="coach-card-text">{getCoachingInsight()}</p>
+            </div>
+          </div>
 
           {/* MARKET PULSE */}
-          <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Market Pulse</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7}}>
+          <div className="right-panel-section">
+            <div className="right-label">Market Pulse</div>
+            <div className="activity-grid">
               {([
-                {label:'Jobs Found',    value:jobs.length,           sub:'Available now', color:'rgba(255,255,255,0.85)'},
-                {label:'Early Bird',   value:panelFreshJobs.length,  sub:'⚡ Fresh',       color:'#d6b268'},
-                {label:'H1B Jobs',     value:panelH1bJobs.length,    sub:'Verified',      color:'#8eb29b'},
-                {label:'Low Comp',     value:panelLowComp.length,    sub:'Apply first',   color:'var(--gold)'},
-              ] as {label:string;value:number;sub:string;color:string}[]).map((stat,i)=>(
-                <motion.div key={stat.label} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:0.3+i*0.08}}
-                  style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:13,padding:'12px 11px',position:'relative',overflow:'hidden'}}
-                >
-                  <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)'}}/>
-                  <div style={{fontSize:9,fontWeight:600,letterSpacing:'1.5px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:5,fontFamily:'var(--font-primary)'}}>{stat.label}</div>
-                  <div style={{fontSize:24,fontWeight:800,fontFamily:'var(--font-display)',color:stat.color,letterSpacing:'-1px',lineHeight:1}}>
-                    <motion.span key={stat.value} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.5,ease:[0.16,1,0.3,1]}}>{stat.value}</motion.span>
+                {label:'Jobs Found',  value:jobs.length,          sub:'Available now', colorClass:''},
+                {label:'Early Bird',  value:panelFreshJobs.length, sub:'⚡ Fresh',      colorClass:'gold'},
+                {label:'H1B Jobs',    value:panelH1bJobs.length,  sub:'Verified',      colorClass:'cyan'},
+                {label:'Low Comp',    value:panelLowComp.length,  sub:'Apply first',   colorClass:'gold'},
+              ] as {label:string;value:number;sub:string;colorClass:string}[]).map((stat,i)=>(
+                <motion.div key={stat.label} className="activity-card" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:0.3+i*0.07}}>
+                  <div className="activity-label">{stat.label}</div>
+                  <div className={`activity-number${stat.colorClass?' '+stat.colorClass:''}`}>
+                    <motion.span key={stat.value} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.4,ease:[0.16,1,0.3,1]}}>{stat.value}</motion.span>
                   </div>
-                  <div style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.30)',marginTop:3,fontFamily:'var(--font-primary)'}}>{stat.sub}</div>
+                  <div className="activity-sub">{stat.sub}</div>
                 </motion.div>
               ))}
             </div>
           </div>
 
-          {/* AI COACH */}
-          <div style={{background:'linear-gradient(135deg,rgba(245,158,11,0.08),rgba(154,116,223,0.05))',border:'1px solid rgba(245,158,11,0.15)',borderRadius:14,padding:'13px 14px'}}>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'rgba(245,158,11,0.6)',marginBottom:8,fontFamily:'var(--font-primary)'}}>AI Coach</div>
-            <p style={{fontSize:12,fontWeight:400,color:'rgba(255,255,255,0.55)',lineHeight:1.65,margin:0,fontFamily:'var(--font-primary)'}}>{getCoachingInsight()}</p>
-          </div>
-
           {/* TRACKER */}
-          <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Tracker</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
+          <div className="right-panel-section">
+            <div className="right-label">Tracker</div>
+            <div className="tracker-row">
               {([
-                {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     color:'var(--gold)'},
-                {label:'Interview', value:trackedApps.filter(a=>a.status==='Interviewing').length, color:'#8eb29b'},
-                {label:'Offer',     value:trackedApps.filter(a=>a.status==='Offer').length,       color:'#d6b268'},
-                {label:'Rejected',  value:trackedApps.filter(a=>a.status==='Rejected').length,    color:'rgba(239,68,68,0.65)'},
-              ] as {label:string;value:number;color:string}[]).map(col=>(
-                <div key={col.label} style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10,padding:'9px 5px',textAlign:'center'}}>
-                  <div style={{fontSize:7,fontWeight:700,letterSpacing:'1px',textTransform:'uppercase',color:'rgba(255,255,255,0.22)',marginBottom:4,fontFamily:'var(--font-primary)'}}>{col.label}</div>
-                  <div style={{fontSize:20,fontWeight:800,fontFamily:'var(--font-display)',color:col.color,letterSpacing:'-0.5px'}}>{col.value}</div>
+                {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     cls:'applied'},
+                {label:'Interview', value:trackedApps.filter(a=>a.status==='Interviewing').length, cls:'interview'},
+                {label:'Offer',     value:trackedApps.filter(a=>a.status==='Offer').length,       cls:'offer'},
+                {label:'Rejected',  value:trackedApps.filter(a=>a.status==='Rejected').length,    cls:'rejected'},
+              ] as {label:string;value:number;cls:string}[]).map(col=>(
+                <div key={col.label} className="tracker-pill">
+                  <div className="tracker-label">{col.label}</div>
+                  <div className={`tracker-number ${col.cls}`}>{col.value}</div>
                 </div>
               ))}
             </div>
@@ -3857,8 +3943,8 @@ export default function Home() {
 
           {/* AI MATCH SCORES */}
           {jobs.filter(j=>j.match).length>0&&(
-            <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>AI Match Scores</div>
+            <div className="right-panel-section">
+              <div className="right-label">AI Match Scores</div>
               {jobs.filter(j=>j.match).sort((a,b)=>(b.match?.matchScore??0)-(a.match?.matchScore??0)).slice(0,4).map((j,i)=>{
                 const pct=j.match!.matchScore;
                 const barColor=pct>=70?'linear-gradient(90deg,var(--gold),#8eb29b)':pct>=50?'linear-gradient(90deg,#d6b268,#c9922a)':'linear-gradient(90deg,rgba(239,68,68,0.7),rgba(220,38,38,0.7))';
@@ -3875,18 +3961,18 @@ export default function Home() {
             </div>
           )}
 
-          {/* TOP COMPANIES HIRING */}
+          {/* TOP HIRING */}
           {topCompaniesList.length>0&&(
-            <div>
-              <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Top Hiring</div>
-              <div style={{display:'flex',flexDirection:'column',gap:5}}>
+            <div className="right-panel-section">
+              <div className="right-label">Top Hiring</div>
+              <div style={{display:'flex',flexDirection:'column',gap:4}}>
                 {topCompaniesList.map((name,i)=>{
                   const logo=getLogoStyle(name);
                   return(
-                    <div key={name} style={{display:'flex',alignItems:'center',gap:9,padding:'7px 10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:10}}>
-                      <div style={{width:24,height:24,borderRadius:7,background:logo.bg,color:logo.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,flexShrink:0,fontFamily:'var(--font-display)'}}>{name[0].toUpperCase()}</div>
-                      <span style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.55)',fontFamily:'var(--font-primary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>{name}</span>
-                      <span style={{fontSize:9,fontWeight:600,color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-primary)',flexShrink:0}}>#{i+1}</span>
+                    <div key={name} className="hiring-row">
+                      <div className="hiring-avatar" style={{background:logo.bg,color:logo.color}}>{name[0].toUpperCase()}</div>
+                      <span className="hiring-name">{name}</span>
+                      <span className="hiring-rank">#{i+1}</span>
                     </div>
                   );
                 })}
@@ -3895,17 +3981,17 @@ export default function Home() {
           )}
 
           {/* LIVE */}
-          <div>
-            <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(255,255,255,0.25)',marginBottom:10,fontFamily:'var(--font-primary)'}}>Live</div>
+          <div className="right-panel-section">
+            <div className="right-label">Live</div>
             {[
               {dot:'#8eb29b',text:'Someone in Austin applied to ML Engineer at Stripe',time:'2m'},
               {dot:'#d6b268',text:'Someone in NYC got interview at Figma',time:'5m'},
               {dot:'var(--gold)',text:'Someone in Seattle found H1B role',time:'8m'},
             ].map((item,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'7px 0',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                <div style={{width:6,height:6,borderRadius:'50%',background:item.dot,marginTop:3,flexShrink:0}}/>
-                <div style={{fontSize:10,fontWeight:400,color:'rgba(255,255,255,0.35)',lineHeight:1.5,flex:1,fontFamily:'var(--font-primary)'}}>{item.text}</div>
-                <div style={{fontSize:9,color:'rgba(255,255,255,0.18)',flexShrink:0,fontFamily:'var(--font-primary)'}}>{item.time}</div>
+              <div key={i} className="live-item">
+                <div className="live-dot" style={{background:item.dot,boxShadow:`0 0 5px ${item.dot}`}}/>
+                <div className="live-text">{item.text}</div>
+                <div className="live-time">{item.time}</div>
               </div>
             ))}
           </div>
