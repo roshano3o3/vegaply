@@ -2914,7 +2914,7 @@ export default function Home() {
         .refresh-btn.spinning svg{animation:spin360 .8s linear infinite}
         @keyframes spin360{to{transform:rotate(360deg)}}
         @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-        .refresh-toast{position:fixed;bottom:28px;right:28px;background:rgba(9,12,23,0.97);border:1px solid rgba(52,211,153,0.28);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;color:#34d399;display:flex;align-items:center;gap:8px;z-index:600;backdrop-filter:blur(16px);animation:toastSlideUp var(--dur-base) var(--ease-out) both}
+        .refresh-toast{position:fixed;bottom:28px;right:28px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:8px;z-index:600;backdrop-filter:blur(16px);box-shadow:0 10px 32px rgba(0,0,0,0.42);animation:toastSlideUp var(--dur-base) var(--ease-out) both}
         .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
         .nav-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
         .pill-eb{background:rgba(251,191,36,0.07);color:#fbbf24;border:1px solid rgba(251,191,36,0.18)}
@@ -3180,18 +3180,18 @@ export default function Home() {
         @keyframes simBounce{0%,80%,100%{transform:translateY(0);opacity:0.25}40%{transform:translateY(-5px);opacity:0.8}}
 
         /* MODALS */
-        .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(16px);animation:fi .18s}
+        .overlay{position:fixed;inset:0;background:rgba(5,5,8,0.82);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(14px);animation:fi .18s}
         @keyframes fi{from{opacity:0}to{opacity:1}}
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .modal{background:#0a0a10;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:32px;position:relative;animation:scaleInSoft var(--dur-slow) var(--ease-out) both;scrollbar-width:thin}
+        .modal{background:var(--bg-elevated);border:1px solid var(--border-normal);border-radius:18px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:32px;position:relative;animation:scaleInSoft var(--dur-slow) var(--ease-out) both;scrollbar-width:thin;box-shadow:0 24px 80px rgba(0,0,0,0.62),inset 0 1px 0 rgba(255,255,255,0.045)}
         @keyframes su{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-        .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:30px;height:30px;font-size:12px;cursor:pointer;color:rgba(255,255,255,0.35);transition:all .2s;display:flex;align-items:center;justify-content:center}
+        .modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;width:28px;height:28px;font-size:12px;cursor:pointer;color:rgba(255,255,255,0.35);transition:all .2s;display:flex;align-items:center;justify-content:center}
         .modal-close:hover{background:rgba(239,68,68,0.1);color:#ef4444;border-color:rgba(239,68,68,0.2)}
-        .modal-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.06)}
+        .modal-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
         .modal-logo{width:52px;height:52px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);flex-shrink:0}
         .modal-logo img{width:100%;height:100%;object-fit:contain}
-        .modal-title{font-family:var(--font-display);font-size:20px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:4px}
-        .modal-sub{font-size:13px;color:#f59e0b;font-weight:500}
+        .modal-title{font-family:var(--font-display);font-size:18px;font-weight:800;letter-spacing:-0.35px;color:#fff;line-height:1.2;margin-bottom:4px}
+        .modal-sub{font-size:13px;color:var(--text-tertiary);font-weight:500}
         .modal-tabs{display:flex;gap:3px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px;margin-bottom:18px}
         .mtab{flex:1;padding:8px;border:none;border-radius:7px;font-size:11px;font-weight:600;font-family:var(--font-primary);cursor:pointer;background:transparent;color:rgba(255,255,255,0.3);transition:all .2s}
         .mtab.active{background:rgba(245,158,11,0.12);color:#fbbf24}
@@ -3322,6 +3322,55 @@ export default function Home() {
         @media(min-width:769px){.mobile-search-panel{display:none!important}}
         [data-theme="light"] .mobile-search-panel{background:rgba(255,255,255,0.98);border-bottom-color:rgba(0,0,0,0.07)}
         [data-theme="light"] .mobile-sidebar-sheet{background:#fff;border-top-color:rgba(0,0,0,0.08)}
+
+        /* ── PHASE E: RESPONSIVE + POLISH ── */
+
+        /* Tablet — shrink search box min-width so it doesn't overflow at 900-1100px */
+        @media(max-width:1100px){
+          .topbar-search-box{min-width:300px}
+          .topbar-input-loc{flex:0 0 110px;width:110px}
+        }
+
+        /* Responsive job grid — overrides inline-style 2-col when screen narrows */
+        @media(max-width:900px){.jobs-grid{grid-template-columns:1fr!important}}
+        @media(max-width:768px){.jobs-grid{gap:8px!important}}
+
+        /* Mobile sidebar sheet — slight breathing room at bottom */
+        @media(max-width:768px){.mobile-sidebar-sheet{padding-bottom:28px}}
+
+        /* Focus-visible — amber ring, consistent across all interactive elements */
+        .search-btn:focus-visible,.eb-btn:focus-visible,.h1b-btn:focus-visible,
+        .refresh-btn:focus-visible,.theme-toggle:focus-visible,
+        .gradient-btn:focus-visible,.ghost-btn:focus-visible,
+        .send-jobs-btn:focus-visible,.gmail-btn:focus-visible,
+        .edit-prefs-btn:focus-visible,.apply-btn:focus-visible,
+        .apply-cta:focus-visible,.page-btn:focus-visible,
+        .modal-close:focus-visible,.tab:focus-visible,
+        .action-card-btn:focus-visible,.action-pill:focus-visible,
+        .empty-chip:focus-visible,.mob-search-btn:focus-visible,
+        .mob-eb-btn:focus-visible,.mob-sidebar-btn:focus-visible{
+          outline:2px solid rgba(245,181,68,0.55);
+          outline-offset:2px
+        }
+
+        /* Active press — restrained scale, no layout shift */
+        .action-pill:active{transform:scale(0.96)}
+        .page-btn:active:not(:disabled){transform:scale(0.94)}
+        .modal-close:active{transform:scale(0.90)}
+        .tab:active{opacity:0.72}
+
+        /* Hover consistency for icon-only topbar buttons */
+        .mob-search-btn:hover,.mob-eb-btn:hover,.mob-sidebar-btn:hover{
+          background:rgba(245,158,11,0.08)!important;
+          border-color:rgba(245,158,11,0.22)!important
+        }
+
+        /* Empty state — match card radius, use subdued elevated surface */
+        .empty-state{
+          background:rgba(255,255,255,0.012);
+          border:1px solid var(--border-subtle);
+          border-radius:var(--radius-xl)
+        }
       `}</style>
 
       {/* AMBIENT GLOW */}
@@ -3433,78 +3482,78 @@ export default function Home() {
 
       {/* FILTERS PANEL */}
       {showFiltersPanel&&(
-        <div style={{position:'sticky',top:72,left:0,right:0,zIndex:180,background:darkMode?'rgba(8,8,12,0.97)':'rgba(255,255,255,0.98)',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)'}`,backdropFilter:'blur(20px)',padding:'12px 20px',display:'flex',flexDirection:'column',gap:10}}>
+        <div style={{position:'sticky',top:72,left:0,right:0,zIndex:180,background:darkMode?'rgba(7,7,12,0.98)':'rgba(255,255,255,0.98)',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.07)'}`,backdropFilter:'blur(20px)',boxShadow:'0 8px 28px rgba(0,0,0,0.38)',padding:'16px 20px 18px',display:'flex',flexDirection:'column',gap:8}}>
           {/* Row 1: Work + Employment Type + Easy Apply */}
           <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:10}}>
             <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-              <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Work</span>
+              <span style={{fontSize:9,fontWeight:700,color:'rgba(255,255,255,0.28)',letterSpacing:1.5,textTransform:'uppercase',whiteSpace:'nowrap'}}>Work</span>
               {([['remote','Remote'],['hybrid','Hybrid'],['onsite','On-site']] as [string,string][]).map(([val,label])=>{
                 const on=filterWorkArr.includes(val);
-                return <button key={val} onClick={()=>{setFilterWorkArr(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
+                return <button key={val} onClick={()=>{setFilterWorkArr(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${on?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:on?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
               })}
             </div>
             <div style={{width:1,height:20,background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
             <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-              <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Type</span>
+              <span style={{fontSize:9,fontWeight:700,color:'rgba(255,255,255,0.28)',letterSpacing:1.5,textTransform:'uppercase',whiteSpace:'nowrap'}}>Type</span>
               {([['fulltime','Full-time'],['parttime','Part-time'],['contract','Contract'],['c2c','C2C'],['w2','W2'],['internship','Internship']] as [string,string][]).map(([val,label])=>{
                 const on=filterEmpType.includes(val);
-                return <button key={val} onClick={()=>{setFilterEmpType(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
+                return <button key={val} onClick={()=>{setFilterEmpType(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${on?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:on?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
               })}
             </div>
             <div style={{width:1,height:20,background:'rgba(255,255,255,0.08)',flexShrink:0}}/>
-            <button onClick={()=>{setFilterEasyApply(p=>!p);setCurrentPage(1);}} style={{background:filterEasyApply?'rgba(16,185,129,0.15)':'rgba(255,255,255,0.04)',border:`1px solid ${filterEasyApply?'rgba(16,185,129,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 14px',fontSize:11,fontWeight:600,color:filterEasyApply?'#34d399':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s',display:'flex',alignItems:'center',gap:5}}>
+            <button onClick={()=>{setFilterEasyApply(p=>!p);setCurrentPage(1);}} style={{background:filterEasyApply?'rgba(16,185,129,0.10)':'rgba(255,255,255,0.02)',border:`1px solid ${filterEasyApply?'rgba(16,185,129,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:filterEasyApply?'rgba(52,211,153,0.9)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s',display:'flex',alignItems:'center',gap:5}}>
               ⚡ Easy Apply{filterEasyApply?' ✓':''}
             </button>
           </div>
 
           {/* Row 2: Date Posted */}
           <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-            <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Posted</span>
+            <span style={{fontSize:9,fontWeight:700,color:'rgba(255,255,255,0.28)',letterSpacing:1.5,textTransform:'uppercase',whiteSpace:'nowrap'}}>Posted</span>
             {([['ANY','Any'],['15MIN','<15m'],['1H','1h'],['6H','6h'],['24H','24h'],['3DAYS','3d'],['WEEK','Week'],['MONTH','Month']] as [string,string][]).map(([val,label])=>{
               const on=filterDate===val;
-              return <button key={val} onClick={()=>{setFilterDate(val);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
+              return <button key={val} onClick={()=>{setFilterDate(val);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${on?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:on?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
             })}
           </div>
 
           {/* Row 3: Experience Level */}
           <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-            <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Experience</span>
+            <span style={{fontSize:9,fontWeight:700,color:'rgba(255,255,255,0.28)',letterSpacing:1.5,textTransform:'uppercase',whiteSpace:'nowrap'}}>Experience</span>
             {([['entry','Entry'],['mid','Mid'],['senior','Senior'],['staff','Staff'],['lead','Lead'],['director','Director']] as [string,string][]).map(([val,label])=>{
               const on=filterExpLevel.includes(val);
-              return <button key={val} onClick={()=>{setFilterExpLevel(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
+              return <button key={val} onClick={()=>{setFilterExpLevel(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${on?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:on?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
             })}
           </div>
 
           {/* Row 4: Visa Sponsorship */}
           <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-            <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Visa</span>
-            <button onClick={()=>{setFilterVisaH1b(p=>!p);setCurrentPage(1);}} style={{background:filterVisaH1b?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${filterVisaH1b?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:filterVisaH1b?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>
+            <span style={{fontSize:9,fontWeight:700,color:'rgba(255,255,255,0.28)',letterSpacing:1.5,textTransform:'uppercase',whiteSpace:'nowrap'}}>Visa</span>
+            <button onClick={()=>{setFilterVisaH1b(p=>!p);setCurrentPage(1);}} style={{background:filterVisaH1b?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${filterVisaH1b?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:filterVisaH1b?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>
               {filterVisaH1b?'✓ ':''}H1B Sponsored Only
             </button>
-            <button onClick={()=>{setFilterVisaNoCitizen(p=>!p);setCurrentPage(1);}} style={{background:filterVisaNoCitizen?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${filterVisaNoCitizen?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:filterVisaNoCitizen?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>
+            <button onClick={()=>{setFilterVisaNoCitizen(p=>!p);setCurrentPage(1);}} style={{background:filterVisaNoCitizen?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${filterVisaNoCitizen?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:filterVisaNoCitizen?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>
               {filterVisaNoCitizen?'✓ ':''}No US Citizenship Req
             </button>
           </div>
 
           {/* Row 5: Company Size */}
           <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-            <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Company</span>
+            <span style={{fontSize:9,fontWeight:700,color:'rgba(255,255,255,0.28)',letterSpacing:1.5,textTransform:'uppercase',whiteSpace:'nowrap'}}>Company</span>
             {([['startup','Startup'],['mid','Mid'],['large','Large'],['enterprise','Enterprise']] as [string,string][]).map(([val,label])=>{
               const on=filterCompanySize.includes(val);
-              return <button key={val} onClick={()=>{setFilterCompanySize(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
+              return <button key={val} onClick={()=>{setFilterCompanySize(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${on?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:on?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
             })}
           </div>
 
           {/* Row 6: Job Source */}
           <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-            <span style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.35)',letterSpacing:.8,textTransform:'uppercase',whiteSpace:'nowrap'}}>Source</span>
+            <span style={{fontSize:9,fontWeight:700,color:'rgba(255,255,255,0.28)',letterSpacing:1.5,textTransform:'uppercase',whiteSpace:'nowrap'}}>Source</span>
             {([['linkedin','LinkedIn'],['indeed','Indeed'],['greenhouse','Greenhouse'],['lever','Lever'],['other','Other']] as [string,string][]).map(([val,label])=>{
               const on=filterSource.includes(val);
-              return <button key={val} onClick={()=>{setFilterSource(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.18)':'rgba(255,255,255,0.04)',border:`1px solid ${on?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:100,padding:'4px 12px',fontSize:11,fontWeight:600,color:on?'#fbbf24':'rgba(255,255,255,0.45)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
+              return <button key={val} onClick={()=>{setFilterSource(p=>on?p.filter(x=>x!==val):[...p,val]);setCurrentPage(1);}} style={{background:on?'rgba(245,158,11,0.08)':'rgba(255,255,255,0.02)',border:`1px solid ${on?'rgba(245,158,11,0.32)':'rgba(255,255,255,0.07)'}`,borderRadius:6,padding:'5px 10px',fontSize:11,fontWeight:600,color:on?'rgba(245,181,68,0.92)':'rgba(255,255,255,0.38)',cursor:'pointer',transition:'all .15s'}}>{label}</button>;
             })}
           </div>
 
-          {activeFilterCount>0&&<button onClick={()=>{setFilterWorkArr([]);setFilterEmpType([]);setFilterEasyApply(false);setFilterSalary("any");setFilterExpLevel([]);setFilterVisaH1b(false);setFilterVisaNoCitizen(false);setFilterCompanySize([]);setFilterSource([]);setCurrentPage(1);}} style={{alignSelf:'flex-start',background:'transparent',border:'1px solid rgba(239,68,68,0.3)',fontSize:11,fontWeight:600,color:'rgba(239,68,68,0.65)',cursor:'pointer',padding:'4px 12px',borderRadius:100,transition:'all .15s'}}>Clear all filters</button>}
+          {activeFilterCount>0&&<button onClick={()=>{setFilterWorkArr([]);setFilterEmpType([]);setFilterEasyApply(false);setFilterSalary("any");setFilterExpLevel([]);setFilterVisaH1b(false);setFilterVisaNoCitizen(false);setFilterCompanySize([]);setFilterSource([]);setCurrentPage(1);}} style={{alignSelf:'flex-start',background:'transparent',border:'1px solid rgba(239,68,68,0.25)',fontSize:11,fontWeight:600,color:'rgba(239,68,68,0.55)',cursor:'pointer',padding:'5px 10px',borderRadius:6,transition:'all .15s'}}>Clear all filters</button>}
         </div>
       )}
 
@@ -3773,7 +3822,7 @@ export default function Home() {
               {autoOpenDone&&<div style={{background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:12,fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:8}}>🚀 Opened top 3 matches in new tabs!</div>}
 
               {currentLoading&&(
-                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
+                <div className="jobs-grid" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
                   {[...Array(5)].map((_,i)=><SkeletonRow key={i}/>)}
                 </div>
               )}
@@ -3784,7 +3833,7 @@ export default function Home() {
                     Showing <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{(currentPage-1)*JOBS_PER_PAGE+1}–{Math.min(currentPage*JOBS_PER_PAGE,displayJobs.length)}</strong> of <strong style={{color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.65)"}}>{displayJobs.length}</strong> jobs
                     {isEbMode&&<span style={{color:"#f59e0b",fontWeight:600}}> · ⚡ All posted today</span>}
                   </div>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'16px',padding:'14px 16px'}}>
+                  <div className="jobs-grid" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'16px',padding:'14px 16px'}}>
                     <AnimatePresence mode="popLayout">
                     {paginatedJobs.map((job,idx)=>(
                       <JobCard
