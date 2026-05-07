@@ -2885,8 +2885,9 @@ export default function Home() {
 
         /* TOPBAR */
         .topbar{position:sticky;top:0;z-index:50;height:72px;padding:0 var(--space-5);display:flex;align-items:center;gap:var(--space-4);background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);backdrop-filter:blur(20px);box-shadow:0 4px 28px rgba(0,0,0,0.38)}
-        .topbar-logo{flex-shrink:0;margin-right:12px;cursor:pointer;display:flex;align-items:center;gap:7px}
-        .topbar-logo span{font-family:var(--font-display);font-size:15px;font-weight:800;font-style:italic;color:#f8f1df;letter-spacing:-0.4px;line-height:1}
+        .topbar-logo{flex-shrink:0;margin-right:14px;cursor:pointer;display:flex;align-items:center;gap:8px}
+        .topbar-logo span{font-family:var(--font-display);font-size:16px;font-weight:800;font-style:italic;color:#f5efe2;letter-spacing:-0.5px;line-height:1}
+        .topbar-logo:hover span{color:#fbbf24;transition:color 0.15s ease}
         .topbar-search{display:flex;align-items:center;gap:10px;flex:1;max-width:580px}
         .topbar-search-box{flex:1 1 auto;max-width:640px;min-width:400px;display:flex;align-items:center;height:48px;background:var(--bg-input);border:1px solid var(--border-normal);border-radius:var(--radius-lg);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.28);transition:border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out)}
         .topbar-search-box:focus-within{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(245,158,11,0.12),inset 0 0 0 1px rgba(245,158,11,0.08)}
@@ -3335,8 +3336,8 @@ export default function Home() {
         transition={{duration:0.4,ease:'easeOut'}}
       >
         <div className="topbar-logo" onClick={()=>window.location.href='/'}>
-          <div style={{width:24,height:24,background:'#111116',borderRadius:7,border:'1px solid rgba(245,158,11,0.30)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,boxShadow:'inset 0 1px 0 rgba(255,255,255,0.06)'}}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <div style={{width:26,height:26,background:'#111116',borderRadius:8,border:'1px solid rgba(245,158,11,0.30)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,boxShadow:'inset 0 1px 0 rgba(255,255,255,0.06)'}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
               <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10Z" fill="#f59e0b"/>
             </svg>
           </div>
