@@ -3335,9 +3335,9 @@ export default function Home() {
         transition={{duration:0.4,ease:'easeOut'}}
       >
         <div className="topbar-logo" onClick={()=>window.location.href='/'}>
-          <div style={{width:24,height:24,background:'linear-gradient(135deg,#fbbf24,#f59e0b)',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,boxShadow:'0 1px 6px rgba(245,158,11,0.28),inset 0 1px 0 rgba(255,255,255,0.18)'}}>
+          <div style={{width:24,height:24,background:'#111116',borderRadius:7,border:'1px solid rgba(245,158,11,0.30)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,boxShadow:'inset 0 1px 0 rgba(255,255,255,0.06)'}}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10Z" fill="#111116"/>
+              <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10Z" fill="#f59e0b"/>
             </svg>
           </div>
           <span>Vegaply</span>
