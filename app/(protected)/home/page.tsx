@@ -1421,8 +1421,29 @@ function SkeletonRow() {
   );
 }
 
-function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, autoApplyScore, isAutoApplying, autoApplyLoadingStep, lm, index, quickMatches, handleQuickMatch, resumeText }: {
-  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;autoApplyScore?:number;isAutoApplying:boolean;autoApplyLoadingStep:string|null;lm?:boolean;index?:number;quickMatches?:Record<string,any>;handleQuickMatch?:(job:any)=>void;resumeText?:string;
+interface QueueJobStatus {
+  label: string;
+  color: string;
+  bg: string;
+  border: string;
+}
+
+function normQueueKey(title?: string | null, employer?: string | null): string {
+  const n = (s?: string | null) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 60);
+  return `${n(title)}|${n(employer)}`;
+}
+
+function resolveAutoApplyStatus(status: string, tailored: string | null): QueueJobStatus | null {
+  if (status === 'applied') return { label: '✓ Sent to You', color: '#10b981', bg: 'rgba(16,185,129,0.10)', border: 'rgba(16,185,129,0.22)' };
+  if (status === 'failed') return { label: '✗ Failed', color: '#ef4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.20)' };
+  if (status === 'skipped') return { label: '— Skipped', color: 'rgba(255,255,255,0.35)', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.10)' };
+  if (status === 'pending' && tailored) return { label: '⚡ Ready', color: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.22)' };
+  if (status === 'pending') return { label: '⏳ Queued', color: 'rgba(255,255,255,0.55)', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.10)' };
+  return null;
+}
+
+function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onCoverLetter, onSkillGap, earlyBirdMode, resumeReady, isTracked, onTrack, onMatchResume, onAutoApply, autoApplyResult, autoApplyScore, isAutoApplying, autoApplyLoadingStep, lm, index, quickMatches, handleQuickMatch, resumeText, queueStatus }: {
+  job: JobWithMatch;saved:boolean;onToggleSave:()=>void;onClick:()=>void;onTailor:()=>void;onInterview:()=>void;onCoverLetter:()=>void;onSkillGap:()=>void;earlyBirdMode:boolean;resumeReady:boolean;isTracked:boolean;onTrack:()=>void;onMatchResume:()=>void;onAutoApply:()=>void;autoApplyResult:'applied'|'low_match'|null;autoApplyScore?:number;isAutoApplying:boolean;autoApplyLoadingStep:string|null;lm?:boolean;index?:number;quickMatches?:Record<string,any>;handleQuickMatch?:(job:any)=>void;resumeText?:string;queueStatus?:QueueJobStatus|null;
 }) {
   const loc=[job.job_city,job.job_state].filter(Boolean).join(", ")||job.job_country||"";
   const badge=empBadge(job.job_employment_type);
@@ -1539,6 +1560,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {ebStatus.isEarly&&!ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:'rgba(245,158,11,0.10)',color:'#f59e0b',border:'1px solid rgba(245,158,11,0.20)',fontFamily:'var(--font-primary)'}}>⚡ Still Early</span>}
           {h1bStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:h1bStatus.sponsors?'rgba(142,178,155,0.10)':'rgba(214,178,104,0.08)',color:h1bStatus.sponsors?'#8eb29b':'#d6b268',border:h1bStatus.sponsors?'1px solid rgba(142,178,155,0.20)':'1px solid rgba(214,178,104,0.18)',fontFamily:'var(--font-primary)'}}>{h1bStatus.sponsors?'✓ H1B':'~ H1B Likely'}</span>}
           {(()=>{const hrs=ebStatus.hoursOld;const count=hrs<=1?'~2':hrs<=3?'~8':hrs<=6?'~18':hrs<=12?'~40':hrs<=24?'~80':hrs<=48?'~150':'200+';const isLow=hrs<=12;return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:isLow?'rgba(142,178,155,0.08)':'rgba(239,68,68,0.06)',color:isLow?'#8eb29b':'rgba(239,68,68,0.6)',border:isLow?'1px solid rgba(142,178,155,0.16)':'1px solid rgba(239,68,68,0.12)',fontFamily:'var(--font-primary)'}}>👤 {count} applicants</span>})()}
+          {queueStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:queueStatus.bg,color:queueStatus.color,border:`1px solid ${queueStatus.border}`,fontFamily:'var(--font-primary)',letterSpacing:'0.2px'}}>{queueStatus.label}</span>}
         </div>
 
         <p className="card-desc">
@@ -1978,6 +2000,9 @@ export default function Home() {
   const [autoApplyCount,setAutoApplyCount]=useState(0);
   const [autoApplying,setAutoApplying]=useState<string|null>(null);
   const [autoApplyResults,setAutoApplyResults]=useState<Record<string,'applied'|'low_match'>>({});
+  const [queueByJobId,setQueueByJobId]=useState<Record<string,QueueJobStatus>>({});
+  const [queueByTitleEmployer,setQueueByTitleEmployer]=useState<Record<string,QueueJobStatus>>({});
+  const [queueStats,setQueueStats]=useState<{total:number;ready:number;sent:number;failed:number}|null>(null);
   const [autoApplyScores,setAutoApplyScores]=useState<Record<string,number>>({});
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
   const [autoApplyLoadingStep, setAutoApplyLoadingStep] = useState<string | null>(null);
@@ -2015,6 +2040,32 @@ export default function Home() {
     if(savedRole)setJobRole(savedRole);
     if(savedLocation)setLocation(savedLocation);
     if(!savedRole&&loadedPrefs.jobTitles){const titles=loadedPrefs.jobTitles.split(',').map((t:string)=>t.trim()).filter(Boolean);if(titles.length>0)setJobRole(titles[0]);}
+    supabase.auth.getUser().then(({data:authData})=>{
+      const uid=authData.user?.id;
+      if(!uid)return;
+      const today=new Date().toISOString().slice(0,10);
+      supabase.from('daily_queue').select('job_id,job_title,employer_name,status,tailored_resume_text').eq('user_id',uid).eq('queue_date',today).then(({data:qRows})=>{
+        if(!qRows?.length)return;
+        const byId:Record<string,QueueJobStatus>={};
+        const byTitle:Record<string,QueueJobStatus>={};
+        let ready=0,sent=0,failed=0;
+        for(const r of qRows){
+          const st=r.status as string;
+          const tl=r.tailored_resume_text as string|null;
+          if(st==='applied')sent++;
+          else if(st==='failed')failed++;
+          else if(st==='pending'&&tl)ready++;
+          const s=resolveAutoApplyStatus(st,tl);
+          if(!s)continue;
+          if(r.job_id)byId[r.job_id as string]=s;
+          const tk=normQueueKey(r.job_title as string,r.employer_name as string);
+          if(tk)byTitle[tk]=s;
+        }
+        setQueueByJobId(byId);
+        setQueueByTitleEmployer(byTitle);
+        setQueueStats({total:qRows.length,ready,sent,failed});
+      });
+    });
     if(!savedRole||!savedLocation)return;
     if(savedRole&&savedLocation){
       setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
@@ -3447,6 +3498,16 @@ export default function Home() {
                         <div style={{fontSize:12,fontWeight:500,color:'var(--text-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userEmail}</div>
                       </div>
                     )}
+                    <a
+                      href="/auto-apply"
+                      onClick={()=>setShowAvatarMenu(false)}
+                      style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:8,border:'none',background:'transparent',color:'var(--text-secondary)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'var(--font-primary)',transition:'background 0.15s',textDecoration:'none'}}
+                      onMouseEnter={e=>(e.currentTarget.style.background='var(--bg-hover)')}
+                      onMouseLeave={e=>(e.currentTarget.style.background='transparent')}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                      Application Queue
+                    </a>
                     <button
                       onClick={()=>{toggleTheme();setShowAvatarMenu(false);}}
                       style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:8,border:'none',background:'transparent',color:'var(--text-secondary)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'var(--font-primary)',transition:'background 0.15s'}}
@@ -3821,6 +3882,47 @@ export default function Home() {
 
               {autoOpenDone&&<div style={{background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:12,fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:8}}>🚀 Opened top 3 matches in new tabs!</div>}
 
+              {queueStats&&queueStats.total>0&&(
+                <div style={{background:'linear-gradient(135deg,rgba(245,158,11,0.09),rgba(251,191,36,0.05))',border:'1px solid rgba(245,158,11,0.22)',borderRadius:14,padding:'16px 20px',marginBottom:18,display:'flex',alignItems:'center',justifyContent:'space-between',gap:20,flexWrap:'wrap',boxShadow:'0 2px 12px rgba(245,158,11,0.06)'}}>
+                  <div style={{flex:1,minWidth:180}}>
+                    <div style={{fontFamily:'var(--font-display)',fontSize:14,fontWeight:800,color:'#fbbf24',letterSpacing:'-0.3px',marginBottom:5,display:'flex',alignItems:'center',gap:7}}>
+                      <span style={{fontSize:15}}>🗂</span> Today&apos;s Application Queue
+                    </div>
+                    <div style={{fontSize:12,color:darkMode?'rgba(255,255,255,0.50)':'rgba(0,0,0,0.52)',lineHeight:1.5}}>
+                      <strong style={{color:darkMode?'rgba(255,255,255,0.75)':'rgba(0,0,0,0.75)'}}>{queueStats.total} roles</strong> selected today. Review generated resumes and cover letters before applying.
+                    </div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{textAlign:'center'}}>
+                        <div style={{fontSize:20,fontWeight:800,color:darkMode?'#fff':'#111',lineHeight:1}}>{queueStats.total}</div>
+                        <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Total</div>
+                      </div>
+                      <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
+                      <div style={{textAlign:'center'}}>
+                        <div style={{fontSize:20,fontWeight:800,color:'#f59e0b',lineHeight:1}}>{queueStats.ready}</div>
+                        <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Ready</div>
+                      </div>
+                      <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
+                      <div style={{textAlign:'center'}}>
+                        <div style={{fontSize:20,fontWeight:800,color:'#10b981',lineHeight:1}}>{queueStats.sent}</div>
+                        <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Sent to You</div>
+                      </div>
+                      {queueStats.failed>0&&<>
+                        <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
+                        <div style={{textAlign:'center'}}>
+                          <div style={{fontSize:20,fontWeight:800,color:'#ef4444',lineHeight:1}}>{queueStats.failed}</div>
+                          <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Failed</div>
+                        </div>
+                      </>}
+                    </div>
+                    <a href="/auto-apply" style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(245,158,11,0.18)',border:'1px solid rgba(245,158,11,0.38)',borderRadius:9,padding:'9px 16px',fontSize:12,fontWeight:700,color:'#fbbf24',textDecoration:'none',whiteSpace:'nowrap',flexShrink:0,fontFamily:'var(--font-primary)',letterSpacing:'-0.1px'}}>
+                      View Queue <span style={{fontSize:14,lineHeight:1,marginTop:1}}>→</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {currentLoading&&(
                 <div className="jobs-grid" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
                   {[...Array(5)].map((_,i)=><SkeletonRow key={i}/>)}
@@ -3861,6 +3963,7 @@ export default function Home() {
                         quickMatches={quickMatches}
                         handleQuickMatch={handleQuickMatch}
                         resumeText={resumeText}
+                        queueStatus={queueByJobId[job.job_id]??queueByTitleEmployer[normQueueKey(job.job_title,job.employer_name)]??null}
                       />
                     ))}
                     </AnimatePresence>

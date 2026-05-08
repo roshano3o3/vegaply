@@ -1,0 +1,269 @@
+import { NextResponse } from "next/server";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { generateApplicationContent } from "@/lib/ai/generate-application-content";
+
+export const maxDuration = 300;
+
+// ── Config ────────────────────────────────────────────────────────────────────
+
+const BATCH_SIZE = 5; // rows per invocation — safe for serverless + AI latency
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface ProcessRequest {
+  user_id?:  string;
+  queue_id?: string;
+}
+
+type RowOutcome = "generated" | "failed" | "skipped";
+
+interface RowDetail {
+  id:            string;
+  user_id:       string;
+  job_id:        string;
+  job_title:     string | null;
+  employer_name: string | null;
+  outcome:       RowOutcome;
+  error?:        string;
+  duration_ms:   number;
+}
+
+interface ProcessResult {
+  processed:   number;
+  generated:   number;
+  failed:      number;
+  skipped:     number;
+  partial:     boolean;
+  duration_ms: number;
+  details:     RowDetail[];
+}
+
+interface ErrorResult {
+  error: string;
+}
+
+interface QueueRow {
+  id:              string;
+  user_id:         string;
+  job_id:          string;
+  job_title:       string | null;
+  employer_name:   string | null;
+  job_description: string | null;
+}
+
+// ── Auth — same verifySecret pattern as build route ───────────────────────────
+
+function verifySecret(req: Request): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  return req.headers.get("authorization") === `Bearer ${secret}`;
+}
+
+// ── Queue row selection ───────────────────────────────────────────────────────
+//
+// Pending = status 'pending' AND tailored_resume_text IS NULL.
+// Rows already generated (tailored_resume_text IS NOT NULL) are skipped
+// so re-runs never overwrite content.
+// Failed rows are also skipped — they must be manually reset to retry.
+
+async function selectPendingRows(
+  supabase: SupabaseClient,
+  today:    string,
+  userId?:  string,
+  queueId?: string,
+): Promise<QueueRow[]> {
+  let q = supabase
+    .from("daily_queue")
+    .select("id, user_id, job_id, job_title, employer_name, job_description")
+    .eq("status", "pending")
+    .is("tailored_resume_text", null)
+    .eq("queue_date", today)
+    .order("match_score", { ascending: false })
+    .limit(BATCH_SIZE);
+
+  if (queueId) {
+    q = q.eq("id", queueId);
+  } else if (userId) {
+    q = q.eq("user_id", userId);
+  }
+
+  const { data, error } = await q;
+  if (error) throw new Error(`Queue query failed: ${error.message}`);
+  return (data ?? []) as QueueRow[];
+}
+
+// ── Profile loader — resume text cached per user within one run ───────────────
+
+async function loadResumeText(
+  supabase: SupabaseClient,
+  userId:   string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("resume_text")
+    .eq("id", userId)
+    .single();
+  return (data?.resume_text as string | null) ?? null;
+}
+
+// ── Row processor ─────────────────────────────────────────────────────────────
+
+async function processOneRow(
+  supabase:    SupabaseClient,
+  row:         QueueRow,
+  resumeText:  string,
+): Promise<RowOutcome> {
+  try {
+    const { tailored_resume_text, cover_letter_text } = await generateApplicationContent({
+      resumeText,
+      job: {
+        job_title:       row.job_title       ?? "Unknown Role",
+        employer_name:   row.employer_name   ?? "Unknown Company",
+        job_description: row.job_description ?? "",
+      },
+    });
+
+    // status stays 'pending' — this row is content-ready, awaiting the apply step.
+    // The apply step will distinguish generated rows via tailored_resume_text IS NOT NULL.
+    const { error } = await supabase
+      .from("daily_queue")
+      .update({ tailored_resume_text, cover_letter_text })
+      .eq("id", row.id);
+
+    if (error) throw new Error(`DB update failed: ${error.message}`);
+    return "generated";
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await supabase
+      .from("daily_queue")
+      .update({
+        status:        "failed",
+        error_message: msg.slice(0, 500),
+      })
+      .eq("id", row.id);
+    return "failed";
+  }
+}
+
+// ── Core runner (shared by GET and POST) ─────────────────────────────────────
+
+async function runProcess(
+  userId?:  string,
+  queueId?: string,
+): Promise<NextResponse<ProcessResult | ErrorResult>> {
+  const start    = Date.now();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  let rows: QueueRow[];
+  try {
+    rows = await selectPendingRows(supabase, today, userId, queueId);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    console.error("[daily-queue/process] select failed:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+
+  let generated  = 0;
+  let failed     = 0;
+  let skipped    = 0;
+  let processed  = 0;
+  let partial    = false;
+  const details: RowDetail[] = [];
+
+  // Resume text cached per user — one profile lookup per user, not per row
+  const resumeCache = new Map<string, string | null>();
+
+  for (const row of rows) {
+    // Guard: stop within 30 s of Vercel maxDuration wall
+    if (Date.now() - start > 270_000) {
+      partial = true;
+      break;
+    }
+
+    const rowStart = Date.now();
+    processed++;
+
+    // Load and cache resume text per user
+    if (!resumeCache.has(row.user_id)) {
+      const rt = await loadResumeText(supabase, row.user_id);
+      resumeCache.set(row.user_id, rt);
+    }
+    const resumeText = resumeCache.get(row.user_id) ?? null;
+
+    if (!resumeText) {
+      skipped++;
+      details.push({
+        id:            row.id,
+        user_id:       row.user_id,
+        job_id:        row.job_id,
+        job_title:     row.job_title,
+        employer_name: row.employer_name,
+        outcome:       "skipped",
+        error:         "no_resume_text",
+        duration_ms:   Date.now() - rowStart,
+      });
+      continue;
+    }
+
+    const outcome = await processOneRow(supabase, row, resumeText);
+    if (outcome === "generated") generated++;
+    else failed++;
+
+    details.push({
+      id:            row.id,
+      user_id:       row.user_id,
+      job_id:        row.job_id,
+      job_title:     row.job_title,
+      employer_name: row.employer_name,
+      outcome,
+      duration_ms:   Date.now() - rowStart,
+    });
+
+    console.log(
+      `[daily-queue/process] row=${row.id} job="${row.job_title}" outcome=${outcome} ms=${Date.now() - rowStart}`,
+    );
+  }
+
+  // Signal to caller that more rows may remain
+  if (!partial && rows.length === BATCH_SIZE) partial = true;
+
+  return NextResponse.json({
+    processed,
+    generated,
+    failed,
+    skipped,
+    partial,
+    duration_ms: Date.now() - start,
+    details,
+  });
+}
+
+// ── HTTP handlers ─────────────────────────────────────────────────────────────
+
+export async function GET(
+  req: Request,
+): Promise<NextResponse<ProcessResult | ErrorResult>> {
+  if (!verifySecret(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const params  = new URL(req.url).searchParams;
+  const userId  = params.get("user_id")  ?? undefined;
+  const queueId = params.get("queue_id") ?? undefined;
+  return runProcess(userId, queueId);
+}
+
+export async function POST(
+  req: Request,
+): Promise<NextResponse<ProcessResult | ErrorResult>> {
+  if (!verifySecret(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  let body: ProcessRequest = {};
+  try { body = await req.json(); } catch { /* no body is fine */ }
+  return runProcess(body.user_id, body.queue_id);
+}
