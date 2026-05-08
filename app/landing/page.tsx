@@ -23,16 +23,16 @@ interface ActivityItem {
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
-const MORPH_WORDS = ['scams.', 'scrapers.', 'vendors.', 'middlemen.']
+const MORPH_WORDS = ['prepared by AI.', 'tailored for you.', 'sent to Gmail.', 'ready to apply.']
 
 const TICKER_DATA = [
   '5 job sources combined',
   '70+ H1B sponsors verified',
-  'AI-powered resume matching',
+  'AI resume tailoring per job',
   'Real-time job updates',
-  'Auto cover letter generation',
-  'Direct ATS applications',
-  'Built for F-1 students',
+  'Cover letter generation',
+  'Gmail apply-ready emails',
+  'Kanban application tracker',
 ]
 
 const ACTIVITY_ITEMS: ActivityItem[] = [
@@ -89,16 +89,40 @@ const FEATURES = [
   },
 ]
 
-const FLOATING_CARDS = [
-  { icon: '⚡', title: 'Fresh Jobs', desc: 'Posted in last 24h' },
-  { icon: '🤖', title: 'AI Match Score', desc: 'Know your fit instantly' },
-  { icon: '✂️', title: 'Tailored Resume', desc: 'ATS keywords baked in' },
-  { icon: '🎯', title: 'Interview Prep', desc: 'Likely Q&A generated' },
-  { icon: '📊', title: 'Tracker', desc: 'Applied → Offer pipeline' },
+const HOW_STEPS = [
+  {
+    num: '01',
+    icon: '🎯',
+    title: 'Match',
+    desc: 'We scan 5 job sources daily and score every listing against your resume and target roles.',
+  },
+  {
+    num: '02',
+    icon: '✍️',
+    title: 'Tailor',
+    desc: 'AI rewrites your resume for each job — ATS keywords, skills alignment, tone.',
+  },
+  {
+    num: '03',
+    icon: '📬',
+    title: 'Email',
+    desc: 'Your tailored application lands in Gmail, ready to send with one click.',
+  },
+  {
+    num: '04',
+    icon: '📊',
+    title: 'Track',
+    desc: 'Every application logged on a Kanban board. Know your pipeline at a glance.',
+  },
 ]
 
-// ─── Grain noise SVG data URI ─────────────────────────────────────────────────
-const GRAIN_URL = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+const QUEUE_PREVIEW_ROWS = [
+  { company: 'S', title: 'Data Analyst', co: 'Stripe · Remote', score: 94, status: 'ready' },
+  { company: 'G', title: 'ML Engineer', co: 'Google · Mountain View', score: 88, status: 'ready' },
+  { company: 'N', title: 'Product Manager', co: 'Notion · SF', score: 81, status: 'ready' },
+  { company: 'M', title: 'Software Engineer', co: 'Meta · NYC', score: 76, status: 'ready' },
+  { company: 'D', title: 'Business Analyst', co: 'Databricks · Remote', score: 71, status: 'ready' },
+]
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function VegaplyPro() {
@@ -120,7 +144,7 @@ export default function VegaplyPro() {
 
   // State
   const [showDemo, setShowDemo] = useState(false)
-  const [morphWord, setMorphWord] = useState('scams.')
+  const [morphWord, setMorphWord] = useState('prepared by AI.')
   const [morphVisible, setMorphVisible] = useState(true)
   const [countersStarted, setCountersStarted] = useState(false)
   const [c1, setC1] = useState('0')
@@ -459,7 +483,7 @@ export default function VegaplyPro() {
             <a href="#features">Features</a>
           </li>
           <li>
-            <a href="#how">How it works</a>
+            <a href="#how-overview">How it works</a>
           </li>
           <li>
             <a href="#stories">Stories</a>
@@ -516,11 +540,11 @@ export default function VegaplyPro() {
 
           {/* Main headline with morphing word */}
           <h1 ref={heroHeadlineRef} className="hero-headline">
-            <span className="static-text">Skip the </span>
+            <span className="static-text">Your daily jobs, </span>
             <span
               className={`hero-morph${morphVisible ? '' : ' hidden'}`}
               aria-live="polite"
-              aria-label={`Skip the ${morphWord}`}
+              aria-label={`Your daily jobs, ${morphWord}`}
             >
               {morphWord}
             </span>
@@ -528,18 +552,18 @@ export default function VegaplyPro() {
 
           {/* Sub-headline */}
           <p className="hero-sub hero-animate">
-            Stop applying. Start getting interviews.
+            Wake up to jobs already tailored for you.
           </p>
 
           {/* Body */}
           <p className="hero-body hero-animate">
-            Vegaply does your entire job search — better, faster, smarter.
+            Every morning Vegaply finds fresh roles, rewrites your resume for each one, and drops an apply-ready email in your Gmail. You just click send.
           </p>
 
           {/* CTA row */}
           <div className="hero-cta-row hero-animate">
             <Link href="/signup" className="btn-primary btn-primary-lg">
-              Start free →
+              Start free — 5 daily packs
             </Link>
             <button className="btn-ghost btn-ghost-lg btn-watch-demo" onClick={() => setShowDemo(true)}>
               <span className="watch-demo-icon"><Play size={16} /></span>
@@ -549,8 +573,33 @@ export default function VegaplyPro() {
 
           {/* Trust line */}
           <p className="hero-trust hero-animate">
-            AI-tailored resumes for every job · 70+ H1B sponsors verified
+            Free: 5 daily packs · Pro: 20 daily packs · H1B-friendly filters · Gmail Apply Now
           </p>
+        </div>
+
+        {/* Floating mini-cards — visible only at ≥1380px where gap beside hero-content is ≥240px */}
+        <div className="hero-float-cards" aria-hidden="true">
+          <div className="hero-float-card hero-float-card-1">
+            <div className="hero-float-card-icon">📬</div>
+            <div className="hero-float-card-text">
+              <div className="hero-float-card-title">Sent to Gmail</div>
+              <div className="hero-float-card-desc">Apply-ready in your inbox</div>
+            </div>
+          </div>
+          <div className="hero-float-card hero-float-card-2">
+            <div className="hero-float-card-icon">🤖</div>
+            <div className="hero-float-card-text">
+              <div className="hero-float-card-title">AI-tailored resume</div>
+              <div className="hero-float-card-desc">Keywords matched per job</div>
+            </div>
+          </div>
+          <div className="hero-float-card hero-float-card-3">
+            <div className="hero-float-card-icon">⚡</div>
+            <div className="hero-float-card-text">
+              <div className="hero-float-card-title">Fresh daily</div>
+              <div className="hero-float-card-desc">Jobs posted in last 24h</div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -562,6 +611,27 @@ export default function VegaplyPro() {
               <span className="ticker-dot" />
               {d}
             </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── HOW IT WORKS OVERVIEW ──────────────────────────────────────────────── */}
+      <div className="how-overview-section gsap-reveal" id="how-overview">
+        <p className="eyebrow">How it works</p>
+        <h2 className="section-title">
+          Four steps. Zero <em>manual work.</em>
+        </h2>
+        <p className="section-body how-overview-body">
+          Vegaply runs your job search while you sleep. Every morning your queue is ready.
+        </p>
+        <div className="how-steps-grid">
+          {HOW_STEPS.map((s, i) => (
+            <div key={i} className="how-step-item">
+              <div className="how-step-num">{s.num}</div>
+              <div className="how-step-icon">{s.icon}</div>
+              <h3 className="how-step-title">{s.title}</h3>
+              <p className="how-step-desc">{s.desc}</p>
+            </div>
           ))}
         </div>
       </div>
@@ -778,12 +848,12 @@ export default function VegaplyPro() {
       {/* ── GLOW DIVIDER ───────────────────────────────────────────────────────── */}
       <div className="glow-divider" />
 
-      {/* ── PINNED HOW IT WORKS ────────────────────────────────────────────────── */}
+      {/* ── PINNED HOW IT WORKS DEEP DIVE ─────────────────────────────────────── */}
       <section
         ref={pinSectionRef}
         className="pin-section"
         id="how"
-        aria-label="How it works"
+        aria-label="How it works deep dive"
       >
         {/* Left: sticky text */}
         <div ref={pinLeftRef} className="pin-left">
@@ -792,21 +862,20 @@ export default function VegaplyPro() {
           {/* Switching headlines */}
           <div ref={headlineRef} className="pin-headline-wrap">
             <h2 className="pin-headline">
-              We index <em>70+ H1B sponsors</em> and match every job to your
-              profile.
+              We scan <em>5 job sources</em> and score every listing against your profile.
             </h2>
             <h2 className="pin-headline">
-              We auto-apply with <em>tailored resumes</em> and cover letters.
+              We tailor your resume <em>for each role</em> and deliver it to your Gmail.
             </h2>
             <h2 className="pin-headline">
-              You get <em>interviews.</em> Not noise.
+              You apply with <em>one click.</em> We handle the rest.
             </h2>
           </div>
 
           <p className="pin-body">
             Most job boards only show listings. Vegaply finds fresh roles,
-            scores your match, tailors your resume, and applies — all from one
-            smart dashboard.
+            scores your match, tailors your resume, and sends an apply-ready
+            email — all automatically, every morning.
           </p>
 
           {/* Step progress nav */}
@@ -815,23 +884,23 @@ export default function VegaplyPro() {
               <div>
                 <div className="pin-step-label">Step 1 — Match</div>
                 <div className="pin-step-desc">
-                  We index 70+ H1B sponsors and match every job to your profile.
+                  We scan 5 sources and score every job against your resume.
                 </div>
               </div>
             </div>
             <div className="pin-step-dot" role="listitem">
               <div>
-                <div className="pin-step-label">Step 2 — Apply</div>
+                <div className="pin-step-label">Step 2 — Tailor &amp; Send</div>
                 <div className="pin-step-desc">
-                  We auto-apply with tailored resumes and cover letters.
+                  AI rewrites your resume for each role and sends it to Gmail.
                 </div>
               </div>
             </div>
             <div className="pin-step-dot" role="listitem">
               <div>
-                <div className="pin-step-label">Step 3 — Win</div>
+                <div className="pin-step-label">Step 3 — Apply</div>
                 <div className="pin-step-desc">
-                  You get interviews. Not noise.
+                  You click send. One email. One application. Done.
                 </div>
               </div>
             </div>
@@ -847,7 +916,7 @@ export default function VegaplyPro() {
               Match
             </div>
             <h3 className="pin-card-headline">
-              70+ H1B sponsors, matched to you.
+              5 sources. Scored against your resume.
             </h3>
             <p className="pin-card-body">
               Our AI scores your resume against every fresh listing and surfaces
@@ -896,56 +965,55 @@ export default function VegaplyPro() {
             </div>
           </div>
 
-          {/* Step 2: Apply — Typing cover letter */}
+          {/* Step 2: Tailor & Send */}
           <div ref={step2Ref} className="pin-card">
             <div className="pin-card-step">
               <div className="pin-card-num">2</div>
-              Apply
+              Tailor &amp; Send
             </div>
             <h3 className="pin-card-headline">
-              Tailored cover letter, written instantly.
+              Resume rewritten. Delivered to Gmail.
             </h3>
             <p className="pin-card-body">
-              Vegaply rewrites your resume for each opening and generates a
-              personalized cover letter — all in one click.
+              Vegaply rewrites your resume for each opening and sends an
+              apply-ready email to your inbox — tailored keywords, tone, and cover note included.
             </p>
             <div className="mock-letter">
-              <div className="mock-letter-header">Cover letter · Stripe DA role</div>
+              <div className="mock-letter-header">Gmail · Tailored pack · Stripe DA role</div>
               <span className="typing-cursor">
-                Dear Hiring Manager, I am excited to apply for the Data
-                Analyst role at Stripe. My 3 years of Python and SQL
-                experience aligns perfectly with your requirements for
-                data-driven decision making...
+                Resume tailored for Data Analyst at Stripe. Key skills
+                highlighted: Python, SQL, Tableau. ATS keywords matched.
+                One-click apply link included...
               </span>
             </div>
           </div>
 
-          {/* Step 3: Win — Interview notifications */}
+          {/* Step 3: Apply */}
           <div ref={step3Ref} className="pin-card">
             <div className="pin-card-step">
               <div className="pin-card-num">3</div>
-              Win
+              Apply
             </div>
             <h3 className="pin-card-headline">
-              Interviews arrive. Not silence.
+              Open Gmail. Click send. Done.
             </h3>
             <p className="pin-card-body">
-              Apply faster than the competition, tailored for every role. You
-              show up prepared. The offers follow.
+              Your morning queue arrives in Gmail — each job with a tailored resume
+              and cover letter, ready to send. Apply in seconds, not hours.
             </p>
             <div className="mock-notifications">
+              <div className="mock-notif">
+                <div className="notif-icon">📬</div>
+                <div className="notif-text">
+                  <div className="notif-title">5 packs ready in Gmail</div>
+                  <div className="notif-sub">Stripe, Google, Notion, Meta, Databricks</div>
+                </div>
+              </div>
               <div className="mock-notif">
                 <div className="notif-icon">🎉</div>
                 <div className="notif-text">
                   <div className="notif-title">Interview scheduled</div>
                   <div className="notif-sub">Stripe — Data Analyst · Tomorrow 2pm</div>
-                </div>
-              </div>
-              <div className="mock-notif">
-                <div className="notif-icon">📞</div>
-                <div className="notif-text">
-                  <div className="notif-title">Recruiter reached out</div>
-                  <div className="notif-sub">Google — ML Engineer · Today</div>
                 </div>
               </div>
               <div className="mock-notif">
@@ -980,10 +1048,9 @@ export default function VegaplyPro() {
                 transition={{ duration: 0.44, ease: 'easeInOut' }}
               >
                 <h3>
-                  {FLOATING_CARDS[floatIdx].icon}{' '}
-                  {FLOATING_CARDS[floatIdx].title}
+                  {['⚡ Fresh Jobs', '🤖 AI Match Score', '✂️ Tailored Resume', '🎯 Interview Prep', '📊 Tracker'][floatIdx]}
                 </h3>
-                <p>{FLOATING_CARDS[floatIdx].desc}</p>
+                <p>{['Posted in last 24h', 'Know your fit instantly', 'ATS keywords baked in', 'Likely Q&A generated', 'Applied → Offer pipeline'][floatIdx]}</p>
               </motion.div>
             </AnimatePresence>
           </div>
@@ -1090,6 +1157,48 @@ export default function VegaplyPro() {
       {/* ── GLOW DIVIDER ───────────────────────────────────────────────────────── */}
       <div className="glow-divider" />
 
+      {/* ── QUEUE PREVIEW ──────────────────────────────────────────────────────── */}
+      <div className="queue-preview-section gsap-reveal" id="preview">
+        <p className="eyebrow">Product preview</p>
+        <h2 className="section-title">
+          Your morning queue, <em>ready.</em>
+        </h2>
+        <p className="section-body queue-preview-body">
+          Every morning Vegaply builds your personalized queue — jobs matched, resumes tailored, Gmail emails ready to send.
+        </p>
+        <div className="queue-preview-card">
+          <div className="queue-preview-header">
+            <div className="queue-preview-date">
+              <span className="queue-preview-dot" />
+              Today&apos;s Auto Apply Queue
+            </div>
+            <div className="queue-preview-plan-badge">Free — 5 packs ready</div>
+          </div>
+          <div className="queue-preview-rows">
+            {QUEUE_PREVIEW_ROWS.map((row, i) => (
+              <div key={i} className="queue-preview-row">
+                <div className="queue-preview-logo">{row.company}</div>
+                <div className="queue-preview-info">
+                  <div className="queue-preview-title">{row.title}</div>
+                  <div className="queue-preview-co">{row.co}</div>
+                </div>
+                <div className="queue-preview-score">{row.score}%</div>
+                <div className="queue-preview-status">
+                  <span className="queue-status-dot" />
+                  Ready
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="queue-preview-footer">
+            <span className="queue-preview-footer-text">5 tailored packs · delivered to Gmail · updated daily</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── GLOW DIVIDER ───────────────────────────────────────────────────────── */}
+      <div className="glow-divider" />
+
       {/* ── FOUNDER NOTE ───────────────────────────────────────────────────────── */}
       <div className="founder-section reveal" id="stories">
         <p className="founder-eyebrow">From the founder</p>
@@ -1125,7 +1234,7 @@ export default function VegaplyPro() {
           Simple. <em>Transparent.</em>
         </h2>
         <p className="section-body" style={{ margin: '16px auto 0', textAlign: 'center' }}>
-          Start free forever. Upgrade when you want to apply on autopilot.
+          Start free forever. Upgrade when you&apos;re ready to apply on autopilot.
         </p>
 
         <div className="pricing-grid">
@@ -1133,9 +1242,21 @@ export default function VegaplyPro() {
           <div className="pricing-card pricing-free">
             <div className="pricing-tier-label">Free forever</div>
             <div className="pricing-price">$0</div>
-            <div className="pricing-period">For students testing the water</div>
+            <div className="pricing-period">For students starting their search</div>
             <div className="pricing-divider" />
             <ul className="pricing-features">
+              <li className="pricing-feature">
+                <span className="feature-check">✓</span>
+                <strong>5 daily application packs</strong>
+              </li>
+              <li className="pricing-feature">
+                <span className="feature-check">✓</span>
+                AI-tailored resume per job
+              </li>
+              <li className="pricing-feature">
+                <span className="feature-check">✓</span>
+                Gmail apply-ready delivery
+              </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
                 750+ fresh jobs daily
@@ -1154,14 +1275,6 @@ export default function VegaplyPro() {
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
-                Skill gap analysis
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Interview simulator
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
                 H1B sponsor filter
               </li>
               <li className="pricing-feature">
@@ -1170,15 +1283,7 @@ export default function VegaplyPro() {
               </li>
               <li className="pricing-feature feature-locked">
                 <span className="feature-x">✗</span>
-                Smart Apply (auto-prep)
-              </li>
-              <li className="pricing-feature feature-locked">
-                <span className="feature-x">✗</span>
                 Under 10 applicants tab
-              </li>
-              <li className="pricing-feature feature-locked">
-                <span className="feature-x">✗</span>
-                30 auto-applies per day
               </li>
               <li className="pricing-feature feature-locked">
                 <span className="feature-x">✗</span>
@@ -1205,6 +1310,10 @@ export default function VegaplyPro() {
             <ul className="pricing-features">
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
+                <strong>20 daily application packs</strong>
+              </li>
+              <li className="pricing-feature">
+                <span className="feature-check">✓</span>
                 Everything in Free
               </li>
               <li className="pricing-feature">
@@ -1214,10 +1323,6 @@ export default function VegaplyPro() {
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
                 <strong>Under 10 applicants</strong> tab
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                <strong>30 auto-applies</strong> per day
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
@@ -1256,21 +1361,20 @@ export default function VegaplyPro() {
       {/* ── CTA SECTION ────────────────────────────────────────────────────────── */}
       <section className="cta-section reveal" aria-label="Call to action">
         <div className="cta-glow" aria-hidden="true" />
-        <h2 className="cta-headline">Stop applying. Start getting interviews.</h2>
+        <h2 className="cta-headline">Your daily jobs, prepared.</h2>
         <p className="cta-sub">
-          Stop scrolling LinkedIn at 2 AM. Let AI do the heavy lifting while
-          you sleep.
+          Wake up to a queue of tailored applications. Free forever — upgrade when you&apos;re ready.
         </p>
         <div className="cta-buttons">
           <Link href="/signup" className="btn-primary btn-primary-lg">
-            Start free — no credit card
+            Start free — 5 daily packs
           </Link>
           <Link href="/login" className="btn-ghost btn-ghost-lg">
             Sign in →
           </Link>
         </div>
         <p className="cta-trust">
-          ✓ AI resume tailored to every job · ✓ 70+ H1B sponsors verified · ✓ Free to start
+          ✓ AI resume tailored to every job · ✓ 5 free packs daily · ✓ No credit card needed
         </p>
       </section>
 
@@ -1287,8 +1391,8 @@ export default function VegaplyPro() {
               </span>
             </Link>
             <p>
-              AI-powered job search for international students. Find, match,
-              and apply to H1B-sponsoring roles — faster than anyone else.
+              AI-powered job search for international students. Jobs matched,
+              resumes tailored, applications sent to Gmail — every morning.
             </p>
           </div>
 
@@ -1300,7 +1404,7 @@ export default function VegaplyPro() {
                 <a href="#features">Features</a>
               </li>
               <li>
-                <a href="#how">How it works</a>
+                <a href="#how-overview">How it works</a>
               </li>
               <li>
                 <a href="#pricing">Pricing</a>
