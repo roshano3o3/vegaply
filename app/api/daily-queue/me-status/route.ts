@@ -7,10 +7,12 @@ export const maxDuration = 15;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type DiagnosisReason = "no_subscription" | "profile_incomplete" | "queue_not_built" | "ready";
+type DiagnosisReason = "profile_incomplete" | "queue_not_built" | "ready";
 
 export interface MeStatusResult {
   has_active_subscription: boolean;
+  plan:                    "free" | "pro";
+  daily_limit:             number;
   profile_complete:        boolean;
   missing:                 string[];
   has_queue_today:         boolean;
@@ -91,14 +93,18 @@ export async function GET(): Promise<NextResponse<MeStatusResult | { error: stri
   const queueCount      = queueResult.count ?? 0;
   const hasQueueToday   = queueCount > 0;
 
+  const plan       = hasActiveSub ? "pro" : "free";
+  const dailyLimit = hasActiveSub ? 20 : 5;
+
   let reason: DiagnosisReason;
-  if (!hasActiveSub)      reason = "no_subscription";
-  else if (!profileComplete) reason = "profile_incomplete";
-  else if (!hasQueueToday)   reason = "queue_not_built";
-  else                       reason = "ready";
+  if (!profileComplete)    reason = "profile_incomplete";
+  else if (!hasQueueToday) reason = "queue_not_built";
+  else                     reason = "ready";
 
   return NextResponse.json({
     has_active_subscription: hasActiveSub,
+    plan,
+    daily_limit:             dailyLimit,
     profile_complete:        profileComplete,
     missing,
     has_queue_today:         hasQueueToday,

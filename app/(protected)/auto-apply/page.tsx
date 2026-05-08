@@ -30,11 +30,13 @@ interface StatusStyle {
 
 interface MeStatusResult {
   has_active_subscription: boolean;
+  plan:                    "free" | "pro";
+  daily_limit:             number;
   profile_complete:        boolean;
   missing:                 string[];
   has_queue_today:         boolean;
   queue_count:             number;
-  reason: "no_subscription" | "profile_incomplete" | "queue_not_built" | "ready";
+  reason: "profile_incomplete" | "queue_not_built" | "ready";
 }
 
 // ── Status helper ─────────────────────────────────────────────────────────────
@@ -482,12 +484,6 @@ const CTA_BTN: React.CSSProperties = {
   color: "#f59e0b", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
   textDecoration: "none",
 };
-const CTA_DISABLED: React.CSSProperties = {
-  display: "inline-block", padding: "10px 22px", borderRadius: 9,
-  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-  color: "#6b6b75", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
-  cursor: "not-allowed",
-};
 
 function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
   if (!meStatus) {
@@ -500,24 +496,15 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
     );
   }
 
-  if (meStatus.reason === "no_subscription") {
-    return (
-      <div style={EMPTY_CARD}>
-        <div style={{ fontSize: 36, marginBottom: 16 }}>⭐</div>
-        <p style={EMPTY_TITLE}>Upgrade to receive daily applications</p>
-        <p style={{ ...EMPTY_BODY, marginBottom: 24 }}>
-          Vegaply prepares daily application packs for Pro users.
-        </p>
-        <span style={CTA_DISABLED}>View Plans</span>
-      </div>
-    );
-  }
-
   if (meStatus.reason === "profile_incomplete") {
+    const packCount = meStatus.daily_limit;
+    const packLabel = meStatus.plan === "free"
+      ? `${packCount} free daily application packs`
+      : `${packCount} daily application packs`;
     return (
       <div style={EMPTY_CARD}>
         <div style={{ fontSize: 36, marginBottom: 16 }}>📝</div>
-        <p style={EMPTY_TITLE}>Complete your profile to receive daily applications</p>
+        <p style={EMPTY_TITLE}>Complete your profile to receive {packLabel}.</p>
         <p style={{ ...EMPTY_BODY, marginBottom: 20 }}>
           Vegaply needs your role, location, and resume before building your queue.
         </p>
@@ -544,10 +531,14 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
   }
 
   // reason === "queue_not_built" or "ready" with 0 rows visible
+  const packCount = meStatus?.daily_limit ?? 5;
+  const packLabel = meStatus?.plan === "free"
+    ? `Your ${packCount} free daily application packs`
+    : `Your ${packCount} daily application packs`;
   return (
     <div style={EMPTY_CARD}>
       <div style={{ fontSize: 36, marginBottom: 16 }}>⏳</div>
-      <p style={EMPTY_TITLE}>Your daily queue has not been built yet</p>
+      <p style={EMPTY_TITLE}>{packLabel} have not been built yet.</p>
       <p style={EMPTY_BODY}>Your application queue runs each morning. Check back soon.</p>
     </div>
   );

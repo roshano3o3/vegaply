@@ -13,6 +13,7 @@ interface BuildResult {
   users_processed: number;
   total_queued:    number;
   per_user:        Record<string, number>;
+  plans:           Record<string, "free" | "pro">;
   skipped:         SkippedUser[];
   partial:         boolean;
   duration_ms:     number;
@@ -32,6 +33,7 @@ interface SkippedUser {
 interface UserTarget {
   user_id:     string;
   daily_limit: number;
+  plan:        "free" | "pro";
   resume_text: string | null;
   location:    string | null;
   roles:       string[];    // resolved from default_roles or job_role
@@ -65,61 +67,99 @@ function verifySecret(req: Request): boolean {
 }
 
 // ── Load users ────────────────────────────────────────────────────────────────
+//
+// Free users : every row in profiles — daily_limit = 5
+// Pro users  : active subscriptions — daily_limit = min(sub.daily_limit ?? 20, 20)
+// When a user has both, Pro wins (higher limit).
 
 async function loadTargetUsers(
   supabase:     SupabaseClient,
   singleUserId: string | undefined,
   today:        string,
 ): Promise<UserTarget[]> {
-  // 1. Active subscriptions (optionally scoped to one user)
-  let q = supabase
-    .from("subscriptions")
-    .select("user_id, daily_limit")
-    .eq("active", true)
-    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
-  if (singleUserId) q = q.eq("user_id", singleUserId);
+  const now = new Date().toISOString();
 
-  const { data: subs, error: subsErr } = await q;
-  if (subsErr || !subs?.length) return [];
+  // ── Single-user mode ────────────────────────────────────────────────────────
+  if (singleUserId) {
+    const [{ data: sub }, { data: p }] = await Promise.all([
+      supabase
+        .from("subscriptions")
+        .select("daily_limit")
+        .eq("user_id", singleUserId)
+        .eq("active", true)
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("id, resume_text, location, job_role, default_roles")
+        .eq("id", singleUserId)
+        .maybeSingle(),
+    ]);
 
-  const userIds = subs.map(s => s.user_id);
+    if (!p) return [];
 
-  // 2. Profiles for these users
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, resume_text, location, job_role, default_roles")
-    .in("id", userIds);
+    const plan       = sub ? "pro" : "free";
+    const dailyLimit = sub ? Math.min((sub.daily_limit as number | null) ?? 20, 20) : 5;
+    const rawRoles: string[] = Array.isArray(p.default_roles) && (p.default_roles as string[]).length
+      ? (p.default_roles as string[])
+      : p.job_role ? [p.job_role as string] : [];
 
-  const profileMap = new Map((profiles ?? []).map(p => [p.id, p]));
-
-  // 3. Find users who already have at least one queue row today (skip them in batch mode)
-  const alreadyQueued = new Set<string>();
-  if (!singleUserId) {
-    const { data: existing } = await supabase
-      .from("daily_queue")
-      .select("user_id")
-      .in("user_id", userIds)
-      .eq("queue_date", today);
-    for (const row of existing ?? []) alreadyQueued.add(row.user_id);
+    return [{
+      user_id:     singleUserId,
+      daily_limit: dailyLimit,
+      plan:        plan as "free" | "pro",
+      resume_text: (p.resume_text as string | null) ?? null,
+      location:    (p.location   as string | null) ?? null,
+      roles:       rawRoles.slice(0, 3),
+    }];
   }
 
-  // 4. Build target list
-  const targets: UserTarget[] = [];
-  for (const s of subs) {
-    if (alreadyQueued.has(s.user_id)) continue;
+  // ── Batch mode: all profiles users (free) + subscription users (pro) ────────
+  const [{ data: subs }, { data: profiles }] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("user_id, daily_limit")
+      .eq("active", true)
+      .or(`expires_at.is.null,expires_at.gt.${now}`),
+    supabase
+      .from("profiles")
+      .select("id, resume_text, location, job_role, default_roles"),
+  ]);
 
-    const p = profileMap.get(s.user_id);
-    const rawRoles: string[] = Array.isArray(p?.default_roles) && p.default_roles.length
-      ? p.default_roles
-      : p?.job_role
-        ? [p.job_role]
-        : [];
+  if (!profiles?.length) return [];
+
+  const proMap = new Map(
+    (subs ?? []).map(s => [s.user_id as string, s.daily_limit as number | null]),
+  );
+
+  const allUserIds = (profiles ?? []).map(p => p.id as string);
+
+  // Skip users who already have at least one queue row today
+  const { data: existing } = await supabase
+    .from("daily_queue")
+    .select("user_id")
+    .in("user_id", allUserIds)
+    .eq("queue_date", today);
+  const alreadyQueued = new Set((existing ?? []).map(r => r.user_id as string));
+
+  const targets: UserTarget[] = [];
+  for (const p of profiles ?? []) {
+    const userId = p.id as string;
+    if (alreadyQueued.has(userId)) continue;
+
+    const isPro      = proMap.has(userId);
+    const plan       = isPro ? "pro" as const : "free" as const;
+    const dailyLimit = isPro ? Math.min(proMap.get(userId) ?? 20, 20) : 5;
+    const rawRoles: string[] = Array.isArray(p.default_roles) && (p.default_roles as string[]).length
+      ? (p.default_roles as string[])
+      : p.job_role ? [p.job_role as string] : [];
 
     targets.push({
-      user_id:     s.user_id,
-      daily_limit: Math.min(s.daily_limit ?? 15, 15),
-      resume_text: p?.resume_text ?? null,
-      location:    p?.location ?? null,
+      user_id:     userId,
+      daily_limit: dailyLimit,
+      plan,
+      resume_text: (p.resume_text as string | null) ?? null,
+      location:    (p.location   as string | null) ?? null,
       roles:       rawRoles.slice(0, 3),
     });
   }
@@ -127,51 +167,14 @@ async function loadTargetUsers(
   return targets;
 }
 
-// ── Eligible user resolution (subscriptions → is_pro fallback) ───────────────
+// ── Eligible user resolution ──────────────────────────────────────────────────
 
 async function getEligibleUsers(
   supabase:     SupabaseClient,
   singleUserId: string | undefined,
   today:        string,
 ): Promise<UserTarget[]> {
-  // Primary: subscriptions table (active + not expired)
-  const fromSubs = await loadTargetUsers(supabase, singleUserId, today);
-  // If a specific user was requested and not found in subscriptions, don't fall through.
-  if (fromSubs.length || singleUserId) return fromSubs;
-
-  // Fallback: profiles.is_pro = true (subscriptions table not yet fully populated)
-  // TODO: remove once all pro users have a corresponding subscriptions row
-  const { data: proProfiles } = await supabase
-    .from("profiles")
-    .select("id, resume_text, location, job_role, default_roles")
-    .eq("is_pro", true);
-
-  if (!proProfiles?.length) return [];
-
-  const profIds = proProfiles.map(p => p.id as string);
-
-  // Skip users who already have queue rows today
-  const { data: existing } = await supabase
-    .from("daily_queue")
-    .select("user_id")
-    .in("user_id", profIds)
-    .eq("queue_date", today);
-  const alreadyQueued = new Set((existing ?? []).map(r => r.user_id as string));
-
-  return proProfiles
-    .filter(p => !alreadyQueued.has(p.id as string))
-    .map(p => {
-      const rawRoles: string[] = Array.isArray(p.default_roles) && (p.default_roles as string[]).length
-        ? (p.default_roles as string[])
-        : p.job_role ? [p.job_role as string] : [];
-      return {
-        user_id:     p.id     as string,
-        daily_limit: 15, // default — subscriptions.daily_limit not available in fallback path
-        resume_text: (p.resume_text as string | null) ?? null,
-        location:    (p.location   as string | null) ?? null,
-        roles:       rawRoles.slice(0, 3),
-      };
-    });
+  return loadTargetUsers(supabase, singleUserId, today);
 }
 
 // ── Job fetch — ONE call per user, capped at 100 results ──────────────────────
@@ -342,17 +345,18 @@ async function buildQueueForUser(
 }
 
 // Daily queue eligibility:
-// - Users (primary) : subscriptions WHERE active=true AND (expires_at IS NULL OR expires_at > now())
-// - Users (fallback): profiles WHERE is_pro=true  [remove once all pro users have a subscriptions row]
-// - Skips (user)    : already has ≥1 daily_queue row for queue_date=today (batch mode)
-// - Skips (user)    : profiles.default_roles[] empty AND profiles.job_role NULL → reason "no_roles"
-// - Skips (user)    : profiles.location NULL → reason "no_location"
-// - Jobs source     : POST /api/jobs { jobRoles: profiles.default_roles|job_role, location: profiles.location }
-//                     → Adzuna + Greenhouse + Remotive + TheMuse + Arbeitnow, deduped, top 100
-// - Skips (job)     : job_apply_link NULL or empty
-// - Skips (job)     : job_id already in apply_tracking WHERE user_id=this user (extension submissions)
-// - Skips (job)     : job_id already in daily_queue WHERE user_id=this user AND queue_date=today
-// - Queue table     : daily_queue UNIQUE(user_id, job_id, queue_date) — upsert ignoreDuplicates
+// - Free users  : all profiles rows — daily_limit = 5
+// - Pro users   : subscriptions WHERE active=true AND (expires_at IS NULL OR expires_at > now()) — daily_limit = min(sub.daily_limit ?? 20, 20)
+// - Pro wins    : user in both profiles and active subscriptions → Pro limits apply
+// - Skips (user): already has ≥1 daily_queue row for queue_date=today (batch mode)
+// - Skips (user): profiles.default_roles[] empty AND profiles.job_role NULL → reason "no_roles"
+// - Skips (user): profiles.location NULL → reason "no_location"
+// - Skips (user): profiles.resume_text NULL → reason "no_resume"
+// - Jobs source : POST /api/jobs { jobRoles, location } → Adzuna + Greenhouse + Remotive + TheMuse + Arbeitnow, deduped, top 100
+// - Skips (job) : job_apply_link NULL or empty
+// - Skips (job) : job_id already in apply_tracking WHERE user_id=this user (extension submissions)
+// - Skips (job) : job_id already in daily_queue WHERE user_id=this user AND queue_date=today
+// - Queue table : daily_queue UNIQUE(user_id, job_id, queue_date) — upsert ignoreDuplicates
 
 // ── Core runner (shared by GET and POST) ─────────────────────────────────────
 
@@ -368,8 +372,9 @@ async function runQueue(
   const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
   const users = await getEligibleUsers(supabase, userId, today);
 
-  const perUser:  Record<string, number> = {};
-  const skipped:  SkippedUser[]          = [];
+  const perUser:  Record<string, number>         = {};
+  const plans:    Record<string, "free" | "pro"> = {};
+  const skipped:  SkippedUser[]                  = [];
   let   totalQueued = 0;
   let   partial     = false;
 
@@ -386,6 +391,7 @@ async function runQueue(
       skipped.push({ user_id: user.user_id, reason: result.reason });
     } else {
       perUser[user.user_id] = result.queued;
+      plans[user.user_id]   = user.plan;
       totalQueued += result.queued;
     }
 
@@ -397,6 +403,7 @@ async function runQueue(
     users_processed: Object.keys(perUser).length,
     total_queued:    totalQueued,
     per_user:        perUser,
+    plans,
     skipped,
     partial,
     duration_ms:     Date.now() - start,

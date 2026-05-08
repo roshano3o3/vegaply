@@ -2111,7 +2111,7 @@ export default function Home() {
 
           if (error) throw error
 
-          if (!profile || !profile.onboarded || !profile.resume_text) {
+          if (!profile || (!profile.onboarded && !profile.location)) {
             setShowOnboard(true)
             if (profile?.job_role) setJobRole(profile.job_role)
             if (profile?.location) setLocation(profile.location)

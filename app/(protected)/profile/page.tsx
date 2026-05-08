@@ -105,7 +105,7 @@ export default function ProfilePage() {
 
     const { error: locError } = await supabase
       .from("profiles")
-      .upsert({ id: user.id, location }, { onConflict: "id" });
+      .upsert({ id: user.id, location, onboarded: true }, { onConflict: "id" });
 
     setSaving(false);
     if (locError) {
