@@ -64,7 +64,7 @@ export default function LoginPage() {
     setForgotError("");
     setForgotMsg("");
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: "https://vegaply.com/reset-password",
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
       setForgotError(error.message);
