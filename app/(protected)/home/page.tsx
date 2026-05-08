@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, Wand2, Mic2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -1955,6 +1955,7 @@ function scoreJob(job: JobWithMatch): number {
 export default function Home() {
   const [jobRole,setJobRole]=useState("");const [location,setLocation]=useState("");
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [jobs,setJobs]=useState<JobWithMatch[]>([]);const [earlyBirdJobs,setEarlyBirdJobs]=useState<JobWithMatch[]>([]);
   const [loading,setLoading]=useState(false);const [ebLoading,setEbLoading]=useState(false);
   const [savedJobs,setSavedJobs]=useState<Set<string>>(new Set());
@@ -3498,16 +3499,6 @@ export default function Home() {
                         <div style={{fontSize:12,fontWeight:500,color:'var(--text-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userEmail}</div>
                       </div>
                     )}
-                    <a
-                      href="/auto-apply"
-                      onClick={()=>setShowAvatarMenu(false)}
-                      style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:8,border:'none',background:'transparent',color:'var(--text-secondary)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'var(--font-primary)',transition:'background 0.15s',textDecoration:'none'}}
-                      onMouseEnter={e=>(e.currentTarget.style.background='var(--bg-hover)')}
-                      onMouseLeave={e=>(e.currentTarget.style.background='transparent')}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                      Application Queue
-                    </a>
                     <button
                       onClick={()=>{toggleTheme();setShowAvatarMenu(false);}}
                       style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'8px 12px',borderRadius:8,border:'none',background:'transparent',color:'var(--text-secondary)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'var(--font-primary)',transition:'background 0.15s'}}
@@ -3838,6 +3829,10 @@ export default function Home() {
               Analytics
               {activeTab==="analytics"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#34d399,#10b981)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
+            <a href="/auto-apply" className={`tab${pathname==="/auto-apply"?" active":""}`} style={{textDecoration:'none'}}>
+              Application Queue
+              {pathname==="/auto-apply"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#f59e0b,#fbbf24)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
+            </a>
           </div>
 
           <motion.div key={activeTab} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.3,ease:[0.16,1,0.3,1]}}>

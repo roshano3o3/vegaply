@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { detectApplyMethod, ApplyMethod } from "@/lib/apply/detect-apply-method";
 
@@ -26,6 +26,15 @@ interface StatusStyle {
   color:  string;
   bg:     string;
   border: string;
+}
+
+interface MeStatusResult {
+  has_active_subscription: boolean;
+  profile_complete:        boolean;
+  missing:                 string[];
+  has_queue_today:         boolean;
+  queue_count:             number;
+  reason: "no_subscription" | "profile_incomplete" | "queue_not_built" | "ready";
 }
 
 // ── Status helper ─────────────────────────────────────────────────────────────
@@ -454,6 +463,96 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
   );
 }
 
+// ── EmptyState ────────────────────────────────────────────────────────────────
+
+const EMPTY_CARD: React.CSSProperties = {
+  background: "#141418", border: "1px solid #1c1c22",
+  borderRadius: 14, padding: "64px 32px", textAlign: "center",
+};
+const EMPTY_TITLE: React.CSSProperties = {
+  fontFamily: "Sora, sans-serif", fontSize: 17, color: "#f5f5f7",
+  margin: "0 0 8px", fontWeight: 600,
+};
+const EMPTY_BODY: React.CSSProperties = {
+  fontFamily: "Inter, sans-serif", fontSize: 14, color: "#6b6b75", margin: 0,
+};
+const CTA_BTN: React.CSSProperties = {
+  display: "inline-block", padding: "10px 22px", borderRadius: 9,
+  background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.35)",
+  color: "#f59e0b", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
+  textDecoration: "none",
+};
+const CTA_DISABLED: React.CSSProperties = {
+  display: "inline-block", padding: "10px 22px", borderRadius: 9,
+  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+  color: "#6b6b75", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
+  cursor: "not-allowed",
+};
+
+function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
+  if (!meStatus) {
+    return (
+      <div style={EMPTY_CARD}>
+        <div style={{ fontSize: 36, marginBottom: 16 }}>📋</div>
+        <p style={EMPTY_TITLE}>No auto-apply jobs queued for today yet.</p>
+        <p style={EMPTY_BODY}>Your daily job queue runs each morning and will appear here.</p>
+      </div>
+    );
+  }
+
+  if (meStatus.reason === "no_subscription") {
+    return (
+      <div style={EMPTY_CARD}>
+        <div style={{ fontSize: 36, marginBottom: 16 }}>⭐</div>
+        <p style={EMPTY_TITLE}>Upgrade to receive daily applications</p>
+        <p style={{ ...EMPTY_BODY, marginBottom: 24 }}>
+          Vegaply prepares daily application packs for Pro users.
+        </p>
+        <span style={CTA_DISABLED}>View Plans</span>
+      </div>
+    );
+  }
+
+  if (meStatus.reason === "profile_incomplete") {
+    return (
+      <div style={EMPTY_CARD}>
+        <div style={{ fontSize: 36, marginBottom: 16 }}>📝</div>
+        <p style={EMPTY_TITLE}>Complete your profile to receive daily applications</p>
+        <p style={{ ...EMPTY_BODY, marginBottom: 20 }}>
+          Vegaply needs your role, location, and resume before building your queue.
+        </p>
+        {meStatus.missing.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+            {meStatus.missing.map(field => (
+              <span
+                key={field}
+                style={{
+                  display: "inline-block", padding: "4px 12px", borderRadius: 100,
+                  fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600,
+                  background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
+                  color: "#ef4444",
+                }}
+              >
+                {field}
+              </span>
+            ))}
+          </div>
+        )}
+        <a href="/profile" style={CTA_BTN}>Update Profile →</a>
+      </div>
+    );
+  }
+
+  // reason === "queue_not_built" or "ready" with 0 rows visible
+  return (
+    <div style={EMPTY_CARD}>
+      <div style={{ fontSize: 36, marginBottom: 16 }}>⏳</div>
+      <p style={EMPTY_TITLE}>Your daily queue has not been built yet</p>
+      <p style={EMPTY_BODY}>Your application queue runs each morning. Check back soon.</p>
+    </div>
+  );
+}
+
 // ── Column definitions ────────────────────────────────────────────────────────
 
 const COLS = [
@@ -481,6 +580,7 @@ export default function AutoApplyPage() {
   const [copiedField, setCopiedField] = useState<"resume" | "letter" | null>(null);
   const [sending,     setSending]     = useState(false);
   const [sendError,   setSendError]   = useState<string | null>(null);
+  const [meStatus,    setMeStatus]    = useState<MeStatusResult | null>(null);
 
   // Data fetch — extracted so it can be called after "Send Ready Items Now"
   const fetchRows = async () => {
@@ -502,7 +602,14 @@ export default function AutoApplyPage() {
       console.error("[auto-apply] query error:", error.message);
       setDbError(error.message);
     } else {
-      setRows((data ?? []) as unknown as QueueRow[]);
+      const fetched = (data ?? []) as unknown as QueueRow[];
+      setRows(fetched);
+      if (fetched.length === 0) {
+        try {
+          const res = await fetch("/api/daily-queue/me-status");
+          if (res.ok) setMeStatus(await res.json() as MeStatusResult);
+        } catch { /* non-fatal */ }
+      }
     }
     setLoading(false);
   };
@@ -653,21 +760,7 @@ export default function AutoApplyPage() {
 
           {/* ── Empty state ─────────────────────────────────────────── */}
           {rows.length === 0 ? (
-            <div style={{
-              background: "#141418", border: "1px solid #1c1c22",
-              borderRadius: 14, padding: "64px 32px", textAlign: "center",
-            }}>
-              <div style={{ fontSize: 36, marginBottom: 16 }}>📋</div>
-              <p style={{
-                fontFamily: "Sora, sans-serif", fontSize: 17, color: "#f5f5f7",
-                margin: "0 0 8px", fontWeight: 600,
-              }}>
-                No auto-apply jobs queued for today yet.
-              </p>
-              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "#6b6b75", margin: 0 }}>
-                Your daily job queue runs each morning and will appear here.
-              </p>
-            </div>
+            <EmptyState meStatus={meStatus} />
           ) : (
             /* ── Table ────────────────────────────────────────────── */
             <div style={{
