@@ -23,12 +23,12 @@ export default function LoginPage() {
     // Debug logging for Supabase configuration
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
+
     console.log('🔍 [DEBUG] Supabase Configuration:');
     console.log('🔍 - URL:', supabaseUrl);
     console.log('🔍 - URL exists:', !!supabaseUrl);
     console.log('🔍 - Anon key exists:', !!supabaseAnonKey);
-    
+
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('❌ [ERROR] Missing Supabase configuration');
       if (process.env.NODE_ENV === 'development') {
@@ -90,46 +90,11 @@ export default function LoginPage() {
   return (
     <>
       <style>{`
-        :root {
-          --bg-page:      #0a0a0c;
-          --bg-surface:   #141418;
-          --bg-elevated:  #1c1c22;
-          --bg-input:     #1a1a1f;
-          --bg-hover:     rgba(255,255,255,0.03);
-          --text-primary:   #f5f5f7;
-          --text-secondary: #a1a1aa;
-          --text-tertiary:  #6b6b75;
-          --border-subtle: rgba(255,255,255,0.06);
-          --border-normal: rgba(255,255,255,0.10);
-          --border-strong: rgba(255,255,255,0.18);
-          --gold:         #f59e0b;
-          --gold-hover:   #fbbf24;
-          --gold-subtle:  rgba(245,158,11,0.12);
-          --gold-glow:    rgba(245,158,11,0.25);
-          --cyan:         #fbbf24;
-          --cyan-hover:   #fde68a;
-          --cyan-subtle:  rgba(251,191,36,0.12);
-          --cyan-glow:    rgba(251,191,36,0.20);
-          --success: #10b981;
-          --warning: #fbbf24;
-          --danger:  #ef4444;
-          --radius-sm: 6px;
-          --radius-md: 10px;
-          --radius-lg: 14px;
-          --radius-xl: 20px;
-          --shadow-glow-gold: 0 0 24px rgba(245,158,11,0.20);
-          --shadow-glow-cyan: 0 0 24px rgba(6,182,212,0.20);
-          --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-          --dur-fast: 120ms;
-          --dur-base: 200ms;
-          --dur-slow: 400ms;
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        .auth-root { min-height: 100vh; display: flex; background: var(--bg-page); font-family: Inter, system-ui, sans-serif; overflow: hidden; }
-        .auth-left { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px 56px; background: var(--bg-page); overflow: hidden; }
+        .auth-root { min-height: 100vh; display: flex; background: var(--bg); font-family: Inter, system-ui, sans-serif; overflow: hidden; }
+        .auth-left { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px 56px; background: var(--bg); overflow: hidden; }
         .auth-left::before { content: ''; position: absolute; top: -120px; left: -120px; width: 480px; height: 480px; background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 6s ease-in-out infinite; }
-        .auth-left::after { content: ''; position: absolute; bottom: -80px; right: -60px; width: 360px; height: 360px; background: radial-gradient(circle, var(--cyan-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 8s ease-in-out infinite reverse; }
+        .auth-left::after { content: ''; position: absolute; bottom: -80px; right: -60px; width: 360px; height: 360px; background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 8s ease-in-out infinite reverse; }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
         .auth-logo { font-family: Inter, system-ui, sans-serif; font-size: 28px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.5px; position: relative; z-index: 1; }
         .auth-logo span { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
@@ -152,12 +117,12 @@ export default function LoginPage() {
         .ticker-card:nth-child(3) { animation-delay: 0.4s; }
         @keyframes slideInLeft { to { opacity: 1; transform: translateX(0); } }
         .ticker-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .ticker-dot.green { background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); }
-        .ticker-dot.blue { background: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
-        .ticker-dot.pink { background: var(--gold-hover); box-shadow: 0 0 8px var(--gold-glow); }
+        .ticker-dot.green { background: var(--gold-hover); box-shadow: 0 0 8px var(--gold-glow); }
+        .ticker-dot.blue  { background: var(--gold);       box-shadow: 0 0 8px var(--gold-glow); }
+        .ticker-dot.pink  { background: var(--gold-hover); box-shadow: 0 0 8px var(--gold-glow); }
         .ticker-text { font-size: 13px; color: var(--text-secondary); flex: 1; }
         .ticker-time { font-size: 11px; color: var(--text-tertiary); }
-        .auth-right { width: 480px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: center; padding: 64px 48px; position: relative; }
+        .auth-right { width: 480px; flex-shrink: 0; background: var(--bg-card); border-left: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: center; padding: 64px 48px; position: relative; }
         .auth-right::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-glow), transparent); }
         .form-tag { font-size: 11px; font-weight: 500; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
         .form-title { font-family: Inter, system-ui, sans-serif; font-size: 34px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; margin-bottom: 8px; line-height: 1.1; }
@@ -183,13 +148,128 @@ export default function LoginPage() {
         .google-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.22); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
         .google-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         .or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+        .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
         .or-divider span { font-size: 12px; color: rgba(255,255,255,0.25); font-weight: 400; letter-spacing: 0.5px; text-transform: uppercase; }
         @media (max-width: 900px) { .auth-left { display: none; } .auth-right { width: 100%; border-left: none; padding: 48px 32px; } }
+
+        /* ── Orbit OS — Cosmic ambient layer ───────────────────────── */
+        /* Hide legacy pseudo-element globs; .auth-cosmos replaces them */
+        .auth-left::before, .auth-left::after { display: none; }
+
+        .auth-cosmos {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          overflow: hidden;
+        }
+
+        /* Starfield */
+        .auth-cosmos::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image:
+            radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,255,255,0.45) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 67% 32%, rgba(255,255,255,0.35) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 83% 67%, rgba(255,255,255,0.30) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 28% 58%, rgba(245,158,11, 0.45) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 47% 82%, rgba(255,255,255,0.28) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 91% 14%, rgba(255,255,255,0.38) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 38% 42%, rgba(255,255,255,0.22) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 73% 78%, rgba(255,255,255,0.28) 0%, transparent 100%),
+            radial-gradient(1.2px 1.2px at  8% 72%, rgba(255,255,255,0.32) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 54%  8%, rgba(255,255,255,0.38) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 19% 90%, rgba(255,255,255,0.18) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 95% 48%, rgba(245,158,11, 0.30) 0%, transparent 100%);
+          animation: starfield-shimmer 10s ease-in-out infinite;
+        }
+        @keyframes starfield-shimmer {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.55; }
+        }
+
+        /* Nebula glows */
+        .auth-cosmos-glow-1 {
+          position: absolute;
+          top: -140px; left: -140px;
+          width: 520px; height: 520px;
+          border-radius: 50%;
+          background: radial-gradient(ellipse at center, rgba(245,158,11,0.09) 0%, transparent 65%);
+          animation: cosmos-breathe 10s ease-in-out infinite;
+        }
+        .auth-cosmos-glow-2 {
+          position: absolute;
+          bottom: -100px; right: -80px;
+          width: 420px; height: 420px;
+          border-radius: 50%;
+          background: radial-gradient(ellipse at center, rgba(255,255,255,0.025) 0%, transparent 65%);
+          animation: cosmos-breathe 14s ease-in-out infinite reverse;
+        }
+        @keyframes cosmos-breathe {
+          0%, 100% { transform: scale(1);    opacity: 1; }
+          50%       { transform: scale(1.10); opacity: 0.55; }
+        }
+
+        /* Orbital rings */
+        .auth-orbit-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; }
+        .auth-orbit-ring-1 {
+          width: 560px; height: 210px;
+          margin: -105px 0 0 -280px;
+          border: 1px solid rgba(245,158,11,0.055);
+          transform: rotate(-28deg);
+          animation: ring-pulse 9s ease-in-out infinite;
+        }
+        .auth-orbit-ring-2 {
+          width: 360px; height: 130px;
+          margin: -65px 0 0 -180px;
+          border: 1px solid rgba(255,255,255,0.035);
+          transform: rotate(20deg);
+          animation: ring-pulse 13s ease-in-out infinite reverse;
+        }
+        @keyframes ring-pulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.25; }
+        }
+
+        /* Orbiting nodes */
+        .auth-orbit-node-1 {
+          position: absolute;
+          top: calc(50% - 185px); left: 50%;
+          width: 4px; height: 4px; margin-left: -2px;
+          border-radius: 50%;
+          background: rgba(245,158,11,0.8);
+          box-shadow: 0 0 12px rgba(245,158,11,0.35), 0 0 5px rgba(245,158,11,0.5);
+          transform-origin: 0px 185px;
+          animation: node-orbit 32s linear infinite;
+        }
+        .auth-orbit-node-2 {
+          position: absolute;
+          top: calc(50% - 135px); left: 50%;
+          width: 3px; height: 3px; margin-left: -1.5px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.5);
+          box-shadow: 0 0 8px rgba(255,255,255,0.15);
+          transform-origin: 0px 135px;
+          animation: node-orbit 22s linear infinite reverse;
+        }
+        @keyframes node-orbit {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
       `}</style>
 
       <div className="auth-root">
         <div className="auth-left">
+          {/* Orbit OS — decorative cosmic ambient layer, no logic */}
+          <div aria-hidden="true" className="auth-cosmos">
+            <div className="auth-cosmos-glow-1" />
+            <div className="auth-cosmos-glow-2" />
+            <div className="auth-orbit-ring auth-orbit-ring-1" />
+            <div className="auth-orbit-ring auth-orbit-ring-2" />
+            <div className="auth-orbit-node-1" />
+            <div className="auth-orbit-node-2" />
+          </div>
           <div className="auth-logo">Vega<span>ply</span></div>
           <div className="auth-hero">
             <div className="auth-eyebrow">AI-Powered Job Search</div>
@@ -273,5 +353,3 @@ export default function LoginPage() {
     </>
   );
 }
-
-

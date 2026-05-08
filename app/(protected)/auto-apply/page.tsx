@@ -43,18 +43,18 @@ interface MeStatusResult {
 
 function resolveStatus(status: string, tailored: string | null, clickedAt?: string | null): StatusStyle {
   if (status === "pending" && !tailored)
-    return { label: "Pending",           color: "#a1a1aa", bg: "rgba(161,161,170,0.1)",  border: "rgba(161,161,170,0.2)"  };
+    return { label: "Pending",       color: "var(--text-secondary)", bg: "rgba(161,161,170,0.08)", border: "rgba(161,161,170,0.18)" };
   if (status === "pending" && tailored)
-    return { label: "Ready",             color: "#06b6d4", bg: "rgba(6,182,212,0.1)",    border: "rgba(6,182,212,0.25)"   };
+    return { label: "Ready",         color: "#06b6d4",               bg: "rgba(6,182,212,0.10)",   border: "rgba(6,182,212,0.25)"  };
   if (status === "applied" && clickedAt)
-    return { label: "Clicked Apply",     color: "#10b981", bg: "rgba(16,185,129,0.1)",   border: "rgba(16,185,129,0.25)"  };
+    return { label: "Clicked Apply", color: "var(--success)",        bg: "var(--success-bg)",      border: "var(--success-border)" };
   if (status === "applied")
-    return { label: "Sent",              color: "#f59e0b", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.3)"   };
+    return { label: "Sent",          color: "var(--primary)",        bg: "rgba(245,158,11,0.12)",  border: "rgba(245,158,11,0.28)" };
   if (status === "failed")
-    return { label: "Failed",            color: "#ef4444", bg: "rgba(239,68,68,0.1)",    border: "rgba(239,68,68,0.25)"   };
+    return { label: "Failed",        color: "var(--error)",          bg: "var(--error-bg)",        border: "var(--error-border)"   };
   if (status === "skipped")
-    return { label: "Skipped",           color: "#6b7280", bg: "rgba(107,114,128,0.08)", border: "rgba(107,114,128,0.2)"  };
-  return   { label: status,              color: "#a1a1aa", bg: "rgba(161,161,170,0.08)", border: "rgba(161,161,170,0.2)"  };
+    return { label: "Skipped",       color: "#6b7280",               bg: "rgba(107,114,128,0.08)", border: "rgba(107,114,128,0.18)"};
+  return   { label: status,          color: "var(--text-secondary)", bg: "rgba(161,161,170,0.06)", border: "rgba(161,161,170,0.16)"};
 }
 
 // ── Counts ────────────────────────────────────────────────────────────────────
@@ -80,10 +80,10 @@ function fmtDate(iso: string | null): string {
 }
 
 function scoreColor(n: number | null): string {
-  if (n === null) return "#6b6b75";
-  if (n >= 70)   return "#10b981";
-  if (n >= 50)   return "#f59e0b";
-  return "#6b6b75";
+  if (n === null) return "var(--text-tertiary)";
+  if (n >= 70)   return "var(--success)";
+  if (n >= 50)   return "var(--primary)";
+  return "var(--text-tertiary)";
 }
 
 // ── Method chip helpers ───────────────────────────────────────────────────────
@@ -110,12 +110,12 @@ const METHOD_ICON: Record<ApplyMethod, string> = {
 
 function methodChipStyle(method: ApplyMethod): { bg: string; color: string; border: string } {
   if (method === "greenhouse" || method === "lever" || method === "ashby" || method === "workday")
-    return { bg: "rgba(99,102,241,0.10)", color: "#818cf8", border: "rgba(99,102,241,0.22)" };
+    return { bg: "var(--primary-subtle)", color: "var(--primary-light)", border: "var(--gold-border)" };
   if (method === "email")
-    return { bg: "rgba(59,130,246,0.10)", color: "#60a5fa", border: "rgba(59,130,246,0.22)" };
+    return { bg: "var(--surface)",        color: "var(--text-secondary)", border: "var(--border)"       };
   if (method === "manual")
-    return { bg: "rgba(245,158,11,0.08)", color: "#f59e0b", border: "rgba(245,158,11,0.20)" };
-  return   { bg: "rgba(161,161,170,0.08)", color: "#6b7280", border: "rgba(161,161,170,0.18)" };
+    return { bg: "var(--gold-bg)",        color: "var(--primary)",        border: "var(--gold-border)"  };
+  return   { bg: "var(--surface)",        color: "var(--text-tertiary)",  border: "var(--border-subtle)"};
 }
 
 function MethodChip({ link }: { link: string | null }) {
@@ -125,7 +125,7 @@ function MethodChip({ link }: { link: string | null }) {
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4,
       padding: "2px 8px", borderRadius: 5,
-      fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600,
+      fontFamily: "var(--font-primary)", fontSize: 11, fontWeight: 600,
       background: cs.bg, color: cs.color, border: `1px solid ${cs.border}`,
       whiteSpace: "nowrap",
     }}>
@@ -141,7 +141,7 @@ function StatusBadge({ status, tailored, clickedAt }: { status: string; tailored
   return (
     <span style={{
       display: "inline-block", padding: "3px 10px", borderRadius: 100,
-      fontSize: 11, fontWeight: 700, fontFamily: "Inter, sans-serif",
+      fontSize: 11, fontWeight: 700, fontFamily: "var(--font-primary)",
       letterSpacing: "0.03em", background: s.bg, color: s.color,
       border: `1px solid ${s.border}`, whiteSpace: "nowrap",
     }}>
@@ -161,12 +161,12 @@ function SummaryCard({ label, value, color, bg, border, glow, index }: {
       style={{
         background: bg,
         border: `1px solid ${border}`,
-        borderRadius: 14,
+        borderRadius: "var(--radius-lg)",
         padding: "18px 18px 15px",
         display: "flex",
         flexDirection: "column",
         gap: 5,
-        boxShadow: glow ? `0 4px 20px ${glow}` : "0 2px 10px rgba(0,0,0,0.40)",
+        boxShadow: glow ? `0 4px 20px ${glow}` : "var(--shadow-card)",
         transition: "transform 160ms ease, box-shadow 160ms ease",
         cursor: "default",
         animation: "cardFadeUp 400ms ease both",
@@ -175,22 +175,22 @@ function SummaryCard({ label, value, color, bg, border, glow, index }: {
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLDivElement;
         el.style.transform = "translateY(-2px)";
-        el.style.boxShadow = glow ? `0 8px 28px ${glow}` : "0 8px 24px rgba(0,0,0,0.55)";
+        el.style.boxShadow = glow ? `0 8px 28px ${glow}` : "var(--shadow-card-hover)";
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLDivElement;
         el.style.transform = "";
-        el.style.boxShadow = glow ? `0 4px 20px ${glow}` : "0 2px 10px rgba(0,0,0,0.40)";
+        el.style.boxShadow = glow ? `0 4px 20px ${glow}` : "var(--shadow-card)";
       }}
     >
       <span style={{
-        fontFamily: "Sora, sans-serif", fontSize: 32, fontWeight: 800,
+        fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 800,
         color, lineHeight: 1, letterSpacing: "-1.2px",
       }}>
         {value}
       </span>
       <span style={{
-        fontFamily: "Inter, sans-serif", fontSize: 10, color: "rgba(255,255,255,0.35)",
+        fontFamily: "var(--font-primary)", fontSize: 10, color: "var(--text-muted)",
         fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em",
       }}>
         {label}
@@ -216,25 +216,25 @@ function CopyButton({ text, field, copiedField, onCopy }: {
         if (!copied) {
           const el = e.currentTarget;
           el.style.background = "rgba(255,255,255,0.09)";
-          el.style.color = "#f5f5f7";
-          el.style.borderColor = "rgba(255,255,255,0.2)";
+          el.style.color = "var(--text-primary)";
+          el.style.borderColor = "var(--border-strong)";
         }
       }}
       onMouseLeave={e => {
         if (!copied) {
           const el = e.currentTarget;
-          el.style.background = "rgba(255,255,255,0.05)";
-          el.style.color = "#a1a1aa";
-          el.style.borderColor = "rgba(255,255,255,0.1)";
+          el.style.background = "var(--surface)";
+          el.style.color = "var(--text-secondary)";
+          el.style.borderColor = "var(--border)";
         }
       }}
       style={{
         display: "flex", alignItems: "center", gap: 5,
-        padding: "5px 12px", borderRadius: 6, cursor: "pointer",
-        fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600,
-        border: `1px solid ${copied ? "rgba(16,185,129,0.35)" : "rgba(255,255,255,0.1)"}`,
-        background: copied ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.05)",
-        color: copied ? "#10b981" : "#a1a1aa",
+        padding: "5px 12px", borderRadius: "var(--radius-sm)", cursor: "pointer",
+        fontFamily: "var(--font-primary)", fontSize: 12, fontWeight: 600,
+        border: `1px solid ${copied ? "var(--success-border)" : "var(--border)"}`,
+        background: copied ? "var(--success-bg)" : "var(--surface)",
+        color: copied ? "var(--success)" : "var(--text-secondary)",
         transition: "all 160ms",
       }}
     >
@@ -256,8 +256,8 @@ function ContentBlock({ text, field, copiedField, onCopy, label }: {
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{
-          fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700,
-          textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b6b75",
+          fontFamily: "var(--font-primary)", fontSize: 11, fontWeight: 700,
+          textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-tertiary)",
         }}>
           {label}
         </span>
@@ -267,18 +267,18 @@ function ContentBlock({ text, field, copiedField, onCopy, label }: {
       </div>
       {text ? (
         <div style={{
-          background: "#0f0f12", border: "1px solid #1c1c22", borderRadius: 8,
+          background: "var(--bg-elev)", border: "1px solid var(--border)", borderRadius: 8,
           padding: "14px 16px", maxHeight: 280, overflowY: "auto",
-          fontFamily: "Inter, sans-serif", fontSize: 13, color: "#d4d4d8",
+          fontFamily: "var(--font-primary)", fontSize: 13, color: "#d4d4d8",
           lineHeight: 1.75, whiteSpace: "pre-wrap", wordBreak: "break-word",
         }}>
           {text}
         </div>
       ) : (
         <div style={{
-          background: "#0f0f12", border: "1px dashed #1c1c22", borderRadius: 8,
+          background: "var(--bg-elev)", border: "1px dashed var(--border)", borderRadius: 8,
           padding: "20px 16px", textAlign: "center",
-          fontFamily: "Inter, sans-serif", fontSize: 13, color: "#6b6b75",
+          fontFamily: "var(--font-primary)", fontSize: 13, color: "var(--text-tertiary)",
         }}>
           Generated content is not ready yet.
         </div>
@@ -322,8 +322,8 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           right:     0,
           bottom:    0,
           width:     "min(500px, 95vw)",
-          background: "#0d0d12",
-          borderLeft: "1px solid rgba(255,255,255,0.07)",
+          background: "var(--bg-elev)",
+          borderLeft: "1px solid var(--border)",
           boxShadow: "-12px 0 60px rgba(0,0,0,0.65), -1px 0 0 rgba(245,158,11,0.08)",
           zIndex:    50,
           display:   "flex",
@@ -334,22 +334,22 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
         {/* Drawer header */}
         <div style={{
           padding: "20px 24px 18px",
-          borderBottom: "1px solid #1c1c22",
-          background: "linear-gradient(180deg,#141418 0%,#0f0f12 100%)",
+          borderBottom: "1px solid var(--border)",
+          background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-elev) 100%)`,
           borderLeft: "3px solid rgba(245,158,11,0.50)",
           flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
             <div style={{ minWidth: 0, flex: 1 }}>
               <p style={{
-                fontFamily: "Sora, sans-serif", fontSize: 18, fontWeight: 700,
-                color: "#f5f5f7", margin: "0 0 3px",
+                fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700,
+                color: "var(--text-primary)", margin: "0 0 3px",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
                 {row.job_title ?? "—"}
               </p>
               <p style={{
-                fontFamily: "Inter, sans-serif", fontSize: 13, color: "#a1a1aa",
+                fontFamily: "var(--font-primary)", fontSize: 13, color: "var(--text-secondary)",
                 margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
                 {row.employer_name ?? "—"}
@@ -359,12 +359,12 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
               onClick={onClose}
               aria-label="Close detail panel"
               style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "var(--border-subtle)",
+                border: "1px solid var(--border)",
                 borderRadius: 8, width: 32, height: 32, cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                color: "#a1a1aa", fontSize: 16, flexShrink: 0,
-                fontFamily: "Inter, sans-serif",
+                color: "var(--text-secondary)", fontSize: 16, flexShrink: 0,
+                fontFamily: "var(--font-primary)",
               }}
             >
               ✕
@@ -375,7 +375,7 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
             {row.match_score !== null && (
               <span style={{
-                fontFamily: "Sora, sans-serif", fontSize: 13, fontWeight: 700,
+                fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
                 color: scoreColor(row.match_score),
               }}>
                 {row.match_score}% match
@@ -383,12 +383,12 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
             )}
             <StatusBadge status={row.status} tailored={row.tailored_resume_text} clickedAt={row.apply_clicked_at} />
             {row.applied_at && (
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75" }}>
+              <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)" }}>
                 Sent {fmtDate(row.applied_at)}
               </span>
             )}
             {row.apply_clicked_at && (
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#10b981", fontWeight: 500 }}>
+              <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--success)", fontWeight: 500 }}>
                 ↗ Clicked Apply {fmtDate(row.apply_clicked_at)}
               </span>
             )}
@@ -398,8 +398,8 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           {row.status === "failed" && row.error_message && (
             <div style={{
               marginTop: 12, padding: "8px 12px", borderRadius: 7,
-              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
-              fontFamily: "Inter, sans-serif", fontSize: 12, color: "#ef4444",
+              background: "var(--error-bg)", border: "1px solid var(--error-border)",
+              fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--error)",
             }}>
               {row.error_message}
             </div>
@@ -413,12 +413,12 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
               rel="noopener noreferrer"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6, marginTop: 14,
-                padding: "10px 22px", borderRadius: 9,
-                background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+                padding: "10px 22px", borderRadius: "var(--radius-md)",
+                background: "var(--grad-1)",
                 color: "#0a0a0c",
-                fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
+                fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 700,
                 textDecoration: "none",
-                boxShadow: "0 2px 12px rgba(245,158,11,0.22)",
+                boxShadow: "var(--shadow-amber)",
               }}
             >
               Continue to Company Application →
@@ -431,7 +431,7 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           flex: 1, overflowY: "auto", padding: "24px",
           display: "flex", flexDirection: "column", gap: 28,
         }}>
-          <div style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"16px"}}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", padding: "16px" }}>
             <ContentBlock
               label="Tailored Resume"
               field="resume"
@@ -440,7 +440,7 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
               onCopy={onCopy}
             />
           </div>
-          <div style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"16px"}}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", padding: "16px" }}>
             <ContentBlock
               label="Cover Letter"
               field="letter"
@@ -455,25 +455,25 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
             const m  = detectApplyMethod({ job_apply_link: row.job_apply_link });
             const cs = methodChipStyle(m.method);
             return (
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 20 }}>
+              <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
                 <span style={{
-                  fontFamily: "Inter, sans-serif", fontSize: 10, fontWeight: 700,
-                  textTransform: "uppercase", letterSpacing: "0.1em", color: "#6b6b75",
+                  fontFamily: "var(--font-primary)", fontSize: 10, fontWeight: 700,
+                  textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-tertiary)",
                   display: "block", marginBottom: 8,
                 }}>
                   Submission method
                 </span>
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 5,
-                  padding: "3px 10px", borderRadius: 6,
-                  fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600,
+                  padding: "3px 10px", borderRadius: "var(--radius-sm)",
+                  fontFamily: "var(--font-primary)", fontSize: 12, fontWeight: 600,
                   background: cs.bg, color: cs.color, border: `1px solid ${cs.border}`,
                   marginBottom: 8,
                 }}>
                   {METHOD_ICON[m.method]} {METHOD_LABEL[m.method]}
                 </span>
                 <p style={{
-                  fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75",
+                  fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)",
                   margin: 0, lineHeight: 1.6,
                 }}>
                   {m.reason}
@@ -485,28 +485,28 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           {/* Status note for applied rows */}
           {row.status === "applied" && (
             <div style={{
-              borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 20,
+              borderTop: "1px solid var(--border-subtle)", paddingTop: 20,
               display: "flex", flexDirection: "column", gap: 8,
             }}>
               <p style={{
-                fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75",
+                fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)",
                 margin: 0, lineHeight: 1.6,
               }}>
                 These materials were emailed to you. Use the Apply Now link above to open the company&apos;s application page.
               </p>
               {row.apply_clicked_at ? (
                 <p style={{
-                  fontFamily: "Inter, sans-serif", fontSize: 12, color: "#10b981",
+                  fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--success)",
                   margin: 0, lineHeight: 1.6,
                 }}>
                   You opened the company application page on {fmtDate(row.apply_clicked_at)}.
                 </p>
               ) : (
                 <p style={{
-                  fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75",
+                  fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)",
                   margin: 0, lineHeight: 1.6,
                 }}>
-                  <strong style={{ color: "rgba(255,255,255,0.35)" }}>Clicked Apply</strong> appears here once you open the company&apos;s application page from your Vegaply email.
+                  <strong style={{ color: "var(--text-muted)" }}>Clicked Apply</strong> appears here once you open the company&apos;s application page from your Vegaply email.
                 </p>
               )}
             </div>
@@ -521,7 +521,7 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
 
 function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
   const glowCard: React.CSSProperties = {
-    background: "linear-gradient(145deg,#141418 0%,#111116 100%)",
+    background: "linear-gradient(145deg, var(--bg-card) 0%, var(--bg-card-end) 100%)",
     border: "1px solid rgba(245,158,11,0.18)",
     borderRadius: 18,
     padding: "72px 40px",
@@ -533,18 +533,18 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
     width: 64, height: 64,
     display: "flex", alignItems: "center", justifyContent: "center",
     borderRadius: 18,
-    background: "rgba(245,158,11,0.08)",
-    border: "1px solid rgba(245,158,11,0.22)",
+    background: "var(--gold-bg)",
+    border: "1px solid var(--gold-border)",
     boxShadow: "0 0 28px rgba(245,158,11,0.10)",
     margin: "0 auto 20px",
     fontSize: 28,
   };
   const title: React.CSSProperties = {
-    fontFamily: "Sora, sans-serif", fontSize: 18, color: "#f5f5f7",
+    fontFamily: "var(--font-display)", fontSize: 18, color: "var(--text-primary)",
     margin: "0 0 10px", fontWeight: 700, letterSpacing: "-0.3px",
   };
   const body: React.CSSProperties = {
-    fontFamily: "Inter, sans-serif", fontSize: 14, color: "rgba(255,255,255,0.38)",
+    fontFamily: "var(--font-primary)", fontSize: 14, color: "var(--text-muted)",
     margin: 0, lineHeight: 1.65, maxWidth: 400, marginInline: "auto",
   };
 
@@ -576,9 +576,9 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
                 key={field}
                 style={{
                   display: "inline-block", padding: "4px 14px", borderRadius: 100,
-                  fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600,
-                  background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
-                  color: "#ef4444",
+                  fontFamily: "var(--font-primary)", fontSize: 12, fontWeight: 600,
+                  background: "var(--error-bg)", border: "1px solid var(--error-border)",
+                  color: "var(--error)",
                 }}
               >
                 {field}
@@ -587,9 +587,9 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
           </div>
         )}
         <a href="/profile" style={{
-          display: "inline-block", padding: "10px 24px", borderRadius: 10,
-          background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.35)",
-          color: "#f59e0b", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
+          display: "inline-block", padding: "10px 24px", borderRadius: "var(--radius-md)",
+          background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.32)",
+          color: "var(--primary)", fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 700,
           textDecoration: "none",
         }}>
           Update Profile →
@@ -727,10 +727,11 @@ export default function AutoApplyPage() {
     return (
       <div style={{
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        height: "100vh", gap: 14, color: "#a1a1aa", fontFamily: "Inter, sans-serif",
+        minHeight: "calc(100vh - 56px)", gap: 14,
+        fontFamily: "var(--font-primary)",
       }}>
-        <div style={{width:20,height:20,border:"2px solid rgba(245,158,11,0.25)",borderTopColor:"#f59e0b",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-        <span style={{fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.35)"}}>Loading today&apos;s application pack…</span>
+        <div style={{ width: 20, height: 20, border: "2px solid rgba(245,158,11,0.25)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)" }}>Loading today&apos;s application pack…</span>
       </div>
     );
   }
@@ -740,11 +741,12 @@ export default function AutoApplyPage() {
     return (
       <div style={{
         display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", height: "100vh", fontFamily: "Inter, sans-serif", gap: 10,
+        justifyContent: "center", minHeight: "calc(100vh - 56px)",
+        fontFamily: "var(--font-primary)", gap: 10,
       }}>
         <span style={{ fontSize: 26 }}>⚠️</span>
-        <p style={{ margin: 0, color: "#ef4444", fontSize: 14 }}>Failed to load queue data.</p>
-        <p style={{ margin: 0, fontSize: 12, color: "#6b6b75" }}>{dbError}</p>
+        <p style={{ margin: 0, color: "var(--error)", fontSize: 14 }}>Failed to load queue data.</p>
+        <p style={{ margin: 0, fontSize: 12, color: "var(--text-tertiary)" }}>{dbError}</p>
       </div>
     );
   }
@@ -752,30 +754,30 @@ export default function AutoApplyPage() {
   const counts = computeCounts(rows);
 
   const summaryCards = [
-    { label: "Total",    value: counts.total,     color: "#f5f5f7", bg: "linear-gradient(145deg,#1a1a21,#111116)", border: "rgba(255,255,255,0.09)", glow: undefined             },
-    { label: "Pending",  value: counts.pending,   color: "#a1a1aa", bg: "rgba(161,161,170,0.05)",                 border: "rgba(161,161,170,0.14)", glow: undefined             },
-    { label: "Ready",    value: counts.generated, color: "#06b6d4", bg: "rgba(6,182,212,0.07)",                   border: "rgba(6,182,212,0.22)",  glow: "rgba(6,182,212,0.08)"  },
-    { label: "Sent",     value: counts.sentToYou, color: "#f59e0b", bg: "rgba(245,158,11,0.08)",                  border: "rgba(245,158,11,0.22)", glow: "rgba(245,158,11,0.10)" },
-    { label: "Clicked",  value: counts.clicked,   color: "#10b981", bg: "rgba(16,185,129,0.07)",                  border: "rgba(16,185,129,0.22)", glow: "rgba(16,185,129,0.08)" },
-    { label: "Failed",   value: counts.failed,    color: "#ef4444", bg: "rgba(239,68,68,0.07)",                   border: "rgba(239,68,68,0.22)",  glow: "rgba(239,68,68,0.08)"  },
+    { label: "Total",    value: counts.total,     color: "var(--text-primary)", bg: "linear-gradient(145deg,#1a1a21,#111116)", border: "rgba(255,255,255,0.09)", glow: undefined                  },
+    { label: "Pending",  value: counts.pending,   color: "var(--text-secondary)", bg: "rgba(161,161,170,0.05)",               border: "rgba(161,161,170,0.14)", glow: undefined                  },
+    { label: "Ready",    value: counts.generated, color: "#06b6d4",             bg: "rgba(6,182,212,0.07)",                   border: "rgba(6,182,212,0.22)",   glow: "rgba(6,182,212,0.08)"     },
+    { label: "Sent",     value: counts.sentToYou, color: "var(--primary)",      bg: "var(--gold-bg)",                         border: "var(--gold-border)",     glow: "var(--primary-subtle)"    },
+    { label: "Clicked",  value: counts.clicked,   color: "var(--success)",      bg: "var(--success-bg)",                      border: "var(--success-border)",  glow: "rgba(16,185,129,0.08)"    },
+    { label: "Failed",   value: counts.failed,    color: "var(--error)",        bg: "var(--error-bg)",                        border: "var(--error-border)",    glow: "rgba(239,68,68,0.08)"     },
   ];
 
   return (
     <>
       <style>{`
-        @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes cardFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes pageFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin { to { transform: rotate(360deg) } }
+        @keyframes cardFadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes pageFadeIn { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: translateY(0) } }
       `}</style>
-      <div style={{ minHeight: "100vh", padding: "48px 24px 96px" }}>
+      <div style={{ minHeight: "100vh", padding: "28px 24px 96px" }}>
         <div style={{ maxWidth: 1040, margin: "0 auto" }}>
 
           {/* ── Header ──────────────────────────────────────────────── */}
           <div style={{ marginBottom: 28, animation: "pageFadeIn 500ms ease both" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <h1 style={{
-                fontFamily: "Sora, sans-serif", fontSize: 28, fontWeight: 800,
-                color: "#f5f5f7", margin: 0, letterSpacing: "-0.6px",
+                fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800,
+                color: "var(--text-primary)", margin: 0, letterSpacing: "-0.6px",
               }}>
                 Today&apos;s Application Pack
               </h1>
@@ -783,16 +785,16 @@ export default function AutoApplyPage() {
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 5,
                   padding: "3px 10px", borderRadius: 100,
-                  fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700,
-                  background: meStatus.plan === "pro" ? "rgba(6,182,212,0.10)" : "rgba(245,158,11,0.10)",
-                  border: `1px solid ${meStatus.plan === "pro" ? "rgba(6,182,212,0.28)" : "rgba(245,158,11,0.28)"}`,
-                  color: meStatus.plan === "pro" ? "#22d3ee" : "#f59e0b",
+                  fontFamily: "var(--font-primary)", fontSize: 11, fontWeight: 700,
+                  background: meStatus.plan === "pro" ? "rgba(6,182,212,0.10)" : "var(--primary-subtle)",
+                  border: `1px solid ${meStatus.plan === "pro" ? "rgba(6,182,212,0.28)" : "var(--gold-border)"}`,
+                  color: meStatus.plan === "pro" ? "#22d3ee" : "var(--primary)",
                 }}>
                   {meStatus.plan === "pro" ? "Pro" : "Free"} · {meStatus.daily_limit} daily pack{meStatus.daily_limit !== 1 ? "s" : ""}
                 </span>
               )}
             </div>
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "rgba(255,255,255,0.38)", margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontFamily: "var(--font-primary)", fontSize: 14, color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
               AI-matched roles, tailored materials, and Gmail-ready application packs for today.
             </p>
           </div>
@@ -812,19 +814,19 @@ export default function AutoApplyPage() {
               disabled={sending || counts.generated === 0}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "11px 22px", borderRadius: 10,
+                padding: "11px 22px", borderRadius: "var(--radius-md)",
                 cursor: sending || counts.generated === 0 ? "not-allowed" : "pointer",
-                fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
-                background: sending ? "rgba(245,158,11,0.10)" : counts.generated === 0 ? "rgba(245,158,11,0.04)" : "linear-gradient(135deg,rgba(245,158,11,0.20),rgba(251,191,36,0.12))",
+                fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 700,
+                background: sending ? "var(--primary-subtle)" : counts.generated === 0 ? "rgba(245,158,11,0.04)" : "linear-gradient(135deg,rgba(245,158,11,0.20),rgba(251,191,36,0.12))",
                 border: `1px solid ${sending || counts.generated === 0 ? "rgba(245,158,11,0.15)" : "rgba(245,158,11,0.40)"}`,
-                color: sending || counts.generated === 0 ? "rgba(245,158,11,0.38)" : "#f59e0b",
+                color: sending || counts.generated === 0 ? "rgba(245,158,11,0.38)" : "var(--primary)",
                 transition: "all 160ms",
                 boxShadow: counts.generated > 0 && !sending ? "0 2px 14px rgba(245,158,11,0.12)" : "none",
               }}
             >
               {sending ? (
                 <>
-                  <span style={{ display: "inline-block", width: 13, height: 13, border: "2px solid rgba(245,158,11,0.3)", borderTopColor: "#f59e0b", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                  <span style={{ display: "inline-block", width: 13, height: 13, border: "2px solid rgba(245,158,11,0.3)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
                   Sending pack…
                 </>
               ) : (
@@ -833,21 +835,21 @@ export default function AutoApplyPage() {
             </button>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {counts.generated > 0 && !sending && (
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-muted)" }}>
                   Sends generated application packs to your Gmail.
                 </span>
               )}
               {counts.generated === 0 && !sending && (
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "rgba(255,255,255,0.28)" }}>
+                <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "rgba(255,255,255,0.28)" }}>
                   Generate materials first before sending.
                 </span>
               )}
             </div>
             {sendError && (
               <span style={{
-                fontFamily: "Inter, sans-serif", fontSize: 12, color: "#ef4444",
-                background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
-                borderRadius: 6, padding: "5px 10px",
+                fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--error)",
+                background: "var(--error-bg)", border: "1px solid var(--error-border)",
+                borderRadius: "var(--radius-sm)", padding: "5px 10px",
               }}>
                 {sendError}
               </span>
@@ -860,7 +862,7 @@ export default function AutoApplyPage() {
           ) : (
             /* ── Table ────────────────────────────────────────────── */
             <div style={{
-              background: "#0f0f12", border: "1px solid rgba(255,255,255,0.07)",
+              background: "var(--bg-elev)", border: "1px solid var(--border)",
               borderRadius: 16, overflow: "hidden",
               boxShadow: "0 4px 32px rgba(0,0,0,0.45)",
             }}>
@@ -869,14 +871,14 @@ export default function AutoApplyPage() {
                 <div style={{
                   display: "grid", gridTemplateColumns: GRID,
                   gap: 8, padding: "12px 20px",
-                  background: "rgba(255,255,255,0.025)", borderBottom: "1px solid rgba(255,255,255,0.07)",
+                  background: "var(--surface)", borderBottom: "1px solid var(--border)",
                   minWidth: 900,
                   position: "sticky", top: 0, zIndex: 1,
                 }}>
                   {COLS.map(col => (
                     <span key={col.label} style={{
-                      fontFamily: "Inter, sans-serif", fontSize: 10, fontWeight: 700,
-                      color: "#6b6b75", textTransform: "uppercase", letterSpacing: "0.08em",
+                      fontFamily: "var(--font-primary)", fontSize: 10, fontWeight: 700,
+                      color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em",
                     }}>
                       {col.label}
                     </span>
@@ -907,16 +909,16 @@ export default function AutoApplyPage() {
                         display: "grid", gridTemplateColumns: GRID,
                         gap: 8, padding: "13px 20px", alignItems: "center",
                         background: rowBg, minWidth: 900, cursor: "pointer",
-                        borderBottom: i < rows.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                        borderLeft: isSelected ? "3px solid #f59e0b" : isHovered ? "3px solid rgba(245,158,11,0.35)" : "3px solid transparent",
+                        borderBottom: i < rows.length - 1 ? "1px solid var(--border-subtle)" : "none",
+                        borderLeft: isSelected ? `3px solid var(--primary)` : isHovered ? "3px solid rgba(245,158,11,0.35)" : "3px solid transparent",
                         transition: "background 140ms ease, border-left-color 140ms ease",
                         outline: "none",
                       }}
                     >
                       {/* Job Title */}
                       <span style={{
-                        fontFamily: "Inter, sans-serif", fontSize: 13,
-                        color: "#f5f5f7", fontWeight: 500,
+                        fontFamily: "var(--font-primary)", fontSize: 13,
+                        color: "var(--text-primary)", fontWeight: 500,
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }} title={row.job_title ?? undefined}>
                         {row.job_title ?? "—"}
@@ -924,7 +926,7 @@ export default function AutoApplyPage() {
 
                       {/* Company */}
                       <span style={{
-                        fontFamily: "Inter, sans-serif", fontSize: 13, color: "#a1a1aa",
+                        fontFamily: "var(--font-primary)", fontSize: 13, color: "var(--text-secondary)",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }} title={row.employer_name ?? undefined}>
                         {row.employer_name ?? "—"}
@@ -932,7 +934,7 @@ export default function AutoApplyPage() {
 
                       {/* Score */}
                       <span style={{
-                        fontFamily: "Sora, sans-serif", fontSize: 13, fontWeight: 700,
+                        fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
                         color: scoreColor(row.match_score),
                       }}>
                         {row.match_score !== null ? `${row.match_score}%` : "—"}
@@ -942,7 +944,7 @@ export default function AutoApplyPage() {
                       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                         <StatusBadge status={row.status} tailored={row.tailored_resume_text} clickedAt={row.apply_clicked_at} />
                         {row.apply_clicked_at && (
-                          <span style={{ fontFamily: "Inter, sans-serif", fontSize: 10, color: "#10b981" }}>
+                          <span style={{ fontFamily: "var(--font-primary)", fontSize: 10, color: "var(--success)" }}>
                             ↗ {fmtDate(row.apply_clicked_at)}
                           </span>
                         )}
@@ -955,21 +957,21 @@ export default function AutoApplyPage() {
 
                       {/* Generated */}
                       <span style={{
-                        fontFamily: "Inter, sans-serif", fontSize: 13,
-                        color: row.tailored_resume_text ? "#10b981" : "#6b6b75",
+                        fontFamily: "var(--font-primary)", fontSize: 13,
+                        color: row.tailored_resume_text ? "var(--success)" : "var(--text-tertiary)",
                         fontWeight: row.tailored_resume_text ? 600 : 400,
                       }}>
                         {row.tailored_resume_text ? "Yes" : "No"}
                       </span>
 
                       {/* Applied At */}
-                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75" }}>
+                      <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)" }}>
                         {fmtDate(row.applied_at)}
                       </span>
 
                       {/* Error */}
                       <span style={{
-                        fontFamily: "Inter, sans-serif", fontSize: 11, color: "#ef4444",
+                        fontFamily: "var(--font-primary)", fontSize: 11, color: "var(--error)",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }} title={row.status === "failed" && row.error_message ? row.error_message : undefined}>
                         {row.status === "failed" && row.error_message
@@ -984,18 +986,18 @@ export default function AutoApplyPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
-                              fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600,
-                              color: "#f59e0b", textDecoration: "none",
+                              fontFamily: "var(--font-primary)", fontSize: 12, fontWeight: 600,
+                              color: "var(--primary)", textDecoration: "none",
                               display: "inline-block", padding: "4px 10px",
-                              background: "rgba(245,158,11,0.1)",
+                              background: "var(--primary-subtle)",
                               border: "1px solid rgba(245,158,11,0.25)",
-                              borderRadius: 6, whiteSpace: "nowrap",
+                              borderRadius: "var(--radius-sm)", whiteSpace: "nowrap",
                             }}
                           >
                             Apply →
                           </a>
                         ) : (
-                          <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "#6b6b75" }}>
+                          <span style={{ fontFamily: "var(--font-primary)", fontSize: 13, color: "var(--text-tertiary)" }}>
                             —
                           </span>
                         )}
@@ -1007,10 +1009,10 @@ export default function AutoApplyPage() {
 
               {/* Footer */}
               <div style={{
-                padding: "10px 20px", borderTop: "1px solid rgba(255,255,255,0.06)",
-                background: "rgba(255,255,255,0.02)",
+                padding: "10px 20px", borderTop: "1px solid var(--border-subtle)",
+                background: "var(--surface)",
               }}>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75" }}>
+                <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)" }}>
                   {rows.length} job{rows.length !== 1 ? "s" : ""} queued today
                   {selectedRow ? " — click a row to view details" : " — click any row to view details"}
                 </span>

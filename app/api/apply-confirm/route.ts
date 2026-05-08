@@ -97,11 +97,8 @@ export async function GET(req: Request): Promise<NextResponse> {
           .maybeSingle(),
       ]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ap  = apResult.data  as any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pr  = prResult.data  as any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const re  = reResult.data  as any;
 
       let emailAvailable = true;

@@ -10,6 +10,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".claude/**",
+    "scripts/**",
+    "test-email.js",
+    "home_full_upload.tsx",
   ]),
   {
     rules: {

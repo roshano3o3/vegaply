@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -39,19 +40,19 @@ interface ConfirmData {
 
 function scoreStyle(score: number | null): { bg: string; color: string; border: string } {
   if (score === null) return { bg: "rgba(107,114,128,0.12)", color: "#9ca3af", border: "rgba(107,114,128,0.2)" };
-  if (score >= 70)   return { bg: "rgba(16,185,129,0.12)",  color: "#10b981", border: "rgba(16,185,129,0.22)" };
-  if (score >= 50)   return { bg: "rgba(245,158,11,0.12)",  color: "#f59e0b", border: "rgba(245,158,11,0.22)" };
-  return               { bg: "rgba(239,68,68,0.1)",         color: "#ef4444", border: "rgba(239,68,68,0.2)"  };
+  if (score >= 70)   return { bg: "var(--success-bg)",  color: "var(--success)",  border: "var(--success-border)" };
+  if (score >= 50)   return { bg: "var(--gold-subtle)", color: "var(--gold)",     border: "var(--gold-border)" };
+  return               { bg: "var(--error-bg)",   color: "var(--error)",   border: "var(--error-border)"  };
 }
 
 function methodChipStyle(method: ApplyMethodResult["method"]): { bg: string; color: string; border: string } {
   if (method === "greenhouse" || method === "lever" || method === "ashby" || method === "workday")
-    return { bg: "rgba(99,102,241,0.12)", color: "#818cf8", border: "rgba(99,102,241,0.22)" };
+    return { bg: "var(--gold-subtle)", color: "var(--gold)",           border: "var(--gold-border)" };
   if (method === "email")
-    return { bg: "rgba(59,130,246,0.12)", color: "#60a5fa", border: "rgba(59,130,246,0.22)" };
+    return { bg: "var(--surface)",    color: "var(--text-secondary)", border: "var(--border)" };
   if (method === "manual")
-    return { bg: "rgba(245,158,11,0.10)", color: "#f59e0b", border: "rgba(245,158,11,0.22)" };
-  return   { bg: "rgba(161,161,170,0.10)", color: "#a1a1aa", border: "rgba(161,161,170,0.2)" };
+    return { bg: "var(--gold-subtle)", color: "var(--gold)",           border: "var(--gold-border)" };
+  return   { bg: "var(--surface)",    color: "var(--text-dim)",       border: "var(--border)" };
 }
 
 function formatBool(val: boolean | null): string {
@@ -93,10 +94,10 @@ function CopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       style={{
         fontSize: 12, fontWeight: 600, fontFamily: "inherit",
-        color:      copied ? "#10b981" : "#f59e0b",
-        background: copied ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.08)",
-        border:     `1px solid ${copied ? "rgba(16,185,129,0.22)" : "rgba(245,158,11,0.22)"}`,
-        borderRadius: 6, padding: "4px 12px", cursor: "pointer",
+        color:      copied ? "var(--success)" : "var(--gold)",
+        background: copied ? "var(--success-bg)" : "var(--gold-bg)",
+        border:     `1px solid ${copied ? "var(--success-border)" : "var(--gold-border)"}`,
+        borderRadius: "var(--radius-sm)", padding: "4px 12px", cursor: "pointer",
         transition: "all 0.15s",
       }}
     >
@@ -109,40 +110,40 @@ function CopyButton({ text }: { text: string }) {
 
 const CSS = `
   *,*::before,*::after{box-sizing:border-box}
-  .cp-root{min-height:100vh;background:#060608;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff}
-  .cp-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;background:rgba(6,6,8,0.92);backdrop-filter:blur(12px);z-index:10}
-  .cp-logo{font-size:20px;font-weight:800;color:#fff;text-decoration:none;letter-spacing:-0.5px}
-  .cp-logo em{font-style:italic;color:#f59e0b}
-  .cp-back{font-size:13px;color:rgba(255,255,255,0.35);text-decoration:none;transition:color .2s}
-  .cp-back:hover{color:rgba(255,255,255,0.65)}
+  .cp-root{min-height:100vh;background:var(--bg);font-family:var(--font-primary);color:var(--text-primary)}
+  .cp-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid var(--border-subtle);position:sticky;top:0;background:rgba(10,10,12,0.92);backdrop-filter:blur(12px);z-index:10}
+  .cp-logo{font-size:20px;font-weight:800;color:var(--text-primary);text-decoration:none;letter-spacing:-0.5px}
+  .cp-logo em{font-style:italic;color:var(--gold)}
+  .cp-back{font-size:13px;color:var(--text-muted);text-decoration:none;transition:color .2s}
+  .cp-back:hover{color:var(--text-secondary)}
   .cp-wrap{max-width:680px;margin:0 auto;padding:52px 24px 96px}
-  .cp-eyebrow{font-size:10px;font-weight:700;color:#f59e0b;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:12px}
-  .cp-title{font-size:clamp(26px,4vw,36px);font-weight:700;color:#fff;letter-spacing:-0.5px;line-height:1.15;margin:0 0 8px}
-  .cp-subtitle{font-size:15px;color:rgba(255,255,255,0.4);line-height:1.65;margin:0 0 36px}
-  .cp-job{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:20px 24px;margin-bottom:32px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-  .cp-job-title{font-size:18px;font-weight:700;color:#fff;margin:0 0 4px}
-  .cp-job-co{font-size:14px;color:rgba(255,255,255,0.45);margin:0}
+  .cp-eyebrow{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1.6px;text-transform:uppercase;margin-bottom:12px}
+  .cp-title{font-size:clamp(26px,4vw,36px);font-weight:700;color:var(--text-primary);letter-spacing:-0.5px;line-height:1.15;margin:0 0 8px}
+  .cp-subtitle{font-size:15px;color:var(--text-secondary);line-height:1.65;margin:0 0 36px}
+  .cp-job{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:32px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .cp-job-title{font-size:18px;font-weight:700;color:var(--text-primary);margin:0 0 4px}
+  .cp-job-co{font-size:14px;color:var(--text-secondary);margin:0}
   .cp-badge{display:inline-flex;align-items:center;padding:5px 12px;border-radius:100px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
   .cp-sec{margin-bottom:28px}
   .cp-sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .cp-sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,0.28)}
-  .cp-textbox{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px 18px;font-size:14px;color:rgba(255,255,255,0.62);line-height:1.75;max-height:280px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
-  .cp-divider{height:1px;background:rgba(255,255,255,0.06);margin:36px 0}
+  .cp-sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted)}
+  .cp-textbox{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;font-size:14px;color:rgba(255,255,255,0.62);line-height:1.75;max-height:280px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  .cp-divider{height:1px;background:var(--border-subtle);margin:36px 0}
   .cp-cta-section{margin-top:36px}
-  .cp-cta{display:inline-flex;align-items:center;gap:8px;background:#f59e0b;color:#000;padding:14px 32px;border-radius:10px;font-weight:700;font-size:16px;text-decoration:none;transition:background 0.15s;letter-spacing:-0.2px}
-  .cp-cta:hover{background:#fbbf24}
+  .cp-cta{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#000;padding:14px 32px;border-radius:var(--radius-md);font-weight:700;font-size:16px;text-decoration:none;transition:background 0.15s;letter-spacing:-0.2px}
+  .cp-cta:hover{background:var(--gold-hover)}
   .cp-cta-note{font-size:12px;color:rgba(255,255,255,0.22);margin-top:10px;line-height:1.5}
   .cp-error{text-align:center;padding:96px 24px}
   .cp-error-icon{font-size:40px;margin-bottom:20px}
-  .cp-error-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
-  .cp-error-msg{font-size:15px;color:rgba(255,255,255,0.38);margin-bottom:28px;line-height:1.6}
-  .cp-error-link{font-size:14px;color:#818cf8;text-decoration:none}
+  .cp-error-title{font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+  .cp-error-msg{font-size:15px;color:var(--text-muted);margin-bottom:28px;line-height:1.6}
+  .cp-error-link{font-size:14px;color:var(--gold);text-decoration:none}
   .cp-error-link:hover{text-decoration:underline}
-  .cp-loading{text-align:center;padding:96px 24px;color:rgba(255,255,255,0.28);font-size:14px}
-  .cp-method{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px 18px;margin-bottom:28px}
+  .cp-loading{text-align:center;padding:96px 24px;color:var(--text-muted);font-size:14px}
+  .cp-method{background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:28px}
   .cp-method-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,0.25);margin-bottom:8px}
   .cp-method-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:6px}
-  .cp-method-reason{font-size:13px;color:rgba(255,255,255,0.38);line-height:1.55;margin:0}
+  .cp-method-reason{font-size:13px;color:var(--text-muted);line-height:1.55;margin:0}
   @media(max-width:600px){
     .cp-nav{padding:14px 18px}
     .cp-wrap{padding:36px 16px 72px}
@@ -182,7 +183,7 @@ function ConfirmContent() {
       <style>{CSS}</style>
 
       <nav className="cp-nav">
-        <a href="/" className="cp-logo">Vega<em>ply</em></a>
+        <Link href="/" className="cp-logo">Vega<em>ply</em></Link>
         <a href="/home" className="cp-back">← Dashboard</a>
       </nav>
 
@@ -268,8 +269,8 @@ function ConfirmContent() {
             <div
               className="cp-method"
               style={data.apply_method.method === "greenhouse" ? {
-                background:   "rgba(99,102,241,0.06)",
-                borderColor:  "rgba(99,102,241,0.2)",
+                background:  "var(--primary-subtle)",
+                borderColor: "var(--gold-border)",
               } : {}}
             >
               <div className="cp-method-label">Submission method</div>
@@ -305,7 +306,7 @@ function ConfirmContent() {
                   {data.greenhouse_readiness && (
                     <>
                       <div style={{
-                        borderTop: "1px solid rgba(99,102,241,0.15)", marginBottom: 12,
+                        borderTop: "1px solid var(--border-subtle)", marginBottom: 12,
                       }} />
                       <div style={{
                         fontSize: 9, fontWeight: 700, textTransform: "uppercase",
@@ -344,10 +345,10 @@ function ConfirmContent() {
                           {(data.greenhouse_readiness.sponsorshipQuestionDetected ||
                             data.greenhouse_readiness.workAuthQuestionDetected) && (
                             <div style={{
-                              fontSize: 12, color: "#f59e0b",
-                              background: "rgba(245,158,11,0.08)",
-                              border: "1px solid rgba(245,158,11,0.2)",
-                              borderRadius: 6, padding: "6px 10px", marginBottom: 10,
+                              fontSize: 12, color: "var(--gold)",
+                              background: "var(--gold-bg)",
+                              border: "1px solid var(--gold-border)",
+                              borderRadius: "var(--radius-sm)", padding: "6px 10px", marginBottom: 10,
                             }}>
                               ⚠ This application may require work authorization answers.
                             </div>
@@ -356,13 +357,13 @@ function ConfirmContent() {
                           {/* Profile completeness */}
                           {(data.greenhouse_readiness.missingUserProfileFields ?? []).length > 0 ? (
                             <div style={{
-                              background: "rgba(245,158,11,0.06)",
-                              border: "1px solid rgba(245,158,11,0.18)",
+                              background: "var(--warning-bg)",
+                              border: "1px solid var(--gold-border)",
                               borderRadius: 8, padding: "10px 12px", marginBottom: 10,
                             }}>
                               <p style={{
                                 fontFamily: "inherit", fontSize: 12, fontWeight: 600,
-                                color: "#f59e0b", margin: "0 0 4px", lineHeight: 1.4,
+                                color: "var(--gold)", margin: "0 0 4px", lineHeight: 1.4,
                               }}>
                                 Complete your profile before assisted apply.
                               </p>
@@ -376,7 +377,7 @@ function ConfirmContent() {
                                 href="/profile"
                                 style={{
                                   fontSize: 12, fontWeight: 600,
-                                  color: "#818cf8", textDecoration: "none",
+                                  color: "var(--gold)", textDecoration: "none",
                                 }}
                               >
                                 Update Profile →
@@ -445,9 +446,9 @@ export default function ConfirmPage() {
     <Suspense
       fallback={
         <div style={{
-          minHeight: "100vh", background: "#060608",
+          minHeight: "100vh", background: "var(--bg)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          color: "rgba(255,255,255,0.28)", fontFamily: "sans-serif", fontSize: 14,
+          color: "var(--text-muted)", fontFamily: "var(--font-primary)", fontSize: 14,
         }}>
           Loading…
         </div>

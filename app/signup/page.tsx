@@ -81,49 +81,12 @@ export default function SignupPage() {
   return (
     <>
       <style>{`
-        :root {
-          --bg-page:      #0a0a0c;
-          --bg-surface:   #141418;
-          --bg-elevated:  #1c1c22;
-          --bg-input:     #1a1a1f;
-          --bg-hover:     rgba(255,255,255,0.03);
-          --text-primary:   #f5f5f7;
-          --text-secondary: #a1a1aa;
-          --text-tertiary:  #6b6b75;
-          --border-subtle: rgba(255,255,255,0.06);
-          --border-normal: rgba(255,255,255,0.10);
-          --border-strong: rgba(255,255,255,0.18);
-          --gold:         #f59e0b;
-          --gold-hover:   #fbbf24;
-          --gold-subtle:  rgba(245,158,11,0.12);
-          --gold-glow:    rgba(245,158,11,0.25);
-          --cyan:         #fbbf24;
-          --cyan-hover:   #fde68a;
-          --cyan-subtle:  rgba(251,191,36,0.12);
-          --cyan-glow:    rgba(251,191,36,0.20);
-          --success: #10b981;
-          --warning: #fbbf24;
-          --danger:  #ef4444;
-          --radius-sm: 6px;
-          --radius-md: 10px;
-          --radius-lg: 14px;
-          --radius-xl: 20px;
-          --shadow-glow-gold: 0 0 24px rgba(245,158,11,0.20);
-          --shadow-glow-cyan: 0 0 24px rgba(6,182,212,0.20);
-          --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-          --dur-fast: 120ms;
-          --dur-base: 200ms;
-          --dur-slow: 400ms;
-        }
-
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         .auth-root {
           min-height: 100vh;
           display: flex;
-          background: var(--bg-page);
+          background: var(--bg);
           font-family: Inter, system-ui, sans-serif;
           overflow: hidden;
         }
@@ -135,7 +98,7 @@ export default function SignupPage() {
           flex-direction: column;
           justify-content: space-between;
           padding: 48px 56px;
-          background: var(--bg-page);
+          background: var(--bg);
           overflow: hidden;
         }
         .auth-left::before {
@@ -152,7 +115,7 @@ export default function SignupPage() {
           position: absolute;
           bottom: -80px; right: -60px;
           width: 360px; height: 360px;
-          background: radial-gradient(circle, var(--cyan-glow) 0%, transparent 70%);
+          background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
           pointer-events: none;
           animation: breathe 8s ease-in-out infinite reverse;
         }
@@ -374,7 +337,7 @@ export default function SignupPage() {
 
         .form-btn {
           width: 100%;
-          background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%);
+          background: var(--grad-text);
           border: none;
           border-radius: 12px;
           padding: 15px;
@@ -426,7 +389,7 @@ export default function SignupPage() {
         }
         .form-footer a:hover { color: var(--gold-light); }
         .google-btn { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 500; font-family: Inter, system-ui, sans-serif; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
-        .google-btn:hover { background: var(--bg-input-hover); border-color: var(--gold-border); transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow); }
+        .google-btn:hover { background: var(--bg-input-hover); border-color: var(--gold-border); transform: translateY(-1px); box-shadow: var(--shadow-glow-subtle); }
         .google-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         .or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
         .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
@@ -472,11 +435,117 @@ export default function SignupPage() {
           .auth-left { display: none; }
           .auth-right { width: 100%; border-left: none; padding: 48px 32px; }
         }
+
+        /* ── Orbit OS — Cosmic ambient layer ───────────────────────── */
+        .auth-left::before, .auth-left::after { display: none; }
+
+        .auth-cosmos {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          overflow: hidden;
+        }
+        .auth-cosmos::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image:
+            radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,255,255,0.45) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 67% 32%, rgba(255,255,255,0.35) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 83% 67%, rgba(255,255,255,0.30) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 28% 58%, rgba(245,158,11, 0.45) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 47% 82%, rgba(255,255,255,0.28) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 91% 14%, rgba(255,255,255,0.38) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 38% 42%, rgba(255,255,255,0.22) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 73% 78%, rgba(255,255,255,0.28) 0%, transparent 100%),
+            radial-gradient(1.2px 1.2px at  8% 72%, rgba(255,255,255,0.32) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 54%  8%, rgba(255,255,255,0.38) 0%, transparent 100%),
+            radial-gradient(1px   1px   at 19% 90%, rgba(255,255,255,0.18) 0%, transparent 100%),
+            radial-gradient(1.5px 1.5px at 95% 48%, rgba(245,158,11, 0.30) 0%, transparent 100%);
+          animation: starfield-shimmer 10s ease-in-out infinite;
+        }
+        @keyframes starfield-shimmer {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.55; }
+        }
+        .auth-cosmos-glow-1 {
+          position: absolute;
+          top: -140px; left: -140px;
+          width: 520px; height: 520px;
+          border-radius: 50%;
+          background: radial-gradient(ellipse at center, rgba(245,158,11,0.09) 0%, transparent 65%);
+          animation: cosmos-breathe 10s ease-in-out infinite;
+        }
+        .auth-cosmos-glow-2 {
+          position: absolute;
+          bottom: -100px; right: -80px;
+          width: 420px; height: 420px;
+          border-radius: 50%;
+          background: radial-gradient(ellipse at center, rgba(255,255,255,0.025) 0%, transparent 65%);
+          animation: cosmos-breathe 14s ease-in-out infinite reverse;
+        }
+        @keyframes cosmos-breathe {
+          0%, 100% { transform: scale(1);    opacity: 1; }
+          50%       { transform: scale(1.10); opacity: 0.55; }
+        }
+        .auth-orbit-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; }
+        .auth-orbit-ring-1 {
+          width: 560px; height: 210px;
+          margin: -105px 0 0 -280px;
+          border: 1px solid rgba(245,158,11,0.055);
+          transform: rotate(-28deg);
+          animation: ring-pulse 9s ease-in-out infinite;
+        }
+        .auth-orbit-ring-2 {
+          width: 360px; height: 130px;
+          margin: -65px 0 0 -180px;
+          border: 1px solid rgba(255,255,255,0.035);
+          transform: rotate(20deg);
+          animation: ring-pulse 13s ease-in-out infinite reverse;
+        }
+        @keyframes ring-pulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.25; }
+        }
+        .auth-orbit-node-1 {
+          position: absolute;
+          top: calc(50% - 185px); left: 50%;
+          width: 4px; height: 4px; margin-left: -2px;
+          border-radius: 50%;
+          background: rgba(245,158,11,0.8);
+          box-shadow: 0 0 12px rgba(245,158,11,0.35), 0 0 5px rgba(245,158,11,0.5);
+          transform-origin: 0px 185px;
+          animation: node-orbit 32s linear infinite;
+        }
+        .auth-orbit-node-2 {
+          position: absolute;
+          top: calc(50% - 135px); left: 50%;
+          width: 3px; height: 3px; margin-left: -1.5px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.5);
+          box-shadow: 0 0 8px rgba(255,255,255,0.15);
+          transform-origin: 0px 135px;
+          animation: node-orbit 22s linear infinite reverse;
+        }
+        @keyframes node-orbit {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
       `}</style>
 
       <div className="auth-root">
         {/* LEFT */}
         <div className="auth-left">
+          {/* Orbit OS — decorative cosmic ambient layer, no logic */}
+          <div aria-hidden="true" className="auth-cosmos">
+            <div className="auth-cosmos-glow-1" />
+            <div className="auth-cosmos-glow-2" />
+            <div className="auth-orbit-ring auth-orbit-ring-1" />
+            <div className="auth-orbit-ring auth-orbit-ring-2" />
+            <div className="auth-orbit-node-1" />
+            <div className="auth-orbit-node-2" />
+          </div>
           <div className="auth-logo">Vega<span>ply</span></div>
 
           <div className="auth-hero">
@@ -617,7 +686,3 @@ export default function SignupPage() {
     </>
   );
 }
-
-
-
-

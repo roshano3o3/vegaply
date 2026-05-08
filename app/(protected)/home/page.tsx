@@ -41,6 +41,7 @@ type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
 type TabType = "results"|"earlybird"|"saved"|"tracker"|"analytics";
 const JOBS_PER_PAGE = 50;
+const RENDER_NOW = Date.now();
 
 const H1B_SPONSORS = new Set([
   'google','alphabet','microsoft','apple','meta','amazon','netflix','uber','lyft',
@@ -743,7 +744,7 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
           <span className="badge badge-time">{timeAgo(job.job_posted_at_datetime_utc)}</span>
           {(() => {
             const ts = job.job_posted_at_timestamp
-            const hrs = ts ? (Date.now()/1000 - ts)/3600 : 999
+            const hrs = ts ? (RENDER_NOW/1000 - ts)/3600 : 999
             const count = hrs <= 1 ? '~2 applicants' : hrs <= 3 ? '~8 applicants' : hrs <= 6 ? '~18 applicants' : hrs <= 12 ? '~40 applicants' : hrs <= 24 ? '~75 applicants' : '150+ applicants'
             const color = hrs <= 6 ? '#8eb29b' : hrs <= 24 ? '#d6b268' : 'rgba(239,68,68,0.65)'
             const bg = hrs <= 6 ? 'rgba(52,211,153,0.10)' : hrs <= 24 ? 'rgba(251,191,36,0.08)' : 'rgba(239,68,68,0.07)'
@@ -2753,7 +2754,7 @@ export default function Home() {
   const avatarLetter=userEmail?userEmail[0].toUpperCase():"?";
 
   return (
-    <div data-theme={darkMode?"dark":"light"} style={{background:"radial-gradient(circle at 18% 22%,rgba(120,130,150,0.10),transparent 38%),radial-gradient(circle at 82% 72%,rgba(90,100,120,0.08),transparent 42%),linear-gradient(145deg,#1b1d22 0%,#23262d 100%)",minHeight:'100vh'}}>
+    <div data-theme={darkMode?"dark":"light"} style={{background:"var(--bg)",minHeight:'100vh'}}>
       <style>{`
         :root {
           /* === BACKGROUNDS === */
@@ -2936,8 +2937,8 @@ export default function Home() {
         @keyframes premiumShimmer{0%{background-position:0% center}100%{background-position:200% center}}
 
         /* TOPBAR */
-        .topbar{position:sticky;top:0;z-index:50;height:72px;padding:0 var(--space-5);display:flex;align-items:center;gap:var(--space-4);background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);backdrop-filter:blur(20px);box-shadow:0 4px 28px rgba(0,0,0,0.38)}
-        .topbar-logo{flex-shrink:0;margin-right:14px;cursor:pointer;display:flex;align-items:center;gap:8px}
+        .topbar{position:sticky;top:56px;z-index:50;height:72px;padding:0 var(--space-5);display:flex;align-items:center;gap:var(--space-4);background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);backdrop-filter:blur(20px);box-shadow:0 4px 28px rgba(0,0,0,0.38)}
+        .topbar-logo{flex-shrink:0;margin-right:14px;cursor:pointer;display:none;align-items:center;gap:8px}
         .topbar-logo span{font-family:var(--font-display);font-size:16px;font-weight:800;font-style:italic;color:#f5efe2;letter-spacing:-0.5px;line-height:1}
         .topbar-logo:hover span{color:#fbbf24;transition:color 0.15s ease}
         .topbar-search{display:flex;align-items:center;gap:10px;flex:1;max-width:580px}
@@ -2976,9 +2977,9 @@ export default function Home() {
 
         /* LAYOUT */
         .app-layout{display:flex;align-items:flex-start;width:100%;min-height:100vh;background:var(--bg-page);position:relative;z-index:1}
-        .sidebar{width:260px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-4) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:0;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden}
+        .sidebar{width:260px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-right:1px solid var(--border-subtle);padding:var(--space-4) var(--space-4) var(--space-10) var(--space-4);display:flex;flex-direction:column;gap:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;overflow-x:hidden}
         .content{flex:1;min-width:0;overflow-y:auto;padding:var(--space-5) var(--space-6);max-width:calc(100vw - 260px - 300px);display:flex;flex-direction:column;gap:var(--space-5)}
-        .right-panel{width:300px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-left:1px solid rgba(255,255,255,0.045);padding:var(--space-4) var(--space-4);display:flex;flex-direction:column;gap:0;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;box-shadow:-6px 0 20px rgba(0,0,0,0.22)}
+        .right-panel{width:300px;flex-shrink:0;align-self:flex-start;background:var(--bg-surface);border-left:1px solid rgba(255,255,255,0.045);padding:var(--space-4) var(--space-4);display:flex;flex-direction:column;gap:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;overflow-x:hidden;box-shadow:-6px 0 20px rgba(0,0,0,0.22)}
         @media(max-width:1200px){.right-panel{display:none!important}.content{max-width:calc(100vw - 260px)}}
 
         /* RIGHT PANEL COMPONENTS */
@@ -3366,7 +3367,7 @@ export default function Home() {
           .modal-close{top:12px;right:12px}
 
           .mobile-sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:350;display:flex;flex-direction:column;justify-content:flex-end;backdrop-filter:blur(4px)}
-          .mobile-sidebar-sheet{background:#0d0d14;border-radius:20px 20px 0 0;padding:16px;max-height:80vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.08)}
+          .mobile-sidebar-sheet{background:var(--bg-elevated);border-radius:20px 20px 0 0;padding:16px;max-height:80vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.08)}
           .mob-filters-btn{display:flex!important}
           .mob-filters-row{display:flex!important}
         }
@@ -3491,8 +3492,8 @@ export default function Home() {
               </div>
               {showAvatarMenu&&(
                 <>
-                  <div style={{position:'fixed',inset:0,zIndex:199}} onClick={()=>setShowAvatarMenu(false)}/>
-                  <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,minWidth:220,background:'var(--bg-surface)',border:'1px solid var(--border-subtle)',borderRadius:12,padding:8,zIndex:200,boxShadow:'0 8px 32px rgba(0,0,0,0.5)',animation:'scaleInSoft 0.15s var(--ease-out) both',transformOrigin:'top right'}}>
+                  <div style={{position:'fixed',inset:0,zIndex:249}} onClick={()=>setShowAvatarMenu(false)}/>
+                  <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,minWidth:220,background:'var(--bg-surface)',border:'1px solid var(--border-subtle)',borderRadius:12,padding:8,zIndex:250,boxShadow:'0 8px 32px rgba(0,0,0,0.5)',animation:'scaleInSoft 0.15s var(--ease-out) both',transformOrigin:'top right'}}>
                     {userEmail&&(
                       <div style={{padding:'8px 12px 10px',borderBottom:'1px solid var(--border-subtle)',marginBottom:6}}>
                         <div style={{fontSize:10,fontWeight:600,color:'var(--text-tertiary)',textTransform:'uppercase',letterSpacing:'0.8px',marginBottom:3}}>Signed in as</div>
@@ -3534,7 +3535,7 @@ export default function Home() {
 
       {/* FILTERS PANEL */}
       {showFiltersPanel&&(
-        <div style={{position:'sticky',top:72,left:0,right:0,zIndex:180,background:darkMode?'rgba(7,7,12,0.98)':'rgba(255,255,255,0.98)',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.07)'}`,backdropFilter:'blur(20px)',boxShadow:'0 8px 28px rgba(0,0,0,0.38)',padding:'16px 20px 18px',display:'flex',flexDirection:'column',gap:8}}>
+        <div style={{position:'sticky',top:128,left:0,right:0,zIndex:180,background:darkMode?'rgba(7,7,12,0.98)':'rgba(255,255,255,0.98)',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.07)'}`,backdropFilter:'blur(20px)',boxShadow:'0 8px 28px rgba(0,0,0,0.38)',padding:'16px 20px 18px',display:'flex',flexDirection:'column',gap:8}}>
           {/* Row 1: Work + Employment Type + Easy Apply */}
           <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:10}}>
             <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
@@ -3611,7 +3612,7 @@ export default function Home() {
 
       {/* MOBILE SEARCH PANEL — conditionally rendered, hidden on desktop via CSS */}
       {showMobileSearch&&(
-        <div className="mobile-search-panel" style={{position:"sticky",top:72,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
+        <div className="mobile-search-panel" style={{position:"sticky",top:128,left:0,right:0,background:darkMode?"rgba(6,6,8,0.97)":"rgba(255,255,255,0.98)",borderBottom:`1px solid ${darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"}`,padding:"10px 14px",zIndex:190,display:"flex",flexDirection:"column",gap:8,backdropFilter:"blur(24px)"}}>
           <input className="topbar-input" type="text" placeholder="Job role (e.g. Data Analyst)" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
           <input className="topbar-input" type="text" placeholder="Location (e.g. New York, US)" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleMobileSearch()} style={{height:44,fontSize:14}}/>
           <div style={{display:"flex",gap:8}}>
@@ -4218,7 +4219,7 @@ export default function Home() {
       {skillGapJob?.skillGap&&<SkillGapModal job={skillGapJob} result={skillGapJob.skillGap} onClose={()=>setSkillGapJob(null)}/>}
       {autoApplyModal&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}}>
-          <div style={{background:"#0e0e16",border:"1px solid rgba(245,158,11,0.25)",borderRadius:16,padding:24,maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 8px 48px rgba(0,0,0,0.6)"}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:"var(--bg-elevated)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:16,padding:24,maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 8px 48px rgba(0,0,0,0.6)"}} onClick={e=>e.stopPropagation()}>
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#f59e0b",marginBottom:2}}>Auto Apply Preview</div>
@@ -4712,7 +4713,7 @@ export default function Home() {
       {/* RESUME HISTORY */}
       {showResumeHistory&&(
         <div onClick={()=>setShowResumeHistory(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.82)",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(12px)"}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#07091a",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:24,width:"100%",maxWidth:460,maxHeight:"78vh",overflowY:"auto"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg-elevated)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:24,width:"100%",maxWidth:460,maxHeight:"78vh",overflowY:"auto"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
               <h2 style={{fontSize:16,fontWeight:700,color:"#fff"}}>Resume History</h2>
               <button onClick={()=>setShowResumeHistory(false)} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"50%",width:26,height:26,cursor:"pointer",color:"rgba(255,255,255,0.28)",fontSize:11}}>✕</button>

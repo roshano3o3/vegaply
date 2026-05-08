@@ -3,35 +3,8 @@
 /* eliminating the flash of unstyled content on hard refresh.                 */
 /* Google Fonts @import removed — Inter/Sora are self-hosted via next/font.   */
 
-:root {
-  --bg: #0a0a0c;
-  --bg-elev: #0f0f12;
-  --surface: rgba(255,255,255,0.03);
-  --surface-hover: rgba(255, 255, 255, 0.05);
-  --border: rgba(255,255,255,0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --border-amber: rgba(245, 158, 11, 0.2);
-  --text: #ededed;
-  --text-dim: #999999;
-  --text-dimmer: #555555;
-  --primary: #f59e0b;
-  --primary-light: #fbbf24;
-  --primary-glow: #fbbf24;
-  --accent: #fde68a;
-  --accent-glow: rgba(245, 158, 11, 0.3);
-  --primary-subtle: rgba(245, 158, 11, 0.1);
-  --primary-glow-color: rgba(245, 158, 11, 0.25);
-  --grad-1: linear-gradient(135deg, #f59e0b 0%, #fde68a 100%);
-  --grad-text: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%);
-  --success: #10b981;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-2xl: 28px;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+/* Design tokens are defined in app/globals.css and available here via the   */
+/* Next.js CSS bundle. All var() references below resolve from globals.css.  */
 
 *,
 *::before,
@@ -134,7 +107,7 @@ body {
 .nav-links a {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-dim);
+  color: rgba(255, 255, 255, 0.60);
   text-decoration: none;
   transition: color 0.2s ease;
   letter-spacing: -0.01em;
@@ -153,7 +126,7 @@ body {
 .nav-signin {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-dim);
+  color: rgba(255, 255, 255, 0.60);
   text-decoration: none;
   transition: color 0.2s ease;
   letter-spacing: -0.01em;
@@ -253,7 +226,7 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 140px 24px 80px;
+  padding: 140px 24px 56px;
 }
 
 .hero-video {
@@ -397,7 +370,7 @@ body {
 
 .hero-body {
   font-size: 16px;
-  color: var(--text-dim);
+  color: rgba(255, 255, 255, 0.58);
   line-height: 1.65;
   max-width: 500px;
   margin: 0 auto 44px;
@@ -409,7 +382,7 @@ body {
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 
 .hero-trust {
@@ -2383,7 +2356,7 @@ body {
 .hero-preview-outer {
   display: none;
   position: absolute;
-  right: calc((100vw - 900px) / 2 - 290px);
+  right: calc((100vw - 900px) / 2 - 320px);
   top: 50%;
   transform: translateY(-50%);
   z-index: 12;

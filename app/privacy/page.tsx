@@ -32,7 +32,7 @@ export default function PrivacyPage() {
 
       <div className="pg-root">
         <nav className="pg-nav">
-          <a href="/" className="pg-logo">Vega<span>ply</span></a>
+          <Link href="/" className="pg-logo">Vega<span>ply</span></Link>
           <Link href="/" className="pg-back">← Back to home</Link>
         </nav>
 

@@ -29,13 +29,13 @@ const EMPTY: Profile = {
 };
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  borderRadius: 10,
+  background: "var(--bg-input)",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius-md)",
   padding: "10px 14px",
-  color: "#f5f5f7",
+  color: "var(--text-primary)",
   fontSize: 14,
-  fontFamily: "Inter, sans-serif",
+  fontFamily: "var(--font-primary)",
   outline: "none",
   width: "100%",
   boxSizing: "border-box",
@@ -45,8 +45,8 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 600,
-  color: "rgba(255,255,255,0.45)",
-  fontFamily: "Inter, sans-serif",
+  color: "var(--text-secondary)",
+  fontFamily: "var(--font-primary)",
   marginBottom: 6,
   textTransform: "uppercase",
   letterSpacing: "0.07em",
@@ -152,10 +152,10 @@ export default function ProfilePage() {
   if (loading) return (
     <div style={{
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      height: "100vh", background: "#0a0a0c", gap: 14,
+      minHeight: "calc(100vh - 56px)", gap: 14,
     }}>
-      <div style={{ width: 20, height: 20, border: "2px solid rgba(245,158,11,0.25)", borderTopColor: "#f59e0b", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-      <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.32)", fontFamily: "Inter, sans-serif" }}>
+      <div style={{ width: 20, height: 20, border: "2px solid rgba(245,158,11,0.25)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)", fontFamily: "var(--font-primary)" }}>
         Loading your profile…
       </span>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -163,7 +163,7 @@ export default function ProfilePage() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0a0c", padding: "48px 24px 80px" }}>
+    <div style={{ minHeight: "100vh", padding: "28px 24px 80px" }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -188,10 +188,10 @@ export default function ProfilePage() {
       {toast && (
         <div style={{
           position: "fixed", top: 24, right: 24, zIndex: 9999,
-          background: "#141418",
-          border: `1px solid ${toast.ok ? "rgba(16,185,129,0.45)" : "rgba(239,68,68,0.45)"}`,
+          background: "var(--bg-card)",
+          border: `1px solid ${toast.ok ? "var(--success-border)" : "var(--error-border)"}`,
           borderRadius: 12, padding: "12px 20px",
-          color: "#f5f5f7", fontSize: 14, fontFamily: "Inter, sans-serif",
+          color: "var(--text-primary)", fontSize: 14, fontFamily: "var(--font-primary)",
           boxShadow: `0 4px 24px ${toast.ok ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)"}`,
           animation: "cardFadeUp 250ms ease both",
         }}>
@@ -204,24 +204,24 @@ export default function ProfilePage() {
         {/* ── Header ─────────────────────────────────────────────────── */}
         <div style={{ marginBottom: 36, animation: "pageFadeIn 500ms ease both" }}>
           <h1 style={{
-            fontFamily: "Sora, sans-serif", fontSize: 30, fontWeight: 800,
-            letterSpacing: "-0.6px", color: "#f5f5f7", margin: "0 0 10px",
+            fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 800,
+            letterSpacing: "-0.6px", color: "var(--text-primary)", margin: "0 0 10px",
           }}>
             Application Readiness Center
           </h1>
           <p style={{
-            color: "rgba(255,255,255,0.40)", fontSize: 14, margin: "0 0 14px",
-            fontFamily: "Inter, sans-serif", lineHeight: 1.65,
+            color: "var(--text-muted)", fontSize: 14, margin: "0 0 14px",
+            fontFamily: "var(--font-primary)", lineHeight: 1.65,
           }}>
             Complete your profile so Vegaply can prepare accurate daily application packs.
           </p>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 5,
             padding: "4px 12px", borderRadius: 100,
-            fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600,
-            background: "rgba(245,158,11,0.10)",
-            border: "1px solid rgba(245,158,11,0.26)",
-            color: "#f59e0b",
+            fontFamily: "var(--font-primary)", fontSize: 11, fontWeight: 600,
+            background: "var(--primary-subtle)",
+            border: "1px solid var(--gold-border)",
+            color: "var(--primary)",
           }}>
             Free users receive 5 daily packs · Pro users receive 20
           </span>
@@ -288,7 +288,7 @@ export default function ProfilePage() {
                 className="prof-input"
                 style={{ ...inputStyle, resize: "vertical" }}
               />
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.30)", marginTop: 6, fontFamily: "Inter, sans-serif" }}>
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 6, fontFamily: "var(--font-primary)" }}>
                 AI personalizes the rest based on each job.
               </span>
             </div>
@@ -300,25 +300,25 @@ export default function ProfilePage() {
               <div style={{
                 display: "flex", alignItems: "flex-start", gap: 14,
                 padding: "16px 18px",
-                background: "rgba(16,185,129,0.07)",
-                border: "1px solid rgba(16,185,129,0.24)",
+                background: "var(--success-bg)",
+                border: "1px solid var(--success-border)",
                 borderRadius: 12,
               }}>
                 <div style={{
                   width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "rgba(16,185,129,0.13)", border: "1px solid rgba(16,185,129,0.28)",
+                  background: "rgba(16,185,129,0.12)", border: "1px solid var(--success-border)",
                   borderRadius: 10, flexShrink: 0, fontSize: 18,
                 }}>✓</div>
                 <div>
-                  <div style={{ fontSize: 14, color: "#f5f5f7", fontFamily: "Inter, sans-serif", fontWeight: 600, marginBottom: 3 }}>
+                  <div style={{ fontSize: 14, color: "var(--text-primary)", fontFamily: "var(--font-primary)", fontWeight: 600, marginBottom: 3 }}>
                     Resume on file
                   </div>
                   {resumeDisplayName && (
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", marginBottom: 4, fontFamily: "Inter, sans-serif" }}>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4, fontFamily: "var(--font-primary)" }}>
                       {resumeDisplayName}
                     </div>
                   )}
-                  <div style={{ fontSize: 12, color: "rgba(16,185,129,0.70)", fontFamily: "Inter, sans-serif" }}>
+                  <div style={{ fontSize: 12, color: "var(--success)", fontFamily: "var(--font-primary)", opacity: 0.80 }}>
                     Used for AI tailoring and application packs.
                   </div>
                 </div>
@@ -326,14 +326,14 @@ export default function ProfilePage() {
             ) : (
               <div style={{
                 padding: "20px 20px",
-                background: "rgba(245,158,11,0.05)",
-                border: "1px solid rgba(245,158,11,0.18)",
+                background: "var(--gold-bg)",
+                border: "1px solid var(--gold-border)",
                 borderRadius: 12,
               }}>
-                <div style={{ fontSize: 14, color: "#a1a1aa", fontFamily: "Inter, sans-serif", fontWeight: 600, marginBottom: 6 }}>
+                <div style={{ fontSize: 14, color: "var(--text-secondary)", fontFamily: "var(--font-primary)", fontWeight: 600, marginBottom: 6 }}>
                   No resume on file
                 </div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.32)", marginBottom: 14, fontFamily: "Inter, sans-serif", lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14, fontFamily: "var(--font-primary)", lineHeight: 1.6 }}>
                   Upload your resume from the dashboard to unlock daily packs.
                 </div>
                 <a
@@ -344,7 +344,7 @@ export default function ProfilePage() {
                     padding: "8px 18px", borderRadius: 8,
                     background: "rgba(245,158,11,0.15)",
                     border: "1px solid rgba(245,158,11,0.35)",
-                    color: "#f59e0b", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600,
+                    color: "var(--primary)", fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 600,
                     textDecoration: "none", transition: "background 150ms ease",
                   }}
                 >
@@ -360,14 +360,14 @@ export default function ProfilePage() {
             disabled={saving}
             className="save-btn"
             style={{
-              background: saving ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#f59e0b,#fbbf24)",
-              color: saving ? "rgba(255,255,255,0.28)" : "#0a0a0c",
+              background: saving ? "var(--surface-hover)" : "var(--grad-1)",
+              color: saving ? "var(--text-muted)" : "#0a0a0c",
               border: "none", borderRadius: 12,
               padding: "14px 32px", fontSize: 15,
-              fontFamily: "Sora, sans-serif", fontWeight: 700,
+              fontFamily: "var(--font-display)", fontWeight: 700,
               cursor: saving ? "not-allowed" : "pointer",
               transition: "all 200ms ease",
-              boxShadow: saving ? "none" : "0 2px 14px rgba(245,158,11,0.22)",
+              boxShadow: saving ? "none" : "var(--shadow-amber)",
               letterSpacing: "-0.2px",
               alignSelf: "flex-start",
             }}
@@ -386,37 +386,37 @@ export default function ProfilePage() {
 function ReadinessCard({ completed, total, pct, missing, isReady }: {
   completed: number; total: number; pct: number; missing: string[]; isReady: boolean;
 }) {
-  const barColor = isReady ? "#10b981" : pct >= 60 ? "#f59e0b" : "#6b7280";
+  const barColor = isReady ? "var(--success)" : pct >= 60 ? "var(--primary)" : "#6b7280";
   const barGrad  = isReady
-    ? "linear-gradient(90deg,#10b981,#34d399)"
+    ? "linear-gradient(90deg, var(--success), #34d399)"
     : pct >= 60
-    ? "linear-gradient(90deg,#f59e0b,#fbbf24)"
-    : "linear-gradient(90deg,#52525b,#71717a)";
+    ? "linear-gradient(90deg, var(--primary), var(--primary-light))"
+    : "linear-gradient(90deg, #52525b, #71717a)";
 
   return (
     <div style={{
       background: isReady
-        ? "linear-gradient(145deg,rgba(16,185,129,0.07),rgba(52,211,153,0.04))"
-        : "linear-gradient(145deg,#141418,#111116)",
-      border: `1px solid ${isReady ? "rgba(16,185,129,0.30)" : "rgba(255,255,255,0.08)"}`,
+        ? "linear-gradient(145deg, rgba(16,185,129,0.07), rgba(52,211,153,0.04))"
+        : `linear-gradient(145deg, var(--bg-card) 0%, var(--bg-card-end) 100%)`,
+      border: `1px solid ${isReady ? "var(--success-border)" : "var(--border)"}`,
       borderRadius: 16,
       padding: 24,
-      boxShadow: isReady ? "0 4px 32px rgba(16,185,129,0.09)" : "0 2px 12px rgba(0,0,0,0.40)",
+      boxShadow: isReady ? "0 4px 32px rgba(16,185,129,0.09)" : "var(--shadow-card)",
       animation: "cardFadeUp 500ms ease both",
     }}>
       {/* Top row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
         <div>
-          <h2 style={{ fontFamily: "Sora, sans-serif", fontSize: 15, color: "#f5f5f7", fontWeight: 700, margin: "0 0 6px" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 15, color: "var(--text-primary)", fontWeight: 700, margin: "0 0 6px" }}>
             Application Readiness
           </h2>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "Inter, sans-serif" }}>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "var(--font-primary)" }}>
             {completed} of {total} fields complete
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{
-            fontFamily: "Sora, sans-serif", fontSize: 42, fontWeight: 800,
+            fontFamily: "var(--font-display)", fontSize: 42, fontWeight: 800,
             color: barColor, lineHeight: 1, letterSpacing: "-2px",
           }}>
             {pct}
@@ -426,7 +426,7 @@ function ReadinessCard({ completed, total, pct, missing, isReady }: {
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: 8, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden", marginBottom: 16 }}>
+      <div style={{ height: 8, borderRadius: 99, background: "var(--border-subtle)", overflow: "hidden", marginBottom: 16 }}>
         <div style={{
           height: "100%", borderRadius: 99,
           width: `${pct}%`,
@@ -441,26 +441,26 @@ function ReadinessCard({ completed, total, pct, missing, isReady }: {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{
             width: 28, height: 28, borderRadius: 8,
-            background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.30)",
+            background: "rgba(16,185,129,0.15)", border: "1px solid var(--success-border)",
             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0,
           }}>✓</div>
-          <p style={{ fontSize: 13, color: "#10b981", fontFamily: "Inter, sans-serif", margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 13, color: "var(--success)", fontFamily: "var(--font-primary)", margin: 0, fontWeight: 500 }}>
             Ready for assisted apply checks.
           </p>
         </div>
       ) : (
         <>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontFamily: "Inter, sans-serif", margin: "0 0 12px" }}>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "var(--font-primary)", margin: "0 0 12px" }}>
             Complete these fields to unlock better daily packs.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {missing.map(label => (
               <span key={label} style={{
-                fontSize: 11, fontWeight: 600, color: "rgba(245,158,11,0.82)",
-                fontFamily: "Inter, sans-serif",
-                background: "rgba(245,158,11,0.08)",
-                border: "1px solid rgba(245,158,11,0.24)",
-                borderRadius: 6, padding: "3px 10px",
+                fontSize: 11, fontWeight: 600, color: "var(--primary)",
+                fontFamily: "var(--font-primary)",
+                background: "var(--gold-bg)",
+                border: "1px solid var(--gold-border)",
+                borderRadius: "var(--radius-sm)", padding: "3px 10px",
               }}>
                 {label}
               </span>
@@ -479,20 +479,20 @@ function Section({ title, children, icon, delay = 0 }: {
 }) {
   return (
     <div style={{
-      background: "linear-gradient(145deg,#141418 0%,#111116 100%)",
-      border: "1px solid rgba(255,255,255,0.07)",
+      background: `linear-gradient(145deg, var(--bg-card) 0%, var(--bg-card-end) 100%)`,
+      border: "1px solid var(--border)",
       borderRadius: 16,
       padding: 24,
       display: "flex",
       flexDirection: "column",
       gap: 16,
-      boxShadow: "0 2px 14px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.03)",
+      boxShadow: "var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.03)",
       animation: "cardFadeUp 500ms ease both",
       animationDelay: `${delay * 55}ms`,
     }}>
       <h2 style={{
-        fontFamily: "Sora, sans-serif", fontSize: 15,
-        color: "#f5f5f7", fontWeight: 700, margin: 0,
+        fontFamily: "var(--font-display)", fontSize: 15,
+        color: "var(--text-primary)", fontWeight: 700, margin: 0,
         display: "flex", alignItems: "center", gap: 8,
       }}>
         {icon && <span style={{ fontSize: 16, lineHeight: 1 }}>{icon}</span>}
@@ -522,8 +522,8 @@ function Field({ label, value, onChange, placeholder = "", type = "text", hint }
       />
       {hint && (
         <span style={{
-          fontSize: 11, color: "rgba(255,255,255,0.30)", marginTop: 5,
-          fontFamily: "Inter, sans-serif", lineHeight: 1.5,
+          fontSize: 11, color: "var(--text-tertiary)", marginTop: 5,
+          fontFamily: "var(--font-primary)", lineHeight: 1.5,
         }}>
           {hint}
         </span>
@@ -540,19 +540,19 @@ function Toggle({ label, value, onChange, hint }: {
   return (
     <div style={{
       display: "flex", justifyContent: "space-between", alignItems: "center",
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.07)",
+      background: "var(--surface)",
+      border: "1px solid var(--border)",
       borderRadius: 12, padding: "13px 16px",
     }}>
       <div>
-        <div style={{ fontSize: 14, color: "#f5f5f7", fontFamily: "Inter, sans-serif", fontWeight: 500 }}>{label}</div>
-        {hint && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", marginTop: 2, fontFamily: "Inter, sans-serif" }}>{hint}</div>}
+        <div style={{ fontSize: 14, color: "var(--text-primary)", fontFamily: "var(--font-primary)", fontWeight: 500 }}>{label}</div>
+        {hint && <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 2, fontFamily: "var(--font-primary)" }}>{hint}</div>}
       </div>
       <div
         onClick={() => onChange(!value)}
         style={{
           width: 44, height: 24, borderRadius: 12, cursor: "pointer",
-          background: value ? "#f59e0b" : "rgba(255,255,255,0.10)",
+          background: value ? "var(--primary)" : "rgba(255,255,255,0.10)",
           position: "relative", transition: "background 200ms ease", flexShrink: 0,
           boxShadow: value ? "0 0 10px rgba(245,158,11,0.28)" : "none",
         }}

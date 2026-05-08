@@ -27,7 +27,7 @@ interface GenerateOutput {
 // Robust JSON extractor — handles markdown fences and truncated tail content.
 function extractJson(raw: string): Record<string, unknown> {
   const clean = raw.replace(/```json|```/g, "").trim();
-  let s = clean.startsWith("{") ? clean : (clean.match(/\{[\s\S]*/)?.[0] ?? "{}");
+  const s = clean.startsWith("{") ? clean : (clean.match(/\{[\s\S]*/)?.[0] ?? "{}");
 
   // Walk braces to find the outermost closing brace
   let depth = 0;
