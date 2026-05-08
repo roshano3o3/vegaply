@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { LogoVegaStar } from '@/components/logo/LogoVegaStar'
-import { Play, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
@@ -321,10 +321,12 @@ export default function VegaplyPro() {
     if (prefersReducedMotion) return
     if (typeof window === 'undefined') return
 
-    // Hero headline SplitText char animation
+    // Hero headline — only split static text so .hero-gradient-text renders intact
     if (heroHeadlineRef.current) {
+      const staticEl = heroHeadlineRef.current.querySelector('.static-text') as HTMLElement | null
+      const splitTarget = staticEl ?? heroHeadlineRef.current
       try {
-        const split = SplitText.create(heroHeadlineRef.current, {
+        const split = SplitText.create(splitTarget, {
           type: 'chars,words',
         })
         gsap.from(split.chars, {
@@ -337,6 +339,10 @@ export default function VegaplyPro() {
         })
       } catch {
         // SplitText not available, fallback handled by CSS
+      }
+      const gradEl = heroHeadlineRef.current.querySelector('.hero-gradient-text')
+      if (gradEl) {
+        gsap.from(gradEl, { y: 10, opacity: 0, duration: 0.7, ease: 'power3.out', delay: 0.7 })
       }
     }
 
@@ -538,26 +544,15 @@ export default function VegaplyPro() {
             AI-powered · Now live at vegaply.com
           </div>
 
-          {/* Main headline with morphing word */}
+          {/* Main headline */}
           <h1 ref={heroHeadlineRef} className="hero-headline">
-            <span className="static-text">Your daily jobs, </span>
-            <span
-              className={`hero-morph${morphVisible ? '' : ' hidden'}`}
-              aria-live="polite"
-              aria-label={`Your daily jobs, ${morphWord}`}
-            >
-              {morphWord}
-            </span>
+            <span className="static-text">5 applications </span>
+            <span className="hero-gradient-text">ready by morning.</span>
           </h1>
 
-          {/* Sub-headline */}
-          <p className="hero-sub hero-animate">
-            Wake up to jobs already tailored for you.
-          </p>
-
-          {/* Body */}
+          {/* Subtitle */}
           <p className="hero-body hero-animate">
-            Every morning Vegaply finds fresh roles, rewrites your resume for each one, and drops an apply-ready email in your Gmail. You just click send.
+            Vegaply finds matching roles, tailors your resume and cover letter, and sends ready-to-review application packs to your Gmail.
           </p>
 
           {/* CTA row */}
@@ -565,41 +560,65 @@ export default function VegaplyPro() {
             <Link href="/signup" className="btn-primary btn-primary-lg">
               Start free — 5 daily packs
             </Link>
-            <button className="btn-ghost btn-ghost-lg btn-watch-demo" onClick={() => setShowDemo(true)}>
-              <span className="watch-demo-icon"><Play size={16} /></span>
-              Watch demo
-            </button>
+            <a href="#how-overview" className="btn-ghost btn-ghost-lg">
+              See how it works
+            </a>
           </div>
 
-          {/* Trust line */}
-          <p className="hero-trust hero-animate">
-            Free: 5 daily packs · Pro: 20 daily packs · H1B-friendly filters · Gmail Apply Now
-          </p>
+          {/* Workflow strip */}
+          <div className="hero-workflow-strip hero-animate">
+            <span className="workflow-step">Match jobs</span>
+            <span className="workflow-arrow" aria-hidden="true">→</span>
+            <span className="workflow-step">Tailor materials</span>
+            <span className="workflow-arrow" aria-hidden="true">→</span>
+            <span className="workflow-step">Send to Gmail</span>
+            <span className="workflow-arrow" aria-hidden="true">→</span>
+            <span className="workflow-step">Track clicks</span>
+          </div>
         </div>
 
-        {/* Floating mini-cards — visible only at ≥1380px where gap beside hero-content is ≥240px */}
-        <div className="hero-float-cards" aria-hidden="true">
-          <div className="hero-float-card hero-float-card-1">
-            <div className="hero-float-card-icon">📬</div>
-            <div className="hero-float-card-text">
-              <div className="hero-float-card-title">Sent to Gmail</div>
-              <div className="hero-float-card-desc">Apply-ready in your inbox</div>
+        {/* Premium product-preview floating card — visible at ≥1280px */}
+        <div className="hero-preview-outer" aria-hidden="true">
+          <motion.div
+            className="hero-preview-card"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.9 }}
+          >
+            <div className="hpc-header">
+              <div className="hpc-header-left">
+                <span className="hpc-live-dot" />
+                Today&apos;s Application Pack
+              </div>
+              <span className="hpc-count">5 roles prepared</span>
             </div>
-          </div>
-          <div className="hero-float-card hero-float-card-2">
-            <div className="hero-float-card-icon">🤖</div>
-            <div className="hero-float-card-text">
-              <div className="hero-float-card-title">AI-tailored resume</div>
-              <div className="hero-float-card-desc">Keywords matched per job</div>
+            <div className="hpc-rows">
+              <div className="hpc-row">
+                <div className="hpc-logo">S</div>
+                <div className="hpc-info">
+                  <div className="hpc-company">Stripe</div>
+                  <div className="hpc-title">Data Analyst</div>
+                </div>
+                <span className="hpc-chip hpc-ready">Ready</span>
+              </div>
+              <div className="hpc-row">
+                <div className="hpc-logo">R</div>
+                <div className="hpc-info">
+                  <div className="hpc-company">Reddit</div>
+                  <div className="hpc-title">ML Engineer</div>
+                </div>
+                <span className="hpc-chip hpc-sent">Sent</span>
+              </div>
+              <div className="hpc-row">
+                <div className="hpc-logo">D</div>
+                <div className="hpc-info">
+                  <div className="hpc-company">Discord</div>
+                  <div className="hpc-title">Software Engineer</div>
+                </div>
+                <span className="hpc-chip hpc-clicked">Clicked</span>
+              </div>
             </div>
-          </div>
-          <div className="hero-float-card hero-float-card-3">
-            <div className="hero-float-card-icon">⚡</div>
-            <div className="hero-float-card-text">
-              <div className="hero-float-card-title">Fresh daily</div>
-              <div className="hero-float-card-desc">Jobs posted in last 24h</div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
