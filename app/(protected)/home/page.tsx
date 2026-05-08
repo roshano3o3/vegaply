@@ -3087,7 +3087,7 @@ export default function Home() {
         .jobs-list{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:14px!important;padding:14px 0!important}
         @media(max-width:900px){.jobs-list{grid-template-columns:1fr!important}}
         .job-card{background:linear-gradient(170deg,#1c1c24 0%,#111116 100%);border:1px solid rgba(255,255,255,0.09);border-left:2px solid rgba(255,255,255,0.05);border-radius:16px;padding:0;display:flex;flex-direction:column;gap:0;box-shadow:0 4px 16px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.05);transition:border-color 200ms ease,border-left-color 220ms ease,transform 220ms ease,box-shadow 220ms ease;position:relative;overflow:hidden;cursor:pointer}
-        .job-card:hover{border-color:rgba(255,255,255,0.14);border-left-color:var(--gold);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.60),0 0 0 1px rgba(245,158,11,0.12),inset 0 1px 0 rgba(255,255,255,0.06)}
+        .job-card:hover{border-color:rgba(255,255,255,0.16);border-left-color:var(--gold);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.65),0 0 0 1px rgba(245,158,11,0.18),0 0 28px rgba(245,158,11,0.09),inset 0 1px 0 rgba(255,255,255,0.08)}
         .job-card-hot{border-left-color:rgba(249,115,22,0.45)!important}
         .job-card-eb{border-left-color:rgba(245,158,11,0.32)!important}
         .job-card-hot:hover{border-left-color:rgba(249,115,22,0.75)!important;box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 1px rgba(249,115,22,0.15)!important}
@@ -3804,6 +3804,68 @@ export default function Home() {
             </div>
           )}
 
+          {/* DAILY APPLICATION PACK HERO CARD */}
+          {queueStats&&queueStats.total>0&&(
+            <motion.div
+              initial={{opacity:0,y:-10}}
+              animate={{opacity:1,y:0}}
+              transition={{duration:0.55,ease:[0.16,1,0.3,1]}}
+              style={{
+                background:'linear-gradient(135deg,rgba(245,158,11,0.11) 0%,rgba(251,191,36,0.05) 60%,rgba(245,158,11,0.09) 100%)',
+                border:'1px solid rgba(245,158,11,0.30)',
+                borderRadius:18,
+                padding:'20px 24px',
+                marginBottom:20,
+                display:'flex',
+                alignItems:'center',
+                gap:24,
+                flexWrap:'wrap',
+                boxShadow:'0 4px 28px rgba(245,158,11,0.11),inset 0 1px 0 rgba(255,255,255,0.06)',
+                position:'relative',
+                overflow:'hidden',
+              }}
+            >
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent 0%,rgba(245,158,11,0.04) 50%,transparent 100%)',backgroundSize:'200% 100%',animation:'premiumShimmer 5s linear infinite',pointerEvents:'none'}}/>
+              <div style={{flex:1,minWidth:180,position:'relative'}}>
+                <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:5}}>
+                  <span style={{fontSize:15}}>🗂</span>
+                  <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(245,158,11,0.72)',fontFamily:'var(--font-primary)'}}>Daily Application Pack</div>
+                </div>
+                <div style={{fontFamily:'var(--font-display)',fontSize:19,fontWeight:800,color:darkMode?'#f5f5f7':'#111',letterSpacing:'-0.5px',lineHeight:1.25,marginBottom:5}}>
+                  {queueStats.ready>0?`${queueStats.ready} role${queueStats.ready===1?'':' s'} ready to review`:`${queueStats.total} roles queued for today`}
+                </div>
+                <div style={{fontSize:11,color:darkMode?'rgba(255,255,255,0.42)':'rgba(0,0,0,0.5)',lineHeight:1.55}}>
+                  AI-matched and tailored to your resume. Review before clicking apply.
+                </div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:18,flexShrink:0}}>
+                <div style={{textAlign:'center'}}>
+                  <motion.div key={queueStats.total} initial={{opacity:0,y:5}} animate={{opacity:1,y:0}} transition={{duration:0.4}} style={{fontFamily:'var(--font-display)',fontSize:28,fontWeight:800,color:darkMode?'#f5f5f7':'#111',letterSpacing:'-1.2px',lineHeight:1}}>{queueStats.total}</motion.div>
+                  <div style={{fontSize:9,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.4)',marginTop:4,letterSpacing:'1px',textTransform:'uppercase'}}>Total</div>
+                </div>
+                <div style={{width:1,height:36,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
+                <div style={{textAlign:'center'}}>
+                  <motion.div key={queueStats.ready} initial={{opacity:0,y:5}} animate={{opacity:1,y:0}} transition={{duration:0.4,delay:0.06}} style={{fontFamily:'var(--font-display)',fontSize:28,fontWeight:800,color:'#f59e0b',letterSpacing:'-1.2px',lineHeight:1}}>{queueStats.ready}</motion.div>
+                  <div style={{fontSize:9,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.4)',marginTop:4,letterSpacing:'1px',textTransform:'uppercase'}}>Ready</div>
+                </div>
+                <div style={{width:1,height:36,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
+                <div style={{textAlign:'center'}}>
+                  <motion.div key={queueStats.sent} initial={{opacity:0,y:5}} animate={{opacity:1,y:0}} transition={{duration:0.4,delay:0.12}} style={{fontFamily:'var(--font-display)',fontSize:28,fontWeight:800,color:'#10b981',letterSpacing:'-1.2px',lineHeight:1}}>{queueStats.sent}</motion.div>
+                  <div style={{fontSize:9,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.4)',marginTop:4,letterSpacing:'1px',textTransform:'uppercase'}}>Sent</div>
+                </div>
+              </div>
+              <motion.a
+                href="/auto-apply"
+                whileHover={{scale:1.04,boxShadow:'0 8px 24px rgba(245,158,11,0.32)'}}
+                whileTap={{scale:0.97}}
+                style={{display:'inline-flex',alignItems:'center',gap:7,background:'linear-gradient(135deg,#f59e0b,#fbbf24)',borderRadius:12,padding:'11px 20px',fontSize:13,fontWeight:700,color:'#fff',textDecoration:'none',whiteSpace:'nowrap',flexShrink:0,fontFamily:'var(--font-primary)',letterSpacing:'-0.2px',boxShadow:'0 2px 14px rgba(245,158,11,0.24),inset 0 1px 0 rgba(255,255,255,0.18)',position:'relative'}}
+              >
+                Review Queue
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </motion.a>
+            </motion.div>
+          )}
+
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
               Results {modeFilteredJobs.length>0&&<span style={{background:'rgba(245,158,11,0.18)',color:'#f59e0b',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6}}>{filterJobs(modeFilteredJobs).length}</span>}
@@ -3829,8 +3891,9 @@ export default function Home() {
               Analytics
               {activeTab==="analytics"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#34d399,#10b981)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
-            <a href="/auto-apply" className={`tab${pathname==="/auto-apply"?" active":""}`} style={{textDecoration:'none'}}>
-              Application Queue
+            <a href="/auto-apply" className={`tab${pathname==="/auto-apply"?" active":""}`} style={{textDecoration:'none',position:'relative'}}>
+              Queue
+              {queueStats&&queueStats.total>0&&<span style={{background:'rgba(245,158,11,0.20)',color:'#f59e0b',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6,border:'1px solid rgba(245,158,11,0.30)'}}>{queueStats.total}</span>}
               {pathname==="/auto-apply"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#f59e0b,#fbbf24)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </a>
           </div>
@@ -3876,47 +3939,6 @@ export default function Home() {
               )}
 
               {autoOpenDone&&<div style={{background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.15)",borderRadius:10,padding:"11px 14px",marginBottom:14,fontSize:12,fontWeight:600,color:"#10b981",display:"flex",alignItems:"center",gap:8}}>🚀 Opened top 3 matches in new tabs!</div>}
-
-              {queueStats&&queueStats.total>0&&(
-                <div style={{background:'linear-gradient(135deg,rgba(245,158,11,0.09),rgba(251,191,36,0.05))',border:'1px solid rgba(245,158,11,0.22)',borderRadius:14,padding:'16px 20px',marginBottom:18,display:'flex',alignItems:'center',justifyContent:'space-between',gap:20,flexWrap:'wrap',boxShadow:'0 2px 12px rgba(245,158,11,0.06)'}}>
-                  <div style={{flex:1,minWidth:180}}>
-                    <div style={{fontFamily:'var(--font-display)',fontSize:14,fontWeight:800,color:'#fbbf24',letterSpacing:'-0.3px',marginBottom:5,display:'flex',alignItems:'center',gap:7}}>
-                      <span style={{fontSize:15}}>🗂</span> Today&apos;s Application Queue
-                    </div>
-                    <div style={{fontSize:12,color:darkMode?'rgba(255,255,255,0.50)':'rgba(0,0,0,0.52)',lineHeight:1.5}}>
-                      <strong style={{color:darkMode?'rgba(255,255,255,0.75)':'rgba(0,0,0,0.75)'}}>{queueStats.total} roles</strong> selected today. Review generated resumes and cover letters before applying.
-                    </div>
-                  </div>
-                  <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:12}}>
-                      <div style={{textAlign:'center'}}>
-                        <div style={{fontSize:20,fontWeight:800,color:darkMode?'#fff':'#111',lineHeight:1}}>{queueStats.total}</div>
-                        <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Total</div>
-                      </div>
-                      <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
-                      <div style={{textAlign:'center'}}>
-                        <div style={{fontSize:20,fontWeight:800,color:'#f59e0b',lineHeight:1}}>{queueStats.ready}</div>
-                        <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Ready</div>
-                      </div>
-                      <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
-                      <div style={{textAlign:'center'}}>
-                        <div style={{fontSize:20,fontWeight:800,color:'#10b981',lineHeight:1}}>{queueStats.sent}</div>
-                        <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Sent to You</div>
-                      </div>
-                      {queueStats.failed>0&&<>
-                        <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
-                        <div style={{textAlign:'center'}}>
-                          <div style={{fontSize:20,fontWeight:800,color:'#ef4444',lineHeight:1}}>{queueStats.failed}</div>
-                          <div style={{fontSize:9,fontWeight:600,color:darkMode?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.4)',marginTop:3,whiteSpace:'nowrap',letterSpacing:'0.3px',textTransform:'uppercase'}}>Failed</div>
-                        </div>
-                      </>}
-                    </div>
-                    <a href="/auto-apply" style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(245,158,11,0.18)',border:'1px solid rgba(245,158,11,0.38)',borderRadius:9,padding:'9px 16px',fontSize:12,fontWeight:700,color:'#fbbf24',textDecoration:'none',whiteSpace:'nowrap',flexShrink:0,fontFamily:'var(--font-primary)',letterSpacing:'-0.1px'}}>
-                      View Queue <span style={{fontSize:14,lineHeight:1,marginTop:1}}>→</span>
-                    </a>
-                  </div>
-                </div>
-              )}
 
               {currentLoading&&(
                 <div className="jobs-grid" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'12px',padding:'14px 16px'}}>
@@ -4039,7 +4061,47 @@ export default function Home() {
           transition={{duration:0.45,delay:0.15,ease:'easeOut'}}
           style={{background:'var(--bg-elevated)',borderLeft:'1px solid var(--border-subtle)',padding:'16px 14px 24px',overflowY:'auto',display:'flex',flexDirection:'column',gap:0}}
         >
-          <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'var(--text-quaternary)',fontFamily:'var(--font-primary)',paddingTop:12,paddingBottom:11,marginBottom:4,borderBottom:'1px solid var(--border-subtle)'}}>Command Briefing</div>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.5px',textTransform:'uppercase',color:'var(--text-quaternary)',fontFamily:'var(--font-primary)',paddingTop:12,paddingBottom:11,marginBottom:4,borderBottom:'1px solid var(--border-subtle)'}}>AI Command Center</div>
+
+          {/* DAILY PACK MINI-WIDGET */}
+          {queueStats&&queueStats.total>0&&(
+            <motion.div
+              initial={{opacity:0,y:6}}
+              animate={{opacity:1,y:0}}
+              transition={{duration:0.4,ease:[0.16,1,0.3,1]}}
+              className="right-panel-section"
+              style={{marginBottom:14}}
+            >
+              <div className="right-label">Today&apos;s Pack</div>
+              <a href="/auto-apply" style={{textDecoration:'none',display:'block'}}>
+                <div style={{background:'linear-gradient(135deg,rgba(245,158,11,0.09),rgba(251,191,36,0.04))',border:'1px solid rgba(245,158,11,0.22)',borderRadius:12,padding:'12px 13px',cursor:'pointer',transition:'border-color 0.2s ease'}}
+                  onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(245,158,11,0.40)')}
+                  onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(245,158,11,0.22)')}
+                >
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+                    <div style={{fontSize:10,fontWeight:700,color:'rgba(245,158,11,0.75)',letterSpacing:'0.5px'}}>Application Packs</div>
+                    <div style={{fontSize:10,color:'rgba(245,158,11,0.55)',fontFamily:'var(--font-primary)',fontWeight:600}}>View →</div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <div style={{textAlign:'center',flex:1}}>
+                      <div style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:800,color:darkMode?'#f5f5f7':'#111',letterSpacing:'-0.8px',lineHeight:1}}>{queueStats.total}</div>
+                      <div style={{fontSize:8,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.38)',marginTop:3,letterSpacing:'0.8px',textTransform:'uppercase'}}>Total</div>
+                    </div>
+                    <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.08)'}}/>
+                    <div style={{textAlign:'center',flex:1}}>
+                      <div style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:800,color:'#f59e0b',letterSpacing:'-0.8px',lineHeight:1}}>{queueStats.ready}</div>
+                      <div style={{fontSize:8,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.38)',marginTop:3,letterSpacing:'0.8px',textTransform:'uppercase'}}>Ready</div>
+                    </div>
+                    <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.08)'}}/>
+                    <div style={{textAlign:'center',flex:1}}>
+                      <div style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:800,color:'#10b981',letterSpacing:'-0.8px',lineHeight:1}}>{queueStats.sent}</div>
+                      <div style={{fontSize:8,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.38)',marginTop:3,letterSpacing:'0.8px',textTransform:'uppercase'}}>Sent</div>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </motion.div>
+          )}
 
           {/* AI COACH — flagship section, shown first */}
           <div className="right-panel-section">
@@ -4073,7 +4135,7 @@ export default function Home() {
 
           {/* TRACKER */}
           <div className="right-panel-section">
-            <div className="right-label">Tracker</div>
+            <div className="right-label">Application Tracker</div>
             <div className="tracker-row">
               {([
                 {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     cls:'applied'},

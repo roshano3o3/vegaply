@@ -45,11 +45,11 @@ function resolveStatus(status: string, tailored: string | null, clickedAt?: stri
   if (status === "pending" && !tailored)
     return { label: "Pending",           color: "#a1a1aa", bg: "rgba(161,161,170,0.1)",  border: "rgba(161,161,170,0.2)"  };
   if (status === "pending" && tailored)
-    return { label: "Generated / Ready", color: "#06b6d4", bg: "rgba(6,182,212,0.1)",    border: "rgba(6,182,212,0.25)"   };
+    return { label: "Ready",             color: "#06b6d4", bg: "rgba(6,182,212,0.1)",    border: "rgba(6,182,212,0.25)"   };
   if (status === "applied" && clickedAt)
     return { label: "Clicked Apply",     color: "#10b981", bg: "rgba(16,185,129,0.1)",   border: "rgba(16,185,129,0.25)"  };
   if (status === "applied")
-    return { label: "Sent to You",       color: "#f59e0b", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.3)"   };
+    return { label: "Sent",              color: "#f59e0b", bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.3)"   };
   if (status === "failed")
     return { label: "Failed",            color: "#ef4444", bg: "rgba(239,68,68,0.1)",    border: "rgba(239,68,68,0.25)"   };
   if (status === "skipped")
@@ -152,18 +152,47 @@ function StatusBadge({ status, tailored, clickedAt }: { status: string; tailored
 
 // ── SummaryCard ───────────────────────────────────────────────────────────────
 
-function SummaryCard({ label, value, color, bg, border }: {
+function SummaryCard({ label, value, color, bg, border, glow, index }: {
   label: string; value: number; color: string; bg: string; border: string;
+  glow?: string; index?: number;
 }) {
   return (
-    <div style={{
-      background: bg, border: `1px solid ${border}`, borderRadius: 12,
-      padding: "16px 18px", display: "flex", flexDirection: "column", gap: 4,
-    }}>
-      <span style={{ fontFamily: "Sora, sans-serif", fontSize: 26, fontWeight: 700, color }}>
+    <div
+      style={{
+        background: bg,
+        border: `1px solid ${border}`,
+        borderRadius: 14,
+        padding: "18px 18px 15px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 5,
+        boxShadow: glow ? `0 4px 20px ${glow}` : "0 2px 10px rgba(0,0,0,0.40)",
+        transition: "transform 160ms ease, box-shadow 160ms ease",
+        cursor: "default",
+        animation: "cardFadeUp 400ms ease both",
+        animationDelay: `${(index ?? 0) * 55}ms`,
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.transform = "translateY(-2px)";
+        el.style.boxShadow = glow ? `0 8px 28px ${glow}` : "0 8px 24px rgba(0,0,0,0.55)";
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.transform = "";
+        el.style.boxShadow = glow ? `0 4px 20px ${glow}` : "0 2px 10px rgba(0,0,0,0.40)";
+      }}
+    >
+      <span style={{
+        fontFamily: "Sora, sans-serif", fontSize: 32, fontWeight: 800,
+        color, lineHeight: 1, letterSpacing: "-1.2px",
+      }}>
         {value}
       </span>
-      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75", fontWeight: 500 }}>
+      <span style={{
+        fontFamily: "Inter, sans-serif", fontSize: 10, color: "rgba(255,255,255,0.35)",
+        fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em",
+      }}>
         {label}
       </span>
     </div>
@@ -183,6 +212,22 @@ function CopyButton({ text, field, copiedField, onCopy }: {
     <button
       onClick={() => onCopy(text, field)}
       aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
+      onMouseEnter={e => {
+        if (!copied) {
+          const el = e.currentTarget;
+          el.style.background = "rgba(255,255,255,0.09)";
+          el.style.color = "#f5f5f7";
+          el.style.borderColor = "rgba(255,255,255,0.2)";
+        }
+      }}
+      onMouseLeave={e => {
+        if (!copied) {
+          const el = e.currentTarget;
+          el.style.background = "rgba(255,255,255,0.05)";
+          el.style.color = "#a1a1aa";
+          el.style.borderColor = "rgba(255,255,255,0.1)";
+        }
+      }}
       style={{
         display: "flex", alignItems: "center", gap: 5,
         padding: "5px 12px", borderRadius: 6, cursor: "pointer",
@@ -277,9 +322,9 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           right:     0,
           bottom:    0,
           width:     "min(500px, 95vw)",
-          background: "#141418",
-          borderLeft: "1px solid #1c1c22",
-          boxShadow: "-8px 0 40px rgba(0,0,0,0.5)",
+          background: "#0d0d12",
+          borderLeft: "1px solid rgba(255,255,255,0.07)",
+          boxShadow: "-12px 0 60px rgba(0,0,0,0.65), -1px 0 0 rgba(245,158,11,0.08)",
           zIndex:    50,
           display:   "flex",
           flexDirection: "column",
@@ -290,7 +335,8 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
         <div style={{
           padding: "20px 24px 18px",
           borderBottom: "1px solid #1c1c22",
-          background: "#0f0f12",
+          background: "linear-gradient(180deg,#141418 0%,#0f0f12 100%)",
+          borderLeft: "3px solid rgba(245,158,11,0.50)",
           flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
@@ -366,14 +412,16 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                display: "inline-block", marginTop: 14,
-                padding: "9px 20px", borderRadius: 8,
-                background: "#f59e0b", color: "#0a0a0c",
+                display: "inline-flex", alignItems: "center", gap: 6, marginTop: 14,
+                padding: "10px 22px", borderRadius: 9,
+                background: "linear-gradient(135deg,#f59e0b,#fbbf24)",
+                color: "#0a0a0c",
                 fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
                 textDecoration: "none",
+                boxShadow: "0 2px 12px rgba(245,158,11,0.22)",
               }}
             >
-              Apply Now →
+              Continue to Company Application →
             </a>
           )}
         </div>
@@ -383,27 +431,31 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           flex: 1, overflowY: "auto", padding: "24px",
           display: "flex", flexDirection: "column", gap: 28,
         }}>
-          <ContentBlock
-            label="Tailored Resume"
-            field="resume"
-            text={row.tailored_resume_text}
-            copiedField={copiedField}
-            onCopy={onCopy}
-          />
-          <ContentBlock
-            label="Cover Letter"
-            field="letter"
-            text={row.cover_letter_text}
-            copiedField={copiedField}
-            onCopy={onCopy}
-          />
+          <div style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"16px"}}>
+            <ContentBlock
+              label="Tailored Resume"
+              field="resume"
+              text={row.tailored_resume_text}
+              copiedField={copiedField}
+              onCopy={onCopy}
+            />
+          </div>
+          <div style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"16px"}}>
+            <ContentBlock
+              label="Cover Letter"
+              field="letter"
+              text={row.cover_letter_text}
+              copiedField={copiedField}
+              onCopy={onCopy}
+            />
+          </div>
 
           {/* Submission method */}
           {(() => {
             const m  = detectApplyMethod({ job_apply_link: row.job_apply_link });
             const cs = methodChipStyle(m.method);
             return (
-              <div style={{ borderTop: "1px solid #1c1c22", paddingTop: 20 }}>
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 20 }}>
                 <span style={{
                   fontFamily: "Inter, sans-serif", fontSize: 10, fontWeight: 700,
                   textTransform: "uppercase", letterSpacing: "0.1em", color: "#6b6b75",
@@ -433,7 +485,7 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           {/* Status note for applied rows */}
           {row.status === "applied" && (
             <div style={{
-              borderTop: "1px solid #1c1c22", paddingTop: 20,
+              borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 20,
               display: "flex", flexDirection: "column", gap: 8,
             }}>
               <p style={{
@@ -467,54 +519,63 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
 
 // ── EmptyState ────────────────────────────────────────────────────────────────
 
-const EMPTY_CARD: React.CSSProperties = {
-  background: "#141418", border: "1px solid #1c1c22",
-  borderRadius: 14, padding: "64px 32px", textAlign: "center",
-};
-const EMPTY_TITLE: React.CSSProperties = {
-  fontFamily: "Sora, sans-serif", fontSize: 17, color: "#f5f5f7",
-  margin: "0 0 8px", fontWeight: 600,
-};
-const EMPTY_BODY: React.CSSProperties = {
-  fontFamily: "Inter, sans-serif", fontSize: 14, color: "#6b6b75", margin: 0,
-};
-const CTA_BTN: React.CSSProperties = {
-  display: "inline-block", padding: "10px 22px", borderRadius: 9,
-  background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.35)",
-  color: "#f59e0b", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
-  textDecoration: "none",
-};
-
 function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
+  const glowCard: React.CSSProperties = {
+    background: "linear-gradient(145deg,#141418 0%,#111116 100%)",
+    border: "1px solid rgba(245,158,11,0.18)",
+    borderRadius: 18,
+    padding: "72px 40px",
+    textAlign: "center",
+    boxShadow: "0 4px 40px rgba(245,158,11,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
+    animation: "cardFadeUp 500ms ease both",
+  };
+  const iconWrap: React.CSSProperties = {
+    width: 64, height: 64,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    borderRadius: 18,
+    background: "rgba(245,158,11,0.08)",
+    border: "1px solid rgba(245,158,11,0.22)",
+    boxShadow: "0 0 28px rgba(245,158,11,0.10)",
+    margin: "0 auto 20px",
+    fontSize: 28,
+  };
+  const title: React.CSSProperties = {
+    fontFamily: "Sora, sans-serif", fontSize: 18, color: "#f5f5f7",
+    margin: "0 0 10px", fontWeight: 700, letterSpacing: "-0.3px",
+  };
+  const body: React.CSSProperties = {
+    fontFamily: "Inter, sans-serif", fontSize: 14, color: "rgba(255,255,255,0.38)",
+    margin: 0, lineHeight: 1.65, maxWidth: 400, marginInline: "auto",
+  };
+
   if (!meStatus) {
     return (
-      <div style={EMPTY_CARD}>
-        <div style={{ fontSize: 36, marginBottom: 16 }}>📋</div>
-        <p style={EMPTY_TITLE}>No auto-apply jobs queued for today yet.</p>
-        <p style={EMPTY_BODY}>Your daily job queue runs each morning and will appear here.</p>
+      <div style={glowCard}>
+        <div style={iconWrap}>🗂</div>
+        <p style={title}>Your queue will appear here once Vegaply prepares today&apos;s packs.</p>
+        <p style={body}>AI-matched roles are queued each morning. Check back soon.</p>
       </div>
     );
   }
 
   if (meStatus.reason === "profile_incomplete") {
     const packCount = meStatus.daily_limit;
-    const packLabel = meStatus.plan === "free"
-      ? `${packCount} free daily application packs`
-      : `${packCount} daily application packs`;
     return (
-      <div style={EMPTY_CARD}>
-        <div style={{ fontSize: 36, marginBottom: 16 }}>📝</div>
-        <p style={EMPTY_TITLE}>Complete your profile to receive {packLabel}.</p>
-        <p style={{ ...EMPTY_BODY, marginBottom: 20 }}>
-          Vegaply needs your role, location, and resume before building your queue.
+      <div style={glowCard}>
+        <div style={iconWrap}>📝</div>
+        <p style={title}>
+          Complete your profile to unlock {packCount} free daily pack{packCount !== 1 ? "s" : ""}.
+        </p>
+        <p style={{ ...body, marginBottom: 20 }}>
+          Vegaply needs your target role, location, and resume to build your daily queue.
         </p>
         {meStatus.missing.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 28 }}>
             {meStatus.missing.map(field => (
               <span
                 key={field}
                 style={{
-                  display: "inline-block", padding: "4px 12px", borderRadius: 100,
+                  display: "inline-block", padding: "4px 14px", borderRadius: 100,
                   fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600,
                   background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
                   color: "#ef4444",
@@ -525,21 +586,39 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
             ))}
           </div>
         )}
-        <a href="/profile" style={CTA_BTN}>Update Profile →</a>
+        <a href="/profile" style={{
+          display: "inline-block", padding: "10px 24px", borderRadius: 10,
+          background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.35)",
+          color: "#f59e0b", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
+          textDecoration: "none",
+        }}>
+          Update Profile →
+        </a>
       </div>
     );
   }
 
-  // reason === "queue_not_built" or "ready" with 0 rows visible
-  const packCount = meStatus?.daily_limit ?? 5;
-  const packLabel = meStatus?.plan === "free"
-    ? `Your ${packCount} free daily application packs`
-    : `Your ${packCount} daily application packs`;
+  if (meStatus.reason === "queue_not_built") {
+    const packCount = meStatus.daily_limit;
+    const planLabel = meStatus.plan === "free" ? "Free" : "Pro";
+    return (
+      <div style={glowCard}>
+        <div style={iconWrap}>⏳</div>
+        <p style={title}>Your daily pack is waiting to be built.</p>
+        <p style={body}>
+          {planLabel} plan · {packCount} application pack{packCount !== 1 ? "s" : ""} per day.
+          Vegaply builds your queue each morning — check back soon.
+        </p>
+      </div>
+    );
+  }
+
+  // reason === "ready" but rows is empty
   return (
-    <div style={EMPTY_CARD}>
-      <div style={{ fontSize: 36, marginBottom: 16 }}>⏳</div>
-      <p style={EMPTY_TITLE}>{packLabel} have not been built yet.</p>
-      <p style={EMPTY_BODY}>Your application queue runs each morning. Check back soon.</p>
+    <div style={glowCard}>
+      <div style={iconWrap}>🗂</div>
+      <p style={title}>Your queue will appear here once Vegaply prepares today&apos;s packs.</p>
+      <p style={body}>AI-matched roles, tailored resumes, and cover letters — ready each morning.</p>
     </div>
   );
 }
@@ -595,12 +674,10 @@ export default function AutoApplyPage() {
     } else {
       const fetched = (data ?? []) as unknown as QueueRow[];
       setRows(fetched);
-      if (fetched.length === 0) {
-        try {
-          const res = await fetch("/api/daily-queue/me-status");
-          if (res.ok) setMeStatus(await res.json() as MeStatusResult);
-        } catch { /* non-fatal */ }
-      }
+      try {
+        const res = await fetch("/api/daily-queue/me-status");
+        if (res.ok) setMeStatus(await res.json() as MeStatusResult);
+      } catch { /* non-fatal */ }
     }
     setLoading(false);
   };
@@ -649,10 +726,11 @@ export default function AutoApplyPage() {
   if (loading) {
     return (
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center",
-        height: "100vh", color: "#a1a1aa", fontFamily: "Inter, sans-serif", fontSize: 15,
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        height: "100vh", gap: 14, color: "#a1a1aa", fontFamily: "Inter, sans-serif",
       }}>
-        Loading today's auto apply status…
+        <div style={{width:20,height:20,border:"2px solid rgba(245,158,11,0.25)",borderTopColor:"#f59e0b",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+        <span style={{fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.35)"}}>Loading today&apos;s application pack…</span>
       </div>
     );
   }
@@ -674,30 +752,48 @@ export default function AutoApplyPage() {
   const counts = computeCounts(rows);
 
   const summaryCards = [
-    { label: "Total",          value: counts.total,     color: "#f5f5f7", bg: "#141418",                   border: "#1c1c22"                  },
-    { label: "Pending",        value: counts.pending,   color: "#a1a1aa", bg: "rgba(161,161,170,0.05)",    border: "rgba(161,161,170,0.15)"   },
-    { label: "Generated",      value: counts.generated, color: "#06b6d4", bg: "rgba(6,182,212,0.06)",      border: "rgba(6,182,212,0.2)"      },
-    { label: "Sent to You",    value: counts.sentToYou, color: "#f59e0b", bg: "rgba(245,158,11,0.07)",     border: "rgba(245,158,11,0.2)"     },
-    { label: "Clicked Apply",  value: counts.clicked,   color: "#10b981", bg: "rgba(16,185,129,0.06)",     border: "rgba(16,185,129,0.2)"     },
-    { label: "Failed",         value: counts.failed,    color: "#ef4444", bg: "rgba(239,68,68,0.06)",      border: "rgba(239,68,68,0.2)"      },
+    { label: "Total",    value: counts.total,     color: "#f5f5f7", bg: "linear-gradient(145deg,#1a1a21,#111116)", border: "rgba(255,255,255,0.09)", glow: undefined             },
+    { label: "Pending",  value: counts.pending,   color: "#a1a1aa", bg: "rgba(161,161,170,0.05)",                 border: "rgba(161,161,170,0.14)", glow: undefined             },
+    { label: "Ready",    value: counts.generated, color: "#06b6d4", bg: "rgba(6,182,212,0.07)",                   border: "rgba(6,182,212,0.22)",  glow: "rgba(6,182,212,0.08)"  },
+    { label: "Sent",     value: counts.sentToYou, color: "#f59e0b", bg: "rgba(245,158,11,0.08)",                  border: "rgba(245,158,11,0.22)", glow: "rgba(245,158,11,0.10)" },
+    { label: "Clicked",  value: counts.clicked,   color: "#10b981", bg: "rgba(16,185,129,0.07)",                  border: "rgba(16,185,129,0.22)", glow: "rgba(16,185,129,0.08)" },
+    { label: "Failed",   value: counts.failed,    color: "#ef4444", bg: "rgba(239,68,68,0.07)",                   border: "rgba(239,68,68,0.22)",  glow: "rgba(239,68,68,0.08)"  },
   ];
 
   return (
     <>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes cardFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pageFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+      `}</style>
       <div style={{ minHeight: "100vh", padding: "48px 24px 96px" }}>
         <div style={{ maxWidth: 1040, margin: "0 auto" }}>
 
           {/* ── Header ──────────────────────────────────────────────── */}
-          <div style={{ marginBottom: 28 }}>
-            <h1 style={{
-              fontFamily: "Sora, sans-serif", fontSize: 28, fontWeight: 700,
-              color: "#f5f5f7", margin: "0 0 8px",
-            }}>
-              Today&apos;s Auto Apply
-            </h1>
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "#6b6b75", margin: 0 }}>
-              Jobs queued for you today — when materials are ready, they&apos;re emailed to you and you apply directly via the link.
+          <div style={{ marginBottom: 28, animation: "pageFadeIn 500ms ease both" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <h1 style={{
+                fontFamily: "Sora, sans-serif", fontSize: 28, fontWeight: 800,
+                color: "#f5f5f7", margin: 0, letterSpacing: "-0.6px",
+              }}>
+                Today&apos;s Application Pack
+              </h1>
+              {meStatus && (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "3px 10px", borderRadius: 100,
+                  fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700,
+                  background: meStatus.plan === "pro" ? "rgba(6,182,212,0.10)" : "rgba(245,158,11,0.10)",
+                  border: `1px solid ${meStatus.plan === "pro" ? "rgba(6,182,212,0.28)" : "rgba(245,158,11,0.28)"}`,
+                  color: meStatus.plan === "pro" ? "#22d3ee" : "#f59e0b",
+                }}>
+                  {meStatus.plan === "pro" ? "Pro" : "Free"} · {meStatus.daily_limit} daily pack{meStatus.daily_limit !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "rgba(255,255,255,0.38)", margin: 0, lineHeight: 1.6 }}>
+              AI-matched roles, tailored materials, and Gmail-ready application packs for today.
             </p>
           </div>
 
@@ -706,38 +802,47 @@ export default function AutoApplyPage() {
             display: "grid", gridTemplateColumns: "repeat(6, 1fr)",
             gap: 10, marginBottom: 16,
           }}>
-            {summaryCards.map(c => <SummaryCard key={c.label} {...c} />)}
+            {summaryCards.map((c, i) => <SummaryCard key={c.label} {...c} index={i} />)}
           </div>
 
-          {/* ── Send Ready Items Now ─────────────────────────────────── */}
+          {/* ── Send Today's Ready Pack ──────────────────────────────── */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
             <button
               onClick={handleSendReady}
               disabled={sending || counts.generated === 0}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "10px 20px", borderRadius: 9, cursor: sending || counts.generated === 0 ? "not-allowed" : "pointer",
+                padding: "11px 22px", borderRadius: 10,
+                cursor: sending || counts.generated === 0 ? "not-allowed" : "pointer",
                 fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700,
-                background: sending || counts.generated === 0 ? "rgba(245,158,11,0.06)" : "rgba(245,158,11,0.15)",
-                border: `1px solid ${sending || counts.generated === 0 ? "rgba(245,158,11,0.15)" : "rgba(245,158,11,0.35)"}`,
-                color: sending || counts.generated === 0 ? "rgba(245,158,11,0.4)" : "#f59e0b",
+                background: sending ? "rgba(245,158,11,0.10)" : counts.generated === 0 ? "rgba(245,158,11,0.04)" : "linear-gradient(135deg,rgba(245,158,11,0.20),rgba(251,191,36,0.12))",
+                border: `1px solid ${sending || counts.generated === 0 ? "rgba(245,158,11,0.15)" : "rgba(245,158,11,0.40)"}`,
+                color: sending || counts.generated === 0 ? "rgba(245,158,11,0.38)" : "#f59e0b",
                 transition: "all 160ms",
+                boxShadow: counts.generated > 0 && !sending ? "0 2px 14px rgba(245,158,11,0.12)" : "none",
               }}
             >
               {sending ? (
                 <>
                   <span style={{ display: "inline-block", width: 13, height: 13, border: "2px solid rgba(245,158,11,0.3)", borderTopColor: "#f59e0b", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                  Sending…
+                  Sending pack…
                 </>
               ) : (
-                <>✉ Send Ready Items Now</>
+                <>✉ Send Today&apos;s Ready Pack</>
               )}
             </button>
-            {counts.generated === 0 && !sending && (
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75" }}>
-                No generated items ready to send.
-              </span>
-            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {counts.generated > 0 && !sending && (
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                  Sends generated application packs to your Gmail.
+                </span>
+              )}
+              {counts.generated === 0 && !sending && (
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "rgba(255,255,255,0.28)" }}>
+                  Generate materials first before sending.
+                </span>
+              )}
+            </div>
             {sendError && (
               <span style={{
                 fontFamily: "Inter, sans-serif", fontSize: 12, color: "#ef4444",
@@ -755,16 +860,18 @@ export default function AutoApplyPage() {
           ) : (
             /* ── Table ────────────────────────────────────────────── */
             <div style={{
-              background: "#141418", border: "1px solid #1c1c22",
-              borderRadius: 14, overflow: "hidden",
+              background: "#0f0f12", border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 16, overflow: "hidden",
+              boxShadow: "0 4px 32px rgba(0,0,0,0.45)",
             }}>
               <div style={{ overflowX: "auto" }}>
                 {/* Header row */}
                 <div style={{
                   display: "grid", gridTemplateColumns: GRID,
-                  gap: 8, padding: "11px 20px",
-                  background: "#0f0f12", borderBottom: "1px solid #1c1c22",
+                  gap: 8, padding: "12px 20px",
+                  background: "rgba(255,255,255,0.025)", borderBottom: "1px solid rgba(255,255,255,0.07)",
                   minWidth: 900,
+                  position: "sticky", top: 0, zIndex: 1,
                 }}>
                   {COLS.map(col => (
                     <span key={col.label} style={{
@@ -782,9 +889,9 @@ export default function AutoApplyPage() {
                   const isHovered  = hoveredId === row.id;
 
                   let rowBg = "transparent";
-                  if (isSelected) rowBg = "rgba(245,158,11,0.07)";
-                  else if (isHovered) rowBg = "rgba(255,255,255,0.04)";
-                  else if (i % 2 === 1) rowBg = "rgba(255,255,255,0.018)";
+                  if (isSelected) rowBg = "rgba(245,158,11,0.08)";
+                  else if (isHovered) rowBg = "rgba(255,255,255,0.045)";
+                  else if (i % 2 === 1) rowBg = "rgba(255,255,255,0.015)";
 
                   return (
                     <div
@@ -801,8 +908,8 @@ export default function AutoApplyPage() {
                         gap: 8, padding: "13px 20px", alignItems: "center",
                         background: rowBg, minWidth: 900, cursor: "pointer",
                         borderBottom: i < rows.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                        borderLeft: isSelected ? "2px solid #f59e0b" : "2px solid transparent",
-                        transition: "background 120ms",
+                        borderLeft: isSelected ? "3px solid #f59e0b" : isHovered ? "3px solid rgba(245,158,11,0.35)" : "3px solid transparent",
+                        transition: "background 140ms ease, border-left-color 140ms ease",
                         outline: "none",
                       }}
                     >
@@ -900,7 +1007,8 @@ export default function AutoApplyPage() {
 
               {/* Footer */}
               <div style={{
-                padding: "10px 20px", borderTop: "1px solid #1c1c22", background: "#0f0f12",
+                padding: "10px 20px", borderTop: "1px solid rgba(255,255,255,0.06)",
+                background: "rgba(255,255,255,0.02)",
               }}>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6b6b75" }}>
                   {rows.length} job{rows.length !== 1 ? "s" : ""} queued today
