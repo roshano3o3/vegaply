@@ -2024,18 +2024,20 @@ export default function Home() {
   const [generatingResume, setGeneratingResume] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
 
-  const lsGet=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");return localStorage.getItem(uid?`${key}_${uid}`:key);};
-  const lsSet=(key:string,val:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.setItem(uid?`${key}_${uid}`:key,val);};
-  const lsRemove=(key:string)=>{const uid=localStorage.getItem("applysmart_user_id");localStorage.removeItem(uid?`${key}_${uid}`:key);localStorage.removeItem(key);};
+  const getStorageUid=()=>localStorage.getItem("vegaply_user_id")??localStorage.getItem("applysmart_user_id");
+  const getWithMigration=(newKey:string,oldKey:string):string|null=>{const nv=localStorage.getItem(newKey);if(nv!==null)return nv;const ov=localStorage.getItem(oldKey);if(ov!==null)localStorage.setItem(newKey,ov);return ov;};
+  const lsGet=(key:string)=>{const uid=getStorageUid();const oldKey=key.replace("vegaply_","applysmart_");return getWithMigration(uid?`${key}_${uid}`:key,uid?`${oldKey}_${uid}`:oldKey);};
+  const lsSet=(key:string,val:string)=>{const uid=getStorageUid();localStorage.setItem(uid?`${key}_${uid}`:key,val);};
+  const lsRemove=(key:string)=>{const uid=getStorageUid();if(uid)localStorage.removeItem(`${key}_${uid}`);localStorage.removeItem(key);};
 
   useEffect(()=>{
     setMounted(true);
-    const savedTheme=localStorage.getItem("applysmart_theme");
+    const savedTheme=getWithMigration("vegaply_theme","applysmart_theme");
     if(savedTheme==="light")setDarkMode(false);
-    try{const t=localStorage.getItem("applysmart_tracker");if(t)setTrackedApps(JSON.parse(t));}catch{}
+    try{const t=getWithMigration("vegaply_tracker","applysmart_tracker");if(t)setTrackedApps(JSON.parse(t));}catch{}
     try{const today=new Date().toISOString().slice(0,10);const c=localStorage.getItem(`vegaply_autoapply_${today}`);if(c)setAutoApplyCount(parseInt(c,10)||0);}catch{}
-    const savedRole=localStorage.getItem("applysmart_jobRole");
-    const savedLocation=localStorage.getItem("applysmart_location");
+    const savedRole=getWithMigration("vegaply_jobRole","applysmart_jobRole");
+    const savedLocation=getWithMigration("vegaply_location","applysmart_location");
     let loadedPrefs=DEFAULT_PREFS;
     try{const s=localStorage.getItem("vegaply_preferences");if(s)loadedPrefs=JSON.parse(s);}catch{}
     setSavedPrefs(loadedPrefs);
@@ -2094,11 +2096,12 @@ export default function Home() {
       fetchProfile();
       const uid=data.user?.id;
       if(uid){
-        localStorage.setItem("applysmart_user_id",uid);
+        localStorage.setItem("vegaply_user_id",uid);
         // Force onboarding if ?onboard=true in URL
         const forceOnboard = searchParams.get('onboard') === 'true'
         if (forceOnboard) {
           localStorage.removeItem(`applysmart_onboarded_${uid}`)
+          localStorage.removeItem(`vegaply_onboarded_${uid}`)
           setShowOnboard(true)
           return
         }
@@ -2123,29 +2126,29 @@ export default function Home() {
           }
         } catch (e) {
           // Fallback to localStorage if Supabase fails
-          const onboarded = localStorage.getItem(`applysmart_onboarded_${uid}`)
+          const onboarded = getWithMigration(`vegaply_onboarded_${uid}`,`applysmart_onboarded_${uid}`)
           if (!onboarded) setShowOnboard(true)
         }
-        const toured=localStorage.getItem(`applysmart_toured_${uid}`);
+        const toured=getWithMigration(`vegaply_toured_${uid}`,`applysmart_toured_${uid}`);
         if(!toured)setShowWelcomeTour(false);
       }
     });
     import("@/lib/supabase").then(({supabase})=>{
       supabase.auth.getUser().then(async({data})=>{
         const currentUserId=data?.user?.id;
-        const storedUserId=localStorage.getItem("applysmart_user_id");
+        const storedUserId=getStorageUid();
         if(!currentUserId)return;
-        if(storedUserId&&storedUserId!==currentUserId){lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");setResumeText("");setResumeFileName("");}
+        if(storedUserId&&storedUserId!==currentUserId){lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");setResumeText("");setResumeFileName("");}
         else{
-          const savedResume=lsGet("applysmart_resume");
-          const savedFileName=lsGet("applysmart_resume_name");
+          const savedResume=lsGet("vegaply_resume");
+          const savedFileName=lsGet("vegaply_resume_name");
           if(savedResume&&savedFileName){setResumeText(savedResume);setResumeFileName(savedFileName);}
           else{
             const{data:rd}=await supabase.from("resumes").select("resume_text,file_name").eq("user_id",currentUserId).order("created_at",{ascending:false}).limit(1).single();
-            if(rd?.resume_text){setResumeText(rd.resume_text);setResumeFileName(rd.file_name??"Resume");lsSet("applysmart_resume",rd.resume_text);lsSet("applysmart_resume_name",rd.file_name??"Resume");}
+            if(rd?.resume_text){setResumeText(rd.resume_text);setResumeFileName(rd.file_name??"Resume");lsSet("vegaply_resume",rd.resume_text);lsSet("vegaply_resume_name",rd.file_name??"Resume");}
           }
         }
-        localStorage.setItem("applysmart_user_id",currentUserId);
+        localStorage.setItem("vegaply_user_id",currentUserId);
       });
     });
   },[]);
@@ -2162,15 +2165,15 @@ export default function Home() {
   const handleSearch=async()=>{
     console.log("SEARCH CLICKED",{jobRole,location});
     if(!jobRole||!location){alert("Please enter job role and location");return;}
-    localStorage.setItem("applysmart_jobRole",jobRole);
-    localStorage.setItem("applysmart_location",location);
+    localStorage.setItem("vegaply_jobRole",jobRole);
+    localStorage.setItem("vegaply_location",location);
     setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
     await fetchJobs("normal",jobRole,location);
   };
   const handleEarlyBirdSearch=async()=>{
     if(!jobRole||!location){alert("Please enter job role and location first");return;}
-    localStorage.setItem("applysmart_jobRole",jobRole);
-    localStorage.setItem("applysmart_location",location);
+    localStorage.setItem("vegaply_jobRole",jobRole);
+    localStorage.setItem("vegaply_location",location);
     setHasSearched(true);setActiveTab("earlybird");setCurrentPage(1);
     await fetchJobs("earlybird",jobRole,location);
   };
@@ -2180,8 +2183,8 @@ export default function Home() {
     const role=jobRole;const loc=location;
     if(!role||!loc){alert("Please enter job role and location");return;}
     setShowMobileSearch(false);
-    localStorage.setItem("applysmart_jobRole",role);
-    localStorage.setItem("applysmart_location",loc);
+    localStorage.setItem("vegaply_jobRole",role);
+    localStorage.setItem("vegaply_location",loc);
     setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
     await fetchJobs("normal",role,loc);
   };
@@ -2189,8 +2192,8 @@ export default function Home() {
     const role=jobRole;const loc=location;
     if(!role||!loc){alert("Please enter job role and location first");return;}
     setShowMobileSearch(false);
-    localStorage.setItem("applysmart_jobRole",role);
-    localStorage.setItem("applysmart_location",loc);
+    localStorage.setItem("vegaply_jobRole",role);
+    localStorage.setItem("vegaply_location",loc);
     setHasSearched(true);setActiveTab("earlybird");setCurrentPage(1);
     await fetchJobs("earlybird",role,loc);
   };
@@ -2343,7 +2346,7 @@ export default function Home() {
     const today=new Date().toISOString().slice(0,10);
     const applyLink=job.job_apply_link||(job as any).url;
     if(applyLink)window.open(applyLink,"_blank");
-    setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});
+    setTrackedApps(prev=>{const exists=prev.find(a=>a.job.job_id===job.job_id);let next:TrackedApp[];if(exists){next=prev.map(a=>a.job.job_id===job.job_id?{...a,status:"Applied" as AppStatus}:a);}else{next=[...prev,{job,status:"Applied" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];}localStorage.setItem("vegaply_tracker",JSON.stringify(next));return next;});
     const newCount=autoApplyCount+1;
     setAutoApplyCount(newCount);
     localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
@@ -2401,7 +2404,7 @@ export default function Home() {
     doc.save(`Resume_${job.employer_name}_${job.job_title}.pdf`.replace(/\s+/g,"_"));
   };
 
-  const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;});};
+  const addToTracker=(job:Job)=>{if(trackedApps.find(a=>a.job.job_id===job.job_id))return;setTrackedApps(prev=>{const next=[...prev,{job,status:"Saved" as AppStatus,appliedDate:new Date().toISOString(),notes:"",id:job.job_id+Date.now()}];localStorage.setItem("vegaply_tracker",JSON.stringify(next));return next;});};
   const toggleSave=(jobId:string)=>setSavedJobs(prev=>{const n=new Set(prev);n.has(jobId)?n.delete(jobId):n.add(jobId);return n;});
   const prefTitles=savedPrefs.jobTitles.split(',').map(t=>t.trim()).filter(Boolean);
 
@@ -2650,20 +2653,20 @@ export default function Home() {
         default_easy_apply_only: filterEasyApply,
         updated_at: new Date().toISOString()
       })
-      localStorage.setItem(`applysmart_onboarded_${user.id}`, 'true')
+      localStorage.setItem(`vegaply_onboarded_${user.id}`, 'true')
     }
     setShowOnboard(false);
     if(onboardRole&&onboardLocation){
-      localStorage.setItem("applysmart_jobRole",onboardRole);
-      localStorage.setItem("applysmart_location",onboardLocation);
+      localStorage.setItem("vegaply_jobRole",onboardRole);
+      localStorage.setItem("vegaply_location",onboardLocation);
       setHasSearched(true);setCurrentPage(1);setActiveTab("results");setFilterType("ALL");setFilterDate("ANY");setFilterRemote(false);
       await fetchJobs("normal",onboardRole,onboardLocation);
     }
   };
 
   const closeTour=()=>{
-    const uid=localStorage.getItem("applysmart_user_id");
-    if(uid)localStorage.setItem(`applysmart_toured_${uid}`,"true");
+    const uid=getStorageUid();
+    if(uid)localStorage.setItem(`vegaply_toured_${uid}`,"true");
     setShowWelcomeTour(false);
   };
 
@@ -2740,14 +2743,14 @@ export default function Home() {
   const toggleTheme=()=>{
     const next=!darkMode;
     setDarkMode(next);
-    localStorage.setItem("applysmart_theme",next?"dark":"light");
+    localStorage.setItem("vegaply_theme",next?"dark":"light");
   };
 
   const handleLogout=async()=>{
     const{supabase}=await import("@/lib/supabase");
     await supabase.auth.signOut();
-    lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");lsRemove("applysmart_onboarded");
-    localStorage.removeItem("applysmart_user_id");
+    lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");lsRemove("vegaply_onboarded");
+    localStorage.removeItem("vegaply_user_id");
     window.location.href="/login";
   };
 
@@ -3643,12 +3646,12 @@ export default function Home() {
                 fileName={resumeFileName}
                 onResume={async(t,n)=>{
                   setResumeText(t);setResumeFileName(n);
-                  lsSet("applysmart_resume",t);lsSet("applysmart_resume_name",n);
+                  lsSet("vegaply_resume",t);lsSet("vegaply_resume_name",n);
                   const{data:{user}}=await supabase.auth.getUser();
                   if(!user)return;
                   await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
                 }}
-                onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
+                onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
               {autoApplyCount>0&&<div style={{fontSize:10,color:"var(--gold)",textAlign:"center",fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
               {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
@@ -3901,9 +3904,9 @@ export default function Home() {
 
           <motion.div key={activeTab} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} transition={{duration:0.3,ease:[0.16,1,0.3,1]}}>
           {activeTab==="tracker"&&<TrackerView lm={!darkMode} apps={trackedApps}
-            onUpdateStatus={(id,s)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,status:s}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
-            onUpdateNotes={(id,n)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,notes:n}:a);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
-            onRemove={id=>setTrackedApps(prev=>{const next=prev.filter(a=>a.id!==id);localStorage.setItem("applysmart_tracker",JSON.stringify(next));return next;})}
+            onUpdateStatus={(id,s)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,status:s}:a);localStorage.setItem("vegaply_tracker",JSON.stringify(next));return next;})}
+            onUpdateNotes={(id,n)=>setTrackedApps(prev=>{const next=prev.map(a=>a.id===id?{...a,notes:n}:a);localStorage.setItem("vegaply_tracker",JSON.stringify(next));return next;})}
+            onRemove={id=>setTrackedApps(prev=>{const next=prev.filter(a=>a.id!==id);localStorage.setItem("vegaply_tracker",JSON.stringify(next));return next;})}
           />}
           {activeTab==="analytics"&&<AnalyticsView lm={!darkMode} apps={trackedApps} savedCount={savedJobs.size} totalSearched={totalSearched}/>}
 
@@ -4320,12 +4323,12 @@ export default function Home() {
                 fileName={resumeFileName}
                 onResume={async(t,n)=>{
                   setResumeText(t);setResumeFileName(n);
-                  lsSet("applysmart_resume",t);lsSet("applysmart_resume_name",n);
+                  lsSet("vegaply_resume",t);lsSet("vegaply_resume_name",n);
                   const{data:{user}}=await supabase.auth.getUser();
                   if(!user)return;
                   await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
                 }}
-                onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("applysmart_resume");lsRemove("applysmart_resume_name");}}
+                onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
             </div>
 
@@ -4527,8 +4530,8 @@ export default function Home() {
                           const text = await parsePdfFile(file);
                           setResumeText(text);
                           setResumeFileName(file.name);
-                          lsSet("applysmart_resume", text);
-                          lsSet("applysmart_resume_name", file.name);
+                          lsSet("vegaply_resume", text);
+                          lsSet("vegaply_resume_name", file.name);
                           setOnboardStep(3);
                         } catch (err: any) {
                           setOnboardError(err?.message || "Failed to parse PDF.");
@@ -4547,8 +4550,8 @@ export default function Home() {
                             const text = await parsePdfFile(file);
                             setResumeText(text);
                             setResumeFileName(file.name);
-                            lsSet("applysmart_resume", text);
-                            lsSet("applysmart_resume_name", file.name);
+                            lsSet("vegaply_resume", text);
+                            lsSet("vegaply_resume_name", file.name);
                             setOnboardStep(3);
                           } catch (err: any) {
                             setOnboardError(err?.message || "Failed to parse PDF.");
@@ -4721,7 +4724,7 @@ export default function Home() {
             {resumeHistory.length===0?<p style={{color:"rgba(255,255,255,0.25)",textAlign:"center",padding:"24px 0",fontSize:12}}>No resumes saved yet</p>:resumeHistory.map((r,i)=>(
               <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${i===0?"rgba(245,158,11,0.25)":"rgba(255,255,255,0.07)"}`,borderRadius:10,padding:14,marginBottom:9,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div><div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:3}}>{r.file_name}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>{i===0&&<div style={{fontSize:9,color:"#f59e0b",fontWeight:700,marginTop:3,letterSpacing:"0.3px"}}>ACTIVE</div>}</div>
-                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("applysmart_resume",r.resume_text);lsSet("applysmart_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(245,158,11,0.08)":"linear-gradient(135deg,#f59e0b,#fbbf24)",color:i===0?"#f59e0b":"#fff",border:i===0?"1px solid rgba(245,158,11,0.25)":"none",borderRadius:7,padding:"7px 14px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("vegaply_resume",r.resume_text);lsSet("vegaply_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(245,158,11,0.08)":"linear-gradient(135deg,#f59e0b,#fbbf24)",color:i===0?"#f59e0b":"#fff",border:i===0?"1px solid rgba(245,158,11,0.25)":"none",borderRadius:7,padding:"7px 14px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                   {i===0?"Active":"Use This"}
                 </button>
               </div>
