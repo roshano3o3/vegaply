@@ -3451,17 +3451,18 @@ export default function Home() {
         <div className="topbar-search">
           <div className="topbar-search-box">
             <div style={{position:'relative',display:'flex',alignItems:'center',flex:1,minWidth:0}}>
-              <input className="topbar-input" type="text" placeholder="Software Engineer, Data Scientist…" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{paddingRight:jobRole.split(',').filter(s=>s.trim()).length>=2?72:undefined}}/>
+              <input className="topbar-input" type="text" aria-label="Job role" placeholder="Software Engineer, Data Scientist…" value={jobRole} onChange={e=>setJobRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} style={{paddingRight:jobRole.split(',').filter(s=>s.trim()).length>=2?72:undefined}}/>
               {jobRole.split(',').filter(s=>s.trim()).length>=2&&(
                 <span style={{position:'absolute',right:'8px',top:'50%',transform:'translateY(-50%)',background:'rgba(245,158,11,0.18)',border:'1px solid rgba(245,158,11,0.35)',borderRadius:100,padding:'2px 7px',fontSize:10,fontWeight:700,color:'#fbbf24',pointerEvents:'none',whiteSpace:'nowrap',zIndex:2}}>{jobRole.split(',').filter((s:string)=>s.trim()).length} roles</span>
               )}
             </div>
             <div className="topbar-sep"/>
-            <input className="topbar-input-loc" type="text" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
+            <input className="topbar-input-loc" type="text" aria-label="Location" placeholder="Location" value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()}/>
           </div>
           <motion.button className="search-btn" whileHover={{scale:1.04,filter:'brightness(1.12)'}} whileTap={{scale:0.97}} onClick={handleSearch} disabled={loading}>{loading?"Searching…":"Search"}</motion.button>
           <motion.button
             whileHover={{scale:1.02}} whileTap={{scale:0.97}}
+            aria-label="Open job filters"
             onClick={()=>setShowFiltersPanel(p=>!p)}
             style={{position:'relative',background:showFiltersPanel||activeFilterCount>0?'rgba(245,158,11,0.12)':'rgba(255,255,255,0.04)',border:`1px solid ${showFiltersPanel||activeFilterCount>0?'rgba(245,158,11,0.35)':'rgba(255,255,255,0.1)'}`,borderRadius:8,padding:'0 12px',height:36,fontSize:12,fontWeight:600,color:activeFilterCount>0?'#fbbf24':'rgba(255,255,255,0.55)',cursor:'pointer',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap',flexShrink:0}}
           >
