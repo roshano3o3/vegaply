@@ -411,6 +411,7 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
               href={row.job_apply_link}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => { supabase.from("daily_queue").update({ apply_clicked_at: new Date().toISOString() }).eq("id", row.id); }}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6, marginTop: 14,
                 padding: "10px 22px", borderRadius: "var(--radius-md)",
@@ -689,9 +690,12 @@ export default function AutoApplyPage() {
     setSendError(null);
     try {
       const res = await fetch("/api/daily-queue/apply-user", { method: "POST" });
+      const body = await res.json().catch(() => ({})) as { error?: string; applied?: number };
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+        throw new Error(body.error ?? `HTTP ${res.status}`);
+      }
+      if ((body.applied ?? 0) === 0) {
+        setSendError("No generated packs to send yet — packs are built each morning at 8am.");
       }
       await fetchRows();
     } catch (err) {

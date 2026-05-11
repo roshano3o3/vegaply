@@ -1,15 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
 
 export async function POST(req: Request) {
   try {
@@ -53,13 +44,13 @@ export async function POST(req: Request) {
 <body>
   <div class="container">
     <div class="header">
-      <h1>✅ Application Submitted</h1>
-      <p>You're one step closer to your next opportunity!</p>
+      <h1>📋 Application Page Opened</h1>
+      <p>Here's a summary of your Vegaply-tailored session.</p>
     </div>
     
     <div class="content">
       <p>Hi ${firstName},</p>
-      <p>You just applied to <strong>${jobTitle}</strong> at <strong>${company}</strong>.</p>
+      <p>You opened the application page for <strong>${jobTitle}</strong> at <strong>${company}</strong>.</p>
       
       <div class="details">
         <div class="detail-row">
@@ -84,9 +75,9 @@ export async function POST(req: Request) {
         </div>
       </div>
       
-      <p>Your tailored resume has been submitted with this application. Next steps:</p>
+      <p>Next steps:</p>
       <ol>
-        <li>Monitor your email for responses from ${company}</li>
+        <li>Complete and submit your application on ${company}'s site</li>
         <li>Track this application in your Vegaply Tracker</li>
         <li>Prepare for interviews with our Interview Prep tool</li>
       </ol>
@@ -103,10 +94,14 @@ export async function POST(req: Request) {
 </html>
     `;
 
+    const apiUser = process.env.EMAIL_USER;
+    const apiPass = process.env.EMAIL_PASS;
+    if (!apiUser || !apiPass) throw new Error("EMAIL_USER or EMAIL_PASS not configured");
+    const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: apiUser, pass: apiPass } });
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || "noreply@vegaply.com",
+      from: `"Vegaply AI" <${apiUser}>`,
       to: email,
-      subject: `✅ Applied to ${jobTitle} at ${company} — Vegaply`,
+      subject: `📋 Application materials: ${jobTitle} at ${company} — Vegaply`,
       html: htmlBody,
     });
 
