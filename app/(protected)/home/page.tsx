@@ -1741,6 +1741,14 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {job.tailorLoading?<><div className="spin-sm"/>…</>:<><Wand2 size={11}/>{job.tailor?"Tailor ✓":"Tailor"}</>}
         </button>
         <button
+          className={`action-pill${job.skillGap?" done-green":""}`}
+          onClick={e=>{e.stopPropagation();onSkillGap();}}
+          disabled={!!job.skillGapLoading}
+          title="Skill gap analysis"
+        >
+          {job.skillGapLoading?<><div className="spin-sm"/>…</>:<>{job.skillGap?"Gaps ✓":"Gaps"}</>}
+        </button>
+        <button
           className={`action-pill${isTracked?" done-green":""}`}
           onClick={e=>{e.stopPropagation();onTrack();}}
           title="Track application"
@@ -3635,7 +3643,7 @@ export default function Home() {
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
-              {autoApplyCount>0&&<div style={{fontSize:10,color:"var(--gold)",textAlign:"center",fontWeight:600}}>{autoApplyCount}/{userProfile?.is_pro?20:5} auto-applied today</div>}
+              {autoApplyCount>0&&<div style={{fontSize:10,color:"var(--gold)",textAlign:"center",fontWeight:600}}>{autoApplyCount}/{userProfile?.is_pro?20:5} applied today · {userProfile?.is_pro?"Pro":"Free"} plan</div>}
               {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
             </div>
           </div>
@@ -3851,6 +3859,12 @@ export default function Home() {
               </motion.a>
             </motion.div>
           )}
+          {(!queueStats||queueStats.total===0)&&resumeText&&(
+            <div style={{margin:'8px 0 4px',padding:'10px 14px',background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.14)',borderRadius:10,fontSize:11,color:'var(--text-secondary)',fontFamily:'var(--font-primary)',lineHeight:1.5}}>
+              🗂 Daily application packs are built automatically once your resume is uploaded.{' '}
+              <a href="/auto-apply" style={{color:'var(--gold)',textDecoration:'none',fontWeight:600}}>See your daily pack →</a>
+            </div>
+          )}
 
           <div className="tabs-row">
             <button className={`tab${activeTab==="results"?" active":""}`} onClick={()=>{setActiveTab("results");setCurrentPage(1);}}>
@@ -3877,8 +3891,8 @@ export default function Home() {
               Analytics
               {activeTab==="analytics"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#34d399,#10b981)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </button>
-            <a href="/auto-apply" className={`tab${pathname==="/auto-apply"?" active":""}`} style={{textDecoration:'none',position:'relative'}}>
-              Queue
+            <a href="/auto-apply" className={`tab${pathname==="/auto-apply"?" active":""}`} style={{textDecoration:'none',position:'relative'}} title="Your AI-built daily application pack">
+              Daily Pack
               {queueStats&&queueStats.total>0&&<span style={{background:'rgba(245,158,11,0.20)',color:'#f59e0b',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999,marginLeft:6,border:'1px solid rgba(245,158,11,0.30)'}}>{queueStats.total}</span>}
               {pathname==="/auto-apply"&&<motion.div layoutId="tab-underline" style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:'linear-gradient(90deg,#f59e0b,#fbbf24)',borderRadius:'2px 2px 0 0'}} transition={{type:'spring',stiffness:400,damping:30}}/>}
             </a>
