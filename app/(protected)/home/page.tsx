@@ -3624,7 +3624,9 @@ export default function Home() {
                   lsSet("vegaply_resume",t);lsSet("vegaply_resume_name",n);
                   const{data:{user}}=await supabase.auth.getUser();
                   if(!user)return;
-                  await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                  const{error:saveErr}=await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                  if(saveErr){setAutoApplyToast("⚠️ Resume loaded, but cloud save failed.");setTimeout(()=>setAutoApplyToast(null),4000);}
+                  else{setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
@@ -4301,7 +4303,9 @@ export default function Home() {
                   lsSet("vegaply_resume",t);lsSet("vegaply_resume_name",n);
                   const{data:{user}}=await supabase.auth.getUser();
                   if(!user)return;
-                  await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                  const{error:saveErr}=await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                  if(saveErr){setAutoApplyToast("⚠️ Resume loaded, but cloud save failed.");setTimeout(()=>setAutoApplyToast(null),4000);}
+                  else{setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
