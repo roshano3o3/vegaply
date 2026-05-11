@@ -1311,6 +1311,7 @@ function SkillGapModal({ job, result, onClose }: { job: Job; result: SkillGapRes
           <div style={{fontSize:32}}>🧠</div>
           <div><h2 className="modal-title">Skill Gap Analysis</h2><p className="modal-sub">{job.job_title} · {job.employer_name}</p></div>
         </div>
+        <div style={{fontSize:10,color:"rgba(255,255,255,0.2)",marginBottom:14}}>AI keyword comparison — not a recruiter assessment.</div>
 
         {/* STRONG SKILLS */}
         <div style={{marginBottom:18}}>
@@ -1341,7 +1342,8 @@ function SkillGapModal({ job, result, onClose }: { job: Job; result: SkillGapRes
         {/* COURSES */}
         {result.courses.length>0&&(
           <div>
-            <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#f59e0b",marginBottom:10}}>📚 Recommended Courses</div>
+            <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#f59e0b",marginBottom:6}}>📚 Recommended Courses</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.2)",marginBottom:8}}>AI-suggested — verify links before enrolling.</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {result.courses.map((c,i)=>(
                 <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:12,padding:"10px 12px",borderRadius:8,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",textDecoration:"none",transition:"border-color .15s"}}
@@ -2205,7 +2207,7 @@ export default function Home() {
       const updated={...job,skillGap,skillGapLoading:false};
       setList(list.map(j=>j.job_id===job.job_id?updated:j));
       setSkillGapJob(updated);
-    }catch{setList(list.map(j=>j.job_id===job.job_id?{...j,skillGapLoading:false}:j));}
+    }catch{setList(list.map(j=>j.job_id===job.job_id?{...j,skillGapLoading:false}:j));setAutoApplyToast("Skill gap analysis failed. Try again.");setTimeout(()=>setAutoApplyToast(null),4000);}
   };
 
   const handleCoverLetter=async(job:JobWithMatch)=>{
