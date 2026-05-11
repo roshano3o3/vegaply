@@ -2193,7 +2193,7 @@ export default function Home() {
 
   const handleSkillGap=async(job:JobWithMatch)=>{
     if(job.skillGap){setSkillGapJob(job);return;}
-    if(!resumeText){alert("Upload your resume first!");return;}
+    if(!resumeText){setAutoApplyToast("Upload your resume first!");setTimeout(()=>setAutoApplyToast(null),4000);return;}
     const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
     setList(list.map(j=>j.job_id===job.job_id?{...j,skillGapLoading:true}:j));
     try{
@@ -2207,7 +2207,7 @@ export default function Home() {
 
   const handleCoverLetter=async(job:JobWithMatch)=>{
     if(job.coverLetter){setCoverLetterJob(job);return;}
-    if(!resumeText){alert("Upload your resume first!");return;}
+    if(!resumeText){setAutoApplyToast("Upload your resume first!");setTimeout(()=>setAutoApplyToast(null),4000);return;}
     const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
     setList(list.map(j=>j.job_id===job.job_id?{...j,coverLetterLoading:true}:j));
     try{const res=await fetch("/api/match",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const data:MatchResult=await res.json();const updated={...job,coverLetter:data.coverLetter,coverLetterLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setCoverLetterJob(updated);}
@@ -2216,7 +2216,7 @@ export default function Home() {
 
   const handleTailor=async(job:JobWithMatch)=>{
     if(job.tailor){setTailorJob(job);return;}
-    if(!resumeText){alert("Upload your resume first!");return;}
+    if(!resumeText){setAutoApplyToast("Upload your resume first!");setTimeout(()=>setAutoApplyToast(null),4000);return;}
     const isEb=activeTab==="earlybird";const setList=isEb?setEarlyBirdJobs:setJobs;const list=isEb?earlyBirdJobs:jobs;
     setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:true}:j));
     try{const res=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});const tailor:TailorResult=await res.json();const updated={...job,tailor,tailorLoading:false};setList(list.map(j=>j.job_id===job.job_id?updated:j));setTailorJob(updated);}catch{setList(list.map(j=>j.job_id===job.job_id?{...j,tailorLoading:false}:j));}
@@ -2272,7 +2272,7 @@ export default function Home() {
   };
 
   const handleAutoApply=async(job:JobWithMatch)=>{
-    if(!resumeText){alert("Upload your resume first to use Auto Apply!");return;}
+    if(!resumeText){setAutoApplyToast("Upload your resume first to use Auto Apply!");setTimeout(()=>setAutoApplyToast(null),4000);return;}
     const today=new Date().toISOString().slice(0,10);
     const dailyLimit=userProfile?.is_pro?20:5;
     if(autoApplyCount>=dailyLimit){
