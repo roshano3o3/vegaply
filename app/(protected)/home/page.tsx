@@ -272,14 +272,16 @@ function HelpPanel() {
 function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onClose: () => void; resumeText: string }) {
   const [matchResult, setMatchResult] = useState<MatchResult | null>(job.match || null);
   const [loading, setLoading] = useState(false);
+  const [matchError, setMatchError] = useState(false);
   const runMatch = async () => {
     if (!resumeText) return;
     setLoading(true);
+    setMatchError(false);
     try {
       const res = await fetch("/api/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeText, job }) });
       const data: MatchResult = await res.json();
       setMatchResult(data);
-    } catch {}
+    } catch { setMatchError(true); }
     setLoading(false);
   };
   useEffect(() => { if (resumeText && !matchResult && !loading) runMatch(); }, [resumeText, matchResult, loading]);
@@ -305,7 +307,7 @@ function ResumeMatchPanel({ job, onClose, resumeText }: { job: JobWithMatch; onC
             {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" className="apply-btn" style={{textAlign:"center",display:"block",textDecoration:"none"}}>{isHot(job.job_posted_at_datetime_utc)?"⚡ Apply Now — Beat the Rush!":"Apply Now →"}</a>}
           </div>
         )}
-        {resumeText&&!loading&&!matchResult&&<div style={{textAlign:"center",padding:"32px 20px"}}><button className="gradient-btn" onClick={runMatch}>🔍 Analyze Match</button></div>}
+        {resumeText&&!loading&&!matchResult&&(matchError?<div style={{textAlign:"center",padding:"32px 20px"}}><div style={{fontSize:13,color:"#ef4444",marginBottom:12}}>Analysis failed. Check your connection and try again.</div><button className="gradient-btn" onClick={()=>{setMatchError(false);runMatch();}}>🔍 Retry</button></div>:<div style={{textAlign:"center",padding:"32px 20px"}}><button className="gradient-btn" onClick={runMatch}>🔍 Analyze Match</button></div>)}
       </div>
     </div>
   );
