@@ -3613,7 +3613,7 @@ export default function Home() {
             <div className="sidebar-section-label">Resume</div>
             <div className="sidebar-tile">
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <span style={{fontSize:11,color:"var(--text-tertiary)",fontFamily:"var(--font-primary)"}}>Upload PDF for AI matching</span>
+                <span style={{fontSize:11,color:"var(--text-tertiary)",fontFamily:"var(--font-primary)"}}>Upload PDF — used for AI matching, tailoring, and daily packs</span>
                 <button onClick={loadResumeHistory} style={{fontSize:10,color:"var(--gold)",background:"none",border:"1px solid rgba(245,158,11,0.2)",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontFamily:"inherit"}}>History</button>
               </div>
               <ResumePanel
@@ -3628,7 +3628,7 @@ export default function Home() {
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
-              {autoApplyCount>0&&<div style={{fontSize:10,color:"var(--gold)",textAlign:"center",fontWeight:600}}>{autoApplyCount}/30 auto-applied today</div>}
+              {autoApplyCount>0&&<div style={{fontSize:10,color:"var(--gold)",textAlign:"center",fontWeight:600}}>{autoApplyCount}/{userProfile?.is_pro?20:5} auto-applied today</div>}
               {resumeText&&<ResumeStrengthMeter resumeText={resumeText} lm={!darkMode}/>}
             </div>
           </div>
@@ -4696,11 +4696,11 @@ export default function Home() {
               <h2 style={{fontSize:16,fontWeight:700,color:"#fff"}}>Resume History</h2>
               <button onClick={()=>setShowResumeHistory(false)} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"50%",width:26,height:26,cursor:"pointer",color:"rgba(255,255,255,0.28)",fontSize:11}}>✕</button>
             </div>
-            {resumeHistory.length===0?<p style={{color:"rgba(255,255,255,0.25)",textAlign:"center",padding:"24px 0",fontSize:12}}>No resumes saved yet</p>:resumeHistory.map((r,i)=>(
-              <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${i===0?"rgba(245,158,11,0.25)":"rgba(255,255,255,0.07)"}`,borderRadius:10,padding:14,marginBottom:9,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div><div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:3}}>{r.file_name}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>{i===0&&<div style={{fontSize:9,color:"#f59e0b",fontWeight:700,marginTop:3,letterSpacing:"0.3px"}}>ACTIVE</div>}</div>
-                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("vegaply_resume",r.resume_text);lsSet("vegaply_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:i===0?"rgba(245,158,11,0.08)":"linear-gradient(135deg,#f59e0b,#fbbf24)",color:i===0?"#f59e0b":"#fff",border:i===0?"1px solid rgba(245,158,11,0.25)":"none",borderRadius:7,padding:"7px 14px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
-                  {i===0?"Active":"Use This"}
+            {resumeHistory.length===0?<p style={{color:"rgba(255,255,255,0.25)",textAlign:"center",padding:"24px 0",fontSize:12}}>No saved resumes. Upload a resume from the sidebar to get started.</p>:resumeHistory.map((r,i)=>(
+              <div key={r.id} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${r.resume_text===resumeText?"rgba(245,158,11,0.25)":"rgba(255,255,255,0.07)"}`,borderRadius:10,padding:14,marginBottom:9,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:3}}>{r.file_name}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>{r.resume_text===resumeText&&<div style={{fontSize:9,color:"#f59e0b",fontWeight:700,marginTop:3,letterSpacing:"0.3px"}}>ACTIVE</div>}</div>
+                <button onClick={()=>{setResumeText(r.resume_text);setResumeFileName(r.file_name);lsSet("vegaply_resume",r.resume_text);lsSet("vegaply_resume_name",r.file_name);setShowResumeHistory(false);}} style={{background:r.resume_text===resumeText?"rgba(245,158,11,0.08)":"linear-gradient(135deg,#f59e0b,#fbbf24)",color:r.resume_text===resumeText?"#f59e0b":"#fff",border:r.resume_text===resumeText?"1px solid rgba(245,158,11,0.25)":"none",borderRadius:7,padding:"7px 14px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                  {r.resume_text===resumeText?"Active":"Use This"}
                 </button>
               </div>
             ))}

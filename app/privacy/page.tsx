@@ -113,6 +113,7 @@ export default function PrivacyPage() {
               <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Anthropic (Claude)</strong> — AI analysis of resumes and job descriptions</li>
               <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>JSearch (RapidAPI)</strong> — live job listing data</li>
               <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Google OAuth</strong> — optional sign-in (governed by Google's privacy policy)</li>
+              <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Stripe</strong> — payment processing for Pro subscriptions. Stripe handles all payment card data directly; Vegaply never stores or has access to your full card number, CVV, or billing details.</li>
             </ul>
           </div>
 

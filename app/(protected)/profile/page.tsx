@@ -112,7 +112,7 @@ export default function ProfilePage() {
     if (error) {
       setSaving(false);
       console.error(error);
-      showToast("Save failed — check console", false);
+      showToast("Something went wrong — please try again", false);
       return;
     }
 
@@ -125,7 +125,7 @@ export default function ProfilePage() {
       console.error(locError);
       showToast("Profile saved but location failed to save", false);
     } else {
-      showToast("Profile saved", true);
+      showToast("Profile saved — changes apply to your next daily queue", true);
     }
   };
 
@@ -245,7 +245,7 @@ export default function ProfilePage() {
               <Field label="Last Name" value={profile.last_name} onChange={v => set("last_name", v)} placeholder="Pellati" />
             </div>
             <Field label="Phone" value={profile.phone} onChange={v => set("phone", v)} placeholder="+1 (713) 555-0000" type="tel" />
-            <Field label="LinkedIn URL" value={profile.linkedin_url} onChange={v => set("linkedin_url", v)} placeholder="https://linkedin.com/in/yourname" />
+            <Field label="LinkedIn URL *" value={profile.linkedin_url} onChange={v => set("linkedin_url", v)} placeholder="https://linkedin.com/in/yourname" />
             <Field label="GitHub URL (optional)" value={profile.github_url} onChange={v => set("github_url", v)} placeholder="https://github.com/yourname" />
             <Field label="Portfolio URL (optional)" value={profile.portfolio_url} onChange={v => set("portfolio_url", v)} placeholder="https://yoursite.com" />
             <Field label="Years of Experience" value={profile.years_experience} onChange={v => set("years_experience", v)} placeholder="2" type="number" />
@@ -334,7 +334,7 @@ export default function ProfilePage() {
                   No resume on file
                 </div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14, fontFamily: "var(--font-primary)", lineHeight: 1.6 }}>
-                  Upload your resume from the dashboard to unlock daily packs.
+                  Upload your resume from the dashboard — look for the Resume panel on the right sidebar.
                 </div>
                 <a
                   href="/home"
@@ -445,13 +445,13 @@ function ReadinessCard({ completed, total, pct, missing, isReady }: {
             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0,
           }}>✓</div>
           <p style={{ fontSize: 13, color: "var(--success)", fontFamily: "var(--font-primary)", margin: 0, fontWeight: 500 }}>
-            Ready for assisted apply checks.
+            Profile complete — Vegaply can now build your daily packs.
           </p>
         </div>
       ) : (
         <>
           <p style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "var(--font-primary)", margin: "0 0 12px" }}>
-            Complete these fields to unlock better daily packs.
+            Complete these fields to unlock your daily packs.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {missing.map(label => (

@@ -74,12 +74,23 @@ export default function TermsPage() {
               <li>Early Bird alerts for newly posted roles</li>
             </ul>
             <div className="pg-highlight" style={{ marginTop: 12 }}>
-              Vegaply is currently free to use. We reserve the right to introduce paid plans in the future — existing free features will remain accessible for a reasonable transition period with advance notice.
+              Vegaply offers a free tier with a limited number of daily application packs. A Pro subscription is also available, currently priced at $9.99 per month. Plan features, limits, and pricing may change; the current details are always shown on our pricing page.
             </div>
           </div>
 
           <div className="pg-section">
-            <h2 className="pg-h2">3. User Responsibilities</h2>
+            <h2 className="pg-h2">3. Billing &amp; Subscriptions</h2>
+            <p className="pg-p">If you subscribe to Vegaply Pro:</p>
+            <ul className="pg-ul">
+              <li>Your subscription is billed monthly and renews automatically on your billing date unless you cancel beforehand.</li>
+              <li>You may cancel at any time through your account settings or by emailing <a href="mailto:support@vegaply.com" className="pg-link">support@vegaply.com</a>. Cancellation takes effect at the end of the current billing period — you retain access to Pro features until then.</li>
+              <li>Refunds are not guaranteed except where required by applicable law or expressly stated at the time of purchase.</li>
+              <li>We reserve the right to change subscription pricing with reasonable advance notice. Continued use after a price change takes effect constitutes acceptance of the new price.</li>
+            </ul>
+          </div>
+
+          <div className="pg-section">
+            <h2 className="pg-h2">4. User Responsibilities</h2>
             <p className="pg-p">By using Vegaply, you agree to:</p>
             <ul className="pg-ul">
               <li>Provide accurate information when creating your account</li>
@@ -93,7 +104,7 @@ export default function TermsPage() {
           </div>
 
           <div className="pg-section">
-            <h2 className="pg-h2">4. AI-Generated Content</h2>
+            <h2 className="pg-h2">5. AI-Generated Content</h2>
             <p className="pg-p">Vegaply uses AI (Anthropic Claude) to generate match scores, cover letters, interview questions, and resume suggestions. You acknowledge that:</p>
             <ul className="pg-ul">
               <li>AI-generated content is provided as-is and may contain inaccuracies</li>
@@ -104,13 +115,13 @@ export default function TermsPage() {
           </div>
 
           <div className="pg-section">
-            <h2 className="pg-h2">5. Intellectual Property</h2>
+            <h2 className="pg-h2">6. Intellectual Property</h2>
             <p className="pg-p">The Vegaply name, logo, design, and codebase are owned by Vegaply. You may not reproduce, distribute, or create derivative works from our intellectual property without written permission.</p>
             <p className="pg-p">Content you upload (your resume, job preferences) remains yours. By uploading it, you grant Vegaply a limited license to process it solely for the purpose of delivering the Service to you.</p>
           </div>
 
           <div className="pg-section">
-            <h2 className="pg-h2">6. Third-Party Job Listings</h2>
+            <h2 className="pg-h2">7. Third-Party Job Listings</h2>
             <p className="pg-p">Job listings displayed in Vegaply are sourced from third-party APIs and are not posted by Vegaply. We make no representations about:</p>
             <ul className="pg-ul">
               <li>The accuracy or availability of any listed job</li>
@@ -121,28 +132,28 @@ export default function TermsPage() {
           </div>
 
           <div className="pg-section">
-            <h2 className="pg-h2">7. Limitation of Liability</h2>
+            <h2 className="pg-h2">8. Limitation of Liability</h2>
             <div className="pg-warning">
               ⚠️ Vegaply is provided "as is" without warranties of any kind, express or implied. We do not guarantee uptime, data accuracy, or specific outcomes from using the Service.
             </div>
             <p className="pg-p">To the maximum extent permitted by applicable law, Vegaply shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of employment opportunities, loss of data, or business losses arising from your use of the Service.</p>
-            <p className="pg-p">Our total liability for any claim arising from use of Vegaply shall not exceed the amount you paid us in the 12 months preceding the claim (which, while the Service is free, is $0).</p>
+            <p className="pg-p">Our total liability for any claim arising from use of Vegaply shall not exceed the greater of $100 or the amount you paid us in the 12 months preceding the claim.</p>
           </div>
 
           <div className="pg-section">
-            <h2 className="pg-h2">8. Termination</h2>
+            <h2 className="pg-h2">9. Termination</h2>
             <p className="pg-p">You may stop using Vegaply and delete your account at any time. We reserve the right to suspend or terminate accounts that violate these terms, abuse our systems, or engage in fraudulent activity, with or without prior notice.</p>
           </div>
 
           <div className="pg-section">
-            <h2 className="pg-h2">9. Governing Law</h2>
+            <h2 className="pg-h2">10. Governing Law</h2>
             <p className="pg-p">These terms are governed by the laws of the United States. Any disputes shall be resolved through binding arbitration or small claims court, waiving the right to class action proceedings.</p>
           </div>
 
           <div className="pg-divider" />
 
           <div className="pg-section">
-            <h2 className="pg-h2">10. Contact</h2>
+            <h2 className="pg-h2">11. Contact</h2>
             <p className="pg-p">Questions about these terms? Reach us at:</p>
             <p className="pg-p">
               <a href="mailto:support@vegaply.com" className="pg-link">support@vegaply.com</a>
