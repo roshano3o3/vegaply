@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/daily-queue/build",
+      "path": "/api/daily-queue/run",
       "schedule": "0 8 * * *"
     }
   ]

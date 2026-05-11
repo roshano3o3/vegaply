@@ -115,7 +115,7 @@ function buildHtml(input: SendApplicationEmailInput): string {
       <div class="textbox">${resumeHtml}</div>
     </div>
 
-    <a href="${esc(secureApplyLink ?? applyLink)}" class="cta">Apply Now →</a>
+    <a href="${esc(secureApplyLink ?? applyLink)}" class="cta">Review &amp; Apply →</a>
 
     <p style="margin-top:24px;font-size:13px;color:#6b7280">
       After you click Apply Now, Vegaply records that you opened the company application page.
