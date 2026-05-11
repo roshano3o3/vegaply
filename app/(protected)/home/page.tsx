@@ -2339,7 +2339,7 @@ export default function Home() {
     localStorage.setItem(`vegaply_autoapply_${today}`,String(newCount));
     setAutoApplyResults(prev=>({...prev,[job.job_id]:"applied"}));
     fetch("/api/autoapply-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:userEmail,jobTitle:job.job_title,company:job.employer_name,location:[job.job_city,job.job_state,job.job_country].filter(Boolean).join(", "),appliedDate:new Date().toISOString(),score,userName:userEmail.split("@")[0]})}).catch(err=>console.error("[AutoApply] email failed:",err));
-    setAutoApplyToast(`✅ Applied to ${job.employer_name} — confirmation email sent`);
+    setAutoApplyToast(`📋 Application page opened — session summary emailed to you`);
     setTimeout(()=>setAutoApplyToast(null),5000);
     setAutoApplyModal(null);
     setGeneratedResume(null);
@@ -3639,7 +3639,7 @@ export default function Home() {
                   if(!user)return;
                   const{error:saveErr}=await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
                   if(saveErr){setAutoApplyToast("⚠️ Resume loaded, but cloud save failed.");setTimeout(()=>setAutoApplyToast(null),4000);}
-                  else{setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
+                  else{await supabase.from("profiles").update({resume_text:t}).eq("id",user.id);setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
@@ -4324,7 +4324,7 @@ export default function Home() {
                   if(!user)return;
                   const{error:saveErr}=await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
                   if(saveErr){setAutoApplyToast("⚠️ Resume loaded, but cloud save failed.");setTimeout(()=>setAutoApplyToast(null),4000);}
-                  else{setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
+                  else{await supabase.from("profiles").update({resume_text:t}).eq("id",user.id);setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
