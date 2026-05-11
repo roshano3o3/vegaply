@@ -15,13 +15,6 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, SplitText)
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface ActivityItem {
-  emoji: string
-  text: string
-  time: string
-}
-
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const MORPH_WORDS = ['prepared by AI.', 'tailored for you.', 'sent to Gmail.', 'ready to apply.']
 
@@ -33,15 +26,6 @@ const TICKER_DATA = [
   'Cover letter generation',
   'Gmail apply-ready emails',
   'Kanban application tracker',
-]
-
-const ACTIVITY_ITEMS: ActivityItem[] = [
-  { emoji: '🔥', text: 'Someone in Austin applied to ML Engineer at Stripe', time: '2m ago' },
-  { emoji: '✅', text: 'Someone in NYC got an interview at Figma', time: '5m ago' },
-  { emoji: '⚡', text: 'Someone in Seattle found H1B role at Microsoft', time: '8m ago' },
-  { emoji: '🎉', text: 'Someone in Boston received an offer', time: '12m ago' },
-  { emoji: '🔥', text: 'Someone in Chicago applied to Data Scientist', time: '15m ago' },
-  { emoji: '✅', text: 'Someone in LA got interview at Notion', time: '18m ago' },
 ]
 
 const FEATURES = [
@@ -654,36 +638,6 @@ export default function VegaplyPro() {
         </div>
       </div>
 
-      {/* ── ACTIVITY FEED ──────────────────────────────────────────────────────── */}
-      <div className="activity-section reveal" id="activity">
-        {/* Left: headline */}
-        <div>
-          <p className="activity-label">Live activity</p>
-          <h2 className="activity-headline">
-            What&apos;s happening on Vegaply right now.
-          </h2>
-          <p className="section-body" style={{ marginTop: 16 }}>
-            Thousands of students are landing roles at top companies while you
-            read this. Join them.
-          </p>
-        </div>
-
-        {/* Right: feed */}
-        <div className="activity-feed" aria-live="polite">
-          <div className="activity-inner">
-            {[...ACTIVITY_ITEMS, ...ACTIVITY_ITEMS].map((item, i) => (
-              <div key={i} className="activity-item">
-                <span className="activity-indicator" aria-hidden="true" />
-                <span className="activity-text">
-                  {item.emoji} {item.text}
-                </span>
-                <span className="activity-time">{item.time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* ── COUNTERS ───────────────────────────────────────────────────────────── */}
       <div className="counters-section gsap-reveal" id="counters-section">
         <div className="counters-grid">
@@ -705,9 +659,8 @@ export default function VegaplyPro() {
       {/* ── GLOW DIVIDER ───────────────────────────────────────────────────────── */}
       <div className="glow-divider" />
 
-      {/* ── JOB CARDS (Live feed) ──────────────────────────────────────────────── */}
+      {/* ── JOB CARDS ──────────────────────────────────────────────────────────── */}
       <div className="job-cards-section reveal" id="features">
-        <p className="eyebrow">Live job feed</p>
         <h2 className="section-title">
           Jobs that are <em>actually</em> fresh.
         </h2>
@@ -728,7 +681,6 @@ export default function VegaplyPro() {
             <div className="job-title">Senior ML Engineer</div>
             <div className="job-company">Google · Mountain View, CA</div>
             <div className="job-tags">
-              <span className="job-tag tag-primary">2h ago — still early!</span>
               <span className="job-tag tag-accent">H1B Friendly</span>
               <span className="job-tag tag-neutral">$180k–220k</span>
             </div>
@@ -824,7 +776,6 @@ export default function VegaplyPro() {
             <div className="job-title">Staff Frontend Eng.</div>
             <div className="job-company">Stripe · New York, NY</div>
             <div className="job-tags">
-              <span className="job-tag tag-primary">4h ago — still early!</span>
               <span className="job-tag tag-neutral">$160k–200k</span>
             </div>
             <div className="job-match-row">
@@ -1281,11 +1232,11 @@ export default function VegaplyPro() {
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
-                Early Bird mode (24h jobs)
+                Early Bird Detection
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
-                AI Resume Match score
+                AI Resume Match
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
@@ -1297,7 +1248,7 @@ export default function VegaplyPro() {
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
-                Kanban job tracker
+                Kanban Tracker
               </li>
               <li className="pricing-feature feature-locked">
                 <span className="feature-x">✗</span>
@@ -1366,9 +1317,7 @@ export default function VegaplyPro() {
             >
               Start Pro — $9.99/mo
             </Link>
-            <p className="pricing-cta-note">
-              Coming soon · Join waitlist now
-            </p>
+
           </div>
         </div>
       </div>
@@ -1467,7 +1416,7 @@ export default function VegaplyPro() {
         </div>
 
         <div className="footer-bottom">
-          <span className="footer-copy">© 2026 Vegaply</span>
+          <span className="footer-copy">© {new Date().getFullYear()} Vegaply</span>
           <div className="footer-legal">
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>

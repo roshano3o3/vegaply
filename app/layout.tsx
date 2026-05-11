@@ -18,6 +18,7 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://vegaply.com"),
   title: "Vegaply – AI Job Search | Apply Before Everyone Else",
   description:
     "Find jobs posted in the last 24 hours, get AI resume match scores, detect H1B sponsorship, and track every application. Get hired faster with Vegaply.",

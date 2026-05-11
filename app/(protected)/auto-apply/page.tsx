@@ -553,7 +553,7 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
       <div style={glowCard}>
         <div style={iconWrap}>🗂</div>
         <p style={title}>Your queue will appear here once Vegaply prepares today&apos;s packs.</p>
-        <p style={body}>AI-matched roles are queued each morning. Check back soon.</p>
+        <p style={body}>AI-matched roles, tailored resumes, and cover letters are built once each morning. Your first pack will be ready tomorrow.</p>
       </div>
     );
   }
@@ -604,10 +604,10 @@ function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
     return (
       <div style={glowCard}>
         <div style={iconWrap}>⏳</div>
-        <p style={title}>Your daily pack is waiting to be built.</p>
+        <p style={title}>Your first pack will be ready tomorrow morning.</p>
         <p style={body}>
           {planLabel} plan · {packCount} application pack{packCount !== 1 ? "s" : ""} per day.
-          Vegaply builds your queue each morning — check back soon.
+          Vegaply builds your queue once each day based on your target roles and resume.
         </p>
       </div>
     );
@@ -800,12 +800,14 @@ export default function AutoApplyPage() {
           </div>
 
           {/* ── Summary strip ───────────────────────────────────────── */}
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(6, 1fr)",
-            gap: 10, marginBottom: 16,
-          }}>
-            {summaryCards.map((c, i) => <SummaryCard key={c.label} {...c} index={i} />)}
-          </div>
+          {rows.length > 0 && (
+            <div style={{
+              display: "grid", gridTemplateColumns: "repeat(6, 1fr)",
+              gap: 10, marginBottom: 16,
+            }}>
+              {summaryCards.map((c, i) => <SummaryCard key={c.label} {...c} index={i} />)}
+            </div>
+          )}
 
           {/* ── Send Today's Ready Pack ──────────────────────────────── */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
@@ -839,7 +841,7 @@ export default function AutoApplyPage() {
                   Sends generated application packs to your Gmail.
                 </span>
               )}
-              {counts.generated === 0 && !sending && (
+              {counts.generated === 0 && counts.pending > 0 && !sending && (
                 <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "rgba(255,255,255,0.28)" }}>
                   Generate materials first before sending.
                 </span>

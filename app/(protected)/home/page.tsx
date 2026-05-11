@@ -742,19 +742,6 @@ function JobModal({ job, saved, onToggleSave, onClose, earlyBirdMode, onAddToTra
           {badge&&<span className="badge badge-type">{badge}</span>}
           {job.job_is_remote&&<span className="badge badge-remote">Remote</span>}
           <span className="badge badge-time">{timeAgo(job.job_posted_at_datetime_utc)}</span>
-          {(() => {
-            const ts = job.job_posted_at_timestamp
-            const hrs = ts ? (RENDER_NOW/1000 - ts)/3600 : 999
-            const count = hrs <= 1 ? '~2 applicants' : hrs <= 3 ? '~8 applicants' : hrs <= 6 ? '~18 applicants' : hrs <= 12 ? '~40 applicants' : hrs <= 24 ? '~75 applicants' : '150+ applicants'
-            const color = hrs <= 6 ? '#8eb29b' : hrs <= 24 ? '#d6b268' : 'rgba(239,68,68,0.65)'
-            const bg = hrs <= 6 ? 'rgba(52,211,153,0.10)' : hrs <= 24 ? 'rgba(251,191,36,0.08)' : 'rgba(239,68,68,0.07)'
-            const border = hrs <= 6 ? '1px solid rgba(52,211,153,0.18)' : hrs <= 24 ? '1px solid rgba(251,191,36,0.16)' : '1px solid rgba(239,68,68,0.14)'
-            return (
-              <span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:bg,color,border,marginLeft:6,flexShrink:0}}>
-                👤 {count}
-              </span>
-            )
-          })()}
           {(job.job_min_salary||job.job_max_salary)&&<span className="badge badge-salary">💰 {job.job_salary_currency??"$"}{job.job_min_salary?.toLocaleString()}–{job.job_max_salary?.toLocaleString()}</span>}
         </div>
         {job.match&&(
@@ -1560,7 +1547,6 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
           {ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:800,padding:'3px 8px',borderRadius:999,letterSpacing:'0.3px',background:'linear-gradient(135deg,#f97316,#ef4444)',color:'#fff',boxShadow:'0 2px 8px rgba(249,115,22,0.25)',fontFamily:'var(--font-primary)',animation:'hotGlow 2s ease infinite'}}>🔥 HOT</span>}
           {ebStatus.isEarly&&!ebStatus.isHotJob&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:'rgba(245,158,11,0.10)',color:'#f59e0b',border:'1px solid rgba(245,158,11,0.20)',fontFamily:'var(--font-primary)'}}>⚡ Still Early</span>}
           {h1bStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:h1bStatus.sponsors?'rgba(142,178,155,0.10)':'rgba(214,178,104,0.08)',color:h1bStatus.sponsors?'#8eb29b':'#d6b268',border:h1bStatus.sponsors?'1px solid rgba(142,178,155,0.20)':'1px solid rgba(214,178,104,0.18)',fontFamily:'var(--font-primary)'}}>{h1bStatus.sponsors?'✓ H1B':'~ H1B Likely'}</span>}
-          {(()=>{const hrs=ebStatus.hoursOld;const count=hrs<=1?'~2':hrs<=3?'~8':hrs<=6?'~18':hrs<=12?'~40':hrs<=24?'~80':hrs<=48?'~150':'200+';const isLow=hrs<=12;return<span style={{fontSize:9,fontWeight:600,padding:'3px 8px',borderRadius:999,background:isLow?'rgba(142,178,155,0.08)':'rgba(239,68,68,0.06)',color:isLow?'#8eb29b':'rgba(239,68,68,0.6)',border:isLow?'1px solid rgba(142,178,155,0.16)':'1px solid rgba(239,68,68,0.12)',fontFamily:'var(--font-primary)'}}>👤 {count} applicants</span>})()}
           {queueStatus&&<span style={{fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:999,background:queueStatus.bg,color:queueStatus.color,border:`1px solid ${queueStatus.border}`,fontFamily:'var(--font-primary)',letterSpacing:'0.2px'}}>{queueStatus.label}</span>}
         </div>
 
@@ -1921,19 +1907,6 @@ function PreferencesModal({ onClose, lm, onSave }: { onClose:()=>void; lm?:boole
       </div>
     </div>
   );
-}
-
-function getApplicantEstimate(h: number): string | null {
-  if (h >= 999) return null;
-  if (h <= 1) return '~2 applicants';
-  if (h <= 2) return '~5 applicants';
-  if (h <= 4) return '~12 applicants';
-  if (h <= 6) return '~20 applicants';
-  if (h <= 12) return '~45 applicants';
-  if (h <= 24) return '~80 applicants';
-  if (h <= 48) return '~150 applicants';
-  if (h <= 72) return '~200 applicants';
-  return '200+ applicants';
 }
 
 function scoreJob(job: JobWithMatch): number {
@@ -2301,8 +2274,9 @@ export default function Home() {
   const handleAutoApply=async(job:JobWithMatch)=>{
     if(!resumeText){alert("Upload your resume first to use Auto Apply!");return;}
     const today=new Date().toISOString().slice(0,10);
-    if(autoApplyCount>=30){
-      setAutoApplyToast("Daily limit reached (30/30). Resets tomorrow!");
+    const dailyLimit=userProfile?.is_pro?20:5;
+    if(autoApplyCount>=dailyLimit){
+      setAutoApplyToast(`Daily limit reached (${dailyLimit}/${dailyLimit}). Resets tomorrow!`);
       setTimeout(()=>setAutoApplyToast(null),4000);
       return;
     }
@@ -2575,8 +2549,8 @@ export default function Home() {
     ?jobs.filter(j=>appliedJobIds.has(j.job_id))
     :jobs;
   const allJobs=[...jobs,...earlyBirdJobs];
-  const smartEbCount=allJobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
-  const h1bCount=allJobs.filter(isH1B).length;
+  const smartEbCount=jobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
+  const h1bCount=jobs.filter(isH1B).length;
   const allSaved=allJobs.filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
   
   // DEBUG: Verify filter logic
@@ -2608,7 +2582,7 @@ export default function Home() {
   const activeFilterCount=filterWorkArr.length+filterEmpType.length+(filterEasyApply?1:0)+(filterSalary!=="any"?1:0)+filterExpLevel.length+(filterVisaH1b?1:0)+(filterVisaNoCitizen?1:0)+filterCompanySize.length+filterSource.length;
   const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(j=>getEarlyBirdStatus(j).isEarly):allSaved;
   const isEbMode=activeTab==="earlybird";
-  const hotCount=allJobs.filter(j=>getEarlyBirdStatus(j).isHotJob).length;
+  const hotCount=jobs.filter(j=>getEarlyBirdStatus(j).isHotJob).length;
   const totalPages=Math.ceil(displayJobs.length/JOBS_PER_PAGE);
   const paginatedJobs=displayJobs.slice((currentPage-1)*JOBS_PER_PAGE,currentPage*JOBS_PER_PAGE);
   const currentLoading=isEbMode?ebLoading:loading;
@@ -3747,7 +3721,7 @@ export default function Home() {
           {/* SMART FILTER CHIP BAR */}
           {hasSearched&&allJobs.length>0&&(
             <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',paddingBottom:10}}>
-              {([ ['all','All','',allJobs.length], ['earlybird','Early Bird','⚡',smartEbCount], ['h1b','H1B','🌐',h1bCount], ['hot','Under 6h','🔥',hotCount] ] as [typeof activeMode,string,string,number][]).map(([mode,label,icon,count])=>{
+              {([ ['all','All','',jobs.length], ['earlybird','Early Bird','⚡',smartEbCount], ['h1b','H1B','🌐',h1bCount], ['hot','Under 6h','🔥',hotCount] ] as [typeof activeMode,string,string,number][]).map(([mode,label,icon,count])=>{
                 const active=activeMode===mode;
                 return(
                   <button

@@ -1,4 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy – Vegaply",
+  description: "Read Vegaply's privacy policy to learn how we collect, use, and protect your personal information.",
+  alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: "Privacy Policy – Vegaply",
+    description: "Read Vegaply's privacy policy to learn how we collect, use, and protect your personal information.",
+    url: "/privacy",
+  },
+};
 
 export default function PrivacyPage() {
   return (

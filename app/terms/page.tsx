@@ -1,4 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Terms of Service – Vegaply",
+  description: "Review Vegaply's terms of service governing your use of our AI job search platform.",
+  alternates: { canonical: "/terms" },
+  openGraph: {
+    title: "Terms of Service – Vegaply",
+    description: "Review Vegaply's terms of service governing your use of our AI job search platform.",
+    url: "/terms",
+  },
+};
 
 export default function TermsPage() {
   return (

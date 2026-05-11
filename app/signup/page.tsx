@@ -563,28 +563,28 @@ export default function SignupPage() {
               <div className="feature-item">
                 <div className="feature-icon indigo">⚡</div>
                 <div>
-                  <div className="feature-name">Early Bird Mode</div>
+                  <div className="feature-name">Early Bird Detection</div>
                   <div className="feature-desc">Jobs posted in the last 6 hours — near-zero competition</div>
                 </div>
               </div>
               <div className="feature-item">
                 <div className="feature-icon pink">🤖</div>
                 <div>
-                  <div className="feature-name">AI Resume Matching</div>
+                  <div className="feature-name">AI Resume Match</div>
                   <div className="feature-desc">Instant match score with tailored bullet points</div>
                 </div>
               </div>
               <div className="feature-item">
                 <div className="feature-icon green">🎯</div>
                 <div>
-                  <div className="feature-name">Interview Prep</div>
+                  <div className="feature-name">Interview Simulator</div>
                   <div className="feature-desc">Role-specific questions with sample answers</div>
                 </div>
               </div>
               <div className="feature-item">
                 <div className="feature-icon amber">📋</div>
                 <div>
-                  <div className="feature-name">Application Tracker</div>
+                  <div className="feature-name">Kanban Tracker</div>
                   <div className="feature-desc">Kanban board for every job you're pursuing</div>
                 </div>
               </div>
@@ -592,7 +592,7 @@ export default function SignupPage() {
           </div>
 
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.18)', fontWeight: 300 }}>
-            © 2025 Vegaply · Built for ambitious job seekers
+            © {new Date().getFullYear()} Vegaply · Built for ambitious job seekers
           </div>
         </div>
 

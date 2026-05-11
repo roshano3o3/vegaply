@@ -281,14 +281,6 @@ export default function LoginPage() {
               <div><div className="auth-stat-num">AI</div><div className="auth-stat-label">Resume matching</div></div>
             </div>
           </div>
-          <div className="auth-ticker">
-            <div className="ticker-title">Live Activity</div>
-            <div className="ticker-cards">
-              <div className="ticker-card"><div className="ticker-dot green"/><div className="ticker-text">Senior UX Designer posted at Figma</div><div className="ticker-time">2m ago</div></div>
-              <div className="ticker-card"><div className="ticker-dot blue"/><div className="ticker-text">Data Analyst role at Stripe — 0 applicants</div><div className="ticker-time">11m ago</div></div>
-              <div className="ticker-card"><div className="ticker-dot pink"/><div className="ticker-text">PM opening at OpenAI, remote</div><div className="ticker-time">34m ago</div></div>
-            </div>
-          </div>
         </div>
         <div className="auth-right">
           {envMissing && process.env.NODE_ENV === 'development' && (
