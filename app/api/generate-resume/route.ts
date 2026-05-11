@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { CLAUDE_MODEL } from "@/lib/ai/config";
 
 export const maxDuration = 30;
 
@@ -77,7 +78,7 @@ Return ONLY a JSON object with this exact structure, no preamble. Include ALL se
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: CLAUDE_MODEL,
         max_tokens: 1800,
         temperature: 0,
         messages: [{ role: "user", content: prompt }],

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { CLAUDE_MODEL } from "@/lib/ai/config";
 
 export const maxDuration = 30;
 
@@ -27,7 +28,7 @@ Return exactly this JSON (all fields required, matchScore must be an integer 0-1
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: CLAUDE_MODEL,
         max_tokens: 1200,
         messages: [{ role: "user", content: prompt }],
       }),

@@ -1,5 +1,6 @@
 // FILE: app/api/autoapply/route.ts
 import { NextResponse } from "next/server";
+import { CLAUDE_MODEL } from "@/lib/ai/config";
 
 export async function POST(req: Request) {
   try {
@@ -37,7 +38,7 @@ Return this JSON:
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
+            model: CLAUDE_MODEL,
             max_tokens: 1200,
             messages: [{ role: "user", content: prompt }],
           }),

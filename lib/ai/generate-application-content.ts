@@ -8,6 +8,8 @@
  * directly without parsing JSON.
  */
 
+import { CLAUDE_MODEL } from "@/lib/ai/config";
+
 interface Job {
   job_title:       string;
   employer_name:   string;
@@ -83,7 +85,7 @@ Rules:
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model:      "claude-haiku-4-5-20251001",
+      model:      CLAUDE_MODEL,
       max_tokens: 1500,
       messages:   [{ role: "user", content: prompt }],
     }),

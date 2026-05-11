@@ -27,7 +27,7 @@ const MORPH_WORDS = ['prepared by AI.', 'tailored for you.', 'sent to Gmail.', '
 
 const TICKER_DATA = [
   '5 job sources combined',
-  '70+ H1B sponsors verified',
+  'Verified H1B sponsor companies',
   'AI resume tailoring per job',
   'Real-time job updates',
   'Cover letter generation',
@@ -77,7 +77,7 @@ const FEATURES = [
     icon: '🌐',
     name: 'H1B Sponsor Filter',
     desc: 'One toggle shows only verified H1B sponsoring companies. Built for international students.',
-    tag: '500+ sponsors',
+    tag: 'H1B verified',
     accent: 'var(--primary)',
   },
   {
@@ -147,9 +147,9 @@ export default function VegaplyPro() {
   const [morphWord, setMorphWord] = useState('prepared by AI.')
   const [morphVisible, setMorphVisible] = useState(true)
   const [countersStarted, setCountersStarted] = useState(false)
-  const [c1, setC1] = useState('0')
-  const [c2, setC2] = useState('0h')
-  const [c3, setC3] = useState('0min')
+  const [c1, setC1] = useState('1000+')
+  const [c2, setC2] = useState('50+')
+  const [c3, setC3] = useState('<1 min')
   const [floatIdx, setFloatIdx] = useState(0)
   const [ringProgress, setRingProgress] = useState(false)
   const [navScrolled, setNavScrolled] = useState(false)
@@ -242,10 +242,10 @@ export default function VegaplyPro() {
     ) => {
       let start: number | null = null
       const step = (ts: number) => {
-        if (!start) start = ts
+        if (start === null) start = ts
         const p = Math.min((ts - start) / dur, 1)
         const ease = 1 - Math.pow(1 - p, 4)
-        setter(Math.round(ease * target).toLocaleString() + suffix)
+        setter(Math.round(ease * target).toString() + suffix)
         if (p < 1) requestAnimationFrame(step)
       }
       requestAnimationFrame(step)
@@ -255,12 +255,11 @@ export default function VegaplyPro() {
       ([e]) => {
         if (e.isIntersecting && !countersStarted) {
           setCountersStarted(true)
-          animCount(setC1, 750)
-          animCount(setC2, 24, 'h')
-          animCount(setC3, 3, 'min')
+          animCount(setC1, 1000, '+')
+          animCount(setC2, 50, '+')
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.1 }
     )
 
     const el = document.getElementById('counters-section')
@@ -694,7 +693,7 @@ export default function VegaplyPro() {
           </div>
           <div className="counter-cell">
             <span className="counter-number">{c2}</span>
-            <span className="counter-label">Early Bird window</span>
+            <span className="counter-label">Early Bird jobs daily</span>
           </div>
           <div className="counter-cell">
             <span className="counter-number">{c3}</span>

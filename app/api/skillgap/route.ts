@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { CLAUDE_MODEL } from "@/lib/ai/config";
 
 export async function POST(req: Request) {
   try {
@@ -38,7 +39,7 @@ Rules:
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: CLAUDE_MODEL,
         max_tokens: 1000,
         messages: [{ role: "user", content: prompt }],
       }),

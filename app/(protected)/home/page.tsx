@@ -3667,7 +3667,7 @@ export default function Home() {
             </div>
             <div className="sidebar-tile">
               <div className="filter-label">Job Type</div>
-              <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
+              <select className="filter-select" aria-label="Job type" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
                 <option value="ALL">All Types</option>
                 <option value="FULLTIME">Full-time</option>
                 <option value="PARTTIME">Part-time</option>
@@ -3675,7 +3675,7 @@ export default function Home() {
                 <option value="INTERN">Internship</option>
               </select>
               <div className="filter-label">Date Posted</div>
-              <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
+              <select className="filter-select" aria-label="Date posted" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
                 <option value="ANY">Any Time</option>
                 <option value="15MIN">Under 15 min</option>
                 <option value="1H">1 hour</option>
@@ -4336,7 +4336,7 @@ export default function Home() {
             <div className="sidebar-card">
               <div className="sidebar-card-title">Filters</div>
               <div className="filter-label">Job Type</div>
-              <select className="filter-select" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
+              <select className="filter-select" aria-label="Job type" value={filterType} onChange={e=>{setFilterType(e.target.value);setCurrentPage(1);}}>
                 <option value="ALL">All Types</option>
                 <option value="FULLTIME">Full-time</option>
                 <option value="PARTTIME">Part-time</option>
@@ -4344,7 +4344,7 @@ export default function Home() {
                 <option value="INTERN">Internship</option>
               </select>
               <div className="filter-label">Date Posted</div>
-              <select className="filter-select" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
+              <select className="filter-select" aria-label="Date posted" value={filterDate} onChange={e=>{setFilterDate(e.target.value);setCurrentPage(1);}}>
                 <option value="ANY">Any Time</option>
                 <option value="15MIN">Under 15 min</option>
                 <option value="1H">1 hour</option>

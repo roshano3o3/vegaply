@@ -1,5 +1,6 @@
 // FILE: app/api/jobs/route.ts
 import { NextResponse } from "next/server";
+import { CLAUDE_MODEL } from "@/lib/ai/config";
 
 // ── Strip HTML tags from raw description text ────────────────────────────────
 function stripHtml(text: string): string {
@@ -112,7 +113,7 @@ async function buildJobBrief(job: {
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
+            model: CLAUDE_MODEL,
             max_tokens: 100,
             messages: [{
               role: "user",
