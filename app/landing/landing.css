@@ -227,78 +227,50 @@ body {
   justify-content: center;
   overflow: hidden;
   padding: 140px 24px 56px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(245, 158, 11, 0.10), transparent 30%),
+    linear-gradient(
+      180deg,
+      #e7e4dd 0%,
+      #d7d2ca 34%,
+      #9b968f 58%,
+      #302b27 78%,
+      #0a0a0c 96%
+    );
 }
 
-.hero-video {
+/* Globe canvas — fills entire hero, sits behind content */
+.hero-globe-wrap {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  filter: brightness(0.4) saturate(1.2);
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 20px 60px rgba(232, 168, 124, 0.30));
 }
 
-.hero-video-overlay {
+/* Stone-grey top guards headline; wide clear zone for content; smooth dark bottom */
+.hero-globe-fade {
   position: absolute;
   inset: 0;
-  z-index: 1;
   background: linear-gradient(
     180deg,
-    rgba(10, 10, 12, 0.4) 0%,
-    rgba(10, 10, 12, 0.85) 70%,
-    rgba(10, 10, 12, 1) 100%
-  );
-}
-
-/* Subtle ambient glow orbs — pure CSS, no 3D */
-.hero-orb-1 {
-  position: absolute;
-  top: -10%;
-  right: -8%;
-  width: 700px;
-  height: 700px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(245, 158, 11, 0.18) 0%,
-    transparent 65%
+    rgba(215, 210, 202, 0.44) 0%,
+    rgba(215, 210, 202, 0.10) 16%,
+    transparent 26%,
+    transparent 70%,
+    rgba(10, 10, 12, 0.20) 82%,
+    rgba(10, 10, 12, 0.72) 90%,
+    rgba(10, 10, 12, 1.00) 96%
   );
   pointer-events: none;
-  z-index: 2;
-  filter: blur(32px);
-  animation: orbFloat 14s ease-in-out infinite;
-}
-
-.hero-orb-2 {
-  position: absolute;
-  bottom: -5%;
-  left: -8%;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(251, 191, 36, 0.12) 0%,
-    transparent 65%
-  );
-  pointer-events: none;
-  z-index: 2;
-  filter: blur(28px);
-  animation: orbFloat 18s ease-in-out infinite reverse;
-}
-
-@keyframes orbFloat {
-  0%, 100% { transform: scale(1) translate(0, 0); }
-  33% { transform: scale(1.06) translate(12px, -16px); }
-  66% { transform: scale(0.97) translate(-8px, 10px); }
+  z-index: 1;
 }
 
 .hero-content {
   position: relative;
   z-index: 10;
   text-align: center;
-  max-width: 900px;
+  max-width: 1040px;
   width: 100%;
   overflow: hidden;
 }
@@ -307,13 +279,13 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid rgba(146, 64, 14, 0.30);
   border-radius: 100px;
   padding: 7px 18px 7px 12px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--primary-glow);
+  color: #92400e;
   letter-spacing: 0.02em;
   margin-bottom: 40px;
 }
@@ -322,8 +294,8 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #f59e0b;
-  box-shadow: 0 0 10px #f59e0b;
+  background: #b45309;
+  box-shadow: 0 0 6px rgba(180, 83, 9, 0.5);
   animation: pulse 2s ease infinite;
 }
 
@@ -333,24 +305,29 @@ body {
 }
 
 .hero-headline {
-  font-size: clamp(52px, 7vw, 92px);
+  font-size: clamp(48px, 6.4vw, 86px);
   font-weight: 600;
   letter-spacing: -0.04em;
-  line-height: 1.0;
-  margin-bottom: 24px;
+  line-height: 0.94;
+  margin-bottom: 28px;
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
   overflow: hidden;
+  font-family: var(--font-display);
+  text-shadow: none;
 }
 
 .hero-headline .static-text {
-  color: var(--text);
+  color: #171412;
 }
 
 .hero-morph {
   display: inline-block;
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fde68a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #292524;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   transition: opacity 0.35s ease, transform 0.35s var(--ease-out);
 }
 
@@ -369,11 +346,35 @@ body {
 }
 
 .hero-body {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.58);
+  font-size: 17px;
+  color: #3a342f;
   line-height: 1.65;
-  max-width: 500px;
-  margin: 0 auto 44px;
+  max-width: 700px;
+  margin: 0 auto 16px;
+}
+
+.hero-body-highlight {
+  color: #a16207;
+  font-weight: 500;
+}
+
+.hero-proof-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  min-height: 26px;
+}
+
+.hero-proof-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #d97706;
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.55);
+  flex-shrink: 0;
+  animation: pulse 2s ease infinite;
 }
 
 .hero-cta-row {
@@ -387,8 +388,44 @@ body {
 
 .hero-trust {
   font-size: 13px;
-  color: var(--text-dimmer);
+  color: rgba(23, 20, 18, 0.45);
   letter-spacing: 0.01em;
+}
+
+/* Ghost button — grey hero scope */
+.hero .btn-ghost-lg {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.16);
+  color: #171412;
+}
+
+.hero .btn-ghost-lg:hover {
+  background: rgba(0, 0, 0, 0.09);
+  border-color: rgba(0, 0, 0, 0.26);
+  color: #0a0808;
+  transform: translateY(-1px);
+}
+
+/* Nav — unscrolled state over grey hero */
+.nav:not(.scrolled) .nav-links a,
+.nav:not(.scrolled) .nav-signin {
+  color: rgba(23, 20, 18, 0.60);
+}
+
+.nav:not(.scrolled) .nav-links a:hover,
+.nav:not(.scrolled) .nav-signin:hover {
+  color: #171412;
+}
+
+.nav:not(.scrolled) .nav-logo-text span:first-child {
+  color: #171412 !important;
+}
+
+/* ── POST-HERO DESCENT ZONE ────────────────────────────────── */
+/* Wraps ticker + how-overview + counters to create a smoky     */
+/* charcoal buffer between the light hero and full page black.  */
+.post-hero-zone {
+  background: linear-gradient(180deg, #0e0e11 0%, #0e0e13 14%, #0a0a0c 28%);
 }
 
 /* ── TICKER ────────────────────────────────────────────────── */
@@ -399,7 +436,7 @@ body {
   border-bottom: 1px solid var(--border);
   padding: 14px 0;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.015);
+  background: rgba(255, 255, 255, 0.030);
 }
 
 .ticker-section::before,
@@ -613,8 +650,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(245, 158, 11, 0.35),
-    rgba(251, 191, 36, 0.2),
+    rgba(255, 255, 255, 0.06),
     transparent
   );
 }
@@ -946,6 +982,15 @@ body {
   justify-content: center;
   flex-shrink: 0;
   font-size: 16px;
+}
+
+.notif-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.4);
+  flex-shrink: 0;
+  display: block;
 }
 
 .notif-text { flex: 1; }
@@ -2111,11 +2156,13 @@ body {
 }
 
 .how-step-num {
-  font-size: 11px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--text-dimmer);
+  letter-spacing: -0.04em;
+  color: var(--primary);
   margin-bottom: 16px;
+  line-height: 1;
+  display: block;
 }
 
 .how-step-icon {
@@ -2342,13 +2389,13 @@ body {
 .workflow-step {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-dimmer);
+  color: rgba(23, 20, 18, 0.55);
   letter-spacing: 0.01em;
 }
 
 .workflow-arrow {
   font-size: 11px;
-  color: rgba(245, 158, 11, 0.4);
+  color: rgba(146, 64, 14, 0.45);
   font-weight: 400;
 }
 
