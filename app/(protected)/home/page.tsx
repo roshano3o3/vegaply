@@ -1993,6 +1993,7 @@ export default function Home() {
   const [queueStats,setQueueStats]=useState<{total:number;ready:number;sent:number;failed:number}|null>(null);
   const [autoApplyScores,setAutoApplyScores]=useState<Record<string,number>>({});
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
+  const [runQueueNowLoading,setRunQueueNowLoading]=useState(false);
   const [autoApplyLoadingStep, setAutoApplyLoadingStep] = useState<string | null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
   const [savedPrefs,setSavedPrefs]=useState<Preferences>(DEFAULT_PREFS);
@@ -2343,6 +2344,34 @@ export default function Home() {
     setTimeout(()=>setAutoApplyToast(null),5000);
     setAutoApplyModal(null);
     setGeneratedResume(null);
+  };
+
+  const handleRunQueueNow=async()=>{
+    if(runQueueNowLoading)return;
+    setRunQueueNowLoading(true);
+    try{
+      const{data:{user}}=await supabase.auth.getUser();
+      if(!user){
+        setAutoApplyToast("Unable to run queue: no authenticated user found.");
+        setTimeout(()=>setAutoApplyToast(null),4000);
+        return;
+      }
+      const res=await fetch("/api/daily-queue/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:user.id})});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data?.error??`HTTP ${res.status}`);
+      const{queued=0,generated=0,sent=0,failed=0}=data.totals??{};
+      const secs=Math.round((data.duration_ms??0)/1000);
+      const msg=data.partial
+        ?`⚠️ Queue run partial — queued ${queued}, generated ${generated}, sent ${sent}, failed ${failed} in ${secs}s.`
+        :`✅ Queue run complete — queued ${queued}, generated ${generated}, sent ${sent}, failed ${failed} in ${secs}s.`;
+      setAutoApplyToast(msg);
+      setTimeout(()=>setAutoApplyToast(null),8000);
+    }catch(err){
+      setAutoApplyToast(`Run queue failed: ${err instanceof Error?err.message:String(err)}`);
+      setTimeout(()=>setAutoApplyToast(null),5000);
+    }finally{
+      setRunQueueNowLoading(false);
+    }
   };
 
   const handleGenerateResume=async()=>{
@@ -3470,6 +3499,7 @@ export default function Home() {
           <button className="mob-eb-btn" onClick={handleEarlyBirdSearch} disabled={ebLoading} style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",borderRadius:8,padding:"6px 10px",fontSize:13,cursor:"pointer",color:"#fbbf24",alignItems:"center",gap:4,minHeight:36}}>⚡</button>
           {mounted&&trackedApps.length>0&&<span className="nav-pill pill-tracker">{trackedApps.length} Tracked</span>}
           {mounted&&prefTitles.length>0&&<span className="nav-pill" style={{background:"rgba(245,158,11,0.1)",color:"#f59e0b",border:"1px solid rgba(245,158,11,0.25)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}} onClick={()=>setShowPreferences(true)}><span style={{width:6,height:6,borderRadius:"50%",background:"#f59e0b",display:"inline-block",flexShrink:0}}/>Prefs</span>}
+          <button onClick={handleRunQueueNow} disabled={runQueueNowLoading} style={{fontSize:10,color:"var(--gold)",background:"none",border:"1px solid rgba(245,158,11,0.2)",borderRadius:4,padding:"2px 6px",cursor:runQueueNowLoading?"not-allowed":"pointer",fontFamily:"inherit"}}>{runQueueNowLoading?"Running...":"Run queue now"}</button>
           {/* Avatar dropdown */}
           {mounted&&(
             <div style={{position:'relative'}}>
