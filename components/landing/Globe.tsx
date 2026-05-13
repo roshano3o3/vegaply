@@ -1,119 +1,134 @@
 'use client'
-import { useRef, useMemo } from 'react'
+import { useRef, useEffect, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
+import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 
-function latLngToXYZ(lat: number, lng: number, r = 1): THREE.Vector3 {
-  const phi = (90 - lat) * (Math.PI / 180)
-  const theta = (lng + 180) * (Math.PI / 180)
-  return new THREE.Vector3(
-    -r * Math.sin(phi) * Math.cos(theta),
-    r * Math.cos(phi),
-    r * Math.sin(phi) * Math.sin(theta),
+// ── Fallback dark sphere — shown while textures load over slow connections ──
+function FallbackSphere() {
+  const groupRef = useRef<THREE.Group>(null)
+  useFrame(() => {
+    if (groupRef.current) groupRef.current.rotation.y += 0.0024
+  })
+  return (
+    <group ref={groupRef} position={[0, -0.92, 0]}>
+      <mesh>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshStandardMaterial color="#06101c" roughness={0.8} metalness={0} />
+      </mesh>
+      {/* Keep atmosphere on fallback so the shape reads as a planet */}
+      <mesh scale={1.38}>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial color="#1a3870" transparent opacity={0.10} side={THREE.BackSide} />
+      </mesh>
+    </group>
   )
 }
 
-// Tech-hub cities where Vegaply users apply from and to
-const MARKERS = [
-  { lat: 37.77, lng: -122.41 },  // San Francisco
-  { lat: 40.71, lng: -74.00 },   // New York
-  { lat: 51.50, lng: -0.12 },    // London
-  { lat: 1.35,  lng: 103.82 },   // Singapore
-  { lat: 29.76, lng: -95.37 },   // Houston
-  { lat: 47.61, lng: -122.33 },  // Seattle
-  { lat: 37.38, lng: -122.08 },  // Mountain View
-  { lat: 30.27, lng: -97.74 },   // Austin
-  { lat: 41.88, lng: -87.63 },   // Chicago
-  { lat: 32.78, lng: -96.80 },   // Dallas
-]
+// ── Real textured Earth ──────────────────────────────────────────────────────
+function EarthScene() {
+  const earthRef  = useRef<THREE.Group>(null)
+  const cloudsRef = useRef<THREE.Group>(null)
+  const reducedMotionRef = useRef(false)
 
-function GlobeScene() {
-  const groupRef = useRef<THREE.Group>(null)
-
-  const dotGeometry = useMemo(() => {
-    const pts = MARKERS.map(m => latLngToXYZ(m.lat, m.lng, 1.012))
-    const arr = new Float32Array(pts.length * 3)
-    pts.forEach((p, i) => {
-      arr[i * 3]     = p.x
-      arr[i * 3 + 1] = p.y
-      arr[i * 3 + 2] = p.z
-    })
-    const geo = new THREE.BufferGeometry()
-    geo.setAttribute('position', new THREE.BufferAttribute(arr, 3))
-    return geo
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    reducedMotionRef.current = mq.matches
+    const handler = (e: MediaQueryListEvent) => { reducedMotionRef.current = e.matches }
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [])
 
+  const [dayMap, nightMap, cloudsMap] = useTexture([
+    '/textures/earth-day.jpg',
+    '/textures/earth-night.png',
+    '/textures/earth-clouds.jpg',
+  ])
+
   useFrame(() => {
-    if (groupRef.current) groupRef.current.rotation.y += 0.0014
+    if (reducedMotionRef.current) return
+    if (earthRef.current)  earthRef.current.rotation.y  += 0.0024
+    if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0016 // 33% slower
   })
 
   return (
     <>
-      <ambientLight intensity={0.38} />
-      <directionalLight position={[-3, 2, 1]}    intensity={0.80} color="#ffd4a8" />
-      <directionalLight position={[2.5, -0.5, -1.5]} intensity={0.22} color="#ffe8d0" />
+      {/* Raised ambient — dark hemisphere reads as deep space, not solid black */}
+      <ambientLight intensity={0.14} />
+      {/* Sunrise key: strong warm light from upper-left, creates dawn terminator */}
+      <directionalLight position={[-5, 2, 2]}      intensity={3.6}  color="#ffd0a0" />
+      {/* Deep-space fill: cool blue from far side, adds dimension */}
+      <directionalLight position={[3, -1, -2]}     intensity={0.22} color="#8ab0d8" />
+      {/* Warm rim backlight: behind the globe, amber silhouette glow */}
+      <directionalLight position={[0.5, -0.2, -4]} intensity={1.15} color="#ff8020" />
+      {/* Night-side cool fill: makes shadow hemisphere read as space */}
+      <directionalLight position={[4, 0, 1]}       intensity={0.16} color="#203860" />
 
-      {/* All globe elements rotate together */}
-      <group ref={groupRef} position={[0, -1.20, 0]}>
+      {/* ── Earth: surface + city lights + atmosphere ── */}
+      <group ref={earthRef} position={[0, -0.92, 0]}>
 
-        {/* Globe surface — deep navy with self-glow so it reads as a world-model, not a void */}
+        {/* Earth surface — day texture darkened with color multiplier for cinematic look */}
+        {/* color="#707070" acts as a 44% brightness multiplier on the texture */}
         <mesh>
-          <sphereGeometry args={[1, 72, 72]} />
-          <meshPhongMaterial
-            color="#f2c4a0"
-            emissive="#1a0800"
-            specular="#ffe4cc"
-            shininess={12}
+          <sphereGeometry args={[1, 64, 64]} />
+          <meshStandardMaterial
+            map={dayMap}
+            color="#707070"
+            roughness={0.80}
+            metalness={0.0}
           />
         </mesh>
 
-        {/* Lat/lng wireframe grid */}
+        {/* City lights — AdditiveBlending: black = fully transparent, warm glow = additive */}
+        {/* On the lit day side the additive contribution is invisible against the bright surface */}
+        {/* On the dark night side the city glow is clearly visible */}
         <mesh>
-          <sphereGeometry args={[1.003, 36, 18]} />
+          <sphereGeometry args={[1, 64, 64]} />
           <meshBasicMaterial
-            color="#b45309"
-            wireframe
+            map={nightMap}
+            blending={THREE.AdditiveBlending}
             transparent
-            opacity={0.30}
+            opacity={0.55}
           />
         </mesh>
 
-        {/* City marker dots */}
-        <points geometry={dotGeometry}>
-          <pointsMaterial
-            size={0.018}
-            color="#fbbf24"
-            transparent
-            opacity={0.72}
-            sizeAttenuation
-          />
-        </points>
-
-        {/* Inner atmospheric warmth */}
-        <mesh scale={1.09}>
-          <sphereGeometry args={[1, 32, 32]} />
-          <meshBasicMaterial color="#f4d4a8" transparent opacity={0.022} />
-        </mesh>
-
-        {/* Outer rim — primary halo */}
+        {/* Atmospheric limb — blue edge glow as seen from space */}
         <mesh scale={1.38}>
           <sphereGeometry args={[1, 32, 32]} />
           <meshBasicMaterial
-            color="#e8a87c"
+            color="#1a3870"
             transparent
-            opacity={0.042}
+            opacity={0.10}
             side={THREE.BackSide}
           />
         </mesh>
 
-        {/* Outer corona — wide, near-invisible envelope for depth */}
+        {/* Outer corona — wide depth envelope */}
         <mesh scale={1.62}>
           <sphereGeometry args={[1, 32, 32]} />
           <meshBasicMaterial
-            color="#f4c28c"
+            color="#2050a0"
             transparent
-            opacity={0.018}
+            opacity={0.028}
             side={THREE.BackSide}
+          />
+        </mesh>
+      </group>
+
+      {/* ── Cloud layer — independent group, rotates 33% slower than Earth ── */}
+      {/* Separate group keeps cloud rotation truly independent of Earth rotation */}
+      <group ref={cloudsRef} position={[0, -0.92, 0]}>
+        <mesh scale={1.012}>
+          <sphereGeometry args={[1, 64, 64]} />
+          {/* alphaMap uses cloud texture's luminance: white clouds = opaque, black sky = clear */}
+          <meshStandardMaterial
+            alphaMap={cloudsMap}
+            transparent
+            opacity={0.22}
+            color="#c8d8e8"
+            roughness={1}
+            metalness={0}
+            depthWrite={false}
           />
         </mesh>
       </group>
@@ -121,18 +136,21 @@ function GlobeScene() {
   )
 }
 
+// ── Canvas wrapper ───────────────────────────────────────────────────────────
 export function GlobeHero() {
   return (
     <div className="hero-globe-wrap" aria-hidden="true">
       <Canvas
         gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
-        camera={{ position: [0, 0, 3.2], fov: 42 }}
-        dpr={[1, 2]}
+        camera={{ position: [0, 0, 3.6], fov: 42 }}
+        dpr={[1, 1.5]}
         frameloop="always"
       >
-        <GlobeScene />
+        <Suspense fallback={<FallbackSphere />}>
+          <EarthScene />
+        </Suspense>
       </Canvas>
-      {/* Gradient fade: top keeps text readable, bottom blends into next section */}
+      {/* Gradient fade: seals the bottom of the canvas into the hero background */}
       <div className="hero-globe-fade" aria-hidden="true" />
     </div>
   )

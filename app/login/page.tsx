@@ -92,7 +92,7 @@ export default function LoginPage() {
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .auth-root { min-height: 100vh; display: flex; background: var(--bg); font-family: Inter, system-ui, sans-serif; overflow: hidden; }
-        .auth-left { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px 56px; background: var(--bg); overflow: hidden; }
+        .auth-left { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 48px 56px; background: linear-gradient(155deg, #0e0b07 0%, #120e08 40%, #0a0a0c 100%); overflow: hidden; }
         .auth-left::before { content: ''; position: absolute; top: -120px; left: -120px; width: 480px; height: 480px; background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 6s ease-in-out infinite; }
         .auth-left::after { content: ''; position: absolute; bottom: -80px; right: -60px; width: 360px; height: 360px; background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%); pointer-events: none; animation: breathe 8s ease-in-out infinite reverse; }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
@@ -189,21 +189,21 @@ export default function LoginPage() {
           50%       { opacity: 0.55; }
         }
 
-        /* Nebula glows */
+        /* Sunrise glows — warm premium morning atmosphere */
         .auth-cosmos-glow-1 {
           position: absolute;
-          top: -140px; left: -140px;
-          width: 520px; height: 520px;
+          top: -160px; left: -160px;
+          width: 580px; height: 580px;
           border-radius: 50%;
-          background: radial-gradient(ellipse at center, rgba(245,158,11,0.09) 0%, transparent 65%);
+          background: radial-gradient(ellipse at center, rgba(245,158,11,0.16) 0%, transparent 65%);
           animation: cosmos-breathe 10s ease-in-out infinite;
         }
         .auth-cosmos-glow-2 {
           position: absolute;
-          bottom: -100px; right: -80px;
-          width: 420px; height: 420px;
+          bottom: -120px; right: -100px;
+          width: 500px; height: 500px;
           border-radius: 50%;
-          background: radial-gradient(ellipse at center, rgba(255,255,255,0.025) 0%, transparent 65%);
+          background: radial-gradient(ellipse at center, rgba(245,158,11,0.07) 0%, transparent 65%);
           animation: cosmos-breathe 14s ease-in-out infinite reverse;
         }
         @keyframes cosmos-breathe {
@@ -211,19 +211,19 @@ export default function LoginPage() {
           50%       { transform: scale(1.10); opacity: 0.55; }
         }
 
-        /* Orbital rings */
+        /* Sunrise arc rings — warm amber, not cold white */
         .auth-orbit-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; }
         .auth-orbit-ring-1 {
           width: 560px; height: 210px;
           margin: -105px 0 0 -280px;
-          border: 1px solid rgba(245,158,11,0.055);
+          border: 1px solid rgba(245,158,11,0.10);
           transform: rotate(-28deg);
           animation: ring-pulse 9s ease-in-out infinite;
         }
         .auth-orbit-ring-2 {
           width: 360px; height: 130px;
           margin: -65px 0 0 -180px;
-          border: 1px solid rgba(255,255,255,0.035);
+          border: 1px solid rgba(245,158,11,0.055);
           transform: rotate(20deg);
           animation: ring-pulse 13s ease-in-out infinite reverse;
         }
@@ -232,14 +232,14 @@ export default function LoginPage() {
           50%       { opacity: 0.25; }
         }
 
-        /* Orbiting nodes */
+        /* Orbiting nodes — warm amber */
         .auth-orbit-node-1 {
           position: absolute;
           top: calc(50% - 185px); left: 50%;
           width: 4px; height: 4px; margin-left: -2px;
           border-radius: 50%;
-          background: rgba(245,158,11,0.8);
-          box-shadow: 0 0 12px rgba(245,158,11,0.35), 0 0 5px rgba(245,158,11,0.5);
+          background: rgba(245,158,11,0.85);
+          box-shadow: 0 0 14px rgba(245,158,11,0.40), 0 0 6px rgba(245,158,11,0.55);
           transform-origin: 0px 185px;
           animation: node-orbit 32s linear infinite;
         }
@@ -248,14 +248,24 @@ export default function LoginPage() {
           top: calc(50% - 135px); left: 50%;
           width: 3px; height: 3px; margin-left: -1.5px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.5);
-          box-shadow: 0 0 8px rgba(255,255,255,0.15);
+          background: rgba(253,230,138,0.60);
+          box-shadow: 0 0 10px rgba(245,158,11,0.25);
           transform-origin: 0px 135px;
           animation: node-orbit 22s linear infinite reverse;
         }
         @keyframes node-orbit {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
+        }
+
+        /* Dawn horizon band — warm glow at the base of the panel */
+        .auth-cosmos::after {
+          content: '';
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          height: 280px;
+          background: radial-gradient(ellipse 85% 100% at 50% 100%, rgba(245,158,11,0.08) 0%, transparent 70%);
+          pointer-events: none;
         }
       `}</style>
 

@@ -37,6 +37,26 @@ interface JobWithMatch extends Job {
   coverLetter?: string; coverLetterLoading?: boolean;
   skillGap?: SkillGapResult; skillGapLoading?: boolean;
 }
+interface ResumeSection {
+  summary: string;
+  experience: {title:string;company:string;dates?:string;location?:string;bullets:string[]}[];
+  projects?: {name:string;bullets?:string[]}[];
+  education?: {degree:string;school:string;dates?:string;location?:string}[];
+  certifications?: string[];
+  skills: string[];
+  keywords_added: string[];
+  ats_score_estimate: number;
+}
+interface AutoApplyModalState {
+  job: JobWithMatch;
+  tailoredBullets: {original:string;tailored:string;reason:string}[];
+  keywordsAdded: string[];
+  score: number;
+  atsTip: string;
+  previewResume?: ResumeSection;
+  matchedSkills?: string[];
+  missingSkills?: string[];
+}
 type AppStatus = "Saved"|"Applied"|"Interviewing"|"Offer"|"Rejected";
 interface TrackedApp { job: Job; status: AppStatus; appliedDate: string; notes: string; id: string; }
 type TabType = "results"|"earlybird"|"saved"|"tracker"|"analytics";
@@ -2006,7 +2026,7 @@ export default function Home() {
     loading: boolean
   }>>({})
   const [userProfile, setUserProfile] = useState<{is_pro: boolean; daily_applications: number; last_reset_date: string | null} | null>(null);
-  const [autoApplyModal, setAutoApplyModal] = useState<{job:JobWithMatch;tailoredBullets:{original:string;tailored:string;reason:string}[];keywordsAdded:string[];score:number;atsTip:string}|null>(null);
+  const [autoApplyModal, setAutoApplyModal] = useState<AutoApplyModalState|null>(null);
   const [generatedResume, setGeneratedResume] = useState<any>(null);
   const [generatingResume, setGeneratingResume] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
@@ -2297,6 +2317,30 @@ export default function Home() {
     if(autoApplyResults[job.job_id]==="applied")return;
     setAutoApplying(job.job_id);
     try{
+      // Primary path: apply-preview generates full tailored resume + match score in one call
+      setAutoApplyToast("Generating tailored resume...");
+      const previewRes=await fetch("/api/apply-preview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
+      if(previewRes.ok){
+        const previewData=await previewRes.json();
+        if(!previewData.error&&previewData.resume&&typeof previewData.matchScore==="number"){
+          const finalScore=Math.round(previewData.matchScore);
+          setAutoApplyScores(prev=>({...prev,[job.job_id]:finalScore}));
+          setAutoApplyToast(null);
+          setAutoApplyModal({
+            job,
+            tailoredBullets:[],
+            keywordsAdded:previewData.resume.keywords_added??[],
+            score:finalScore,
+            atsTip:"",
+            previewResume:previewData.resume,
+            matchedSkills:previewData.matchedSkills??[],
+            missingSkills:previewData.missingSkills??[],
+          });
+          setAutoApplying(null);
+          return;
+        }
+      }
+      // Fallback: chain tailor + match (used if apply-preview fails or returns incomplete data)
       setAutoApplyToast("Tailoring resume...");
       const tailorRes=await fetch("/api/tailor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeText,job})});
       let tailorData=await tailorRes.json();
@@ -2383,6 +2427,73 @@ export default function Home() {
       setGeneratedResume(data);
     }catch(err){console.error("Resume generation failed:",err);}
     setGeneratingResume(false);
+  };
+
+  const handleCopyResume=()=>{
+    if(!autoApplyModal?.previewResume)return;
+    const r=autoApplyModal.previewResume;
+    const job=autoApplyModal.job;
+    const lines:string[]=[];
+    lines.push("Tailored Resume");
+    lines.push(`Tailored for: ${job.job_title} at ${job.employer_name}`);
+    lines.push("");
+    lines.push("PROFESSIONAL SUMMARY");
+    lines.push(r.summary??"");
+    lines.push("");
+    if(r.experience?.length){
+      lines.push("EXPERIENCE");
+      for(const exp of r.experience){
+        const loc=exp.location?`, ${exp.location}`:"";
+        const dates=exp.dates?` (${exp.dates})`:"";
+        lines.push(`${exp.title} — ${exp.company}${loc}${dates}`);
+        for(const b of exp.bullets??[])lines.push(`• ${b}`);
+        lines.push("");
+      }
+    }
+    if(r.projects?.length){
+      lines.push("PROJECTS");
+      for(const p of r.projects){
+        lines.push(p.name);
+        for(const b of p.bullets??[])lines.push(`• ${b}`);
+        lines.push("");
+      }
+    }
+    if(r.education?.length){
+      lines.push("EDUCATION");
+      for(const e of r.education){
+        const loc=e.location?`, ${e.location}`:"";
+        const dates=e.dates?` (${e.dates})`:"";
+        lines.push(`${e.degree}, ${e.school}${loc}${dates}`);
+      }
+      lines.push("");
+    }
+    if(r.certifications?.length){
+      lines.push("CERTIFICATIONS");
+      for(const c of r.certifications)lines.push(`• ${c}`);
+      lines.push("");
+    }
+    if(r.skills?.length){
+      lines.push("SKILLS");
+      lines.push(r.skills.join(" • "));
+    }
+    navigator.clipboard.writeText(lines.join("\n")).then(()=>{
+      setAutoApplyToast("✅ Resume copied to clipboard!");
+      setTimeout(()=>setAutoApplyToast(null),3000);
+    }).catch(()=>{
+      setAutoApplyToast("⚠️ Copy failed — select and copy manually.");
+      setTimeout(()=>setAutoApplyToast(null),3000);
+    });
+  };
+
+  const handleCopySkills=()=>{
+    if(!autoApplyModal?.previewResume?.skills?.length)return;
+    navigator.clipboard.writeText(autoApplyModal.previewResume.skills.join(", ")).then(()=>{
+      setAutoApplyToast("✅ Skills copied to clipboard!");
+      setTimeout(()=>setAutoApplyToast(null),3000);
+    }).catch(()=>{
+      setAutoApplyToast("⚠️ Copy failed.");
+      setTimeout(()=>setAutoApplyToast(null),3000);
+    });
   };
 
   const handleDownloadResume=async()=>{
@@ -4248,7 +4359,8 @@ export default function Home() {
       {skillGapJob?.skillGap&&<SkillGapModal job={skillGapJob} result={skillGapJob.skillGap} onClose={()=>setSkillGapJob(null)}/>}
       {autoApplyModal&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}}>
-          <div style={{background:"var(--bg-elevated)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:16,padding:24,maxWidth:520,width:"100%",maxHeight:"80vh",overflowY:"auto",boxShadow:"0 8px 48px rgba(0,0,0,0.6)"}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:"var(--bg-elevated)",border:"1px solid rgba(245,158,11,0.25)",borderRadius:16,padding:24,maxWidth:560,width:"100%",maxHeight:"85vh",overflowY:"auto",boxShadow:"0 8px 48px rgba(0,0,0,0.6)"}} onClick={e=>e.stopPropagation()}>
+            {/* Header */}
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16}}>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#f59e0b",marginBottom:2}}>Auto Apply Preview</div>
@@ -4256,79 +4368,178 @@ export default function Home() {
                 <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>{autoApplyModal.job.employer_name}</div>
               </div>
               <div style={{textAlign:"right"}}>
-                <div style={{fontSize:22,fontWeight:800,color:autoApplyModal.score>=70?"#34d399":autoApplyModal.score>=50?"#fbbf24":"#f87171"}}>{autoApplyModal.score}%</div>
+                <div style={{fontSize:22,fontWeight:800,color:scoreColor(autoApplyModal.score)}}>{autoApplyModal.score}%</div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",fontWeight:600}}>ATS MATCH</div>
               </div>
             </div>
-            {autoApplyModal.score<50&&(
-              <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"#f87171",marginBottom:14,fontWeight:500}}>
-                ⚠️ Low ATS match after 2 passes. Consider applying manually with a more targeted resume.
-              </div>
-            )}
-            {autoApplyModal.tailoredBullets.length>0&&(
-              <div style={{marginBottom:14}}>
-                <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:8}}>Tailored Bullets</div>
-                {autoApplyModal.tailoredBullets.map((b,i)=>(
-                  <div key={i} style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.12)",borderRadius:8,padding:"8px 10px",marginBottom:6}}>
-                    <div style={{fontSize:11,color:"#fbbf24",fontWeight:600,marginBottom:2}}>✦ {b.tailored}</div>
-                    <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{b.reason}</div>
+
+            {/* CASE 1: Full tailored resume from apply-preview */}
+            {autoApplyModal.previewResume?(
+              <>
+                {autoApplyModal.score<50&&(
+                  <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"#f87171",marginBottom:14,fontWeight:500}}>
+                    ⚠️ Low ATS match — review the tailored resume before applying.
                   </div>
-                ))}
-              </div>
-            )}
-            {autoApplyModal.keywordsAdded.length>0&&(
-              <div style={{marginBottom:14}}>
-                <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Keywords Added</div>
-                <div style={{display:"flex",flexWrap:"wrap",gap:5}}>{autoApplyModal.keywordsAdded.map((k,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:6,background:"rgba(52,211,153,0.08)",color:"#34d399",border:"1px solid rgba(52,211,153,0.18)"}}>{k}</span>)}</div>
-              </div>
-            )}
-            {autoApplyModal.atsTip&&<div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.14)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"rgba(245,158,11,0.75)",marginBottom:16}}>💡 {autoApplyModal.atsTip}</div>}
-            <div style={{display:"flex",gap:10}}>
-              {autoApplyModal.score>=70?(
-                <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
-              ):generatedResume?(
-                <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
-                  <div style={{background:"rgba(6,182,212,0.06)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:10,padding:"12px 14px",maxHeight:280,overflowY:"auto"}}>
-                    <div style={{fontSize:12,color:"#06b6d4",fontWeight:700,marginBottom:8}}>✦ Tailored Resume — Est. {generatedResume.ats_score_estimate}% ATS Score</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginBottom:4}}>Professional Summary</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.75)",marginBottom:10,lineHeight:1.5}}>{generatedResume.summary}</div>
-                    {generatedResume.experience?.map((exp:any,i:number)=>(
-                      <div key={i} style={{marginBottom:8}}>
-                        <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600}}>{exp.title} — {exp.company}</div>
-                        {exp.bullets?.map((b:string,j:number)=>(
-                          <div key={j} style={{fontSize:10,color:"rgba(255,255,255,0.65)",marginLeft:8,marginTop:2}}>• {b}</div>
+                )}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                  <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)"}}>Tailored Resume</div>
+                  <div style={{display:"flex",gap:6}}>
+                    <button onClick={handleCopyResume} style={{fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:5,background:"rgba(52,211,153,0.1)",color:"#34d399",border:"1px solid rgba(52,211,153,0.25)",cursor:"pointer"}}>Copy Resume</button>
+                    <button onClick={handleCopySkills} style={{fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:5,background:"rgba(6,182,212,0.1)",color:"#06b6d4",border:"1px solid rgba(6,182,212,0.25)",cursor:"pointer"}}>Copy Skills</button>
+                  </div>
+                </div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.22)",marginBottom:14}}>Tailored for: {autoApplyModal.job.job_title} at {autoApplyModal.job.employer_name}</div>
+
+                {/* Summary */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Professional Summary</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.8)",lineHeight:1.65}}>{autoApplyModal.previewResume.summary}</div>
+                </div>
+
+                {/* Experience */}
+                {autoApplyModal.previewResume.experience&&autoApplyModal.previewResume.experience.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Experience</div>
+                    {autoApplyModal.previewResume.experience.map((exp,i)=>(
+                      <div key={i} style={{marginBottom:12}}>
+                        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.9)"}}>{exp.title} — {exp.company}</div>
+                        {(exp.dates||exp.location)&&<div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:4}}>{[exp.dates,exp.location].filter(Boolean).join(" · ")}</div>}
+                        {exp.bullets?.map((b,j)=>(
+                          <div key={j} style={{fontSize:10,color:"rgba(255,255,255,0.72)",marginLeft:8,marginTop:3,lineHeight:1.5}}>• {b}</div>
                         ))}
                       </div>
                     ))}
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:8,marginBottom:4}}>Keywords Added</div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                      {generatedResume.keywords_added?.map((k:string)=>(
-                        <span key={k} style={{fontSize:10,padding:"2px 6px",borderRadius:4,background:"rgba(6,182,212,0.12)",color:"#06b6d4"}}>{k}</span>
+                  </div>
+                )}
+
+                {/* Projects */}
+                {autoApplyModal.previewResume.projects&&autoApplyModal.previewResume.projects.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Projects</div>
+                    {autoApplyModal.previewResume.projects.map((p,i)=>(
+                      <div key={i} style={{marginBottom:10}}>
+                        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.9)"}}>{p.name}</div>
+                        {p.bullets?.map((b,j)=>(
+                          <div key={j} style={{fontSize:10,color:"rgba(255,255,255,0.72)",marginLeft:8,marginTop:3,lineHeight:1.5}}>• {b}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Education */}
+                {autoApplyModal.previewResume.education&&autoApplyModal.previewResume.education.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Education</div>
+                    {autoApplyModal.previewResume.education.map((e,i)=>(
+                      <div key={i} style={{fontSize:11,color:"rgba(255,255,255,0.8)",marginBottom:4}}>
+                        {e.degree}, {e.school}{e.dates?` (${e.dates})`:""}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Skills */}
+                {autoApplyModal.previewResume.skills&&autoApplyModal.previewResume.skills.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Skills</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.7)",lineHeight:1.7}}>{autoApplyModal.previewResume.skills.join(" • ")}</div>
+                  </div>
+                )}
+
+                {/* Keywords added */}
+                {autoApplyModal.previewResume.keywords_added&&autoApplyModal.previewResume.keywords_added.length>0&&(
+                  <div style={{marginBottom:16}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Keywords Added</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                      {autoApplyModal.previewResume.keywords_added.map((k,i)=>(
+                        <span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:6,background:"rgba(52,211,153,0.08)",color:"#34d399",border:"1px solid rgba(52,211,153,0.18)"}}>{k}</span>
                       ))}
                     </div>
                   </div>
-                  <button onClick={handleDownloadResume} style={{padding:"9px 0",borderRadius:9,background:"rgba(6,182,212,0.12)",border:"1px solid rgba(6,182,212,0.3)",color:"#06b6d4",fontSize:12,fontWeight:700,cursor:"pointer"}}>
-                    ⬇ Download Tailored Resume PDF
-                  </button>
-                  <button onClick={handleConfirmApply} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer"}}>
-                    Apply with Tailored Resume →
-                  </button>
+                )}
+
+                <div style={{display:"flex",gap:10}}>
+                  <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+                  <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
                 </div>
-              ):(
-                <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
-                  <button disabled style={{padding:"8px 0",borderRadius:9,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"rgba(239,68,68,0.6)",fontSize:11,fontWeight:700,cursor:"not-allowed"}}>
-                    ✗ Score too low ({autoApplyModal.score}% / need 70%+)
-                  </button>
-                  <button onClick={handleGenerateResume} disabled={generatingResume} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#06b6d4,#0891b2)",border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
-                    {generatingResume?"Generating tailored resume…":"✦ Generate Tailored Resume for this Job"}
-                  </button>
-                  <button onClick={handleConfirmApply} style={{padding:"8px 0",borderRadius:9,background:"transparent",border:"1px solid rgba(245,158,11,0.3)",color:"rgba(245,158,11,0.7)",fontSize:11,fontWeight:600,cursor:"pointer"}}>
-                    Apply manually anyway →
-                  </button>
+              </>
+            ):generatedResume?(
+              /* CASE 2: Old generate-resume fallback result */
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{background:"rgba(6,182,212,0.06)",border:"1px solid rgba(6,182,212,0.2)",borderRadius:10,padding:"12px 14px",maxHeight:280,overflowY:"auto"}}>
+                  <div style={{fontSize:12,color:"#06b6d4",fontWeight:700,marginBottom:8}}>✦ Tailored Resume — Est. {generatedResume.ats_score_estimate}% ATS Score</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginBottom:4}}>Professional Summary</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.75)",marginBottom:10,lineHeight:1.5}}>{generatedResume.summary}</div>
+                  {generatedResume.experience?.map((exp:any,i:number)=>(
+                    <div key={i} style={{marginBottom:8}}>
+                      <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600}}>{exp.title} — {exp.company}</div>
+                      {exp.bullets?.map((b:string,j:number)=>(
+                        <div key={j} style={{fontSize:10,color:"rgba(255,255,255,0.65)",marginLeft:8,marginTop:2}}>• {b}</div>
+                      ))}
+                    </div>
+                  ))}
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:8,marginBottom:4}}>Keywords Added</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                    {generatedResume.keywords_added?.map((k:string)=>(
+                      <span key={k} style={{fontSize:10,padding:"2px 6px",borderRadius:4,background:"rgba(6,182,212,0.12)",color:"#06b6d4"}}>{k}</span>
+                    ))}
+                  </div>
                 </div>
-              )}
-              <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
-            </div>
+                <button onClick={handleDownloadResume} style={{padding:"9px 0",borderRadius:9,background:"rgba(6,182,212,0.12)",border:"1px solid rgba(6,182,212,0.3)",color:"#06b6d4",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  ⬇ Download Tailored Resume PDF
+                </button>
+                <button onClick={handleConfirmApply} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  Apply with Tailored Resume →
+                </button>
+                <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"8px 0",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
+              </div>
+            ):(
+              /* CASE 3: Old bullet-only fallback (tailor+match chain) */
+              <>
+                {autoApplyModal.score<50&&(
+                  <div style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"#f87171",marginBottom:14,fontWeight:500}}>
+                    ⚠️ Low ATS match after 2 passes. Consider applying manually with a more targeted resume.
+                  </div>
+                )}
+                {autoApplyModal.tailoredBullets.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:8}}>Tailored Bullets</div>
+                    {autoApplyModal.tailoredBullets.map((b,i)=>(
+                      <div key={i} style={{background:"rgba(245,158,11,0.05)",border:"1px solid rgba(245,158,11,0.12)",borderRadius:8,padding:"8px 10px",marginBottom:6}}>
+                        <div style={{fontSize:11,color:"#fbbf24",fontWeight:600,marginBottom:2}}>✦ {b.tailored}</div>
+                        <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{b.reason}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {autoApplyModal.keywordsAdded.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Keywords Added</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:5}}>{autoApplyModal.keywordsAdded.map((k,i)=><span key={i} style={{fontSize:10,fontWeight:600,padding:"3px 8px",borderRadius:6,background:"rgba(52,211,153,0.08)",color:"#34d399",border:"1px solid rgba(52,211,153,0.18)"}}>{k}</span>)}</div>
+                  </div>
+                )}
+                {autoApplyModal.atsTip&&<div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.14)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"rgba(245,158,11,0.75)",marginBottom:16}}>💡 {autoApplyModal.atsTip}</div>}
+                <div style={{display:"flex",gap:10}}>
+                  {autoApplyModal.score>=70?(
+                    <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+                  ):(
+                    <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
+                      <button disabled style={{padding:"8px 0",borderRadius:9,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"rgba(239,68,68,0.6)",fontSize:11,fontWeight:700,cursor:"not-allowed"}}>
+                        ✗ Score too low ({autoApplyModal.score}% / need 70%+)
+                      </button>
+                      <button onClick={handleGenerateResume} disabled={generatingResume} style={{padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#06b6d4,#0891b2)",border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                        {generatingResume?"Generating tailored resume…":"✦ Generate Tailored Resume for this Job"}
+                      </button>
+                      <button onClick={handleConfirmApply} style={{padding:"8px 0",borderRadius:9,background:"transparent",border:"1px solid rgba(245,158,11,0.3)",color:"rgba(245,158,11,0.7)",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+                        Apply manually anyway →
+                      </button>
+                    </div>
+                  )}
+                  <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
