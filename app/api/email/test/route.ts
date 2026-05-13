@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
     const to = data.email as string;
 
-    const result = await resend.emails.send({
+    const { data: resendData, error: resendError } = await resend.emails.send({
       from: "ApplySmart <noreply@applysmart.ai>",
       to,
       subject: "ApplySmart test email",
@@ -48,7 +48,24 @@ export async function POST(req: Request) {
       `,
     });
 
-    return NextResponse.json({ ok: true, to, result });
+    if (resendError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          to,
+          resend_error: resendError,
+          resend_data: resendData ?? null,
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      to,
+      resend_data: resendData ?? null,
+      resend_error: null,
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
