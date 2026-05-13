@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const to = data.email as string;
 
     const { data: resendData, error: resendError } = await resend.emails.send({
-      from: "ApplySmart <noreply@applysmart.ai>",
+      from: "Vegaply <noreply@vegaply.com>",
       to,
       subject: "ApplySmart test email",
       html: `
