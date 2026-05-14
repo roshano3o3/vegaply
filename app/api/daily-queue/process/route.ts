@@ -178,55 +178,70 @@ async function runProcess(
   // Resume text cached per user — one profile lookup per user, not per row
   const resumeCache = new Map<string, string | null>();
 
-  for (const row of rows) {
-    // Guard: stop within 30 s of Vercel maxDuration wall
-    if (Date.now() - start > 270_000) {
-      partial = true;
-      break;
-    }
-
-    const rowStart = Date.now();
-    processed++;
-
-    // Load and cache resume text per user
-    if (!resumeCache.has(row.user_id)) {
-      const rt = await loadResumeText(supabase, row.user_id);
-      resumeCache.set(row.user_id, rt);
-    }
-    const resumeText = resumeCache.get(row.user_id) ?? null;
-
-    if (!resumeText) {
-      skipped++;
-      details.push({
-        id:            row.id,
-        user_id:       row.user_id,
-        job_id:        row.job_id,
-        job_title:     row.job_title,
-        employer_name: row.employer_name,
-        outcome:       "skipped",
-        error:         "no_resume_text",
-        duration_ms:   Date.now() - rowStart,
-      });
-      continue;
-    }
-
-    const outcome = await processOneRow(supabase, row, resumeText);
-    if (outcome === "generated") generated++;
-    else failed++;
-
-    details.push({
-      id:            row.id,
-      user_id:       row.user_id,
-      job_id:        row.job_id,
-      job_title:     row.job_title,
-      employer_name: row.employer_name,
-      outcome,
-      duration_ms:   Date.now() - rowStart,
-    });
-
-    console.log(
-      `[daily-queue/process] row=${row.id} job="${row.job_title}" outcome=${outcome} ms=${Date.now() - rowStart}`,
+  // Guard: skip the batch if already within 30 s of the Vercel maxDuration wall
+  if (Date.now() - start > 270_000) {
+    partial = true;
+  } else {
+    // Pre-load resume texts for all unique users in this batch (sequential,
+    // one DB call per user) before launching parallel AI generation.
+    const uniqueUserIds = [...new Set(rows.map(r => r.user_id))];
+    await Promise.all(
+      uniqueUserIds.map(async (uid) => {
+        if (!resumeCache.has(uid)) {
+          resumeCache.set(uid, await loadResumeText(supabase, uid));
+        }
+      }),
     );
+
+    // Generate all rows in the batch concurrently — max BATCH_SIZE (5) parallel Sonnet calls.
+    // processOneRow handles its own try/catch and marks failed rows in DB.
+    const rowResults = await Promise.all(
+      rows.map(async (row): Promise<{ outcome: RowOutcome; detail: RowDetail }> => {
+        const rowStart   = Date.now();
+        const resumeText = resumeCache.get(row.user_id) ?? null;
+
+        if (!resumeText) {
+          return {
+            outcome: "skipped",
+            detail: {
+              id:            row.id,
+              user_id:       row.user_id,
+              job_id:        row.job_id,
+              job_title:     row.job_title,
+              employer_name: row.employer_name,
+              outcome:       "skipped",
+              error:         "no_resume_text",
+              duration_ms:   Date.now() - rowStart,
+            },
+          };
+        }
+
+        const outcome = await processOneRow(supabase, row, resumeText);
+        console.log(
+          `[daily-queue/process] row=${row.id} job="${row.job_title}" outcome=${outcome} ms=${Date.now() - rowStart}`,
+        );
+        return {
+          outcome,
+          detail: {
+            id:            row.id,
+            user_id:       row.user_id,
+            job_id:        row.job_id,
+            job_title:     row.job_title,
+            employer_name: row.employer_name,
+            outcome,
+            duration_ms:   Date.now() - rowStart,
+          },
+        };
+      }),
+    );
+
+    for (const { outcome, detail } of rowResults) {
+      processed++;
+      details.push(detail);
+      if (outcome === "generated") generated++;
+      else if (outcome === "skipped") skipped++;
+      else failed++;
+    }
   }
 
   // Signal to caller that more rows may remain
