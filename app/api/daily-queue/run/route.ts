@@ -176,19 +176,13 @@ async function runPipeline(
 
 // ── HTTP handlers ──────────────────────────────────────────────────────────────
 
-// GET — health check only. Never runs the pipeline or sends emails.
-export async function GET(
-  req: Request,
-): Promise<NextResponse<AnyResult>> {
+// GET — runs the full pipeline. Vercel Cron always sends GET.
+export async function GET(req: Request): Promise<NextResponse<AnyResult>> {
   if (!verifySecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json<HealthResult>({
-    ok:           true,
-    route:        "/api/daily-queue/run",
-    message:      "Use POST to run the daily queue pipeline.",
-    sends_emails: true,
-  });
+  const baseUrl = resolveBaseUrl(req);
+  return runPipeline(undefined, baseUrl);
 }
 
 // POST — runs build → process → apply, or returns a dry-run plan if dry_run=true.
