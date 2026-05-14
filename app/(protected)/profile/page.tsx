@@ -80,7 +80,11 @@ export default function ProfilePage() {
       }
       if (resumeRow) {
         setResumeFileName(resumeRow.file_name ?? null);
-        if (!profileData?.resume_text && resumeRow.resume_text) setResumeText(resumeRow.resume_text);
+        if (!profileData?.resume_text && resumeRow.resume_text) {
+          setResumeText(resumeRow.resume_text);
+          // Backfill profiles.resume_text so the daily queue can find it
+          supabase.from("profiles").upsert({ id: user.id, resume_text: resumeRow.resume_text }, { onConflict: "id" });
+        }
       }
 
       setLoading(false);

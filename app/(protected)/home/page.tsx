@@ -3779,8 +3779,9 @@ export default function Home() {
                   const{data:{user}}=await supabase.auth.getUser();
                   if(!user)return;
                   const{error:saveErr}=await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                  await supabase.from("profiles").upsert({id:user.id,resume_text:t},{onConflict:"id"});
                   if(saveErr){setAutoApplyToast("⚠️ Resume loaded, but cloud save failed.");setTimeout(()=>setAutoApplyToast(null),4000);}
-                  else{await supabase.from("profiles").update({resume_text:t}).eq("id",user.id);setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
+                  else{setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
@@ -4564,8 +4565,9 @@ export default function Home() {
                   const{data:{user}}=await supabase.auth.getUser();
                   if(!user)return;
                   const{error:saveErr}=await supabase.from("resumes").insert([{user_id:user.id,title:n,file_name:n,resume_text:t}]);
+                  await supabase.from("profiles").upsert({id:user.id,resume_text:t},{onConflict:"id"});
                   if(saveErr){setAutoApplyToast("⚠️ Resume loaded, but cloud save failed.");setTimeout(()=>setAutoApplyToast(null),4000);}
-                  else{await supabase.from("profiles").update({resume_text:t}).eq("id",user.id);setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
+                  else{setAutoApplyToast("✅ Resume saved to your account.");setTimeout(()=>setAutoApplyToast(null),3000);}
                 }}
                 onClear={()=>{setResumeText("");setResumeFileName("");lsRemove("vegaply_resume");lsRemove("vegaply_resume_name");}}
               />
