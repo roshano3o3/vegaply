@@ -217,6 +217,24 @@ body {
   border-radius: 100px;
 }
 
+/* ── LANDING PAGE WRAPPER ─────────────────────────────────── */
+/* Spans the full page height. Sections without explicit backgrounds */
+/* inherit this gradient, creating the light→dark tonal journey. */
+.landing-wrap {
+  background: linear-gradient(
+    180deg,
+    #1e2030  0%,   /* hero top — premium deep navy, noticeably brighter */
+    #141620  8%,   /* mid-hero fade */
+    #0e0f18 15%,   /* approaching post-hero */
+    #0b0c13 23%,   /* first content sections */
+    #09090d 40%,   /* mid-page */
+    #07080b 57%,   /* lower mid */
+    #050608 72%,   /* deep territory */
+    #040506 84%,   /* premium dark */
+    #020304 100%   /* footer — deepest rich black */
+  );
+}
+
 /* ── HERO ──────────────────────────────────────────────────── */
 .hero {
   position: relative;
@@ -228,38 +246,31 @@ body {
   overflow: hidden;
   padding: 140px 24px 56px;
   background:
-    /* Tight lens glow — focused warm pulse directly behind globe centre */
-    radial-gradient(ellipse 32% 26% at 50% 74%, rgba(255, 160, 50, 0.12) 0%, transparent 62%),
-    /* Sunrise corona — main atmospheric warmth, tracking the globe position */
-    radial-gradient(ellipse 72% 54% at 50% 76%, rgba(245, 158, 11, 0.32) 0%, rgba(200, 100, 20, 0.13) 44%, transparent 68%),
-    /* Wide amber horizon — the "morning arriving" warmth across the lower sky */
-    radial-gradient(ellipse 130% 58% at 50% 92%, rgba(200, 90, 20, 0.14) 0%, transparent 65%),
-    /* Dawn horizon fill — softer, lower */
-    radial-gradient(ellipse 100% 40% at 50% 88%, rgba(255, 140, 40, 0.10) 0%, transparent 60%),
-    /* Warm ceiling — sunrise warmth just cresting at the top of the sky */
-    radial-gradient(ellipse 80% 48% at 50% 0%, rgba(255, 200, 120, 0.07) 0%, transparent 42%),
-    /* Base: warm deep amber-charcoal — not cold black, feels like pre-dawn sky */
+    /* Atmospheric blue-violet haze at top — luminous premium sky feel */
+    radial-gradient(ellipse 120% 52% at 50% -5%, rgba(55, 80, 140, 0.32) 0%, transparent 65%),
+    /* Faint left-edge warmth matching the globe key light direction */
+    radial-gradient(ellipse 28% 52% at 8% 48%, rgba(245, 158, 11, 0.06) 0%, transparent 72%),
+    /* Sky gradient: lighter blue-charcoal at top, descending to near-black base */
     linear-gradient(
       180deg,
-      #1c1208 0%,
-      #160e06 22%,
-      #120b05 48%,
-      #0e0904 72%,
-      #0a0a0c 88%
+      #1e2030  0%,   /* matches landing-wrap top — premium atmospheric sky */
+      #161726 14%,
+      #111320 26%,
+      #0e0f18 38%,
+      #0b0c15 52%,
+      #080a0e 68%,
+      #050709 82%,
+      #040608 100%   /* seamless join with post-hero-zone */
     );
 }
 
 /* Globe canvas — fills entire hero, sits behind content */
+/* No CSS filter: the real Earth texture and Three.js lighting provide all colour and depth */
 .hero-globe-wrap {
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  filter:
-    /* Warm sunrise spill — globe glows onto the hero below */
-    drop-shadow(0 40px 110px rgba(245, 158, 11, 0.26))
-    /* Cool atmospheric halo — earth's limb from space */
-    drop-shadow(0 0 130px rgba(80, 130, 220, 0.10));
 }
 
 /* Layered atmospheric fade — guards text at top, opens for globe, cinematic dark descent */
@@ -268,15 +279,116 @@ body {
   inset: 0;
   background: linear-gradient(
     180deg,
-    transparent 0%,          /* open — warm hero background fully visible in text zone */
-    transparent 58%,         /* extended clear zone so globe body shows before fade */
-    rgba(10, 10, 12, 0.12) 69%,
-    rgba(10, 10, 12, 0.62) 81%,
-    rgba(10, 10, 12, 0.96) 90%,
-    rgba(10, 10, 12, 1.00) 95%
+    transparent 0%,
+    transparent 62%,         /* open zone — globe body fully visible */
+    rgba(5, 7, 10, 0.10) 72%,
+    rgba(5, 7, 10, 0.70) 84%,
+    rgba(5, 7, 10, 0.97) 92%,
+    rgba(5, 7, 10, 1.00) 96%
   );
   pointer-events: none;
   z-index: 1;
+}
+
+/* ── HERO STAR LAYERS ─────────────────────────────────────── */
+/* Two sparse CSS star fields — sit behind the globe canvas (z-index 1), */
+/* visible through the transparent WebGL sky around the Earth. */
+/* Upper 56% of hero only: stars only appear in the dark night-sky region. */
+.hero-stars-1,
+.hero-stars-2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 56%;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
+}
+
+/* Layer 1 — warm-white, 0.8–1.3 px radius, sparse, slow drift */
+.hero-stars-1 {
+  background:
+    radial-gradient(circle 1.2px at  5% 12%, rgba(255,248,235,0.60) 0%, transparent 1.5px),
+    radial-gradient(circle 1.0px at 15%  5%, rgba(255,248,235,0.45) 0%, transparent 1.2px),
+    radial-gradient(circle 0.8px at 23% 18%, rgba(255,248,235,0.55) 0%, transparent 1.0px),
+    radial-gradient(circle 1.3px at 35%  8%, rgba(255,248,235,0.50) 0%, transparent 1.5px),
+    radial-gradient(circle 0.9px at 42% 25%, rgba(255,248,235,0.40) 0%, transparent 1.1px),
+    radial-gradient(circle 1.1px at 55%  6%, rgba(255,248,235,0.65) 0%, transparent 1.5px),
+    radial-gradient(circle 0.8px at 62% 15%, rgba(255,248,235,0.45) 0%, transparent 1.0px),
+    radial-gradient(circle 1.2px at 70% 30%, rgba(255,248,235,0.55) 0%, transparent 1.5px),
+    radial-gradient(circle 1.0px at 78% 10%, rgba(255,248,235,0.50) 0%, transparent 1.2px),
+    radial-gradient(circle 0.9px at 88% 20%, rgba(255,248,235,0.40) 0%, transparent 1.1px),
+    radial-gradient(circle 1.1px at 93%  5%, rgba(255,248,235,0.60) 0%, transparent 1.5px),
+    radial-gradient(circle 0.8px at  8% 38%, rgba(255,248,235,0.45) 0%, transparent 1.0px),
+    radial-gradient(circle 1.0px at 20% 45%, rgba(255,248,235,0.50) 0%, transparent 1.2px),
+    radial-gradient(circle 0.9px at 47% 40%, rgba(255,248,235,0.38) 0%, transparent 1.1px),
+    radial-gradient(circle 1.2px at 65% 42%, rgba(255,248,235,0.55) 0%, transparent 1.5px),
+    radial-gradient(circle 0.8px at 82% 38%, rgba(255,248,235,0.45) 0%, transparent 1.0px),
+    radial-gradient(circle 1.0px at 31% 50%, rgba(255,248,235,0.35) 0%, transparent 1.2px),
+    radial-gradient(circle 0.9px at 72% 48%, rgba(255,248,235,0.40) 0%, transparent 1.1px);
+  animation: stars-drift-1 170s linear infinite, stars-twinkle-1 9s ease-in-out infinite;
+}
+
+/* Layer 2 — cool-blue-white, 0.6–0.9 px radius, denser, different timing */
+.hero-stars-2 {
+  background:
+    radial-gradient(circle 0.7px at  3%  8%, rgba(220,235,255,0.50) 0%, transparent 0.9px),
+    radial-gradient(circle 0.8px at 10% 22%, rgba(220,235,255,0.40) 0%, transparent 1.0px),
+    radial-gradient(circle 0.6px at 18% 10%, rgba(220,235,255,0.55) 0%, transparent 0.8px),
+    radial-gradient(circle 0.9px at 25% 30%, rgba(220,235,255,0.45) 0%, transparent 1.1px),
+    radial-gradient(circle 0.7px at 33% 15%, rgba(220,235,255,0.50) 0%, transparent 0.9px),
+    radial-gradient(circle 0.8px at 40%  5%, rgba(220,235,255,0.40) 0%, transparent 1.0px),
+    radial-gradient(circle 0.6px at 48% 20%, rgba(220,235,255,0.55) 0%, transparent 0.8px),
+    radial-gradient(circle 0.9px at 53% 38%, rgba(220,235,255,0.45) 0%, transparent 1.1px),
+    radial-gradient(circle 0.7px at 60%  8%, rgba(220,235,255,0.50) 0%, transparent 0.9px),
+    radial-gradient(circle 0.8px at 67% 25%, rgba(220,235,255,0.40) 0%, transparent 1.0px),
+    radial-gradient(circle 0.6px at 75% 15%, rgba(220,235,255,0.55) 0%, transparent 0.8px),
+    radial-gradient(circle 0.9px at 83% 32%, rgba(220,235,255,0.45) 0%, transparent 1.1px),
+    radial-gradient(circle 0.7px at 90% 12%, rgba(220,235,255,0.50) 0%, transparent 0.9px),
+    radial-gradient(circle 0.8px at 96% 25%, rgba(220,235,255,0.38) 0%, transparent 1.0px),
+    radial-gradient(circle 0.7px at 13% 48%, rgba(220,235,255,0.35) 0%, transparent 0.9px),
+    radial-gradient(circle 0.6px at 30% 42%, rgba(220,235,255,0.45) 0%, transparent 0.8px),
+    radial-gradient(circle 0.8px at 45% 50%, rgba(220,235,255,0.40) 0%, transparent 1.0px),
+    radial-gradient(circle 0.7px at 58% 44%, rgba(220,235,255,0.50) 0%, transparent 0.9px),
+    radial-gradient(circle 0.6px at 77% 46%, rgba(220,235,255,0.35) 0%, transparent 0.8px),
+    radial-gradient(circle 0.8px at 87% 42%, rgba(220,235,255,0.45) 0%, transparent 1.0px),
+    radial-gradient(circle 0.7px at 22% 35%, rgba(220,235,255,0.40) 0%, transparent 0.9px),
+    radial-gradient(circle 0.6px at 72% 35%, rgba(220,235,255,0.50) 0%, transparent 0.8px);
+  animation: stars-drift-2 220s linear infinite, stars-twinkle-2 13s ease-in-out infinite;
+}
+
+@keyframes stars-drift-1 {
+  0%   { transform: translate(0,    0); }
+  25%  { transform: translate(-8px,  4px); }
+  50%  { transform: translate(-18px, 8px); }
+  75%  { transform: translate(-10px, 3px); }
+  100% { transform: translate(0,    0); }
+}
+
+@keyframes stars-drift-2 {
+  0%   { transform: translate(0,    0); }
+  33%  { transform: translate(10px, -6px); }
+  66%  { transform: translate(16px, -10px); }
+  100% { transform: translate(0,    0); }
+}
+
+@keyframes stars-twinkle-1 {
+  0%, 100% { opacity: 1; }
+  40%       { opacity: 0.38; }
+  70%       { opacity: 0.78; }
+}
+
+@keyframes stars-twinkle-2 {
+  0%, 100% { opacity: 0.85; }
+  30%       { opacity: 0.28; }
+  60%       { opacity: 0.95; }
+  80%       { opacity: 0.42; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-stars-1,
+  .hero-stars-2 { animation: none; }
 }
 
 .hero-content {
@@ -449,9 +561,9 @@ body {
   position: relative;
   background: linear-gradient(
     180deg,
-    #0c0a07 0%,    /* deep warm near-black — picks up where the hero's warm dark left off */
-    #0b0909 18%,
-    #0a0a0c 40%,   /* settles into neutral premium black */
+    #050709 0%,    /* matches the hero bottom fade colour — seamless join */
+    #080a0e 16%,
+    #0a0a0c 38%,   /* settles into neutral premium dark */
     #0a0a0c 100%
   );
 }
@@ -464,7 +576,7 @@ body {
   left: 0;
   right: 0;
   height: 100px;
-  background: linear-gradient(180deg, transparent 0%, #0c0a07 100%);
+  background: linear-gradient(180deg, transparent 0%, #050709 100%);
   pointer-events: none;
   z-index: 1;
 }

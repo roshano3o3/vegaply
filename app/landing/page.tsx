@@ -394,7 +394,7 @@ export default function VegaplyLanding() {
   }, [prefersReducedMotion])
 
   return (
-    <>
+    <div className="landing-wrap">
       {/* Grain overlay */}
       <div className="grain" aria-hidden="true" />
 
@@ -437,6 +437,10 @@ export default function VegaplyLanding() {
       <section ref={heroRef} className="hero" aria-label="Hero">
         {/* Atmospheric base — warm ambient below globe, no JS */}
         <div className="hero-atmo-base" aria-hidden="true" />
+
+        {/* Star layers — CSS dot-field, sits behind globe canvas (z-index 1) */}
+        <div className="hero-stars-1" aria-hidden="true" />
+        <div className="hero-stars-2" aria-hidden="true" />
 
         <GlobeHero />
 
@@ -1131,6 +1135,6 @@ export default function VegaplyLanding() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   )
 }

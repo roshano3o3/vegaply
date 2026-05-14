@@ -86,7 +86,7 @@ export default function SignupPage() {
         .auth-root {
           min-height: 100vh;
           display: flex;
-          background: var(--bg);
+          background: linear-gradient(180deg, #1d1f2e 0%, #11121e 50%, #08090e 100%);
           font-family: Inter, system-ui, sans-serif;
           overflow: hidden;
         }
@@ -98,7 +98,7 @@ export default function SignupPage() {
           flex-direction: column;
           justify-content: space-between;
           padding: 48px 56px;
-          background: linear-gradient(155deg, #0e0b07 0%, #120e08 40%, #0a0a0c 100%);
+          background: linear-gradient(165deg, #1c1e2c 0%, #131520 40%, #0d0e18 100%);
           overflow: hidden;
         }
         .auth-left::before {
@@ -233,8 +233,8 @@ export default function SignupPage() {
         .auth-right {
           width: 480px;
           flex-shrink: 0;
-          background: var(--bg-card);
-          border-left: 1px solid var(--border);
+          background: linear-gradient(180deg, #13141e 0%, #0f1018 55%, #0c0d14 100%);
+          border-left: 1px solid rgba(255,255,255,0.07);
           display: flex;
           flex-direction: column;
           justify-content: center;
