@@ -408,10 +408,9 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
           {/* Apply button */}
           {row.job_apply_link && (
             <a
-              href={row.job_apply_link}
+              href={`/api/apply-redirect-by-id?id=${encodeURIComponent(row.id)}`}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => { supabase.from("daily_queue").update({ apply_clicked_at: new Date().toISOString() }).eq("id", row.id); }}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6, marginTop: 14,
                 padding: "10px 22px", borderRadius: "var(--radius-md)",
