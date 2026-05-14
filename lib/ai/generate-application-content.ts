@@ -4,11 +4,15 @@
  * Called by:
  *   - app/api/daily-queue/process/route.ts  (queue processor)
  *
- * Outputs plain text for both columns so the future apply step can use them
- * directly without parsing JSON.
+ * Output contract is unchanged — both fields are strings so the process →
+ * apply → email pipeline requires zero modification.  Internally the AI now
+ * produces a structured JSON resume which is then rendered to rich plain text
+ * before being returned.
  */
 
-import { CLAUDE_MODEL } from "@/lib/ai/config";
+import { CLAUDE_SONNET_MODEL } from "@/lib/ai/config";
+
+// ── Input / output types ───────────────────────────────────────────────────────
 
 interface Job {
   job_title:       string;
@@ -26,53 +30,197 @@ interface GenerateOutput {
   cover_letter_text:    string;
 }
 
-// Robust JSON extractor — handles markdown fences and truncated tail content.
+// ── Parsed resume shape from AI ────────────────────────────────────────────────
+
+interface ResumeExperience {
+  title?:   string;
+  company?: string;
+  dates?:   string;
+  bullets?: string[];
+}
+
+interface ResumeProject {
+  name?:    string;
+  bullets?: string[];
+}
+
+interface ResumeEducation {
+  degree?: string;
+  school?: string;
+  dates?:  string;
+}
+
+interface ParsedResume {
+  summary?:        string;
+  experience?:     ResumeExperience[];
+  projects?:       ResumeProject[];
+  education?:      ResumeEducation[];
+  skills?:         string[];
+  keywords_added?: string[];
+  cover_letter?:   string;
+}
+
+// ── JSON extraction ────────────────────────────────────────────────────────────
+
 function extractJson(raw: string): Record<string, unknown> {
   const clean = raw.replace(/```json|```/g, "").trim();
   const s = clean.startsWith("{") ? clean : (clean.match(/\{[\s\S]*/)?.[0] ?? "{}");
-
-  // Walk braces to find the outermost closing brace
-  let depth = 0;
-  let end = -1;
+  let depth = 0, end = -1;
   for (let i = 0; i < s.length; i++) {
     if (s[i] === "{") depth++;
-    else if (s[i] === "}") {
-      depth--;
-      if (depth === 0) { end = i; break; }
+    else if (s[i] === "}") { depth--; if (depth === 0) { end = i; break; } }
+  }
+  try { return JSON.parse(end !== -1 ? s.slice(0, end + 1) : s); } catch { return {}; }
+}
+
+// ── Plain-text resume renderer ─────────────────────────────────────────────────
+//
+// Converts the structured JSON resume from the AI into a rich, section-labelled
+// plain-text document.  The email builder renders this with "\n → <br>" so the
+// section structure comes through clearly without any schema change to the DB
+// or the downstream pipeline.
+
+function formatResumeAsText(r: ParsedResume): string {
+  const lines: string[] = [];
+
+  if (r.summary) {
+    lines.push("PROFESSIONAL SUMMARY");
+    lines.push(r.summary);
+    lines.push("");
+  }
+
+  if (r.experience?.length) {
+    lines.push("WORK EXPERIENCE");
+    for (const job of r.experience) {
+      const header = [job.title, job.company, job.dates].filter(Boolean).join("  |  ");
+      if (header) lines.push(header);
+      for (const bullet of (job.bullets ?? [])) {
+        lines.push(`• ${bullet}`);
+      }
+      lines.push("");
     }
   }
 
-  try {
-    return JSON.parse(end !== -1 ? s.slice(0, end + 1) : s);
-  } catch {
-    return {};
+  if (r.projects?.length) {
+    lines.push("PROJECTS");
+    for (const proj of r.projects) {
+      if (proj.name) lines.push(proj.name);
+      for (const bullet of (proj.bullets ?? [])) {
+        lines.push(`• ${bullet}`);
+      }
+      lines.push("");
+    }
   }
+
+  if (r.education?.length) {
+    lines.push("EDUCATION");
+    for (const edu of r.education) {
+      const row = [edu.degree, edu.school, edu.dates].filter(Boolean).join("  |  ");
+      if (row) lines.push(row);
+    }
+    lines.push("");
+  }
+
+  if (r.skills?.length) {
+    lines.push("SKILLS");
+    lines.push(r.skills.join("  ·  "));
+    lines.push("");
+  }
+
+  if (r.keywords_added?.length) {
+    lines.push(`ATS keywords integrated: ${r.keywords_added.join(", ")}`);
+  }
+
+  return lines.join("\n").trim();
 }
+
+// ── Main export ────────────────────────────────────────────────────────────────
 
 export async function generateApplicationContent(
   input: GenerateInput,
 ): Promise<GenerateOutput> {
   const { resumeText, job } = input;
 
-  const prompt = `You are an expert resume writer. Return ONLY valid JSON, no markdown, no explanation.
+  // Raised from 2500 → 8000 chars so multi-role and multi-page resumes are
+  // not silently truncated before the model sees them.
+  const resumeInput = resumeText.slice(0, 8_000);
 
-RESUME:
-${resumeText.slice(0, 2500)}
+  // Raised from 1500 → 3000 chars for richer role context and better tailoring.
+  const jdInput = job.job_description.slice(0, 3_000);
 
-JOB: ${job.job_title} at ${job.employer_name}
-DESCRIPTION: ${job.job_description.slice(0, 1500)}
+  const prompt = `You are an expert resume writer preparing a tailored job application. Return ONLY valid JSON — no markdown, no explanation, no text outside the JSON object.
 
-Return exactly this JSON:
+═══ ABSOLUTE RULES ═══
+1. Use ONLY content from the candidate's resume. Never invent employers, job titles, companies, dates, degrees, metrics, or skills.
+2. Preserve every work experience entry. If the resume has 3 jobs, output 3 jobs. Never drop or merge roles.
+3. Keep original job titles, company names, and dates exactly. Only the bullet content may be rephrased.
+4. Do NOT add skills the resume does not contain or clearly demonstrate.
+5. Do NOT use weak openers: "Responsible for", "Helped with", "Assisted in". Every bullet must lead with a strong, specific action verb.
+6. Do NOT fabricate or infer metrics. If the original bullet has no number, do not add one.
+
+═══ TARGET ROLE ═══
+Position : ${job.job_title}
+Company  : ${job.employer_name}
+
+═══ JOB DESCRIPTION ═══
+${jdInput}
+
+═══ CANDIDATE RESUME ═══
+${resumeInput}
+
+═══ TAILORING INSTRUCTIONS ═══
+summary:
+  3–4 sentences. Open with the candidate's professional identity and years of relevant experience (if stated). Directly connect their actual background to what this specific role and company require. Incorporate 2–3 high-value JD keywords naturally.
+
+experience (per role):
+  Keep every bullet from the original. Place the most JD-relevant bullets first within each role. Rephrase bullets using JD language only where the underlying skill genuinely exists. Vary action verbs across bullets.
+
+projects:
+  Include only if present in the resume. Rephrase bullets using JD-relevant language where appropriate.
+
+skills:
+  List all resume skills, ordered by relevance to this job. No additions or removals.
+
+keywords_added:
+  List only JD terms organically woven into rephrased bullets or the summary. Maximum 8. Do not list terms already verbatim in the original resume.
+
+cover_letter:
+  3 short paragraphs, approximately 150 words total.
+  - Opening: Express genuine interest in this specific role at this specific company and one concrete reason why.
+  - Middle: Reference the candidate's single most relevant achievement from the resume with a real outcome.
+  - Closing: Professional sign-off.
+  Do NOT use "I am passionate about", "I am excited to", or "I look forward to contributing my skills".
+
+═══ REQUIRED OUTPUT SHAPE ═══
+Return exactly this structure. All keys must be present. Arrays may be empty but must not be omitted.
+
 {
-  "tailored_resume_text": "Professional Summary:\\n[2-3 sentences using only facts from the resume, rephrased for this specific job]\\n\\nKey Achievements:\\n• [top achievement from resume, rephrased with job-relevant keywords]\\n• [second achievement]\\n• [third achievement]\\n\\nKey Skills: [5-6 most relevant skills from resume, comma-separated]",
-  "cover_letter_text": "Dear Hiring Manager,\\n\\n[Opening: 2 sentences expressing genuine interest in the ${job.job_title} role at ${job.employer_name} and one specific reason why.]\\n\\n[Middle: 2-3 sentences highlighting the most relevant achievement from the resume with a concrete outcome.]\\n\\nThank you for your consideration. I look forward to the opportunity to discuss how my background fits your team's needs.\\n\\nSincerely,\\n[Your Name]"
-}
-
-Rules:
-- Do NOT invent metrics, percentages, or any fact not present in the resume.
-- Rephrase only — never fabricate new experience or skills.
-- Keep tailored_resume_text under 400 words.
-- Keep cover_letter_text under 200 words.`;
+  "summary": "3–4 sentence professional summary targeting this role",
+  "experience": [
+    {
+      "title": "exact title from resume",
+      "company": "exact company from resume",
+      "dates": "exact dates from resume or empty string",
+      "bullets": ["bullet 1", "bullet 2"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "exact project name",
+      "bullets": ["achievement or description bullet"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "exact degree",
+      "school": "exact school",
+      "dates": "exact dates or empty string"
+    }
+  ],
+  "skills": ["skill1", "skill2"],
+  "keywords_added": ["kw1", "kw2"],
+  "cover_letter": "full cover letter text"
+}`;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
@@ -80,16 +228,16 @@ Rules:
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method:  "POST",
     headers: {
-      "Content-Type":    "application/json",
-      "x-api-key":       apiKey,
+      "Content-Type":      "application/json",
+      "x-api-key":         apiKey,
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model:      CLAUDE_MODEL,
-      max_tokens: 1500,
+      model:      CLAUDE_SONNET_MODEL,
+      max_tokens: 3500,
       messages:   [{ role: "user", content: prompt }],
     }),
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(55_000),
   });
 
   if (!response.ok) {
@@ -97,19 +245,38 @@ Rules:
     throw new Error(`Anthropic API ${response.status}: ${body.slice(0, 200)}`);
   }
 
-  const data  = await response.json();
-  const text  = (data?.content?.[0]?.text ?? "") as string;
-  const result = extractJson(text);
+  const data   = await response.json();
+  const text   = (data?.content?.[0]?.text ?? "") as string;
+  const parsed = extractJson(text) as ParsedResume;
 
-  const resumeOut  = typeof result.tailored_resume_text === "string" ? result.tailored_resume_text.trim() : "";
-  const letterOut  = typeof result.cover_letter_text    === "string" ? result.cover_letter_text.trim()    : "";
+  // ── Validation ────────────────────────────────────────────────────────────
+  // Throw on total failure so process/route.ts marks the row as 'failed'
+  // rather than storing a meaningless empty artifact.
+  const hasExperience  = Array.isArray(parsed.experience) && parsed.experience.length > 0;
+  const hasSummary     = typeof parsed.summary === "string" && parsed.summary.length > 0;
+  const hasCoverLetter = typeof parsed.cover_letter === "string" && parsed.cover_letter.trim().length > 20;
 
-  if (!resumeOut || !letterOut) {
-    throw new Error(`Incomplete AI output — got ${JSON.stringify(Object.keys(result))}`);
+  if (!hasSummary && !hasExperience) {
+    throw new Error(
+      `Incomplete AI output — summary and experience both missing. Keys: ${JSON.stringify(Object.keys(parsed))}`,
+    );
+  }
+
+  if (!hasCoverLetter) {
+    throw new Error("Incomplete AI output — cover_letter missing or empty");
+  }
+
+  // Warn (not throw) if work history seems expected but experience[] is empty.
+  // Partial content is still useful; marking the row failed would prevent the
+  // email from being sent at all.
+  if (!hasExperience) {
+    console.warn(
+      "[generate-application-content] experience[] is empty — resume may lack parseable work history",
+    );
   }
 
   return {
-    tailored_resume_text: resumeOut,
-    cover_letter_text:    letterOut,
+    tailored_resume_text: formatResumeAsText(parsed),
+    cover_letter_text:    parsed.cover_letter!.trim(),
   };
 }

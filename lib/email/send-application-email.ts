@@ -59,8 +59,9 @@ function buildHtml(input: SendApplicationEmailInput): string {
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   const resumeHtml = esc(tailoredResumeText)
-    .replace(/\n/g, "<br>")
-    .replace(/&bull;/g, "&bull;");
+    .replace(/^(PROFESSIONAL SUMMARY|WORK EXPERIENCE|PROJECTS|EDUCATION|SKILLS|ATS keywords integrated[^\n]*)/gm,
+      "<strong>$1</strong>")
+    .replace(/\n/g, "<br>");
 
   const letterHtml = esc(coverLetterText).replace(/\n/g, "<br>");
 
@@ -111,7 +112,7 @@ function buildHtml(input: SendApplicationEmailInput): string {
     </div>
 
     <div class="sec">
-      <p class="sec-label">Tailored Resume Summary</p>
+      <p class="sec-label">Tailored Resume</p>
       <div class="textbox">${resumeHtml}</div>
     </div>
 
