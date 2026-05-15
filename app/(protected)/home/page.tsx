@@ -1979,6 +1979,10 @@ export default function Home() {
   const [isMatching,setIsMatching]=useState(false);const [matchProgress,setMatchProgress]=useState(0);
   const [autoOpenDone,setAutoOpenDone]=useState(false);const [trackedApps,setTrackedApps]=useState<TrackedApp[]>([]);
   const [mounted,setMounted]=useState(false);const [userEmail,setUserEmail]=useState("");
+  const [firstName,setFirstName]=useState("");const [lastName,setLastName]=useState("");
+  const [userLocation,setUserLocation]=useState("");const [userPhone,setUserPhone]=useState("");
+  const [linkedinUrl,setLinkedinUrl]=useState("");const [githubUrl,setGithubUrl]=useState("");
+  const [portfolioUrl,setPortfolioUrl]=useState("");
   const [refreshToast,setRefreshToast]=useState(false);const [isRefreshing,setIsRefreshing]=useState(false);
   const [darkMode,setDarkMode]=useState(true);
   const [showWelcomeTour,setShowWelcomeTour]=useState(false);
@@ -2088,7 +2092,12 @@ export default function Home() {
       if(data.user?.email)setUserEmail(data.user.email);
       const fetchProfile = async () => {
         if (data.user) {
-          const { data: profile } = await supabase.from('profiles').select('is_pro, daily_applications, last_reset_date').eq('id', data.user.id).single();
+          const [profileRes, appProfileRes] = await Promise.all([
+            supabase.from('profiles').select('is_pro, daily_applications, last_reset_date, first_name, location').eq('id', data.user.id).single(),
+            supabase.from('application_profiles').select('first_name, last_name, phone, linkedin_url, github_url, portfolio_url').eq('user_id', data.user.id).maybeSingle(),
+          ]);
+          const profile    = profileRes.data;
+          const appProfile = appProfileRes.data;
           if (profile) {
             const today = new Date().toISOString().slice(0, 10);
             if (profile.last_reset_date !== today) {
@@ -2097,7 +2106,17 @@ export default function Home() {
               profile.last_reset_date = today;
             }
             setUserProfile(profile);
+            if (profile.location) setUserLocation(profile.location as string);
           }
+          // Prefer application_profiles name; fall back to profiles
+          const fn = (appProfile?.first_name as string|null) ?? (profile?.first_name as string|null) ?? "";
+          const ln = (appProfile?.last_name  as string|null) ?? "";
+          if (fn) setFirstName(fn);
+          if (ln) setLastName(ln);
+          if (appProfile?.phone)         setUserPhone(appProfile.phone as string);
+          if (appProfile?.linkedin_url)  setLinkedinUrl(appProfile.linkedin_url as string);
+          if (appProfile?.github_url)    setGithubUrl(appProfile.github_url as string);
+          if (appProfile?.portfolio_url) setPortfolioUrl(appProfile.portfolio_url as string);
         }
       };
       fetchProfile();
@@ -2434,9 +2453,13 @@ export default function Home() {
     const r=autoApplyModal.previewResume;
     const job=autoApplyModal.job;
     const lines:string[]=[];
-    lines.push("Tailored Resume");
-    lines.push(`Tailored for: ${job.job_title} at ${job.employer_name}`);
-    lines.push("");
+    const fullName=[firstName,lastName].filter(Boolean).join(" ");
+    if(fullName){lines.push(fullName);}
+    const contactParts=[userPhone,userEmail,userLocation].filter(Boolean);
+    if(contactParts.length){lines.push(contactParts.join("  ·  "));}
+    const urlParts=[linkedinUrl,githubUrl,portfolioUrl].filter(Boolean);
+    if(urlParts.length){lines.push(urlParts.join("  ·  "));}
+    if(fullName||contactParts.length||urlParts.length){lines.push("");}
     lines.push("PROFESSIONAL SUMMARY");
     lines.push(r.summary??"");
     lines.push("");
@@ -2505,28 +2528,166 @@ export default function Home() {
     const margin=20;
     const maxWidth=pageWidth-margin*2;
     let y=20;
-    doc.setFontSize(18);doc.setFont("helvetica","bold");doc.text("Tailored Resume",margin,y);y+=8;
-    doc.setFontSize(10);doc.setFont("helvetica","normal");doc.setTextColor(100);
-    doc.text(`Tailored for: ${job.job_title} at ${job.employer_name}`,margin,y);y+=6;
-    doc.setDrawColor(245,158,11);doc.setLineWidth(0.5);doc.line(margin,y,pageWidth-margin,y);y+=8;
-    doc.setFontSize(12);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("PROFESSIONAL SUMMARY",margin,y);y+=6;
+    const dl2FullName=[firstName,lastName].filter(Boolean).join(" ");
+    if(dl2FullName){
+      doc.setFontSize(16);doc.setFont("helvetica","bold");doc.setTextColor(0);
+      doc.text(dl2FullName,pageWidth/2,y,{align:"center"});y+=7;
+    }
+    const dl2Contact=[userPhone,userEmail,userLocation].filter(Boolean);
+    if(dl2Contact.length){
+      doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(100);
+      doc.text(dl2Contact.join("  ·  "),pageWidth/2,y,{align:"center"});y+=5;
+    }
+    const dl2Urls=[linkedinUrl,githubUrl,portfolioUrl].filter(Boolean);
+    if(dl2Urls.length){
+      doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(100);
+      doc.text(dl2Urls.join("  ·  "),pageWidth/2,y,{align:"center"});y+=5;
+    }
+    if(dl2FullName||dl2Contact.length||dl2Urls.length){
+      doc.setTextColor(0);
+      doc.setDrawColor(245,158,11);doc.setLineWidth(0.5);doc.line(margin,y,pageWidth-margin,y);y+=8;
+    }
+    const pageHeight=doc.internal.pageSize.getHeight();
+    const topMargin=20;const bottomMargin=20;
+    const ensureSpace=(neededMm:number)=>{if(y+neededMm>pageHeight-bottomMargin){doc.addPage();y=topMargin;}};
     doc.setFontSize(10);doc.setFont("helvetica","normal");
     const summaryLines=doc.splitTextToSize(generatedResume.summary||"",maxWidth);
+    ensureSpace(12+summaryLines.length*5);
+    doc.setFontSize(12);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("PROFESSIONAL SUMMARY",margin,y);y+=6;
+    doc.setFontSize(10);doc.setFont("helvetica","normal");
     doc.text(summaryLines,margin,y);y+=summaryLines.length*5+8;
     if(generatedResume.experience?.length>0){
-      doc.setFontSize(12);doc.setFont("helvetica","bold");doc.text("EXPERIENCE",margin,y);y+=6;
+      ensureSpace(16);
+      doc.setFontSize(12);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("EXPERIENCE",margin,y);y+=6;
       generatedResume.experience.forEach((exp:any)=>{
-        doc.setFontSize(11);doc.setFont("helvetica","bold");doc.text(`${exp.title} — ${exp.company}`,margin,y);y+=5;
         doc.setFontSize(10);doc.setFont("helvetica","normal");
-        exp.bullets?.forEach((bullet:string)=>{const lines=doc.splitTextToSize(`• ${bullet}`,maxWidth-4);doc.text(lines,margin+4,y);y+=lines.length*5;});
+        const bulletSplits=(exp.bullets??[]).map((b:string)=>doc.splitTextToSize(`• ${b}`,maxWidth-4));
+        const roleHeight=5+bulletSplits.reduce((s:number,bl:string[])=>s+bl.length*5,0)+4;
+        ensureSpace(roleHeight);
+        doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text(`${exp.title} — ${exp.company}`,margin,y);y+=5;
+        doc.setFontSize(10);doc.setFont("helvetica","normal");
+        bulletSplits.forEach((lines:string[])=>{doc.text(lines,margin+4,y);y+=lines.length*5;});
         y+=4;
       });
     }
     if(generatedResume.skills?.length>0){
-      doc.setFontSize(12);doc.setFont("helvetica","bold");doc.text("SKILLS",margin,y);y+=6;
       doc.setFontSize(10);doc.setFont("helvetica","normal");
       const skillLines=doc.splitTextToSize(generatedResume.skills.join(" • "),maxWidth);
+      ensureSpace(12+skillLines.length*5);
+      doc.setFontSize(12);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("SKILLS",margin,y);y+=6;
+      doc.setFontSize(10);doc.setFont("helvetica","normal");
       doc.text(skillLines,margin,y);
+    }
+    doc.save(`Resume_${job.employer_name}_${job.job_title}.pdf`.replace(/\s+/g,"_"));
+  };
+
+  const handleDownloadPreviewResume=async()=>{
+    if(!autoApplyModal?.previewResume)return;
+    const{jsPDF}=await import("jspdf");
+    const doc=new jsPDF();
+    const r=autoApplyModal.previewResume;
+    const job=autoApplyModal.job;
+    const pageWidth=doc.internal.pageSize.getWidth();
+    const margin=20;
+    const maxWidth=pageWidth-margin*2;
+    let y=20;
+    // Candidate header — from trusted profile state, never AI-generated, center-aligned
+    const pdfFullName=[firstName,lastName].filter(Boolean).join(" ");
+    if(pdfFullName){
+      doc.setFontSize(16);doc.setFont("helvetica","bold");doc.setTextColor(0);
+      doc.text(pdfFullName,pageWidth/2,y,{align:"center"});y+=7;
+    }
+    const pdfContact=[userPhone,userEmail,userLocation].filter(Boolean);
+    if(pdfContact.length){
+      doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(100);
+      doc.text(pdfContact.join("  ·  "),pageWidth/2,y,{align:"center"});y+=5;
+    }
+    const pdfUrls=[linkedinUrl,githubUrl,portfolioUrl].filter(Boolean);
+    if(pdfUrls.length){
+      doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(100);
+      doc.text(pdfUrls.join("  ·  "),pageWidth/2,y,{align:"center"});y+=5;
+    }
+    if(pdfFullName||pdfContact.length||pdfUrls.length){
+      doc.setTextColor(0);
+      doc.setDrawColor(245,158,11);doc.setLineWidth(0.5);doc.line(margin,y,pageWidth-margin,y);y+=7;
+    }
+    const pageHeight=doc.internal.pageSize.getHeight();
+    const topMargin=20;const bottomMargin=20;
+    const ensureSpace=(neededMm:number)=>{if(y+neededMm>pageHeight-bottomMargin){doc.addPage();y=topMargin;}};
+    // Professional Summary
+    if(r.summary){
+      doc.setFontSize(10);doc.setFont("helvetica","normal");
+      const sl=doc.splitTextToSize(r.summary,maxWidth);
+      ensureSpace(12+sl.length*5);
+      doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("PROFESSIONAL SUMMARY",margin,y);y+=5;
+      doc.setFontSize(10);doc.setFont("helvetica","normal");
+      doc.text(sl,margin,y);y+=sl.length*5+7;
+    }
+    // Experience
+    if(r.experience?.length>0){
+      ensureSpace(16);
+      doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("EXPERIENCE",margin,y);y+=5;
+      r.experience.forEach((exp:{title:string;company:string;dates?:string;location?:string;bullets:string[]})=>{
+        const datesLineH=exp.dates||exp.location?4:0;
+        doc.setFontSize(9);doc.setFont("helvetica","normal");
+        const bulletSplits=(exp.bullets??[]).map((b:string)=>doc.splitTextToSize(`• ${b}`,maxWidth-4));
+        const roleHeight=5+datesLineH+bulletSplits.reduce((s:number,bl:string[])=>s+bl.length*4.5,0)+4;
+        ensureSpace(roleHeight);
+        doc.setFontSize(10);doc.setFont("helvetica","bold");doc.setTextColor(0);
+        doc.text(`${exp.title} — ${exp.company}`,margin,y);y+=5;
+        if(exp.dates||exp.location){
+          doc.setFontSize(9);doc.setFont("helvetica","normal");doc.setTextColor(120);
+          doc.text([exp.dates,exp.location].filter(Boolean).join(" · "),margin,y);y+=4;doc.setTextColor(0);
+        }
+        doc.setFontSize(9);doc.setFont("helvetica","normal");
+        bulletSplits.forEach((bl:string[])=>{doc.text(bl,margin+4,y);y+=bl.length*4.5;});
+        y+=4;
+      });
+    }
+    // Projects
+    if(r.projects&&r.projects.length>0){
+      ensureSpace(15);
+      doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("PROJECTS",margin,y);y+=5;
+      r.projects.forEach((p:{name:string;bullets?:string[]})=>{
+        doc.setFontSize(9);doc.setFont("helvetica","normal");
+        const pBulletSplits=(p.bullets??[]).map((b:string)=>doc.splitTextToSize(`• ${b}`,maxWidth-4));
+        const projHeight=5+pBulletSplits.reduce((s:number,bl:string[])=>s+bl.length*4.5,0)+3;
+        ensureSpace(projHeight);
+        doc.setFontSize(10);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text(p.name,margin,y);y+=5;
+        doc.setFontSize(9);doc.setFont("helvetica","normal");
+        pBulletSplits.forEach((bl:string[])=>{doc.text(bl,margin+4,y);y+=bl.length*4.5;});
+        y+=3;
+      });
+    }
+    // Education
+    if(r.education&&r.education.length>0){
+      ensureSpace(15);
+      doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("EDUCATION",margin,y);y+=5;
+      doc.setFontSize(10);doc.setFont("helvetica","normal");
+      r.education.forEach((e:{degree:string;school:string;dates?:string;location?:string})=>{
+        const row=[e.degree,e.school,e.dates].filter(Boolean).join(", ");
+        const rl=doc.splitTextToSize(row,maxWidth);
+        ensureSpace(rl.length*5+2);
+        doc.text(rl,margin,y);y+=rl.length*5+2;
+      });
+      y+=4;
+    }
+    // Certifications
+    if(r.certifications&&r.certifications.length>0){
+      ensureSpace(12);
+      doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("CERTIFICATIONS",margin,y);y+=5;
+      doc.setFontSize(9);doc.setFont("helvetica","normal");
+      r.certifications.forEach((c:string)=>{ensureSpace(5);doc.text(`• ${c}`,margin+4,y);y+=5;});
+      y+=3;
+    }
+    // Skills
+    if(r.skills?.length>0){
+      doc.setFontSize(9);doc.setFont("helvetica","normal");
+      const skl=doc.splitTextToSize(r.skills.join(" • "),maxWidth);
+      ensureSpace(12+skl.length*5);
+      doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(0);doc.text("SKILLS",margin,y);y+=5;
+      doc.setFontSize(9);doc.setFont("helvetica","normal");
+      doc.text(skl,margin,y);
     }
     doc.save(`Resume_${job.employer_name}_${job.job_title}.pdf`.replace(/\s+/g,"_"));
   };
@@ -4391,6 +4552,23 @@ export default function Home() {
                 </div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.22)",marginBottom:14}}>Tailored for: {autoApplyModal.job.job_title} at {autoApplyModal.job.employer_name}</div>
 
+                {/* Candidate header — trusted profile data only, center-aligned */}
+                {(firstName||lastName||userEmail||userLocation||userPhone||linkedinUrl||githubUrl||portfolioUrl)&&(
+                  <div style={{marginBottom:14,paddingBottom:12,borderBottom:"1px solid rgba(255,255,255,0.07)",textAlign:"center"}}>
+                    {(firstName||lastName)&&<div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.92)",marginBottom:3}}>{[firstName,lastName].filter(Boolean).join(" ")}</div>}
+                    {[userPhone,userEmail,userLocation].filter(Boolean).length>0&&(
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",lineHeight:1.6}}>
+                        {[userPhone,userEmail,userLocation].filter(Boolean).join("  ·  ")}
+                      </div>
+                    )}
+                    {[linkedinUrl,githubUrl,portfolioUrl].filter(Boolean).length>0&&(
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",lineHeight:1.6}}>
+                        {[linkedinUrl,githubUrl,portfolioUrl].filter(Boolean).join("  ·  ")}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Summary */}
                 <div style={{marginBottom:14}}>
                   <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Professional Summary</div>
@@ -4440,6 +4618,16 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* Certifications */}
+                {autoApplyModal.previewResume.certifications&&autoApplyModal.previewResume.certifications.length>0&&(
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"rgba(255,255,255,0.35)",marginBottom:6}}>Certifications</div>
+                    {autoApplyModal.previewResume.certifications.map((c,i)=>(
+                      <div key={i} style={{fontSize:10,color:"rgba(255,255,255,0.72)",marginBottom:2}}>• {c}</div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Skills */}
                 {autoApplyModal.previewResume.skills&&autoApplyModal.previewResume.skills.length>0&&(
                   <div style={{marginBottom:14}}>
@@ -4460,9 +4648,12 @@ export default function Home() {
                   </div>
                 )}
 
-                <div style={{display:"flex",gap:10}}>
-                  <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
-                  <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  <div style={{display:"flex",gap:10}}>
+                    <button onClick={handleConfirmApply} style={{flex:1,padding:"10px 0",borderRadius:9,background:"linear-gradient(135deg,#f59e0b,#fbbf24)",border:"none",color:"#000",fontSize:12,fontWeight:700,cursor:"pointer",letterSpacing:"0.2px"}}>Confirm &amp; Apply →</button>
+                    <button onClick={()=>{setAutoApplyModal(null);setGeneratedResume(null);}} style={{padding:"10px 18px",borderRadius:9,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",fontSize:12,cursor:"pointer"}}>Cancel</button>
+                  </div>
+                  <button onClick={handleDownloadPreviewResume} style={{padding:"9px 0",borderRadius:9,background:"rgba(6,182,212,0.12)",border:"1px solid rgba(6,182,212,0.3)",color:"#06b6d4",fontSize:12,fontWeight:700,cursor:"pointer"}}>⬇ Download Tailored Resume PDF</button>
                 </div>
               </>
             ):generatedResume?(

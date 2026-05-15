@@ -21,8 +21,17 @@ interface Job {
 }
 
 interface GenerateInput {
-  resumeText: string;
-  job:        Job;
+  resumeText:      string;
+  job:             Job;
+  candidateHeader?: {
+    name?:      string;
+    phone?:     string;
+    email?:     string;
+    linkedin?:  string;
+    github?:    string;
+    portfolio?: string;
+    location?:  string;
+  };
 }
 
 interface GenerateOutput {
@@ -51,13 +60,14 @@ interface ResumeEducation {
 }
 
 interface ParsedResume {
-  summary?:        string;
-  experience?:     ResumeExperience[];
-  projects?:       ResumeProject[];
-  education?:      ResumeEducation[];
-  skills?:         string[];
-  keywords_added?: string[];
-  cover_letter?:   string;
+  summary?:         string;
+  experience?:      ResumeExperience[];
+  projects?:        ResumeProject[];
+  education?:       ResumeEducation[];
+  certifications?:  string[];
+  skills?:          string[];
+  keywords_added?:  string[];
+  cover_letter?:    string;
 }
 
 // ── JSON extraction ────────────────────────────────────────────────────────────
@@ -80,8 +90,23 @@ function extractJson(raw: string): Record<string, unknown> {
 // section structure comes through clearly without any schema change to the DB
 // or the downstream pipeline.
 
-function formatResumeAsText(r: ParsedResume): string {
+function formatResumeAsText(
+  r:               ParsedResume,
+  header?:         GenerateInput["candidateHeader"],
+): string {
   const lines: string[] = [];
+
+  // Header block — built from trusted profile data, never from AI output
+  // Centering is handled by the downstream renderers (email CSS, jsPDF align:"center", UI textAlign)
+  if (header) {
+    const name      = header.name?.trim();
+    const contact1  = [header.phone?.trim(), header.email?.trim(), header.location?.trim()].filter(Boolean);
+    const contact2  = [header.linkedin?.trim(), header.github?.trim(), header.portfolio?.trim()].filter(Boolean);
+    if (name) lines.push(name);
+    if (contact1.length) lines.push(contact1.join("  ·  "));
+    if (contact2.length) lines.push(contact2.join("  ·  "));
+    if (name || contact1.length || contact2.length) lines.push("");
+  }
 
   if (r.summary) {
     lines.push("PROFESSIONAL SUMMARY");
@@ -121,14 +146,18 @@ function formatResumeAsText(r: ParsedResume): string {
     lines.push("");
   }
 
+  if (r.certifications?.length) {
+    lines.push("CERTIFICATIONS");
+    for (const cert of r.certifications) {
+      lines.push(`• ${cert}`);
+    }
+    lines.push("");
+  }
+
   if (r.skills?.length) {
     lines.push("SKILLS");
     lines.push(r.skills.join("  ·  "));
     lines.push("");
-  }
-
-  if (r.keywords_added?.length) {
-    lines.push(`ATS keywords integrated: ${r.keywords_added.join(", ")}`);
   }
 
   return lines.join("\n").trim();
@@ -139,7 +168,7 @@ function formatResumeAsText(r: ParsedResume): string {
 export async function generateApplicationContent(
   input: GenerateInput,
 ): Promise<GenerateOutput> {
-  const { resumeText, job } = input;
+  const { resumeText, job, candidateHeader } = input;
 
   // Raised from 2500 → 8000 chars so multi-role and multi-page resumes are
   // not silently truncated before the model sees them.
@@ -177,6 +206,9 @@ experience (per role):
 
 projects:
   Include only if present in the resume. Rephrase bullets using JD-relevant language where appropriate.
+
+certifications:
+  Include only if present in the resume. List each certification exactly as written. Output empty array if none.
 
 skills:
   List all resume skills, ordered by relevance to this job. No additions or removals.
@@ -217,6 +249,7 @@ Return exactly this structure. All keys must be present. Arrays may be empty but
       "dates": "exact dates or empty string"
     }
   ],
+  "certifications": ["exact cert name or empty array"],
   "skills": ["skill1", "skill2"],
   "keywords_added": ["kw1", "kw2"],
   "cover_letter": "full cover letter text"
@@ -276,7 +309,7 @@ Return exactly this structure. All keys must be present. Arrays may be empty but
   }
 
   return {
-    tailored_resume_text: formatResumeAsText(parsed),
+    tailored_resume_text: formatResumeAsText(parsed, candidateHeader),
     cover_letter_text:    parsed.cover_letter!.trim(),
   };
 }

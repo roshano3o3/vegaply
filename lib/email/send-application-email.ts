@@ -58,8 +58,24 @@ function buildHtml(input: SendApplicationEmailInput): string {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  const resumeHtml = esc(tailoredResumeText)
-    .replace(/^(PROFESSIONAL SUMMARY|WORK EXPERIENCE|PROJECTS|EDUCATION|SKILLS|ATS keywords integrated[^\n]*)/gm,
+  // Split resume into header block (lines before PROFESSIONAL SUMMARY) and body
+  const splitIdx = tailoredResumeText.indexOf("PROFESSIONAL SUMMARY");
+  const rawHeader = splitIdx > 0 ? tailoredResumeText.slice(0, splitIdx).trim() : "";
+  const rawBody   = splitIdx > 0 ? tailoredResumeText.slice(splitIdx) : tailoredResumeText;
+
+  // Header lines: first non-empty = name, rest = contact rows
+  const headerLines = rawHeader.split("\n").map(l => l.trim()).filter(Boolean);
+  const hdrName  = headerLines[0] ?? "";
+  const hdrRest  = headerLines.slice(1);
+
+  const resumeHdrHtml = (hdrName || hdrRest.length) ? `
+    <div class="resume-hdr">
+      ${hdrName ? `<div class="rh-name">${esc(hdrName)}</div>` : ""}
+      ${hdrRest.map(l => `<div class="rh-line">${esc(l)}</div>`).join("")}
+    </div>` : "";
+
+  const resumeBodyHtml = esc(rawBody)
+    .replace(/^(PROFESSIONAL SUMMARY|WORK EXPERIENCE|PROJECTS|EDUCATION|CERTIFICATIONS|SKILLS)/gm,
       "<strong>$1</strong>")
     .replace(/\n/g, "<br>");
 
@@ -86,6 +102,9 @@ function buildHtml(input: SendApplicationEmailInput): string {
   .sec{margin-bottom:24px}
   .sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin:0 0 8px}
   .textbox{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:16px;font-size:14px;color:#374151;line-height:1.75}
+  .resume-hdr{text-align:center;padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid #e5e7eb}
+  .rh-name{font-size:16px;font-weight:700;color:#111827;margin:0 0 4px}
+  .rh-line{font-size:12px;color:#6b7280;margin:2px 0}
   .cta{display:inline-block;background:#f59e0b;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;margin-top:4px}
   .ftr{color:#9ca3af;font-size:12px;text-align:center;padding:20px 32px;border-top:1px solid #f3f4f6}
 </style>
@@ -113,7 +132,7 @@ function buildHtml(input: SendApplicationEmailInput): string {
 
     <div class="sec">
       <p class="sec-label">Tailored Resume</p>
-      <div class="textbox">${resumeHtml}</div>
+      <div class="textbox">${resumeHdrHtml}${resumeBodyHtml}</div>
     </div>
 
     <a href="${esc(secureApplyLink ?? applyLink)}" class="cta">Review &amp; Apply →</a>

@@ -92,30 +92,78 @@ async function selectPendingRows(
   return (data ?? []) as QueueRow[];
 }
 
-// ── Profile loader — resume text cached per user within one run ───────────────
+// ── Profile loader — resume + trusted header fields cached per user ───────────
 
-async function loadResumeText(
+interface CandidateHeader {
+  name?:      string;
+  phone?:     string;
+  email?:     string;
+  linkedin?:  string;
+  github?:    string;
+  portfolio?: string;
+  location?:  string;
+}
+
+interface ProfileData {
+  resumeText:      string | null;
+  candidateHeader: CandidateHeader;
+}
+
+async function loadProfileData(
   supabase: SupabaseClient,
   userId:   string,
-): Promise<string | null> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("resume_text")
-    .eq("id", userId)
-    .single();
-  return (data?.resume_text as string | null) ?? null;
+): Promise<ProfileData> {
+  const [profileRes, appProfileRes, authRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("resume_text, first_name, location")
+      .eq("id", userId)
+      .single(),
+    supabase
+      .from("application_profiles")
+      .select("first_name, last_name, phone, linkedin_url, github_url, portfolio_url")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    supabase.auth.admin.getUserById(userId),
+  ]);
+
+  const profile    = profileRes.data;
+  const appProfile = appProfileRes.data;
+  const authEmail  = authRes.data?.user?.email ?? undefined;
+
+  // Prefer application_profiles name (most complete), fall back to profiles
+  const firstName = (appProfile?.first_name as string | null)
+    ?? (profile?.first_name as string | null)
+    ?? null;
+  const lastName  = (appProfile?.last_name  as string | null) ?? null;
+  const fullName  = [firstName, lastName].filter(Boolean).join(" ") || undefined;
+
+  return {
+    resumeText:      (profile?.resume_text as string | null) ?? null,
+    candidateHeader: {
+      name:      fullName,
+      phone:     (appProfile?.phone         as string | null) ?? undefined,
+      email:     authEmail,
+      linkedin:  (appProfile?.linkedin_url  as string | null) ?? undefined,
+      github:    (appProfile?.github_url    as string | null) ?? undefined,
+      portfolio: (appProfile?.portfolio_url as string | null) ?? undefined,
+      location:  (profile?.location         as string | null) ?? undefined,
+    },
+  };
 }
 
 // ── Row processor ─────────────────────────────────────────────────────────────
 
 async function processOneRow(
-  supabase:    SupabaseClient,
-  row:         QueueRow,
-  resumeText:  string,
+  supabase:         SupabaseClient,
+  row:              QueueRow,
+  resumeText:       string,
+  candidateHeader?: CandidateHeader,
 ): Promise<RowOutcome> {
   try {
     const { tailored_resume_text, cover_letter_text } = await generateApplicationContent({
       resumeText,
+      candidateHeader,
       job: {
         job_title:       row.job_title       ?? "Unknown Role",
         employer_name:   row.employer_name   ?? "Unknown Company",
@@ -175,8 +223,8 @@ async function runProcess(
   let partial    = false;
   const details: RowDetail[] = [];
 
-  // Resume text cached per user — one profile lookup per user, not per row
-  const resumeCache = new Map<string, string | null>();
+  // Profile data cached per user — one lookup per user, not per row
+  const resumeCache = new Map<string, ProfileData>();
 
   // Guard: skip the batch if already within 30 s of the Vercel maxDuration wall
   if (Date.now() - start > 270_000) {
@@ -188,7 +236,7 @@ async function runProcess(
     await Promise.all(
       uniqueUserIds.map(async (uid) => {
         if (!resumeCache.has(uid)) {
-          resumeCache.set(uid, await loadResumeText(supabase, uid));
+          resumeCache.set(uid, await loadProfileData(supabase, uid));
         }
       }),
     );
@@ -198,9 +246,9 @@ async function runProcess(
     const rowResults = await Promise.all(
       rows.map(async (row): Promise<{ outcome: RowOutcome; detail: RowDetail }> => {
         const rowStart   = Date.now();
-        const resumeText = resumeCache.get(row.user_id) ?? null;
+        const profile    = resumeCache.get(row.user_id);
 
-        if (!resumeText) {
+        if (!profile?.resumeText) {
           return {
             outcome: "skipped",
             detail: {
@@ -216,7 +264,7 @@ async function runProcess(
           };
         }
 
-        const outcome = await processOneRow(supabase, row, resumeText);
+        const outcome = await processOneRow(supabase, row, profile.resumeText, profile.candidateHeader);
         console.log(
           `[daily-queue/process] row=${row.id} job="${row.job_title}" outcome=${outcome} ms=${Date.now() - rowStart}`,
         );
