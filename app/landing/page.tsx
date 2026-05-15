@@ -651,7 +651,7 @@ export default function VegaplyLanding() {
       {/* ── SOCIAL PROOF / LOGO MARQUEE ──────────────────────────────────────── */}
       <div className="logo-marquee-section" aria-label="Applied to by Vegaply users">
         <p className="logo-marquee-label">
-          Job seekers using Vegaply have submitted applications to roles at
+          Built for job seekers targeting roles at companies like
         </p>
         <div style={{ overflow: 'hidden' }}>
           <div className="logo-row logo-row-1">
@@ -960,10 +960,6 @@ export default function VegaplyLanding() {
               </li>
               <li className="pricing-feature feature-locked">
                 <span className="feature-x">✗</span>
-                Under 10 applicants tab
-              </li>
-              <li className="pricing-feature feature-locked">
-                <span className="feature-x">✗</span>
                 Priority job alerts
               </li>
             </ul>
@@ -978,10 +974,9 @@ export default function VegaplyLanding() {
 
           {/* PRO */}
           <div className="pricing-card pricing-pro">
-            <div className="pricing-badge">Most popular</div>
-            <div className="pricing-price gradient">$9.99</div>
+            <div className="pricing-price gradient">$9.99/mo</div>
             <div className="pricing-period">
-              For candidates serious about landing their role
+              Billed monthly · For candidates serious about landing their role
             </div>
             <div className="pricing-divider" />
             <ul className="pricing-features">
@@ -995,19 +990,7 @@ export default function VegaplyLanding() {
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
-                <strong>Under 10 applicants</strong> tab
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Competition radar per job
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
                 Priority email alerts
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Resume version manager
               </li>
               <li className="pricing-feature">
                 <span className="feature-check">✓</span>
@@ -1019,7 +1002,7 @@ export default function VegaplyLanding() {
               className="btn-primary btn-primary-lg"
               style={{ width: '100%', textAlign: 'center', justifyContent: 'center' }}
             >
-              Start Pro — $9.99/mo
+              Get Started with Pro →
             </Link>
           </div>
         </div>
@@ -1079,7 +1062,7 @@ export default function VegaplyLanding() {
             <ul className="footer-links">
               <li><a href="#stories">Founder story</a></li>
               <li><a href="#h1b">H1B intelligence</a></li>
-              <li><Link href="/signup">Join waitlist</Link></li>
+              <li><Link href="/signup">Get started</Link></li>
             </ul>
           </div>
 

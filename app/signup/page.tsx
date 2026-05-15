@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   useEffect(() => {
     if (!success) return;
     setCountdown(60); setCanResend(false);
@@ -566,7 +567,7 @@ export default function SignupPage() {
               your next role.
             </h1>
             <p className="auth-sub">
-              Stop applying late. Vegaply surfaces jobs the moment they're posted — giving you a head start before hundreds of applicants pile in.
+              Stop applying late. Vegaply delivers freshly posted roles each morning — so you&apos;re among the first to apply, before the crowd arrives.
             </p>
 
             <div className="features-list">
@@ -574,7 +575,7 @@ export default function SignupPage() {
                 <div className="feature-icon indigo">⚡</div>
                 <div>
                   <div className="feature-name">Early Bird Detection</div>
-                  <div className="feature-desc">Jobs posted in the last 6 hours — near-zero competition</div>
+                  <div className="feature-desc">Jobs posted in the last 6 hours — before most applicants see them</div>
                 </div>
               </div>
               <div className="feature-item">
@@ -582,13 +583,6 @@ export default function SignupPage() {
                 <div>
                   <div className="feature-name">AI Resume Match</div>
                   <div className="feature-desc">Instant match score with tailored bullet points</div>
-                </div>
-              </div>
-              <div className="feature-item">
-                <div className="feature-icon green">🎯</div>
-                <div>
-                  <div className="feature-name">Interview Simulator</div>
-                  <div className="feature-desc">Role-specific questions with sample answers</div>
                 </div>
               </div>
               <div className="feature-item">
@@ -625,7 +619,7 @@ export default function SignupPage() {
             <div className="form-enter">
               <div className="form-tag">Get started free</div>
               <h2 className="form-title">Create account</h2>
-              <p className="form-subtitle">Join thousands finding jobs smarter.</p>
+              <p className="form-subtitle">Start applying to better-fit roles today.</p>
 
               {error && <div className="form-error">⚠ {error}</div>}
 
@@ -677,7 +671,22 @@ export default function SignupPage() {
                 )}
               </div>
 
-              <button className="form-btn" onClick={handleSignup} disabled={loading}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 16, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  style={{ marginTop: 3, flexShrink: 0, accentColor: "var(--gold)" }}
+                />
+                <span style={{ fontSize: 13, color: "var(--text-tertiary)", fontWeight: 300, lineHeight: 1.5 }}>
+                  I agree to Vegaply&apos;s{" "}
+                  <a href="/terms" style={{ color: "var(--gold)", textDecoration: "none", fontWeight: 500 }}>Terms of Service</a>
+                  {" "}and{" "}
+                  <a href="/privacy" style={{ color: "var(--gold)", textDecoration: "none", fontWeight: 500 }}>Privacy Policy</a>
+                </span>
+              </label>
+
+              <button className="form-btn" onClick={handleSignup} disabled={loading || !termsAccepted}>
                 {loading ? (
                   <span className="form-loading">
                     <span className="form-spinner" /> Creating account…
