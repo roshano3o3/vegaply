@@ -325,7 +325,7 @@ async function fetchAdzuna(jobRole: string, location: string, earlyBird: boolean
 async function fetchRemotive(jobRole: string, location: string): Promise<NormalisedJob[]> {
   try {
     const res = await fetch(
-      `https://remotive.com/api/remote-jobs?limit=300&category=software-dev`,
+      `https://remotive.com/api/remote-jobs?limit=300`,
       {
         next: { revalidate: 0 },
         headers: {
