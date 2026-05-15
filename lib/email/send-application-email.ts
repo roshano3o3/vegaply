@@ -58,10 +58,35 @@ function buildHtml(input: SendApplicationEmailInput): string {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  // Split resume into header block (lines before PROFESSIONAL SUMMARY) and body
+  // Split resume into header block (lines before PROFESSIONAL SUMMARY) and body.
   const splitIdx = tailoredResumeText.indexOf("PROFESSIONAL SUMMARY");
-  const rawHeader = splitIdx > 0 ? tailoredResumeText.slice(0, splitIdx).trim() : "";
-  const rawBody   = splitIdx > 0 ? tailoredResumeText.slice(splitIdx) : tailoredResumeText;
+  let rawHeader: string;
+  let rawBody: string;
+
+  if (splitIdx > 0) {
+    // Preferred path: split on the section marker.
+    rawHeader = tailoredResumeText.slice(0, splitIdx).trim();
+    rawBody   = tailoredResumeText.slice(splitIdx);
+  } else {
+    // Fallback: no PROFESSIONAL SUMMARY marker — AI may have omitted it.
+    // Heuristic: treat the first run of non-empty lines (up to 4) as the
+    // name/contact header; everything after the first blank line becomes the body.
+    const lines = tailoredResumeText.split("\n");
+    const hdrLines: string[] = [];
+    let bodyStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim()) {
+        hdrLines.push(lines[i].trim());
+        if (hdrLines.length >= 4) { bodyStart = i + 1; break; }
+      } else if (hdrLines.length > 0) {
+        // First blank line after collecting header lines marks the body start.
+        bodyStart = i + 1;
+        break;
+      }
+    }
+    rawHeader = hdrLines.join("\n");   // empty string if no non-empty lines exist
+    rawBody   = lines.slice(bodyStart).join("\n");
+  }
 
   // Header lines: first non-empty = name, rest = contact rows
   const headerLines = rawHeader.split("\n").map(l => l.trim()).filter(Boolean);

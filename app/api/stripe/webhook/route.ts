@@ -25,10 +25,26 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
     if (userId) {
-      await supabase
+      const { error } = await supabase
         .from("profiles")
         .update({ is_pro: true, stripe_customer_id: session.customer })
         .eq("id", userId);
+      if (error) {
+        console.error("Supabase profile update failed for checkout.session.completed:", error);
+        return NextResponse.json({ error: "DB update failed" }, { status: 500 });
+      }
+    }
+  } else if (event.type === "customer.subscription.updated") {
+    const subscription = event.data.object as Stripe.Subscription;
+    const customerId = subscription.customer as string;
+    const isActive = subscription.status === "active" || subscription.status === "trialing";
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_pro: isActive })
+      .eq("stripe_customer_id", customerId);
+    if (error) {
+      console.error("Supabase profile update failed for customer.subscription.updated:", error);
+      return NextResponse.json({ error: "DB update failed" }, { status: 500 });
     }
   } else if (event.type === "customer.subscription.deleted") {
     const subscription = event.data.object as Stripe.Subscription;
