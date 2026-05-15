@@ -69,7 +69,7 @@ export default function TermsPage() {
             <p className="pg-p">Vegaply is a job search tool that helps you find freshly posted job listings and analyze them against your resume using AI. The Service includes:</p>
             <ul className="pg-ul">
               <li>Live job search powered by third-party job listing APIs</li>
-              <li>AI-powered resume match scoring, cover letter generation, interview prep, and resume tailoring</li>
+              <li>AI-powered resume match scoring, cover letter generation, and resume tailoring</li>
               <li>Job application tracking (Kanban board)</li>
               <li>Early Bird alerts for newly posted roles</li>
             </ul>
@@ -83,7 +83,7 @@ export default function TermsPage() {
             <p className="pg-p">If you subscribe to Vegaply Pro:</p>
             <ul className="pg-ul">
               <li>Your subscription is billed monthly and renews automatically on your billing date unless you cancel beforehand.</li>
-              <li>You may cancel at any time through your account settings or by emailing <a href="mailto:support@vegaply.com" className="pg-link">support@vegaply.com</a>. Cancellation takes effect at the end of the current billing period — you retain access to Pro features until then.</li>
+              <li>You may cancel at any time by emailing <a href="mailto:support@vegaply.com" className="pg-link">support@vegaply.com</a>. If and when an in-app cancellation page becomes available, you may also cancel via that page. Cancellation takes effect at the end of the current billing period — you retain access to Pro features until then.</li>
               <li>Refunds are not guaranteed except where required by applicable law or expressly stated at the time of purchase.</li>
               <li>We reserve the right to change subscription pricing with reasonable advance notice. Continued use after a price change takes effect constitutes acceptance of the new price.</li>
             </ul>
@@ -147,7 +147,7 @@ export default function TermsPage() {
 
           <div className="pg-section">
             <h2 className="pg-h2">10. Governing Law</h2>
-            <p className="pg-p">These terms are governed by the laws of the United States. Any disputes shall be resolved through binding arbitration or small claims court, waiving the right to class action proceedings.</p>
+            <p className="pg-p">These terms are governed by the laws of the State of Texas, United States, without regard to conflict of law principles. Any disputes shall be resolved through binding arbitration or small claims court, waiving the right to class action proceedings. You may opt out of this arbitration agreement within 30 days of first accepting these Terms by emailing <a href="mailto:support@vegaply.com" className="pg-link">support@vegaply.com</a> with the subject line &ldquo;Arbitration Opt-Out&rdquo; and the email address associated with your account.</p>
           </div>
 
           <div className="pg-divider" />

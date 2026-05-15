@@ -102,7 +102,7 @@ export default function PrivacyPage() {
 
           <div className="pg-section">
             <h2 className="pg-h2">5. Cookies & Local Storage</h2>
-            <p className="pg-p">Vegaply uses browser local storage (not third-party cookies) to remember your search preferences, dark mode setting, and session state. We do not use tracking cookies or advertising pixels.</p>
+            <p className="pg-p">Vegaply uses browser local storage (not third-party cookies) to remember your search preferences, dark mode setting, and session state. We use essential cookies and similar storage needed to operate the service. We may also use analytics tools and session replay tools to understand product usage and improve the experience. We do not use advertising pixels to build third-party ad profiles.</p>
           </div>
 
           <div className="pg-section">
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
               <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Anthropic (Claude)</strong> — AI analysis of resumes and job descriptions</li>
               <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>JSearch (RapidAPI)</strong> — live job listing data</li>
               <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Google OAuth</strong> — optional sign-in (governed by Google's privacy policy)</li>
-              <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Stripe</strong> — payment processing for Pro subscriptions. Stripe handles all payment card data directly; Vegaply never stores or has access to your full card number, CVV, or billing details.</li>
+              <li><strong style={{ color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Stripe</strong> — payment processing for Pro subscriptions. Stripe handles all payment card data directly; Vegaply never stores or has access to your full card number, CVV, or full billing details. We do store a Stripe customer identifier and your subscription status in our own database so we can manage your plan and access level.</li>
             </ul>
           </div>
 
