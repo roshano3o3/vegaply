@@ -2017,6 +2017,8 @@ export default function Home() {
   const [queueStats,setQueueStats]=useState<{total:number;ready:number;sent:number;failed:number}|null>(null);
   const [autoApplyScores,setAutoApplyScores]=useState<Record<string,number>>({});
   const [autoApplyToast,setAutoApplyToast]=useState<string|null>(null);
+  const [showUpgradePrompt,setShowUpgradePrompt]=useState(false);
+  const [upgradeLoading,setUpgradeLoading]=useState(false);
   const [runQueueNowLoading,setRunQueueNowLoading]=useState(false);
   const [autoApplyLoadingStep, setAutoApplyLoadingStep] = useState<string | null>(null);
   const [showPreferences,setShowPreferences]=useState(false);
@@ -2332,6 +2334,7 @@ export default function Home() {
     if(autoApplyCount>=dailyLimit){
       setAutoApplyToast(`Daily limit reached (${dailyLimit}/${dailyLimit}). Resets tomorrow!`);
       setTimeout(()=>setAutoApplyToast(null),4000);
+      if(!userProfile?.is_pro) setShowUpgradePrompt(true);
       return;
     }
     if(autoApplyResults[job.job_id]==="applied")return;
@@ -5188,6 +5191,36 @@ export default function Home() {
           bottom:72,maxWidth:400
         }}>
           {autoApplyToast}
+        </div>
+      )}
+
+      {showUpgradePrompt&&!userProfile?.is_pro&&(
+        <div className="refresh-toast" style={{borderColor:"rgba(245,158,11,0.35)",flexDirection:"column",alignItems:"flex-start",gap:10}}>
+          <span style={{color:"#fbbf24",fontWeight:700}}>Daily limit reached — upgrade for 20 packs/day</span>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <button
+              onClick={async()=>{
+                setUpgradeLoading(true);
+                try{
+                  const r=await fetch("/api/stripe/checkout",{method:"POST"});
+                  const d=await r.json();
+                  if(d.url) window.location.href=d.url;
+                  else{setAutoApplyToast("Could not start checkout. Please try again.");setTimeout(()=>setAutoApplyToast(null),4000);}
+                }catch{
+                  setAutoApplyToast("Could not start checkout. Please try again.");setTimeout(()=>setAutoApplyToast(null),4000);
+                }finally{setUpgradeLoading(false);}
+              }}
+              disabled={upgradeLoading}
+              style={{background:"linear-gradient(135deg,#f59e0b,#fbbf24)",color:"#1a1a1f",border:"none",borderRadius:8,padding:"7px 16px",fontSize:13,fontWeight:700,cursor:upgradeLoading?"not-allowed":"pointer",opacity:upgradeLoading?0.6:1}}
+            >
+              {upgradeLoading?"Redirecting…":"Upgrade to Pro →"}
+            </button>
+            <button
+              onClick={()=>setShowUpgradePrompt(false)}
+              aria-label="Dismiss"
+              style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.3)",fontSize:20,cursor:"pointer",padding:"0 2px",lineHeight:1}}
+            >×</button>
+          </div>
         </div>
       )}
     </div>
