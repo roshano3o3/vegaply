@@ -3018,6 +3018,13 @@ export default function Home() {
   useEffect(()=>{jobRoleRef.current=jobRole;locationRef.current=location;activeTabRef.current=activeTab;hasSearchedRef.current=hasSearched;});
 
   useEffect(()=>{
+    if(searchParams.get('upgraded')!=='true')return;
+    setAutoApplyToast('✅ Welcome to Pro — you now have 20 daily packs.');
+    setTimeout(()=>setAutoApplyToast(null),8000);
+    window.history.replaceState({},'','/home');
+  },[]);
+
+  useEffect(()=>{
     if(!hasSearched)return;
     const interval=setInterval(async()=>{
       if(!hasSearchedRef.current||!jobRoleRef.current||!locationRef.current)return;
