@@ -444,7 +444,7 @@ async function fetchGreenhouse(jobRole: string, location: string): Promise<Norma
     const filtered = roleWords.length
       ? normalised.filter(j => {
           const title = j.job_title?.toLowerCase() || '';
-          return roleWords.some(w => title.includes(w));
+          return roleWords.every(w => title.includes(w));
         })
       : normalised;
     console.log("[Greenhouse] jobs after role filter:", filtered.length);

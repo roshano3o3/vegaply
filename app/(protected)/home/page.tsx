@@ -1942,7 +1942,7 @@ function PreferencesModal({ onClose, lm, onSave }: { onClose:()=>void; lm?:boole
   );
 }
 
-function scoreJob(job: JobWithMatch): number {
+function scoreJob(job: JobWithMatch, roles?: string[]): number {
   let score = 0;
   const hoursOld = getHoursAgo(job.job_posted_at_datetime_utc);
   if (hoursOld <= 2) score += 100;
@@ -1955,6 +1955,15 @@ function scoreJob(job: JobWithMatch): number {
     if (job.match.matchScore >= 80) score += 30;
     else if (job.match.matchScore >= 60) score += 20;
     else if (job.match.matchScore >= 40) score += 10;
+  }
+  if (roles?.length) {
+    const title = (job.job_title || '').toLowerCase();
+    for (const role of roles) {
+      const roleLower = role.toLowerCase().trim();
+      if (title.includes(roleLower)) { score += 50; break; }
+      const words = roleLower.split(/\s+/).filter(Boolean);
+      if (words.length > 1 && words.every(w => title.includes(w))) { score += 25; break; }
+    }
   }
   return score;
 }
@@ -2187,7 +2196,7 @@ export default function Home() {
     if(!r||!l)return;
     const roles=r.split(',').map((s:string)=>s.trim()).filter(Boolean);
     if(mode==="normal"){setLoading(true);setJobs([]);}else{setEbLoading(true);setEarlyBirdJobs([]);setAutoOpenDone(false);}
-    try{const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:roles[0]||r,jobRoles:roles,location:l,earlyBird:mode==="earlybird"})});if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json();const raw:JobWithMatch[]=data?.data||[];const sorted=[...raw].sort((a,b)=>scoreJob(b)-scoreJob(a));if(mode==="normal")setJobs(sorted);else setEarlyBirdJobs(sorted);}catch(err){console.error("fetchJobs error:",err);}
+    try{const res=await fetch("/api/jobs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jobRole:roles[0]||r,jobRoles:roles,location:l,earlyBird:mode==="earlybird"})});if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json();const raw:JobWithMatch[]=data?.data||[];const sorted=[...raw].sort((a,b)=>scoreJob(b,roles)-scoreJob(a,roles));if(mode==="normal")setJobs(sorted);else setEarlyBirdJobs(sorted);}catch(err){console.error("fetchJobs error:",err);}
     if(mode==="normal")setLoading(false);else setEbLoading(false);
   };
 
