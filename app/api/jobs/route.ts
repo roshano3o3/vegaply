@@ -373,8 +373,8 @@ async function fetchRemotive(jobRole: string, location: string): Promise<Normali
       const normCity = rawCity.replace(/[\s.,\-]/g, '');
       if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
       if (isDefaultUS) {
-        // Exclude jobs with no city signal — safer than admitting unknown-origin jobs
-        if (!normCity) return false;
+        // Remotive is a remote-only board — blank city is remote-compatible, not unknown origin
+        if (!normCity) return true;
         return US_MARKERS.some(m => normCity.includes(m));
       }
       return normCity.includes(locNorm);
@@ -520,8 +520,8 @@ async function fetchTheMuse(jobRole: string, location: string): Promise<Normalis
       const normCity = rawCity.replace(/[\s.,\-]/g, '');
       if (NON_US_MARKERS.some(m => normCity.includes(m))) return false;
       if (isDefaultUS) {
-        // Exclude jobs with no city signal — safer than admitting unknown-origin jobs
-        if (!normCity) return false;
+        // TheMuse is a US-first platform — blank city admits the job rather than drops it
+        if (!normCity) return true;
         return US_MARKERS.some(m => normCity.includes(m));
       }
       return normCity.includes(locNorm);
