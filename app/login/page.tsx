@@ -20,14 +20,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Debug logging for Supabase configuration
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    console.log('🔍 [DEBUG] Supabase Configuration:');
-    console.log('🔍 - URL:', supabaseUrl);
-    console.log('🔍 - URL exists:', !!supabaseUrl);
-    console.log('🔍 - Anon key exists:', !!supabaseAnonKey);
 
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('❌ [ERROR] Missing Supabase configuration');
@@ -64,7 +58,7 @@ export default function LoginPage() {
     setForgotError("");
     setForgotMsg("");
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     });
     if (error) {
       setForgotError(error.message);

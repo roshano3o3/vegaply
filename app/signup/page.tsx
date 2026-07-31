@@ -58,7 +58,6 @@ export default function SignupPage() {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/home`,
       },
     });
-    console.log("[signup] response:", JSON.stringify(data, null, 2), "error:", error);
     if (error) {
       setError(error.message);
       setLoading(false);
