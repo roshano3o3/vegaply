@@ -5,6 +5,7 @@ import LandingPage from "./landing/page";
 
 export default async function RootIndex() {
   const cookieStore = await cookies();
+  
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +19,7 @@ export default async function RootIndex() {
       },
     }
   );
+  
 
   const { data: { user } } = await supabase.auth.getUser();
 

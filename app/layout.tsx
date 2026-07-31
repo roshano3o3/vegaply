@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Sora } from "next/font/google";
+import { Inter, Sora, Almarai, Instrument_Serif } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
@@ -14,6 +14,21 @@ const sora = Sora({
   subsets: ["latin"],
   weight: ["400", "600", "700", "800"],
   variable: "--font-sora",
+  display: "swap",
+});
+
+const almarai = Almarai({
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "700", "800"],
+  variable: "--font-almarai",
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
@@ -64,7 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${sora.variable} antialiased`}
+      className={`${inter.variable} ${sora.variable} ${almarai.variable} ${instrumentSerif.variable} antialiased`}
     >
       <body className="min-h-full">{children}</body>
 

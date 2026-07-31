@@ -1824,7 +1824,7 @@ function JobCard({ job, saved, onToggleSave, onClick, onTailor, onInterview, onC
             whileTap={{scale:0.98}}
             className="apply-cta"
           >
-            <Sparkles size={15}/>{hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Apply with AI Resume"}<ArrowRight size={15}/>
+            <Sparkles size={15}/>{hot&&earlyBirdMode?"⚡ Apply Now — Beat the Rush!":"Prep resume to apply"}<ArrowRight size={15}/>
           </motion.button>
           {job.job_apply_link&&<a href={job.job_apply_link} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{display:"block",textAlign:"center",fontSize:'var(--text-xs)',color:'var(--text-tertiary)',padding:'var(--space-2) 0',fontFamily:'var(--font-primary)',textDecoration:'none'}} onMouseEnter={e=>(e.currentTarget.style.textDecoration='underline')} onMouseLeave={e=>(e.currentTarget.style.textDecoration='none')}>or apply via {job.job_apply_link.includes('greenhouse')?'Greenhouse':job.job_apply_link.includes('linkedin')?'LinkedIn':job.job_apply_link.includes('indeed')?'Indeed':job.job_apply_link.includes('lever')?'Lever':job.job_apply_link.includes('workday')?'Workday':'job board'} ↗</a>}
         </div>
@@ -1945,11 +1945,15 @@ function PreferencesModal({ onClose, lm, onSave }: { onClose:()=>void; lm?:boole
 function scoreJob(job: JobWithMatch, roles?: string[]): number {
   let score = 0;
   const hoursOld = getHoursAgo(job.job_posted_at_datetime_utc);
-  if (hoursOld <= 2) score += 100;
-  else if (hoursOld <= 6) score += 80;
-  else if (hoursOld <= 12) score += 60;
-  else if (hoursOld <= 24) score += 40;
-  else if (hoursOld <= 72) score += 20;
+  if (job.source === "greenhouse") {
+    score += 20; // updated_at is not a reliable posting date; cap freshness boost
+  } else {
+    if (hoursOld <= 2) score += 100;
+    else if (hoursOld <= 6) score += 80;
+    else if (hoursOld <= 12) score += 60;
+    else if (hoursOld <= 24) score += 40;
+    else if (hoursOld <= 72) score += 20;
+  }
   if (isH1bSponsor(job.employer_name)) score += 15;
   if (job.match) {
     if (job.match.matchScore >= 80) score += 30;
@@ -2201,7 +2205,6 @@ export default function Home() {
   };
 
   const handleSearch=async()=>{
-    console.log("SEARCH CLICKED",{jobRole,location});
     if(!jobRole||!location){alert("Please enter job role and location");return;}
     localStorage.setItem("vegaply_jobRole",jobRole);
     localStorage.setItem("vegaply_location",location);
@@ -2338,12 +2341,13 @@ export default function Home() {
 
   const handleAutoApply=async(job:JobWithMatch)=>{
     if(!resumeText){setAutoApplyToast("Upload your resume first to use Auto Apply!");setTimeout(()=>setAutoApplyToast(null),4000);return;}
+    if(userProfile===null){setAutoApplyToast("Setting up your plan, try again in a moment…");setTimeout(()=>setAutoApplyToast(null),3000);return;}
     const today=new Date().toISOString().slice(0,10);
-    const dailyLimit=userProfile?.is_pro?20:5;
+    const dailyLimit=userProfile.is_pro?20:5;
     if(autoApplyCount>=dailyLimit){
       setAutoApplyToast(`Daily limit reached (${dailyLimit}/${dailyLimit}). Resets tomorrow!`);
       setTimeout(()=>setAutoApplyToast(null),4000);
-      if(!userProfile?.is_pro) setShowUpgradePrompt(true);
+      if(!userProfile.is_pro) setShowUpgradePrompt(true);
       return;
     }
     if(autoApplyResults[job.job_id]==="applied")return;
@@ -2737,16 +2741,6 @@ export default function Home() {
   const ENTERPRISE_CO=["google","alphabet","microsoft","apple","meta","amazon","netflix","nvidia","tesla","oracle","ibm","salesforce","adobe","cisco","intel"];
 
   const filterJobs=(list:JobWithMatch[])=>{
-    if(typeof window!=="undefined"&&(filterWorkArr.length||filterEmpType.length||filterRemote||filterSalary!=="any"||filterExpLevel.length||filterVisaH1b||filterVisaNoCitizen||filterCompanySize.length||filterSource.length)){
-      console.group("[filter] filterJobs");
-      console.log("Input count:",list.length,"filterType:",filterType);
-      console.log("filterWorkArr:",filterWorkArr,"filterEmpType:",filterEmpType,"activeFilters:",{filterRemote,filterDate,filterSalary,filterExpLevel,filterVisaH1b,filterVisaNoCitizen,filterCompanySize,filterSource});
-      console.log("prefTitles:",prefTitles,"hasExplicitFilters check");
-      console.log("Sample employment_type:",list.slice(0,5).map((j:any)=>j.job_employment_type));
-      console.log("Sample is_remote:",list.slice(0,5).map((j:any)=>j.job_is_remote));
-      console.log("Sample city:",list.slice(0,5).map((j:any)=>j.job_city));
-      console.groupEnd();
-    }
     const result=list.filter(job=>{
       // Employment type dropdown (sidebar)
       if(filterType!=="ALL"){
@@ -2850,9 +2844,6 @@ export default function Home() {
       }
       return true;
     });
-    if(typeof window!=="undefined"&&(filterWorkArr.length||filterEmpType.length||filterRemote)){
-      console.log("[filter] Output count:",result.length);
-    }
     return result;
   };
 
@@ -2879,32 +2870,6 @@ export default function Home() {
   const smartEbCount=jobs.filter(j=>getEarlyBirdStatus(j).isEarly).length;
   const h1bCount=jobs.filter(isH1B).length;
   const allSaved=allJobs.filter((j,i,arr)=>savedJobs.has(j.job_id)&&arr.findIndex(x=>x.job_id===j.job_id)===i);
-  
-  // DEBUG: Verify filter logic
-  if (typeof window !== 'undefined' && activeMode !== 'all') {
-    console.log('[DEBUG] activeMode:', activeMode);
-    console.log('[DEBUG] jobs.length:', jobs.length);
-    console.log('[DEBUG] modeFilteredJobs.length:', modeFilteredJobs.length);
-    console.log('[DEBUG] Sample job:', jobs[0] ? {
-      title: jobs[0].job_title,
-      employer: jobs[0].employer_name,
-      posted_ts: jobs[0].job_posted_at_timestamp,
-      posted_dt: jobs[0].job_posted_at_datetime_utc
-    } : 'no jobs');
-    console.log('[DEBUG] First 3 employers:', jobs.slice(0,3).map(j => j.employer_name));
-    if (activeMode === 'earlybird') {
-      console.log('[DEBUG] Early bird matches:', jobs.filter(j => {
-        const ts = j.job_posted_at_timestamp;
-        return ts && (Date.now()/1000 - ts) / 3600 < 24;
-      }).length);
-    }
-    if (activeMode === 'h1b') {
-      console.log('[DEBUG] Sample H1B check on first 5:', jobs.slice(0,5).map(j => ({
-        employer: j.employer_name,
-        isH1B: isH1bSponsor(j.employer_name || '')
-      })));
-    }
-  }
   
   const activeFilterCount=filterWorkArr.length+filterEmpType.length+(filterEasyApply?1:0)+(filterSalary!=="any"?1:0)+filterExpLevel.length+(filterVisaH1b?1:0)+(filterVisaNoCitizen?1:0)+filterCompanySize.length+filterSource.length;
   const displayJobs=activeTab==="results"?filterJobs(modeFilteredJobs):activeTab==="earlybird"?jobs.filter(j=>getEarlyBirdStatus(j).isEarly):allSaved;
@@ -3310,11 +3275,12 @@ export default function Home() {
         .coach-card:hover{border-color:rgba(245,158,11,0.18)}
         .coach-card-label{font-family:var(--font-primary);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(245,158,11,0.50)}
         .coach-card-text{font-family:var(--font-primary);font-size:12px;color:rgba(255,255,255,0.55);line-height:1.65}
-        .tracker-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+        .tracker-row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
         .tracker-pill{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:9px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:border-color var(--dur-base) var(--ease-out)}
         .tracker-pill:hover{border-color:rgba(255,255,255,0.10)}
         .tracker-label{font-family:var(--font-primary);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.22)}
         .tracker-number{font-family:var(--font-display);font-size:20px;font-weight:800;color:rgba(255,255,255,0.85);line-height:1}
+        .tracker-number.saved{color:#94a3b8}
         .tracker-number.applied{color:var(--success)}
         .tracker-number.interview{color:var(--gold)}
         .tracker-number.offer{color:var(--cyan)}
@@ -3433,7 +3399,7 @@ export default function Home() {
         .card-title{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:-0.4px;line-height:1.3;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:5px}
         .card-meta{font-family:var(--font-primary);font-size:12px;font-weight:500;color:var(--text-secondary);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
         .card-badge-strip{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-        .card-desc{font-family:var(--font-primary);font-size:13px;font-weight:400;color:rgba(255,255,255,0.40);line-height:1.65;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+        .card-desc{font-family:var(--font-primary);font-size:13px;font-weight:400;color:rgba(255,255,255,0.54);line-height:1.65;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
         .card-tool-strip{display:flex;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)}
         .card-tool-strip .action-pill:hover{transform:translateY(-1px)}
         .card-cta{display:flex;flex-direction:column;gap:5px}
@@ -4078,7 +4044,7 @@ export default function Home() {
                   onClick={()=>{setActiveMode('applied');setActiveTab('results');setCurrentPage(1);}}
                   style={{display:'inline-flex',alignItems:'center',gap:4,padding:'4px 11px',borderRadius:999,border:`1px solid ${activeMode==='applied'?'rgba(52,211,153,0.40)':'rgba(16,185,129,0.18)'}`,background:activeMode==='applied'?'rgba(52,211,153,0.10)':'transparent',color:'#34d399',fontSize:11,fontWeight:activeMode==='applied'?700:400,cursor:'pointer',transition:'all 0.15s ease',fontFamily:'var(--font-primary)',whiteSpace:'nowrap'}}
                 >
-                  ✅ Applied
+                  ✅ Applied in results
                   <span style={{fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:999,background:activeMode==='applied'?'rgba(52,211,153,0.25)':'rgba(16,185,129,0.14)',color:'#34d399',border:`1px solid ${activeMode==='applied'?'rgba(52,211,153,0.35)':'rgba(16,185,129,0.25)'}`}}>{appliedJobIds.size}</span>
                 </button>
               )}
@@ -4106,7 +4072,7 @@ export default function Home() {
               <div className="lst-sep"/>
               <div className="lst-item">
                 <span className="lst-val" style={{color:'var(--gold)'}}>{trackedApps.filter((a)=>a.status==='Applied').length}</span>
-                <span className="lst-lbl">Applied</span>
+                <span className="lst-lbl">Total applied</span>
               </div>
               <div className="lst-sep"/>
               <div className="lst-item">
@@ -4149,7 +4115,7 @@ export default function Home() {
                   <div style={{fontSize:9,fontWeight:700,letterSpacing:'2.2px',textTransform:'uppercase',color:'rgba(245,158,11,0.72)',fontFamily:'var(--font-primary)'}}>Daily Application Pack</div>
                 </div>
                 <div style={{fontFamily:'var(--font-display)',fontSize:19,fontWeight:800,color:darkMode?'#f5f5f7':'#111',letterSpacing:'-0.5px',lineHeight:1.25,marginBottom:5}}>
-                  {queueStats.ready>0?`${queueStats.ready} role${queueStats.ready===1?'':' s'} ready to review`:`${queueStats.total} roles queued for today`}
+                  {queueStats.ready>0?`${queueStats.ready} role${queueStats.ready===1?'':'s'} ready to review`:`${queueStats.total} roles queued for today`}
                 </div>
                 <div style={{fontSize:11,color:darkMode?'rgba(255,255,255,0.42)':'rgba(0,0,0,0.5)',lineHeight:1.55}}>
                   AI-matched and tailored to your resume. Review before clicking apply.
@@ -4168,7 +4134,7 @@ export default function Home() {
                 <div style={{width:1,height:36,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.10)'}}/>
                 <div style={{textAlign:'center'}}>
                   <motion.div key={queueStats.sent} initial={{opacity:0,y:5}} animate={{opacity:1,y:0}} transition={{duration:0.4,delay:0.12}} style={{fontFamily:'var(--font-display)',fontSize:28,fontWeight:800,color:'#10b981',letterSpacing:'-1.2px',lineHeight:1}}>{queueStats.sent}</motion.div>
-                  <div style={{fontSize:9,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.4)',marginTop:4,letterSpacing:'1px',textTransform:'uppercase'}}>Sent</div>
+                  <div style={{fontSize:9,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.4)',marginTop:4,letterSpacing:'1px',textTransform:'uppercase'}}>Applied</div>
                 </div>
               </div>
               <motion.a
@@ -4402,7 +4368,7 @@ export default function Home() {
                   onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(245,158,11,0.22)')}
                 >
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
-                    <div style={{fontSize:10,fontWeight:700,color:'rgba(245,158,11,0.75)',letterSpacing:'0.5px'}}>Application Packs</div>
+                    <div style={{fontSize:10,fontWeight:700,color:'rgba(245,158,11,0.75)',letterSpacing:'0.5px'}}>Today&apos;s Pack</div>
                     <div style={{fontSize:10,color:'rgba(245,158,11,0.55)',fontFamily:'var(--font-primary)',fontWeight:600}}>View →</div>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -4418,7 +4384,7 @@ export default function Home() {
                     <div style={{width:1,height:28,background:darkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.08)'}}/>
                     <div style={{textAlign:'center',flex:1}}>
                       <div style={{fontFamily:'var(--font-display)',fontSize:22,fontWeight:800,color:'#10b981',letterSpacing:'-0.8px',lineHeight:1}}>{queueStats.sent}</div>
-                      <div style={{fontSize:8,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.38)',marginTop:3,letterSpacing:'0.8px',textTransform:'uppercase'}}>Sent</div>
+                      <div style={{fontSize:8,fontWeight:700,color:darkMode?'rgba(255,255,255,0.26)':'rgba(0,0,0,0.38)',marginTop:3,letterSpacing:'0.8px',textTransform:'uppercase'}}>Applied</div>
                     </div>
                   </div>
                 </div>
@@ -4443,7 +4409,7 @@ export default function Home() {
                 {label:'Jobs Found',  value:jobs.length,          sub:'Available now', colorClass:''},
                 {label:'Early Bird',  value:panelFreshJobs.length, sub:'⚡ Fresh',      colorClass:'gold'},
                 {label:'H1B Jobs',    value:panelH1bJobs.length,  sub:'Verified',      colorClass:'cyan'},
-                {label:'Low Comp',    value:panelLowComp.length,  sub:'Apply first',   colorClass:'gold'},
+                {label:'Freshest',    value:panelLowComp.length,  sub:'Apply first',   colorClass:'gold'},
               ] as {label:string;value:number;sub:string;colorClass:string}[]).map((stat,i)=>(
                 <motion.div key={stat.label} className="activity-card" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:0.3+i*0.07}}>
                   <div className="activity-label">{stat.label}</div>
@@ -4461,10 +4427,11 @@ export default function Home() {
             <div className="right-label">Application Tracker</div>
             <div className="tracker-row">
               {([
-                {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,     cls:'applied'},
-                {label:'Interview', value:trackedApps.filter(a=>a.status==='Interviewing').length, cls:'interview'},
-                {label:'Offer',     value:trackedApps.filter(a=>a.status==='Offer').length,       cls:'offer'},
-                {label:'Rejected',  value:trackedApps.filter(a=>a.status==='Rejected').length,    cls:'rejected'},
+                {label:'Saved',     value:trackedApps.filter(a=>a.status==='Saved').length,        cls:'saved'},
+                {label:'Applied',   value:trackedApps.filter(a=>a.status==='Applied').length,      cls:'applied'},
+                {label:'Interview', value:trackedApps.filter(a=>a.status==='Interviewing').length,  cls:'interview'},
+                {label:'Offer',     value:trackedApps.filter(a=>a.status==='Offer').length,        cls:'offer'},
+                {label:'Rejected',  value:trackedApps.filter(a=>a.status==='Rejected').length,     cls:'rejected'},
               ] as {label:string;value:number;cls:string}[]).map(col=>(
                 <div key={col.label} className="tracker-pill">
                   <div className="tracker-label">{col.label}</div>

@@ -55,10 +55,12 @@ const labelStyle: React.CSSProperties = {
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile>(EMPTY);
   const [location, setLocation] = useState("");
+  const [jobRole,  setJobRole]  = useState("");
   const [resumeText, setResumeText] = useState<string | null>(null);
   const [resumeFileName, setResumeFileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function ProfilePage() {
 
       const [{ data: appProfile }, { data: profileData }, { data: resumeRow }] = await Promise.all([
         supabase.from("application_profiles").select("*").eq("user_id", user.id).maybeSingle(),
-        supabase.from("profiles").select("location, resume_text").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("location, resume_text, job_role").eq("id", user.id).maybeSingle(),
         supabase.from("resumes").select("file_name, resume_text").eq("user_id", user.id)
           .order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
@@ -76,6 +78,7 @@ export default function ProfilePage() {
       if (appProfile) setProfile({ ...EMPTY, ...appProfile, years_experience: appProfile.years_experience ?? "" });
       if (profileData) {
         setLocation(profileData.location ?? "");
+        setJobRole(profileData.job_role ?? "");
         setResumeText(profileData.resume_text ?? null);
       }
       if (resumeRow) {
@@ -91,18 +94,25 @@ export default function ProfilePage() {
     })();
   }, []);
 
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const showToast = (msg: string, ok: boolean) => {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const set = (key: keyof Profile, val: string | boolean) =>
+  const set = (key: keyof Profile, val: string | boolean) => {
+    setSavedOk(false);
     setProfile(p => ({ ...p, [key]: val }));
+  };
+
+  const setLocationAndReset = (v: string) => { setSavedOk(false); setLocation(v); };
+  const setJobRoleAndReset  = (v: string) => { setSavedOk(false); setJobRole(v); };
 
   const handleSave = async () => {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setSaving(false); return; }
+    if (!user) { setSaving(false); showToast("Session expired — please refresh the page", false); return; }
 
     const { error } = await supabase
       .from("application_profiles")
@@ -122,7 +132,7 @@ export default function ProfilePage() {
 
     const { error: locError } = await supabase
       .from("profiles")
-      .upsert({ id: user.id, location, onboarded: true }, { onConflict: "id" });
+      .upsert({ id: user.id, location, job_role: jobRole, onboarded: true }, { onConflict: "id" });
 
     setSaving(false);
     if (locError) {
@@ -130,6 +140,8 @@ export default function ProfilePage() {
       showToast("Profile saved but location failed to save", false);
     } else {
       showToast("Profile saved — changes apply to your next daily queue", true);
+      setSavedOk(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -142,6 +154,7 @@ export default function ProfilePage() {
     { label: "Phone",              done: profile.phone.trim() !== "" },
     { label: "LinkedIn URL",       done: profile.linkedin_url.trim() !== "" },
     { label: "Location",           done: location.trim() !== "" },
+    { label: "Target role",        done: jobRole.trim()   !== "" },
     { label: "Work authorization", done: profile.work_authorization !== "" },
     { label: "Work eligibility",   done: true },
     { label: "Sponsorship status", done: true },
@@ -256,9 +269,16 @@ export default function ProfilePage() {
             <Field
               label="Location"
               value={location}
-              onChange={setLocation}
+              onChange={setLocationAndReset}
               placeholder="New York, NY"
               hint="Used for matching jobs and preparing application packs."
+            />
+            <Field
+              label="Target job title"
+              value={jobRole}
+              onChange={setJobRoleAndReset}
+              placeholder="Software Engineer"
+              hint="Used to match jobs for your Daily Pack."
             />
           </Section>
 
@@ -379,6 +399,24 @@ export default function ProfilePage() {
             {saving ? "Saving profile…" : "Save Application Profile"}
           </button>
 
+          {savedOk && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              padding: "8px 16px", borderRadius: 10,
+              background: "rgba(16,185,129,0.08)",
+              border: "1px solid var(--success-border)",
+              animation: "cardFadeUp 220ms ease both",
+            }}>
+              <span style={{ color: "var(--success)", fontSize: 14 }}>✓</span>
+              <span style={{
+                fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 500,
+                color: "var(--success)",
+              }}>
+                Profile saved
+              </span>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
@@ -442,15 +480,33 @@ function ReadinessCard({ completed, total, pct, missing, isReady }: {
 
       {/* Status message + chips */}
       {isReady ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: "rgba(16,185,129,0.15)", border: "1px solid var(--success-border)",
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0,
-          }}>✓</div>
-          <p style={{ fontSize: 13, color: "var(--success)", fontFamily: "var(--font-primary)", margin: 0, fontWeight: 500 }}>
-            Profile complete — Vegaply can now build your daily packs.
-          </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: "rgba(16,185,129,0.15)", border: "1px solid var(--success-border)",
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0,
+            }}>✓</div>
+            <p style={{ fontSize: 13, color: "var(--success)", fontFamily: "var(--font-primary)", margin: 0, fontWeight: 500 }}>
+              Profile complete — Vegaply can now build your daily packs.
+            </p>
+          </div>
+          <a
+            href="/auto-apply"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              alignSelf: "flex-start",
+              padding: "9px 20px", borderRadius: "var(--radius-md)",
+              background: "linear-gradient(135deg, rgba(245,158,11,0.18), rgba(251,191,36,0.10))",
+              border: "1px solid rgba(245,158,11,0.38)",
+              color: "var(--primary)", textDecoration: "none",
+              fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 700,
+              boxShadow: "0 2px 12px rgba(245,158,11,0.10)",
+              transition: "background 150ms ease, box-shadow 150ms ease",
+            }}
+          >
+            Go to your Daily Pack →
+          </a>
         </div>
       ) : (
         <>

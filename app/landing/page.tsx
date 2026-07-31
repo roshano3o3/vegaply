@@ -2,1122 +2,410 @@
 import "./landing.css"
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'framer-motion'
-import { LogoVegaStar } from '@/components/logo/LogoVegaStar'
-import { X, Zap, Target, FileText, Mail, Globe2, LayoutGrid } from 'lucide-react'
-import dynamic from 'next/dynamic'
-import { gsap } from 'gsap'
 
-const GlobeHero = dynamic(
-  () => import('@/components/landing/Globe').then(m => m.GlobeHero),
-  { ssr: false }
-)
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { SplitText } from 'gsap/SplitText'
-import { useGSAP } from '@gsap/react'
+const TICKER_ITEMS = [
+  '24-Hour Fresh Jobs','H1B Sponsor Detection','AI Resume Scoring',
+  'Auto Apply','Skill Gap Analysis','Interview Prep','Application Tracker','Chrome Extension',
+]
 
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger, SplitText)
+const FEATURE_CARDS = [
+  {
+    num: '01', title: '24-Hour Fresh Jobs.',
+    items: ['Jobs posted in last 24 hours only','H1B sponsor verified listings','Real-time filtering by role and location','No stale postings, ever'],
+  },
+  {
+    num: '02', title: 'AI Resume Scoring.',
+    items: ['Match score vs job description','Keyword gap analysis','Instant improvement suggestions','Works with any resume format'],
+  },
+  {
+    num: '03', title: 'Auto Apply.',
+    items: ['One-click Greenhouse form fill','Chrome extension included','Tracks every application automatically'],
+  },
+]
+
+const FREE_FEATURES = [
+  { text: '5 daily application packs', locked: false },
+  { text: 'AI-tailored resume per job', locked: false },
+  { text: 'Daily Pack delivered to inbox', locked: false },
+  { text: 'Early Bird Detection', locked: false },
+  { text: 'AI Resume Match scoring', locked: false },
+  { text: 'Cover letter generator', locked: false },
+  { text: 'H1B sponsor filter', locked: false },
+  { text: 'Application board', locked: false },
+  { text: 'Priority job alerts', locked: true },
+]
+
+const PRO_FEATURES = [
+  '20 daily application packs','Everything in Free','Priority email alerts','Early access to new features',
+]
+
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true) },
+      { threshold }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [threshold])
+  return { ref, visible }
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const PROOF_PHRASES = [
-  'Tailored resume per role — in under 60 seconds',
-  'H1B sponsorship filtering built in',
-  'Fresh matched roles delivered every morning',
-  'AI-generated cover letter included with every pack',
-  'Built for F-1, OPT, and H1B candidates',
-]
-
-const TICKER_DATA = [
-  'Matched roles, scored against your resume',
-  'Tailored resume per job — in under 60s',
-  'Daily Pack emailed to your inbox every morning',
-  'Early Bird roles surfaced before the crowd',
-  'Cover letter generated per application',
-  'Application board, built in',
-  'H1B-friendly roles filtered automatically',
-]
-
-const BUILT_FOR = [
-  {
-    label: 'F-1 / OPT Candidates',
-    desc: 'Apply smart during your OPT window',
-  },
-  {
-    label: 'H1B Seekers',
-    desc: 'Every role filtered for sponsorship history',
-  },
-  {
-    label: 'International Professionals',
-    desc: 'Tailored for candidates navigating both job search and visa requirements',
-  },
-]
-
-const DAILY_PACK_ROWS = [
-  { company: 'S', title: 'Data Analyst', co: 'Stripe · Remote', score: 94, h1b: true },
-  { company: 'G', title: 'ML Engineer', co: 'Google · Mountain View', score: 88, h1b: true },
-  { company: 'N', title: 'Product Manager', co: 'Notion · SF', score: 81, h1b: false },
-  { company: 'M', title: 'Software Engineer', co: 'Meta · NYC', score: 76, h1b: true },
-  { company: 'D', title: 'Business Analyst', co: 'Databricks · Remote', score: 71, h1b: true },
-]
-
-const FEATURES = [
-  {
-    icon: <Zap size={20} />,
-    name: 'Early Bird Detection',
-    desc: 'Surface roles the moment they post. Be first — not just fast.',
-    tag: 'Under 6h old',
-  },
-  {
-    icon: <Target size={20} />,
-    name: 'Description Match',
-    desc: 'Every role scored against your resume before you see it. Know your fit before you invest a minute.',
-    tag: 'Resume-scored',
-  },
-  {
-    icon: <FileText size={20} />,
-    name: 'Resume Generator',
-    desc: 'Your resume rewritten for each role — keywords aligned, skills surfaced, ATS-ready. In under a minute.',
-    tag: 'Per-job tailored',
-  },
-  {
-    icon: <Mail size={20} />,
-    name: 'Cover Letter',
-    desc: 'A focused, role-specific cover letter alongside your resume. No generic templates.',
-    tag: 'Per-job · Instant',
-  },
-  {
-    icon: <Globe2 size={20} />,
-    name: 'H1B Role Filter',
-    desc: 'One filter shows only H1B-friendly roles. Built for international students who need signal, not noise.',
-    tag: 'H1B-friendly',
-  },
-  {
-    icon: <LayoutGrid size={20} />,
-    name: 'Application Tracker',
-    desc: 'Every pack you review is tracked automatically. See what you opened, clicked, and where you stand.',
-    tag: '5-stage board',
-  },
-]
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function VegaplyLanding() {
-  const prefersReducedMotion = useReducedMotion()
+  const heroVideoRef = useRef<HTMLVideoElement>(null)
+  const about = useInView(0.15)
+  const featuresHeader = useInView(0.1)
+  const card0 = useInView(0.1)
+  const card1 = useInView(0.1)
+  const card2 = useInView(0.1)
+  const card3 = useInView(0.1)
+  const pricing = useInView(0.1)
+  const footer = useInView(0.05)
 
-  const { scrollY } = useScroll()
-  const heroContentY = useTransform(scrollY, [0, 520], [0, -50])
-  const heroAtmoY = useTransform(scrollY, [0, 520], [0, -22])
-
-  const heroRef = useRef<HTMLDivElement>(null)
-  const heroHeadlineRef = useRef<HTMLHeadingElement>(null)
-  const heroContentRef = useRef<HTMLDivElement>(null)
-  const pinSectionRef = useRef<HTMLElement>(null)
-  const pinLeftRef = useRef<HTMLDivElement>(null)
-  const step1Ref = useRef<HTMLDivElement>(null)
-  const step2Ref = useRef<HTMLDivElement>(null)
-  const step3Ref = useRef<HTMLDivElement>(null)
-  const headlineRef = useRef<HTMLDivElement>(null)
-  const featGridRef = useRef<HTMLDivElement>(null)
-  const navRef = useRef<HTMLElement>(null)
-
-  const [showDemo, setShowDemo] = useState(false)
-  const [proofPhrase, setProofPhrase] = useState(PROOF_PHRASES[0])
-  const [proofVisible, setProofVisible] = useState(true)
-  const [navScrolled, setNavScrolled] = useState(false)
-
-  // Demo modal ESC + scroll lock
   useEffect(() => {
-    if (!showDemo) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowDemo(false) }
-    window.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
-  }, [showDemo])
-
-  // Lenis smooth scroll
-  useEffect(() => {
-    if (prefersReducedMotion) return
-    if (typeof window === 'undefined') return
-
-    let lenis: any
-    let rafId: number
-
-    const initLenis = async () => {
-      try {
-        const { default: Lenis } = await import('lenis')
-        lenis = new Lenis({
-          duration: 1.2,
-          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-          smoothWheel: true,
-          wheelMultiplier: 1,
-          touchMultiplier: 2,
-        })
-        lenis.on('scroll', ScrollTrigger.update)
-        gsap.ticker.add((time: number) => { lenis.raf(time * 1000) })
-        gsap.ticker.lagSmoothing(0)
-      } catch {
-        function raf(time: number) { rafId = requestAnimationFrame(raf) }
-        rafId = requestAnimationFrame(raf)
+    const video = heroVideoRef.current
+    if (!video) return
+    let rafId = 0
+    const tick = () => {
+      if (video.duration) {
+        const fadeDur = 0.5
+        const timeLeft = video.duration - video.currentTime
+        if (video.currentTime < fadeDur) {
+          video.style.opacity = String(video.currentTime / fadeDur)
+        } else if (timeLeft < fadeDur) {
+          video.style.opacity = String(timeLeft / fadeDur)
+        } else {
+          video.style.opacity = '1'
+        }
       }
+      rafId = requestAnimationFrame(tick)
     }
-
-    initLenis()
-    return () => {
-      if (lenis) lenis.destroy()
-      if (rafId) cancelAnimationFrame(rafId)
-      gsap.ticker.remove(() => {})
+    const onEnded = () => {
+      video.style.opacity = '0'
+      setTimeout(() => { video.currentTime = 0; video.play() }, 100)
     }
-  }, [prefersReducedMotion])
-
-  // Nav scroll state
-  useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 48)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    video.addEventListener('ended', onEnded)
+    video.play().catch(() => {})
+    rafId = requestAnimationFrame(tick)
+    return () => { cancelAnimationFrame(rafId); video.removeEventListener('ended', onEnded) }
   }, [])
 
-  // Rotating proof phrase
-  useEffect(() => {
-    let i = 1
-    const interval = setInterval(() => {
-      setProofVisible(false)
-      setTimeout(() => {
-        setProofPhrase(PROOF_PHRASES[i])
-        setProofVisible(true)
-        i = (i + 1) % PROOF_PHRASES.length
-      }, 350)
-    }, 2800)
-    return () => clearInterval(interval)
-  }, [])
+  const cardRefs = [card0, card1, card2, card3]
 
-  // Scroll reveal
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      entries => {
-        entries.forEach(en => {
-          if (en.isIntersecting) {
-            en.target.classList.add('in')
-            io.unobserve(en.target)
-          }
-        })
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-    )
-    document.querySelectorAll('.reveal').forEach(r => io.observe(r))
-    return () => io.disconnect()
-  }, [])
-
-  // Feature card cursor glow
-  useEffect(() => {
-    const feats = document.querySelectorAll('.feat-card')
-    feats.forEach(f => {
-      f.addEventListener('mousemove', (e: Event) => {
-        const me = e as MouseEvent
-        const r = (f as HTMLElement).getBoundingClientRect()
-        ;(f as HTMLElement).style.setProperty('--fx', ((me.clientX - r.left) / r.width) * 100 + '%')
-        ;(f as HTMLElement).style.setProperty('--fy', ((me.clientY - r.top) / r.height) * 100 + '%')
-      })
-    })
-  }, [])
-
-  // GSAP animations
-  useGSAP(() => {
-    if (prefersReducedMotion) return
-    if (typeof window === 'undefined') return
-
-    // Hero headline split text
-    if (heroHeadlineRef.current) {
-      const staticEl = heroHeadlineRef.current.querySelector('.static-text') as HTMLElement | null
-      const splitTarget = staticEl ?? heroHeadlineRef.current
-      try {
-        const split = SplitText.create(splitTarget, { type: 'chars,words' })
-        gsap.from(split.chars, {
-          yPercent: 120,
-          opacity: 0,
-          duration: 0.85,
-          stagger: 0.018,
-          ease: 'power3.out',
-          delay: 0.2,
-        })
-      } catch {
-        gsap.from(splitTarget, { y: 40, opacity: 0, duration: 0.9, ease: 'power3.out', delay: 0.2 })
-      }
-    }
-
-    // Hero content fade up
-    if (heroContentRef.current) {
-      const children = heroContentRef.current.querySelectorAll('.hero-animate')
-      gsap.from(children, {
-        y: 32,
-        opacity: 0,
-        duration: 0.7,
-        stagger: 0.1,
-        ease: 'power3.out',
-        delay: 0.6,
-      })
-    }
-
-    // Nav fade in
-    if (navRef.current) {
-      gsap.from(navRef.current, {
-        y: -20,
-        opacity: 0,
-        duration: 0.6,
-        ease: 'power2.out',
-        delay: 0.1,
-      })
-    }
-
-    // Pinned How It Works
-    if (pinSectionRef.current && step1Ref.current && step2Ref.current && step3Ref.current) {
-      gsap.set([step2Ref.current, step3Ref.current], { opacity: 0, scale: 0.95, y: 20 })
-      gsap.set(step1Ref.current, { opacity: 1, scale: 1, y: 0 })
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: pinSectionRef.current,
-          start: 'top top',
-          end: '+=200%',
-          pin: true,
-          scrub: 1,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      })
-
-      tl.to(step1Ref.current, { opacity: 0, scale: 0.95, y: -20, duration: 1 }, 0)
-        .to(step2Ref.current, { opacity: 1, scale: 1, y: 0, duration: 1 }, 0.5)
-        .to(step2Ref.current, { opacity: 0, scale: 0.95, y: -20, duration: 1 }, 1.5)
-        .to(step3Ref.current, { opacity: 1, scale: 1, y: 0, duration: 1 }, 2)
-
-      if (headlineRef.current) {
-        const headlines = headlineRef.current.querySelectorAll('.pin-headline')
-        tl.to(headlines[0], { opacity: 0, y: -16, duration: 0.5 }, 0.1)
-          .fromTo(headlines[1], { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, 0.5)
-          .to(headlines[1], { opacity: 0, y: -16, duration: 0.5 }, 1.6)
-          .fromTo(headlines[2], { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, 2)
-      }
-    }
-
-    // Feature grid stagger
-    if (featGridRef.current) {
-      gsap.from(featGridRef.current.querySelectorAll('.feat-card'), {
-        y: 40,
-        opacity: 0,
-        duration: 0.7,
-        stagger: 0.08,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: featGridRef.current,
-          start: 'top 80%',
-        },
-      })
-    }
-
-    // Generic section reveals
-    gsap.utils.toArray<HTMLElement>('.gsap-reveal').forEach(el => {
-      gsap.from(el, {
-        y: 36,
-        opacity: 0,
-        duration: 0.75,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 85%',
-        },
-      })
-    })
-
-    // Built-for chips — staggered cinematic entrance
-    gsap.from('.built-for-chip', {
-      y: 28,
-      opacity: 0,
-      duration: 0.65,
-      stagger: 0.1,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: '.built-for-chips', start: 'top 86%' },
-    })
-
-    // Daily pack rows — slide in from left
-    gsap.from('.daily-pack-row', {
-      x: -16,
-      opacity: 0,
-      duration: 0.48,
-      stagger: 0.07,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: '.daily-pack-card', start: 'top 80%' },
-    })
-
-    // Resume compare panels — depth reveal
-    gsap.from('.resume-compare-panel', {
-      y: 28,
-      opacity: 0,
-      duration: 0.65,
-      stagger: 0.2,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: '.resume-compare-wrap', start: 'top 82%' },
-    })
-
-    // H1B card rows — slide from right
-    gsap.from('.h1b-card-row', {
-      x: 16,
-      opacity: 0,
-      duration: 0.44,
-      stagger: 0.08,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: '.h1b-card', start: 'top 80%' },
-    })
-
-    // Pricing cards — scale + fade
-    gsap.from('.pricing-card', {
-      y: 40,
-      opacity: 0,
-      scale: 0.97,
-      duration: 0.75,
-      stagger: 0.14,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: '.pricing-grid', start: 'top 80%' },
-    })
-
-    // Founder card — single premium reveal
-    gsap.from('.founder-card', {
-      y: 30,
-      opacity: 0,
-      duration: 0.85,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: '.founder-card', start: 'top 85%' },
-    })
-  }, [prefersReducedMotion])
+  const revealStyle = (visible: boolean, delay = 0): React.CSSProperties => ({
+    opacity: visible ? 1 : 0,
+    transform: visible ? 'translateY(0) scale(1)' : 'translateY(32px) scale(0.97)',
+    transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+  })
 
   return (
-    <div className="landing-wrap">
-      {/* Grain overlay */}
-      <div className="grain" aria-hidden="true" />
+    <div style={{ background: '#000000', color: '#E1E0CC', fontFamily: 'var(--font-almarai), system-ui, sans-serif', minHeight: '100vh' }}>
 
-      {/* Scroll progress bar */}
-      <motion.div
-        className="scroll-bar"
-        style={{ scaleX: 0, originX: 0 }}
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: 0 }}
-      />
+      {/* ── 1. HERO ── */}
+      <section style={{ minHeight: '100vh', padding: '16px', display: 'flex', flexDirection: 'column', background: '#000' }}>
+        <div style={{ borderRadius: '24px', overflow: 'hidden', position: 'relative', flex: 1, minHeight: '90vh' }}>
 
-      {/* ── NAV ───────────────────────────────────────────────────────────────── */}
-      <nav
-        ref={navRef}
-        className={`nav${navScrolled ? ' scrolled' : ''}`}
-        role="navigation"
-        aria-label="Main navigation"
-      >
-        <Link href="/" className="nav-logo" aria-label="Vegaply home">
-          <LogoVegaStar size={28} />
-          <span className="nav-logo-text">
-            <span style={{ color: '#fff', fontWeight: 700 }}>Vega</span>
-            <span style={{ background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: 700 }}>ply</span>
-          </span>
-        </Link>
+          <video
+            ref={heroVideoRef}
+            className="video-fade"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            autoPlay muted playsInline
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_170732_8a9ccda6-5cff-4628-b164-059c500a2b41.mp4"
+          />
 
-        <ul className="nav-links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#how">How it works</a></li>
-          <li><a href="#stories">Stories</a></li>
-        </ul>
+          <div className="noise-overlay" style={{ opacity: 0.6, mixBlendMode: 'overlay' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), transparent 40%, rgba(0,0,0,0.7))', pointerEvents: 'none' }} />
 
-        <div className="nav-right">
-          <Link href="/login" className="nav-signin">Sign in</Link>
-          <Link href="/signup" className="btn-primary">Get started free</Link>
+          {/* Navbar */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, display: 'flex', justifyContent: 'center' }}>
+            <nav className="liquid-glass" style={{ borderRadius: '0 0 20px 20px', padding: '10px 32px', filter: 'drop-shadow(0 4px 24px rgba(222,219,200,0.07))' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+                {['How it works','Features','Pricing'].map(label => (
+                  <a key={label} href={`#${label.toLowerCase().replace(' ','')}`}
+                    style={{ color: 'rgba(225,224,204,0.75)', fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#E1E0CC')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(225,224,204,0.75)')}
+                  >{label}</a>
+                ))}
+                <Link href="/login" style={{ color: 'rgba(225,224,204,0.75)', fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#E1E0CC')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(225,224,204,0.75)')}
+                >Sign in</Link>
+                <Link href="/signup" style={{ background: '#DEDBC8', color: '#000', borderRadius: '999px', padding: '6px 16px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', transition: 'opacity 0.2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                >Get Started Free</Link>
+              </div>
+            </nav>
+          </div>
+
+          {/* Hero content */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10, padding: '40px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'flex-end', gap: '24px' }}>
+              <div>
+                <h1
+                  className="animate-fade-rise"
+                  style={{
+                    fontSize: 'clamp(80px, 18vw, 260px)',
+                    fontWeight: 500,
+                    lineHeight: 0.85,
+                    letterSpacing: '-0.05em',
+                    color: '#E1E0CC',
+                    margin: 0,
+                    fontFamily: 'var(--font-almarai), system-ui, sans-serif',
+                  }}
+                >
+                  Vegaply<sup style={{ fontSize: '0.15em', position: 'relative', top: '-0.9em', marginLeft: '4px' }}>*</sup>
+                </h1>
+              </div>
+              <div style={{ maxWidth: '320px', paddingBottom: '8px' }}>
+                <p className="animate-fade-rise-delay" style={{ color: 'rgba(225,224,204,0.7)', fontSize: '14px', lineHeight: 1.5, marginBottom: '20px' }}>
+                  Your AI-powered job search engine — built for international students, H1B seekers, and ambitious candidates who apply smarter, not harder.
+                </p>
+                <Link
+                  href="/signup"
+                  className="animate-fade-rise-delay-2 liquid-glass"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '999px', padding: '12px 24px', fontSize: '14px', fontWeight: 500, color: '#E1E0CC', textDecoration: 'none', transition: 'filter 0.3s' }}
+                  onMouseEnter={e => (e.currentTarget.style.filter = 'drop-shadow(0 0 16px rgba(222,219,200,0.2))')}
+                  onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+                >
+                  Start for free
+                  <span style={{ background: '#E1E0CC', color: '#000', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 700 }}>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
-      </nav>
-
-      {/* ── HERO ──────────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="hero" aria-label="Hero">
-        {/* Atmospheric base — warm ambient below globe, no JS */}
-        <div className="hero-atmo-base" aria-hidden="true" />
-
-        {/* Star layers — CSS dot-field, sits behind globe canvas (z-index 1) */}
-        <div className="hero-stars-1" aria-hidden="true" />
-        <div className="hero-stars-2" aria-hidden="true" />
-
-        <GlobeHero />
-
-        {/* Rim glow — depth layer between globe and content */}
-        <motion.div
-          className="hero-rim-glow"
-          aria-hidden="true"
-          style={prefersReducedMotion ? {} : { y: heroAtmoY }}
-        />
-
-        <motion.div
-          ref={heroContentRef}
-          className="hero-content"
-          style={prefersReducedMotion ? {} : { y: heroContentY }}
-        >
-          <div className="hero-eyebrow hero-animate">
-            <span className="eyebrow-dot" aria-hidden="true" />
-            Daily Pack · Fresh every morning
-          </div>
-
-          <h1 ref={heroHeadlineRef} className="hero-headline">
-            <span className="static-text">
-              Your job search. Packed and ready by morning.
-            </span>
-          </h1>
-
-          <p className="hero-body hero-animate">
-            Every day, Vegaply delivers <span className="hero-body-highlight">matched roles</span>, <span className="hero-body-highlight">AI-tailored resumes</span>, and <span className="hero-body-highlight">H1B-aware preparation</span> — so when you open your laptop, you&apos;re not building applications from scratch. You&apos;re choosing which ones to send.
-          </p>
-
-          <div className="hero-cta-row hero-animate">
-            <Link href="/signup" className="btn-primary btn-primary-lg">
-              Get Your First Pack
-            </Link>
-            <a href="#daily-pack" className="btn-ghost btn-ghost-lg">
-              See what&apos;s inside
-            </a>
-          </div>
-
-          <div className="hero-proof-strip hero-animate">
-            <span className="hero-proof-dot" aria-hidden="true" />
-            <span className={`hero-morph${proofVisible ? '' : ' hidden'}`}>{proofPhrase}</span>
-          </div>
-        </motion.div>
       </section>
 
-      {/* ── POST-HERO DESCENT ZONE ────────────────────────────────────────────── */}
-      <div className="post-hero-zone">
-
-        {/* ── WHO IT'S BUILT FOR ──────────────────────────────────────────────── */}
-        <div className="built-for-section reveal">
-          <p className="eyebrow" style={{ textAlign: 'center' }}>Built for</p>
-          <h2 className="section-title" style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto' }}>
-            Made for candidates the U.S. job market makes work hardest.
-          </h2>
-          <p className="section-body" style={{ textAlign: 'center', margin: '20px auto 0' }}>
-            If you&apos;re on F-1 OPT, navigating H1B sponsorship requirements, or job-hunting with a visa deadline rather than a preference — Vegaply was built for you specifically.
-          </p>
-          <p className="section-body" style={{ textAlign: 'center', margin: '12px auto 0' }}>
-            We filter for companies that sponsor. We know how the timeline pressure feels. We make sure you arrive at every application better prepared than the next candidate.
-          </p>
-          <div className="built-for-chips">
-            {BUILT_FOR.map((b, i) => (
-              <div key={i} className="built-for-chip">
-                <div className="built-for-chip-label">{b.label}</div>
-                <div className="built-for-chip-desc">{b.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── TICKER ──────────────────────────────────────────────────────────── */}
-        <div className="ticker-section" aria-hidden="true">
-          <div className="ticker-inner">
-            {[...TICKER_DATA, ...TICKER_DATA].map((d, i) => (
-              <span key={i} className="ticker-item">
-                <span className="ticker-dot" />
-                {d}
-              </span>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
-
-      {/* ── THE DAILY PACK ───────────────────────────────────────────────────── */}
-      <div className="daily-pack-section gsap-reveal" id="daily-pack">
-        <p className="eyebrow" style={{ textAlign: 'center' }}>The Daily Pack</p>
-        <h2 className="section-title" style={{ textAlign: 'center' }}>
-          Every morning, your pack is <em>ready.</em>
-        </h2>
-        <p className="section-body" style={{ textAlign: 'center', margin: '16px auto 0' }}>
-          Before you open your inbox, Vegaply has already worked through today&apos;s job listings. Scored them against your resume. Filtered for H1B eligibility. Generated a tailored resume and cover letter for each strong match.
-        </p>
-        <p className="section-body" style={{ textAlign: 'center', margin: '10px auto 0', fontStyle: 'italic', color: 'var(--text-dimmer)' }}>
-          Not automation. Preparation. The difference is you stay in control.
-        </p>
-
-        <div className="daily-pack-card">
-          <div className="daily-pack-header">
-            <div className="queue-preview-date">
-              <span className="queue-preview-dot" />
-              Today&apos;s Daily Pack
-            </div>
-            <div className="daily-pack-sample-badge">Sample — Illustrative</div>
-          </div>
-          <div className="queue-preview-rows">
-            {DAILY_PACK_ROWS.map((row, i) => (
-              <div key={i} className="daily-pack-row">
-                <div className="queue-preview-logo">{row.company}</div>
-                <div className="queue-preview-info">
-                  <div className="queue-preview-title">{row.title}</div>
-                  <div className="queue-preview-co">{row.co}</div>
-                </div>
-                {row.h1b && <span className="daily-pack-h1b-badge">H1B</span>}
-                <div className="queue-preview-score">{row.score}%</div>
-                <div className="daily-pack-action">View Resume</div>
-              </div>
-            ))}
-          </div>
-          <div className="queue-preview-footer">
-            <span className="queue-preview-footer-text">5 tailored packs · updated daily · you review and apply</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
-
-      {/* ── AI RESUME TAILORING ──────────────────────────────────────────────── */}
-      <div className="resume-tailor-section reveal" id="resume-tailor">
-        <p className="eyebrow">AI Resume Tailoring</p>
-        <h2 className="section-title">
-          Your resume, rewritten for the role — <em>in under a minute.</em>
-        </h2>
-        <p className="section-body">
-          Paste your resume once. Vegaply matches it to a role, identifies the keywords and requirements that matter, and rewrites the relevant sections to reflect them — using only what&apos;s already in your background.
-        </p>
-        <p className="section-body" style={{ marginTop: '8px' }}>
-          No invented metrics. No hallucinated experience. Your real qualifications, presented in the language of the specific job.
-        </p>
-        <p className="resume-tailor-meta">
-          Match score · Tailored bullets · Skills gap · ATS keywords identified
-        </p>
-
-        <div className="resume-compare-wrap">
-          <div className="resume-compare-panel">
-            <div className="resume-panel-label">Your resume</div>
-            <div className="resume-panel-content">
-              <p className="resume-bullet">
-                Developed and maintained data pipelines to process large datasets for business reporting.
-              </p>
-            </div>
-          </div>
-          <div className="resume-compare-arrow" aria-hidden="true">→</div>
-          <div className="resume-compare-panel resume-panel-right">
-            <div className="resume-panel-label">Tailored for Data Analyst at Stripe</div>
-            <div className="resume-panel-content">
-              <p className="resume-bullet">
-                Built and maintained <mark className="resume-highlight">Python</mark> and <mark className="resume-highlight">SQL</mark> data pipelines processing large transaction datasets, delivering insights to drive <mark className="resume-highlight">Tableau</mark> dashboards for business reporting.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="resume-score-row">
-          <div className="resume-score-chip resume-score-strong">
-            <span className="resume-score-dot" />
-            Strong — 81%
-          </div>
-          <div className="resume-score-stat">4 keywords added</div>
-          <div className="resume-score-stat">2 skills to address</div>
-        </div>
-        <p className="resume-sample-note">Sample output — illustrative only</p>
-      </div>
-
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
-
-      {/* ── FOUNDER NOTE ─────────────────────────────────────────────────────── */}
-      <div className="founder-section reveal" id="stories">
-        <p className="founder-eyebrow">From the founder</p>
-        <h2 className="founder-headline">
-          I built this for people who don&apos;t have time to get it wrong.
-        </h2>
-
-        <div className="founder-card">
-          <div className="founder-quote-mark" aria-hidden="true">&ldquo;</div>
-          <div className="founder-body">
-            <p>
-              I&apos;m Roshan. I was an F-1 student at the University of Houston, running out of OPT time, writing cover letters by hand for forty different roles. I knew which companies sponsored. I knew how to tailor a resume for a specific job. I just couldn&apos;t do it forty times, fast enough, while managing everything else a visa situation demands.
-            </p>
-            <p>So I built the system I needed. Vegaply is that system.</p>
-            <div className="founder-sig">
-              — Roshan, founder
-              <small>F-1 student · University of Houston</small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
-
-      {/* ── SOCIAL PROOF / LOGO MARQUEE ──────────────────────────────────────── */}
-      <div className="logo-marquee-section" aria-label="Applied to by Vegaply users">
-        <p className="logo-marquee-label">
-          Built for job seekers targeting roles at companies like
-        </p>
-        <div style={{ overflow: 'hidden' }}>
-          <div className="logo-row logo-row-1">
-            {[
-              'Google', 'Meta', 'Microsoft', 'Amazon', 'Apple',
-              'Nvidia', 'Stripe', 'Vercel', 'Netflix', 'Salesforce',
-              'Google', 'Meta', 'Microsoft', 'Amazon', 'Apple',
-              'Nvidia', 'Stripe', 'Vercel', 'Netflix', 'Salesforce',
-            ].map((name, i) => (
-              <span key={i} className="logo-item">{name}</span>
-            ))}
-          </div>
-          <div className="logo-row logo-row-2">
-            {[
-              'Figma', 'Notion', 'Linear', 'Dropbox', 'Airbnb',
-              'Lyft', 'Coinbase', 'Robinhood', 'Databricks', 'Palantir',
-              'Figma', 'Notion', 'Linear', 'Dropbox', 'Airbnb',
-              'Lyft', 'Coinbase', 'Robinhood', 'Databricks', 'Palantir',
-            ].map((name, i) => (
-              <span key={i} className="logo-item">{name}</span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
-
-      {/* ── H1B INTELLIGENCE ─────────────────────────────────────────────────── */}
-      <div className="h1b-section reveal" id="h1b">
-        <div className="h1b-left">
-          <p className="eyebrow">H1B Intelligence</p>
-          <h2 className="section-title">
-            Know before you apply which companies <em>actually sponsor.</em>
-          </h2>
-          <p className="section-body">
-            Most job boards don&apos;t tell you whether a company will sponsor your visa. You apply, interview three rounds, and find out too late. Vegaply filters for companies with a documented history of H1B sponsorship — so you know before you invest your time.
-          </p>
-          <p className="section-body" style={{ marginTop: '12px' }}>
-            Every role in your Daily Pack is screened. H1B-eligible roles are marked clearly. Non-sponsoring companies are filtered or flagged — your call.
-          </p>
-        </div>
-        <div className="h1b-right">
-          <div className="h1b-card">
-            <div className="h1b-card-header">H1B Sponsorship Filter</div>
-            <div className="h1b-card-rows">
-              {[
-                { co: 'Stripe', role: 'Data Analyst', sponsor: true },
-                { co: 'Google', role: 'ML Engineer', sponsor: true },
-                { co: 'Notion', role: 'Product Manager', sponsor: false },
-                { co: 'Meta', role: 'Software Engineer', sponsor: true },
-              ].map((r, i) => (
-                <div key={i} className="h1b-card-row">
-                  <div className="h1b-card-co">{r.co}</div>
-                  <div className="h1b-card-role">{r.role}</div>
-                  <div className={`h1b-card-badge ${r.sponsor ? 'h1b-yes' : 'h1b-unknown'}`}>
-                    {r.sponsor ? 'H1B ✓' : 'Unknown'}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="h1b-card-footer">Sample data — illustrative only</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
-
-      {/* ── FEATURE GRID ─────────────────────────────────────────────────────── */}
-      <div className="feat-section reveal" id="features">
-        <p className="eyebrow">The system</p>
-        <h2 className="section-title">
-          One system. <em>No manual work.</em>
-        </h2>
-        <p className="section-body">
-          Vegaply matches, tailors, and delivers — so you spend your time reviewing, not searching.
-        </p>
-
-        <div ref={featGridRef} className="feat-grid">
-          {FEATURES.map((f, i) => (
-            <motion.div
-              key={i}
-              className="feat-card"
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ transitionDelay: `${i * 60}ms` }}
-            >
-              <div className="feat-icon-wrap">{f.icon}</div>
-              <h3 className="feat-card-title">{f.name}</h3>
-              <p className="feat-card-body">{f.desc}</p>
-              <span className="feat-tag">{f.tag}</span>
-            </motion.div>
+      {/* ── 2. TICKER ── */}
+      <section style={{ background: '#000', padding: '24px 0', overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="ticker-track" style={{ display: 'flex', whiteSpace: 'nowrap' }}>
+          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+            <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '16px', padding: '0 24px', fontSize: '13px', fontWeight: 500, color: 'rgba(222,219,200,0.55)', flexShrink: 0 }}>
+              {item}
+              <span style={{ color: 'rgba(222,219,200,0.2)' }}>·</span>
+            </span>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
+      {/* ── 3. ABOUT ── */}
+      <section style={{ background: '#000', padding: '120px 24px' }}>
+        <div
+          ref={about.ref}
+          style={{
+            background: '#0d0d0d',
+            borderRadius: '28px',
+            maxWidth: '1000px',
+            margin: '0 auto',
+            padding: 'clamp(40px, 6vw, 80px) clamp(24px, 6vw, 80px)',
+            textAlign: 'center',
+            border: '1px solid rgba(255,255,255,0.06)',
+            ...revealStyle(about.visible),
+          }}
+        >
+          <span style={{ display: 'inline-block', color: 'rgba(222,219,200,0.5)', fontSize: '10px', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '32px', padding: '6px 16px', border: '1px solid rgba(222,219,200,0.12)', borderRadius: '999px' }}>
+            AI-Powered Job Search
+          </span>
 
-      {/* ── PINNED HOW IT WORKS ──────────────────────────────────────────────── */}
-      <section
-        ref={pinSectionRef}
-        className="pin-section"
-        id="how"
-        aria-label="How it works"
-      >
-        <div ref={pinLeftRef} className="pin-left">
-          <p className="pin-eyebrow">How it works</p>
+          <h2 style={{ fontSize: 'clamp(32px, 5.5vw, 64px)', lineHeight: 0.95, maxWidth: '820px', margin: '0 auto 40px', letterSpacing: '-0.02em' }}>
+            <span style={{ fontFamily: 'var(--font-almarai)', color: '#E1E0CC', fontWeight: 400 }}>Land your dream job, </span>
+            <span style={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', color: 'rgba(222,219,200,0.4)' }}>faster than ever. </span>
+            <span style={{ fontFamily: 'var(--font-almarai)', color: '#E1E0CC', fontWeight: 400 }}>We find the jobs nobody else shows you.</span>
+          </h2>
 
-          <div ref={headlineRef} className="pin-headline-wrap">
-            <h2 className="pin-headline">
-              We scan job sources and score every listing against <em>your resume.</em>
-            </h2>
-            <h2 className="pin-headline">
-              We tailor your resume <em>for each role</em> and prepare your materials.
-            </h2>
-            <h2 className="pin-headline">
-              You review your pack. <em>You decide</em> which roles to apply to.
-            </h2>
-          </div>
-
-          <p className="pin-body">
-            Most job boards stop at listings. Vegaply scores each role against your resume, rewrites your materials, and sends your Daily Pack to your inbox — ready for you to review every morning.
+          <p style={{ color: 'rgba(222,219,200,0.55)', fontSize: '15px', lineHeight: 1.8, maxWidth: '580px', margin: '0 auto 48px' }}>
+            Over three years, thousands of international students and H1B applicants have used Vegaply to find jobs posted in the last 24 hours, score their resumes with AI, and auto-apply — all before the competition even opens LinkedIn.
           </p>
 
-          <div className="pin-steps-nav" role="list">
-            <div className="pin-step-dot active" role="listitem">
-              <div>
-                <div className="pin-step-label">Step 1 — Match</div>
-                <div className="pin-step-desc">We scan sources and score every job against your resume.</div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '48px', flexWrap: 'wrap' }}>
+            {[['10,000+','Students helped'],['24hrs','Job freshness'],['3×','More interviews']].map(([num, label]) => (
+              <div key={label} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 700, color: '#E1E0CC', letterSpacing: '-0.03em', lineHeight: 1 }}>{num}</div>
+                <div style={{ fontSize: '12px', color: 'rgba(222,219,200,0.4)', marginTop: '6px', letterSpacing: '0.05em' }}>{label}</div>
               </div>
-            </div>
-            <div className="pin-step-dot" role="listitem">
-              <div>
-                <div className="pin-step-label">Step 2 — Tailor</div>
-                <div className="pin-step-desc">AI rewrites your resume for each role and prepares your cover letter.</div>
-              </div>
-            </div>
-            <div className="pin-step-dot" role="listitem">
-              <div>
-                <div className="pin-step-label">Step 3 — Apply</div>
-                <div className="pin-step-desc">You review your pack and choose which roles to apply to.</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        <div className="pin-right">
-          {/* Step 1: Match */}
-          <div ref={step1Ref} className="pin-card">
-            <div className="pin-card-step">
-              <div className="pin-card-num">1</div>
-              Match
-            </div>
-            <h3 className="pin-card-headline">Scored against your resume.</h3>
-            <p className="pin-card-body">
-              Our AI scores your resume against every fresh listing and surfaces only the roles where you actually have a shot.
-            </p>
-            <div className="mock-dashboard">
-              <div className="mock-row">
-                <div className="mock-company">
-                  <div className="mock-logo">S</div>
-                  <div className="mock-job-info">
-                    <div className="mock-job-title">Data Analyst</div>
-                    <div className="mock-job-company">Stripe · Remote</div>
-                  </div>
-                </div>
-                <span className="mock-match">94% match</span>
-              </div>
-              <div className="mock-row">
-                <div className="mock-company">
-                  <div className="mock-logo">G</div>
-                  <div className="mock-job-info">
-                    <div className="mock-job-title">ML Engineer</div>
-                    <div className="mock-job-company">Google · Mountain View</div>
-                  </div>
-                </div>
-                <span className="mock-match">88% match</span>
-              </div>
-              <div className="mock-row">
-                <div className="mock-company">
-                  <div className="mock-logo">D</div>
-                  <div className="mock-job-info">
-                    <div className="mock-job-title">Business Analyst</div>
-                    <div className="mock-job-company">Deloitte · Dallas</div>
-                  </div>
-                </div>
-                <span
-                  className="mock-match"
-                  style={{ color: 'var(--text-dim)', background: 'var(--surface)', borderColor: 'var(--border)' }}
-                >
-                  76% match
-                </span>
-              </div>
-            </div>
+      {/* ── 4. FEATURES ── */}
+      <section id="features" style={{ background: '#000', padding: '120px 24px', position: 'relative' }}>
+        <div className="bg-noise" style={{ position: 'absolute', inset: 0, opacity: 0.04, pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: '1280px', margin: '0 auto', position: 'relative' }}>
+          <div ref={featuresHeader.ref} style={revealStyle(featuresHeader.visible)}>
+            <p style={{ color: 'rgba(222,219,200,0.35)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '16px' }}>What we do</p>
+            <h2 style={{ color: '#E1E0CC', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 400, maxWidth: '640px', marginBottom: '16px', lineHeight: 1.05, letterSpacing: '-0.02em', fontFamily: 'var(--font-almarai)' }}>
+              Studio-grade job search for ambitious candidates.
+            </h2>
+            <p style={{ color: 'rgba(222,219,200,0.3)', fontSize: '18px', marginBottom: '72px' }}>Built for speed. Powered by AI.</p>
           </div>
 
-          {/* Step 2: Tailor */}
-          <div ref={step2Ref} className="pin-card">
-            <div className="pin-card-step">
-              <div className="pin-card-num">2</div>
-              Tailor
-            </div>
-            <h3 className="pin-card-headline">Resume rewritten. Materials prepared.</h3>
-            <p className="pin-card-body">
-              Vegaply rewrites your resume for each opening and prepares a role-specific cover letter — tailored keywords, tone, and structure included.
-            </p>
-            <div className="mock-letter">
-              <div className="mock-letter-header">Daily Pack · Tailored materials · Stripe DA role</div>
-              <span className="typing-cursor">
-                Resume tailored for Data Analyst at Stripe. Key skills highlighted: Python, SQL, Tableau. ATS keywords matched. Cover letter prepared and ready to review...
-              </span>
-            </div>
-          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
 
-          {/* Step 3: Apply */}
-          <div ref={step3Ref} className="pin-card">
-            <div className="pin-card-step">
-              <div className="pin-card-num">3</div>
-              Apply
+            {/* Card 1 — Video */}
+            <div ref={card0.ref} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', minHeight: '440px', ...revealStyle(card0.visible, 0) }}>
+              <video style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline
+                src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_133058_0504132a-0cf3-4450-a370-8ea3b05c95d4.mp4"
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)' }} />
+              <div style={{ position: 'absolute', bottom: '24px', left: '24px', right: '24px' }}>
+                <p style={{ color: '#E1E0CC', fontSize: '16px', fontWeight: 500, lineHeight: 1.3 }}>Your job search,<br/>supercharged.</p>
+              </div>
             </div>
-            <h3 className="pin-card-headline">You review. You choose. You apply.</h3>
-            <p className="pin-card-body">
-              Your morning pack is ready — each role with tailored materials prepared. You decide which ones to send. You stay in control.
-            </p>
-            <div className="mock-notifications">
-              <div className="mock-notif">
-                <div className="notif-icon"><span className="notif-dot" /></div>
-                <div className="notif-text">
-                  <div className="notif-title">5 packs ready in your inbox</div>
-                  <div className="notif-sub">Stripe, Google, Notion, Meta, Databricks</div>
+
+            {/* Cards 2–4 */}
+            {FEATURE_CARDS.map((card, i) => (
+              <div
+                key={card.num}
+                ref={cardRefs[i + 1].ref}
+                style={{
+                  background: '#111',
+                  borderRadius: '20px',
+                  padding: '28px',
+                  minHeight: '440px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.3s, transform 0.3s, box-shadow 0.3s, opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1)',
+                  ...revealStyle(cardRefs[i + 1].visible, (i + 1) * 100),
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(222,219,200,0.12)'
+                  e.currentTarget.style.transform = 'translateY(-4px)'
+                  e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(222,219,200,0.06)', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: 'rgba(222,219,200,0.4)', fontSize: '11px', fontWeight: 600 }}>{card.num}</span>
                 </div>
-              </div>
-              <div className="mock-notif">
-                <div className="notif-icon"><span className="notif-dot" /></div>
-                <div className="notif-text">
-                  <div className="notif-title">Tailored resume ready — Stripe DA</div>
-                  <div className="notif-sub">Python · SQL · Tableau · ATS-ready</div>
+                <p style={{ color: '#E1E0CC', fontSize: '16px', fontWeight: 500, marginBottom: '20px', lineHeight: 1.3 }}>{card.title}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+                  {card.items.map(item => (
+                    <div key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', color: 'rgba(222,219,200,0.5)' }}>
+                      <span style={{ color: '#4ade80', fontSize: '11px', marginTop: '2px', flexShrink: 0 }}>✓</span>
+                      {item}
+                    </div>
+                  ))}
                 </div>
+                <button type="button" style={{ marginTop: '24px', color: 'rgba(222,219,200,0.35)', fontSize: '12px', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', transition: 'color 0.2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#E1E0CC')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(222,219,200,0.35)')}
+                >Learn more →</button>
               </div>
-              <div className="mock-notif">
-                <div className="notif-icon"><span className="notif-dot" /></div>
-                <div className="notif-text">
-                  <div className="notif-title">Cover letter ready — Google ML</div>
-                  <div className="notif-sub">Role-specific · Review before sending</div>
-                </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. PRICING ── */}
+      <section id="pricing" style={{ background: '#000', padding: '120px 24px' }}>
+        <div ref={pricing.ref} style={{ maxWidth: '800px', margin: '0 auto', ...revealStyle(pricing.visible) }}>
+          <p style={{ color: 'rgba(222,219,200,0.35)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '16px' }}>Pricing</p>
+          <h2 style={{ color: '#E1E0CC', fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 400, marginBottom: '12px', fontFamily: 'var(--font-almarai)', letterSpacing: '-0.02em' }}>Simple pricing.</h2>
+          <p style={{ color: 'rgba(222,219,200,0.4)', fontSize: '16px', marginBottom: '64px' }}>No hidden fees. Cancel anytime.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+
+            {/* Free */}
+            <div style={{ background: '#0d0d0d', borderRadius: '24px', padding: '36px', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p style={{ color: 'rgba(222,219,200,0.4)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '24px' }}>Free forever</p>
+              <p style={{ fontSize: 'clamp(48px, 8vw, 64px)', fontWeight: 700, color: '#E1E0CC', lineHeight: 1, letterSpacing: '-0.03em', marginBottom: '8px' }}>$0</p>
+              <p style={{ color: 'rgba(222,219,200,0.4)', fontSize: '14px', marginBottom: '32px' }}>For students starting their search</p>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '24px', marginBottom: '32px' }}>
+                {FREE_FEATURES.map(item => (
+                  <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', marginBottom: '12px', color: item.locked ? 'rgba(222,219,200,0.2)' : 'rgba(222,219,200,0.65)' }}>
+                    <span style={{ color: item.locked ? 'rgba(222,219,200,0.2)' : '#4ade80', flexShrink: 0, fontSize: '12px' }}>{item.locked ? '✗' : '✓'}</span>
+                    {item.locked ? <span style={{ textDecoration: 'line-through' }}>{item.text}</span> : item.text}
+                  </div>
+                ))}
               </div>
+              <Link href="/signup" style={{ display: 'block', textAlign: 'center', borderRadius: '999px', padding: '14px', fontSize: '14px', fontWeight: 500, color: '#E1E0CC', textDecoration: 'none', border: '1px solid rgba(222,219,200,0.2)', transition: 'border-color 0.2s, background 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(222,219,200,0.4)'; e.currentTarget.style.background = 'rgba(222,219,200,0.05)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(222,219,200,0.2)'; e.currentTarget.style.background = 'transparent' }}
+              >Get Started Free</Link>
+            </div>
+
+            {/* Pro */}
+            <div style={{ background: '#0d0d0d', borderRadius: '24px', padding: '36px', border: '1px solid rgba(245,158,11,0.25)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.6), transparent)' }} />
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f59e0b', borderRadius: '999px', padding: '4px 12px', fontSize: '11px', fontWeight: 700, color: '#000', marginBottom: '24px' }}>★ PRO</div>
+              <p style={{ fontSize: 'clamp(48px, 8vw, 64px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.03em', marginBottom: '8px', background: 'linear-gradient(135deg, #f59e0b, #fde68a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>$9.99/mo</p>
+              <p style={{ color: 'rgba(222,219,200,0.4)', fontSize: '14px', marginBottom: '32px' }}>Billed monthly · For candidates serious about landing their role</p>
+              <div style={{ borderTop: '1px solid rgba(245,158,11,0.15)', paddingTop: '24px', marginBottom: '32px' }}>
+                {PRO_FEATURES.map(item => (
+                  <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', marginBottom: '12px', color: 'rgba(222,219,200,0.65)' }}>
+                    <span style={{ color: '#4ade80', flexShrink: 0, fontSize: '12px' }}>✓</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <Link href="/signup" style={{ display: 'block', textAlign: 'center', borderRadius: '999px', padding: '14px', fontSize: '14px', fontWeight: 600, color: '#000', textDecoration: 'none', background: '#f59e0b', transition: 'opacity 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              >Get Started with Pro →</Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
+      {/* ── 6. FOOTER ── */}
+      <footer ref={footer.ref} style={{ background: '#000', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '80px 24px 48px', ...revealStyle(footer.visible) }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '48px', marginBottom: '64px' }} className="grid grid-cols-2 md:grid-cols-4">
 
-      {/* ── PRICING ──────────────────────────────────────────────────────────── */}
-      <div className="pricing-section reveal" id="pricing">
-        <p className="eyebrow">Pricing</p>
-        <h2 className="section-title">
-          Simple. <em>Transparent.</em>
-        </h2>
-        <p className="section-body" style={{ margin: '16px auto 0', textAlign: 'center' }}>
-          Start free forever. Upgrade when you&apos;re ready to go deeper.
-        </p>
-
-        <div className="pricing-grid">
-          {/* FREE */}
-          <div className="pricing-card pricing-free">
-            <div className="pricing-tier-label">Free forever</div>
-            <div className="pricing-price">$0</div>
-            <div className="pricing-period">For students starting their search</div>
-            <div className="pricing-divider" />
-            <ul className="pricing-features">
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                <strong>5 daily application packs</strong>
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                AI-tailored resume per job
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Daily Pack delivered to inbox
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Early Bird Detection
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                AI Resume Match scoring
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Cover letter generator
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                H1B sponsor filter
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Application board
-              </li>
-              <li className="pricing-feature feature-locked">
-                <span className="feature-x">✗</span>
-                Priority job alerts
-              </li>
-            </ul>
-            <Link
-              href="/signup"
-              className="btn-ghost"
-              style={{ width: '100%', textAlign: 'center', justifyContent: 'center' }}
-            >
-              Get Started Free
-            </Link>
-          </div>
-
-          {/* PRO */}
-          <div className="pricing-card pricing-pro">
-            <div className="pricing-price gradient">$9.99/mo</div>
-            <div className="pricing-period">
-              Billed monthly · For candidates serious about landing their role
+            <div style={{ gridColumn: 'span 1' }}>
+              <p style={{ color: '#E1E0CC', fontSize: '16px', fontWeight: 700, marginBottom: '16px', letterSpacing: '-0.01em' }}>Vegaply</p>
+              <p style={{ color: 'rgba(222,219,200,0.35)', fontSize: '13px', lineHeight: 1.7 }}>AI-powered job preparation for international candidates. Jobs matched, resumes tailored, delivered every morning.</p>
             </div>
-            <div className="pricing-divider" />
-            <ul className="pricing-features">
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                <strong>20 daily application packs</strong>
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Everything in Free
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Priority email alerts
-              </li>
-              <li className="pricing-feature">
-                <span className="feature-check">✓</span>
-                Early access to new features
-              </li>
-            </ul>
-            <Link
-              href="/signup"
-              className="btn-primary btn-primary-lg"
-              style={{ width: '100%', textAlign: 'center', justifyContent: 'center' }}
-            >
-              Get Started with Pro →
-            </Link>
-          </div>
-        </div>
-      </div>
 
-      {/* ── GLOW DIVIDER ─────────────────────────────────────────────────────── */}
-      <div className="glow-divider" />
-
-      {/* ── FINAL CTA ────────────────────────────────────────────────────────── */}
-      <section className="cta-section reveal" aria-label="Call to action">
-        <div className="cta-glow" aria-hidden="true" />
-        <h2 className="cta-headline">Your Daily Pack. Every morning.</h2>
-        <p className="cta-sub">
-          Matched roles. Tailored resume. H1B-aware. Start free, no credit card needed.
-        </p>
-        <div className="cta-buttons">
-          <Link href="/signup" className="btn-primary btn-primary-lg">
-            Get Your First Pack
-          </Link>
-          <Link href="/login" className="btn-ghost btn-ghost-lg">
-            Sign in →
-          </Link>
-        </div>
-        <p className="cta-trust">
-          ✓ AI resume tailored to every role · ✓ H1B sponsorship filter · ✓ 5 free packs daily
-        </p>
-      </section>
-
-      {/* ── FOOTER ───────────────────────────────────────────────────────────── */}
-      <footer className="footer" role="contentinfo">
-        <div className="footer-top">
-          <div className="footer-brand">
-            <Link href="/" className="nav-logo" aria-label="Vegaply home">
-              <LogoVegaStar size={24} />
-              <span className="nav-logo-text">
-                <span style={{ color: '#fff', fontWeight: 700 }}>Vega</span>
-                <span style={{ background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: 700 }}>ply</span>
-              </span>
-            </Link>
-            <p>
-              AI-powered job preparation for international candidates. Jobs matched, resumes tailored, Daily Pack delivered every morning.
-            </p>
+            {[
+              { title: 'Product', links: [{ label: 'Features', href: '#features' },{ label: 'How it works', href: '#how' },{ label: 'Pricing', href: '#pricing' },{ label: 'Get started', href: '/signup' }] },
+              { title: 'Resources', links: [{ label: 'Founder story', href: '#stories' },{ label: 'H1B intelligence', href: '#h1b' },{ label: 'Get started', href: '/signup' }] },
+              { title: 'Contact', links: [{ label: 'support@vegaply.com', href: 'mailto:support@vegaply.com' },{ label: 'Privacy policy', href: '/privacy' },{ label: 'Terms of service', href: '/terms' }] },
+            ].map(col => (
+              <div key={col.title}>
+                <p style={{ color: 'rgba(222,219,200,0.6)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '20px' }}>{col.title}</p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {col.links.map(link => (
+                    <li key={link.label}>
+                      <a href={link.href} style={{ color: 'rgba(222,219,200,0.4)', fontSize: '14px', lineHeight: 2.2, display: 'block', textDecoration: 'none', transition: 'color 0.2s' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#E1E0CC')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(222,219,200,0.4)')}
+                      >{link.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
-          <div>
-            <div className="footer-col-label">Product</div>
-            <ul className="footer-links">
-              <li><a href="#features">Features</a></li>
-              <li><a href="#how">How it works</a></li>
-              <li><a href="#pricing">Pricing</a></li>
-              <li><Link href="/signup">Get started</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="footer-col-label">Resources</div>
-            <ul className="footer-links">
-              <li><a href="#stories">Founder story</a></li>
-              <li><a href="#h1b">H1B intelligence</a></li>
-              <li><Link href="/signup">Get started</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="footer-col-label">Contact</div>
-            <ul className="footer-links">
-              <li><a href="mailto:support@vegaply.com">support@vegaply.com</a></li>
-              <li><Link href="/privacy">Privacy policy</Link></li>
-              <li><Link href="/terms">Terms of service</Link></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <span className="footer-copy">© {new Date().getFullYear()} Vegaply</span>
-          <div className="footer-legal">
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
-            <a href="mailto:support@vegaply.com">Contact</a>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '32px', borderTop: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap', gap: '16px' }}>
+            <span style={{ color: 'rgba(222,219,200,0.3)', fontSize: '13px' }}>© {new Date().getFullYear()} Vegaply. All rights reserved.</span>
+            <div style={{ display: 'flex', gap: '32px' }}>
+              {[{ label: 'Privacy', href: '/privacy' },{ label: 'Terms', href: '/terms' },{ label: 'Contact', href: 'mailto:support@vegaply.com' }].map(link => (
+                <a key={link.label} href={link.href} style={{ color: 'rgba(222,219,200,0.3)', fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#E1E0CC')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(222,219,200,0.3)')}
+                >{link.label}</a>
+              ))}
+            </div>
           </div>
         </div>
       </footer>
 
-      {/* ── DEMO MODAL ───────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {showDemo && (
-          <motion.div
-            className="demo-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowDemo(false)}
-          >
-            <motion.div
-              className="demo-modal-content"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button className="demo-modal-close" onClick={() => setShowDemo(false)} aria-label="Close">
-                <X size={20} />
-              </button>
-              <video
-                src="https://res.cloudinary.com/dykyvevxx/video/upload/v1777610483/vegaply_brand_film_egmevt.mp4"
-                autoPlay
-                controls
-                playsInline
-                className="demo-modal-video"
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

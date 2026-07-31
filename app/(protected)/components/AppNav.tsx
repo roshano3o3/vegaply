@@ -2,15 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const NAV_LINKS = [
   { href: "/home",        label: "Home"       },
-  { href: "/auto-apply",  label: "Auto-Apply" },
+  { href: "/auto-apply",  label: "Daily Pack"  },
   { href: "/profile",     label: "Profile"    },
 ];
 
 export default function AppNav() {
   const pathname = usePathname();
+  const [isPro, setIsPro] = useState<boolean | null>(null);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("profiles").select("is_pro").eq("id", user.id).single()
+        .then(({ data }) => { if (data) setIsPro(!!data.is_pro); });
+    });
+  }, []);
+
+  const handleUpgrade = async () => {
+    setUpgradeLoading(true);
+    try {
+      const r = await fetch("/api/stripe/checkout", { method: "POST" });
+      const d = await r.json();
+      if (d.url) window.location.href = d.url;
+    } catch { /* silent — user can retry */ }
+    finally { setUpgradeLoading(false); }
+  };
 
   return (
     <>
@@ -95,6 +117,24 @@ export default function AppNav() {
           line-height: 1.5;
         }
 
+        .app-nav-upgrade {
+          font-family: var(--font-primary);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.03em;
+          color: #1a1a1f;
+          background: linear-gradient(135deg, #f59e0b, #fbbf24);
+          border: none;
+          border-radius: 100px;
+          padding: 5px 14px;
+          line-height: 1.5;
+          cursor: pointer;
+          transition: opacity 0.15s ease, transform 0.15s ease;
+          white-space: nowrap;
+        }
+        .app-nav-upgrade:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+        .app-nav-upgrade:disabled { opacity: 0.6; cursor: not-allowed; }
+
         @media (max-width: 480px) {
           .app-nav {
             padding: 0 16px;
@@ -130,6 +170,11 @@ export default function AppNav() {
         </div>
 
         <div className="app-nav-right">
+          {isPro === false && (
+            <button className="app-nav-upgrade" onClick={handleUpgrade} disabled={upgradeLoading}>
+              {upgradeLoading ? "Redirecting…" : "Upgrade"}
+            </button>
+          )}
           <span className="app-nav-pill">Beta</span>
         </div>
       </nav>
