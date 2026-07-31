@@ -150,6 +150,54 @@ function StatusBadge({ status, tailored, clickedAt }: { status: string; tailored
   );
 }
 
+// ── SummaryCard ───────────────────────────────────────────────────────────────
+
+function SummaryCard({ label, value, color, bg, border, glow, index }: {
+  label: string; value: number; color: string; bg: string; border: string;
+  glow?: string; index?: number;
+}) {
+  return (
+    <div
+      style={{
+        background: bg,
+        border: `1px solid ${border}`,
+        borderRadius: "var(--radius-lg)",
+        padding: "18px 18px 15px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 5,
+        boxShadow: glow ? `0 4px 20px ${glow}` : "var(--shadow-card)",
+        transition: "transform 160ms ease, box-shadow 160ms ease",
+        cursor: "default",
+        animation: "cardFadeUp 400ms ease both",
+        animationDelay: `${(index ?? 0) * 55}ms`,
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.transform = "translateY(-2px)";
+        el.style.boxShadow = glow ? `0 8px 28px ${glow}` : "var(--shadow-card-hover)";
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.transform = "";
+        el.style.boxShadow = glow ? `0 4px 20px ${glow}` : "var(--shadow-card)";
+      }}
+    >
+      <span style={{
+        fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 800,
+        color, lineHeight: 1, letterSpacing: "-1.2px",
+      }}>
+        {value}
+      </span>
+      <span style={{
+        fontFamily: "var(--font-primary)", fontSize: 10, color: "var(--text-muted)",
+        fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em",
+      }}>
+        {label}
+      </span>
+    </div>
+  );
+}
 
 // ── CopyButton ────────────────────────────────────────────────────────────────
 
@@ -471,24 +519,7 @@ function DetailDrawer({ row, onClose, copiedField, onCopy }: {
 
 // ── EmptyState ────────────────────────────────────────────────────────────────
 
-function EmptyState({ meStatus, onBuildComplete }: { meStatus: MeStatusResult | null; onBuildComplete?: () => Promise<void> }) {
-  const [building,   setBuilding]   = useState(false);
-  const [buildError, setBuildError] = useState<string | null>(null);
-
-  const handleBuild = async () => {
-    setBuilding(true);
-    setBuildError(null);
-    try {
-      const res  = await fetch("/api/daily-queue/build-for-me", { method: "POST" });
-      const data = await res.json().catch(() => ({})) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
-      await onBuildComplete?.();
-    } catch (err) {
-      setBuildError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setBuilding(false);
-    }
-  };
+function EmptyState({ meStatus }: { meStatus: MeStatusResult | null }) {
   const glowCard: React.CSSProperties = {
     background: "linear-gradient(145deg, var(--bg-card) 0%, var(--bg-card-end) 100%)",
     border: "1px solid rgba(245,158,11,0.18)",
@@ -528,115 +559,56 @@ function EmptyState({ meStatus, onBuildComplete }: { meStatus: MeStatusResult | 
   }
 
   if (meStatus.reason === "profile_incomplete") {
-    const packCount  = meStatus.daily_limit;
-    const onlyRoles  = meStatus.missing.length === 1 && meStatus.missing[0] === "Target roles";
-    const ctaLabel   = onlyRoles ? "Add target roles →" : "Complete profile →";
-
+    const packCount = meStatus.daily_limit;
     return (
       <div style={glowCard}>
         <div style={iconWrap}>📝</div>
         <p style={title}>
-          Complete your profile to unlock {packCount} daily pack{packCount !== 1 ? "s" : ""}.
+          Complete your profile to unlock {packCount} free daily pack{packCount !== 1 ? "s" : ""}.
         </p>
-
+        <p style={{ ...body, marginBottom: 20 }}>
+          Vegaply needs your target role, location, and resume to build your daily queue.
+        </p>
         {meStatus.missing.length > 0 && (
-          <div style={{
-            background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.20)",
-            borderRadius: 12, padding: "18px 24px", marginBottom: 24,
-            display: "flex", flexDirection: "column", gap: 11,
-            textAlign: "left", width: "100%", maxWidth: 420, marginInline: "auto",
-            boxSizing: "border-box",
-          }}>
-            <span style={{
-              fontFamily: "var(--font-primary)", fontSize: 10, fontWeight: 700,
-              textTransform: "uppercase", letterSpacing: "0.09em", color: "var(--error)",
-            }}>
-              Required to build your Daily Pack
-            </span>
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 28 }}>
             {meStatus.missing.map(field => (
-              <div key={field} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                <span style={{
-                  width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 1,
+              <span
+                key={field}
+                style={{
+                  display: "inline-block", padding: "4px 14px", borderRadius: 100,
+                  fontFamily: "var(--font-primary)", fontSize: 12, fontWeight: 600,
                   background: "var(--error-bg)", border: "1px solid var(--error-border)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 9, color: "var(--error)", fontWeight: 700,
-                }}>✕</span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{
-                    fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 600,
-                    color: "var(--text-primary)",
-                  }}>
-                    Missing {field.toLowerCase()}
-                  </span>
-                  {field === "Target roles" && (
-                    <span style={{
-                      fontFamily: "var(--font-primary)", fontSize: 11, color: "var(--text-muted)",
-                      lineHeight: 1.5,
-                    }}>
-                      Vegaply uses this to find and match jobs for you
-                    </span>
-                  )}
-                </div>
-              </div>
+                  color: "var(--error)",
+                }}
+              >
+                {field}
+              </span>
             ))}
           </div>
         )}
-
         <a href="/profile" style={{
           display: "inline-block", padding: "10px 24px", borderRadius: "var(--radius-md)",
           background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.32)",
           color: "var(--primary)", fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 700,
           textDecoration: "none",
         }}>
-          {ctaLabel}
+          Update Profile →
         </a>
       </div>
     );
   }
 
   if (meStatus.reason === "queue_not_built") {
+    const packCount = meStatus.daily_limit;
+    const planLabel = meStatus.plan === "free" ? "Free" : "Pro";
     return (
       <div style={glowCard}>
         <div style={iconWrap}>⏳</div>
-        <p style={title}>Your Daily Pack is being prepared.</p>
+        <p style={title}>Your first pack will be ready tomorrow morning.</p>
         <p style={body}>
-          Vegaply builds your queue once each day. Your pack will appear here after the next build.
+          {planLabel} plan · {packCount} application pack{packCount !== 1 ? "s" : ""} per day.
+          Vegaply builds your queue once each day based on your target roles and resume.
         </p>
-        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-          <button
-            onClick={handleBuild}
-            disabled={building}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "11px 24px", borderRadius: "var(--radius-md)",
-              cursor: building ? "not-allowed" : "pointer",
-              fontFamily: "var(--font-primary)", fontSize: 13, fontWeight: 700,
-              background: building ? "var(--primary-subtle)" : "linear-gradient(135deg,rgba(245,158,11,0.20),rgba(251,191,36,0.12))",
-              border: `1px solid ${building ? "rgba(245,158,11,0.15)" : "rgba(245,158,11,0.40)"}`,
-              color: building ? "rgba(245,158,11,0.38)" : "var(--primary)",
-              transition: "all 160ms",
-              boxShadow: !building ? "0 2px 14px rgba(245,158,11,0.12)" : "none",
-            }}
-          >
-            {building ? (
-              <>
-                <span style={{ display: "inline-block", width: 13, height: 13, border: "2px solid rgba(245,158,11,0.3)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                Building your pack…
-              </>
-            ) : (
-              <>⚡ Build my pack now</>
-            )}
-          </button>
-          {buildError && (
-            <span style={{
-              fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--error)",
-              background: "var(--error-bg)", border: "1px solid var(--error-border)",
-              borderRadius: "var(--radius-sm)", padding: "5px 10px",
-            }}>
-              {buildError}
-            </span>
-          )}
-        </div>
       </div>
     );
   }
@@ -645,12 +617,27 @@ function EmptyState({ meStatus, onBuildComplete }: { meStatus: MeStatusResult | 
   return (
     <div style={glowCard}>
       <div style={iconWrap}>🗂</div>
-      <p style={title}>No jobs queued yet.</p>
-      <p style={body}>Vegaply is still preparing your next Daily Pack.</p>
+      <p style={title}>Your queue will appear here once Vegaply prepares today&apos;s packs.</p>
+      <p style={body}>AI-matched roles, tailored resumes, and cover letters — ready each morning.</p>
     </div>
   );
 }
 
+// ── Column definitions ────────────────────────────────────────────────────────
+
+const COLS = [
+  { label: "Job Title",  w: "minmax(160px, 2fr)"  },
+  { label: "Company",    w: "minmax(130px, 1.5fr)" },
+  { label: "Score",      w: "70px"                 },
+  { label: "Status",     w: "140px"                },
+  { label: "Method",     w: "102px"                },
+  { label: "Generated",  w: "82px"                 },
+  { label: "Email Sent", w: "130px"                },
+  { label: "Error",      w: "minmax(100px, 1fr)"   },
+  { label: "Link",       w: "64px"                 },
+] as const;
+
+const GRID = COLS.map(c => c.w).join(" ");
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -659,6 +646,7 @@ export default function AutoApplyPage() {
   const [loading,     setLoading]     = useState(true);
   const [dbError,     setDbError]     = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<QueueRow | null>(null);
+  const [hoveredId,   setHoveredId]   = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<"resume" | "letter" | null>(null);
   const [sending,     setSending]     = useState(false);
   const [sendError,   setSendError]   = useState<string | null>(null);
@@ -746,7 +734,7 @@ export default function AutoApplyPage() {
         fontFamily: "var(--font-primary)",
       }}>
         <div style={{ width: 20, height: 20, border: "2px solid rgba(245,158,11,0.25)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)" }}>Loading today&apos;s Daily Pack…</span>
+        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)" }}>Loading today&apos;s application pack…</span>
       </div>
     );
   }
@@ -768,6 +756,14 @@ export default function AutoApplyPage() {
 
   const counts = computeCounts(rows);
 
+  const summaryCards = [
+    { label: "Total",    value: counts.total,     color: "var(--text-primary)", bg: "linear-gradient(145deg,#1a1a21,#111116)", border: "rgba(255,255,255,0.09)", glow: undefined                  },
+    { label: "Pending",  value: counts.pending,   color: "var(--text-secondary)", bg: "rgba(161,161,170,0.05)",               border: "rgba(161,161,170,0.14)", glow: undefined                  },
+    { label: "Ready",    value: counts.generated, color: "#06b6d4",             bg: "rgba(6,182,212,0.07)",                   border: "rgba(6,182,212,0.22)",   glow: "rgba(6,182,212,0.08)"     },
+    { label: "Sent",     value: counts.sentToYou, color: "var(--primary)",      bg: "var(--gold-bg)",                         border: "var(--gold-border)",     glow: "var(--primary-subtle)"    },
+    { label: "Clicked",  value: counts.clicked,   color: "var(--success)",      bg: "var(--success-bg)",                      border: "var(--success-border)",  glow: "rgba(16,185,129,0.08)"    },
+    { label: "Failed",   value: counts.failed,    color: "var(--error)",        bg: "var(--error-bg)",                        border: "var(--error-border)",    glow: "rgba(239,68,68,0.08)"     },
+  ];
 
   return (
     <>
@@ -786,7 +782,7 @@ export default function AutoApplyPage() {
                 fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800,
                 color: "var(--text-primary)", margin: 0, letterSpacing: "-0.6px",
               }}>
-                Today&apos;s Daily Pack
+                Today&apos;s Application Pack
               </h1>
               {meStatus && (
                 <span style={{
@@ -806,29 +802,13 @@ export default function AutoApplyPage() {
             </p>
           </div>
 
-          {/* ── Stats pill bar ──────────────────────────────────────── */}
+          {/* ── Summary strip ───────────────────────────────────────── */}
           {rows.length > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-              {[
-                { label: "Total",   value: counts.total,     color: "var(--text-primary)",   bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.09)" },
-                { label: "Pending", value: counts.pending,   color: "var(--text-secondary)", bg: "rgba(161,161,170,0.05)", border: "rgba(161,161,170,0.14)" },
-                { label: "Ready",   value: counts.generated, color: "#06b6d4",               bg: "rgba(6,182,212,0.07)",   border: "rgba(6,182,212,0.22)"   },
-                { label: "Sent",    value: counts.sentToYou, color: "var(--primary)",        bg: "var(--gold-bg)",         border: "var(--gold-border)"     },
-                { label: "Clicked", value: counts.clicked,   color: "var(--success)",        bg: "var(--success-bg)",      border: "var(--success-border)"  },
-                { label: "Failed",  value: counts.failed,    color: "var(--error)",          bg: "var(--error-bg)",        border: "var(--error-border)"    },
-              ].map(({ label, value, color, bg, border }) => (
-                <div key={label} style={{
-                  display: "inline-flex", alignItems: "center", gap: 6,
-                  padding: "5px 14px", borderRadius: 100,
-                  background: bg, border: `1px solid ${border}`,
-                }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color }}>{value}</span>
-                  <span style={{
-                    fontFamily: "var(--font-primary)", fontSize: 10, fontWeight: 700,
-                    color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.07em",
-                  }}>{label}</span>
-                </div>
-              ))}
+            <div style={{
+              display: "grid", gridTemplateColumns: "repeat(6, 1fr)",
+              gap: 10, marginBottom: 16,
+            }}>
+              {summaryCards.map((c, i) => <SummaryCard key={c.label} {...c} index={i} />)}
             </div>
           )}
 
@@ -881,19 +861,45 @@ export default function AutoApplyPage() {
             )}
           </div>
 
-          {/* ── Empty state / Card grid ──────────────────────────────── */}
+          {/* ── Empty state ─────────────────────────────────────────── */}
           {rows.length === 0 ? (
-            <EmptyState meStatus={meStatus} onBuildComplete={fetchRows} />
+            <EmptyState meStatus={meStatus} />
           ) : (
-            <>
-              {/* Card grid */}
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: 14,
-              }}>
+            /* ── Table ────────────────────────────────────────────── */
+            <div style={{
+              background: "var(--bg-elev)", border: "1px solid var(--border)",
+              borderRadius: 16, overflow: "hidden",
+              boxShadow: "0 4px 32px rgba(0,0,0,0.45)",
+            }}>
+              <div style={{ overflowX: "auto" }}>
+                {/* Header row */}
+                <div style={{
+                  display: "grid", gridTemplateColumns: GRID,
+                  gap: 8, padding: "12px 20px",
+                  background: "var(--surface)", borderBottom: "1px solid var(--border)",
+                  minWidth: 900,
+                  position: "sticky", top: 0, zIndex: 1,
+                }}>
+                  {COLS.map(col => (
+                    <span key={col.label} style={{
+                      fontFamily: "var(--font-primary)", fontSize: 10, fontWeight: 700,
+                      color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em",
+                    }}>
+                      {col.label}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Data rows */}
                 {rows.map((row, i) => {
                   const isSelected = selectedRow?.id === row.id;
+                  const isHovered  = hoveredId === row.id;
+
+                  let rowBg = "transparent";
+                  if (isSelected) rowBg = "rgba(245,158,11,0.08)";
+                  else if (isHovered) rowBg = "rgba(255,255,255,0.045)";
+                  else if (i % 2 === 1) rowBg = "rgba(255,255,255,0.015)";
+
                   return (
                     <div
                       key={row.id}
@@ -902,110 +908,121 @@ export default function AutoApplyPage() {
                       aria-label={`View details for ${row.job_title ?? "job"} at ${row.employer_name ?? "company"}`}
                       onClick={() => setSelectedRow(row)}
                       onKeyDown={e => { if (e.key === "Enter" || e.key === " ") setSelectedRow(row); }}
-                      onMouseEnter={e => {
-                        if (!isSelected) {
-                          const el = e.currentTarget as HTMLDivElement;
-                          el.style.borderColor = "rgba(245,158,11,0.30)";
-                          el.style.boxShadow = "var(--shadow-card-hover)";
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (!isSelected) {
-                          const el = e.currentTarget as HTMLDivElement;
-                          el.style.borderColor = "var(--border)";
-                          el.style.boxShadow = "var(--shadow-card)";
-                        }
-                      }}
+                      onMouseEnter={() => setHoveredId(row.id)}
+                      onMouseLeave={() => setHoveredId(null)}
                       style={{
-                        background: isSelected
-                          ? "rgba(245,158,11,0.06)"
-                          : "linear-gradient(145deg, var(--bg-card) 0%, var(--bg-elev) 100%)",
-                        border: `1px solid ${isSelected ? "rgba(245,158,11,0.40)" : "var(--border)"}`,
-                        borderLeft: `3px solid ${isSelected ? "var(--primary)" : "transparent"}`,
-                        borderRadius: 14,
-                        padding: "20px",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 12,
-                        animation: `cardFadeUp 380ms ease both`,
-                        animationDelay: `${i * 45}ms`,
-                        transition: "border-color 140ms, box-shadow 140ms",
-                        boxShadow: isSelected
-                          ? "0 0 0 1px rgba(245,158,11,0.12), 0 4px 20px rgba(245,158,11,0.08)"
-                          : "var(--shadow-card)",
+                        display: "grid", gridTemplateColumns: GRID,
+                        gap: 8, padding: "13px 20px", alignItems: "center",
+                        background: rowBg, minWidth: 900, cursor: "pointer",
+                        borderBottom: i < rows.length - 1 ? "1px solid var(--border-subtle)" : "none",
+                        borderLeft: isSelected ? `3px solid var(--primary)` : isHovered ? "3px solid rgba(245,158,11,0.35)" : "3px solid transparent",
+                        transition: "background 140ms ease, border-left-color 140ms ease",
                         outline: "none",
                       }}
                     >
-                      {/* Title + company */}
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{
-                          fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700,
-                          color: "var(--text-primary)", margin: "0 0 3px",
-                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        }} title={row.job_title ?? undefined}>
-                          {row.job_title ?? "—"}
-                        </p>
-                        <p style={{
-                          fontFamily: "var(--font-primary)", fontSize: 13, color: "var(--text-secondary)",
-                          margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        }} title={row.employer_name ?? undefined}>
-                          {row.employer_name ?? "—"}
-                        </p>
-                      </div>
+                      {/* Job Title */}
+                      <span style={{
+                        fontFamily: "var(--font-primary)", fontSize: 13,
+                        color: "var(--text-primary)", fontWeight: 500,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }} title={row.job_title ?? undefined}>
+                        {row.job_title ?? "—"}
+                      </span>
 
-                      {/* Score + Status */}
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        {row.match_score !== null && (
-                          <span style={{
-                            fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
-                            color: scoreColor(row.match_score),
-                          }}>
-                            {row.match_score}%
+                      {/* Company */}
+                      <span style={{
+                        fontFamily: "var(--font-primary)", fontSize: 13, color: "var(--text-secondary)",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }} title={row.employer_name ?? undefined}>
+                        {row.employer_name ?? "—"}
+                      </span>
+
+                      {/* Score */}
+                      <span style={{
+                        fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
+                        color: scoreColor(row.match_score),
+                      }}>
+                        {row.match_score !== null ? `${row.match_score}%` : "—"}
+                      </span>
+
+                      {/* Status */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <StatusBadge status={row.status} tailored={row.tailored_resume_text} clickedAt={row.apply_clicked_at} />
+                        {row.apply_clicked_at && (
+                          <span style={{ fontFamily: "var(--font-primary)", fontSize: 10, color: "var(--success)" }}>
+                            ↗ {fmtDate(row.apply_clicked_at)}
                           </span>
                         )}
-                        <StatusBadge
-                          status={row.status}
-                          tailored={row.tailored_resume_text}
-                          clickedAt={row.apply_clicked_at}
-                        />
                       </div>
 
-                      {/* Method chip */}
+                      {/* Method */}
                       <div>
                         <MethodChip link={row.job_apply_link} />
                       </div>
 
-                      {/* Date + view details */}
-                      <div style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        paddingTop: 8, borderTop: "1px solid var(--border-subtle)", marginTop: 2,
+                      {/* Generated */}
+                      <span style={{
+                        fontFamily: "var(--font-primary)", fontSize: 13,
+                        color: row.tailored_resume_text ? "var(--success)" : "var(--text-tertiary)",
+                        fontWeight: row.tailored_resume_text ? 600 : 400,
                       }}>
-                        <span style={{
-                          fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)",
-                        }}>
-                          {row.applied_at ? `Sent ${fmtDate(row.applied_at)}` : "Queued today"}
-                        </span>
-                        <span style={{
-                          fontFamily: "var(--font-primary)", fontSize: 12, fontWeight: 600,
-                          color: "var(--primary)", display: "flex", alignItems: "center", gap: 2,
-                        }}>
-                          View details ›
-                        </span>
+                        {row.tailored_resume_text ? "Yes" : "No"}
+                      </span>
+
+                      {/* Applied At */}
+                      <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)" }}>
+                        {fmtDate(row.applied_at)}
+                      </span>
+
+                      {/* Error */}
+                      <span style={{
+                        fontFamily: "var(--font-primary)", fontSize: 11, color: "var(--error)",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }} title={row.status === "failed" && row.error_message ? row.error_message : undefined}>
+                        {row.status === "failed" && row.error_message
+                          ? row.error_message.slice(0, 55) : ""}
+                      </span>
+
+                      {/* Apply link — stop propagation so it doesn't open the drawer */}
+                      <div onClick={e => e.stopPropagation()}>
+                        {row.job_apply_link ? (
+                          <a
+                            href={row.job_apply_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontFamily: "var(--font-primary)", fontSize: 12, fontWeight: 600,
+                              color: "var(--primary)", textDecoration: "none",
+                              display: "inline-block", padding: "4px 10px",
+                              background: "var(--primary-subtle)",
+                              border: "1px solid rgba(245,158,11,0.25)",
+                              borderRadius: "var(--radius-sm)", whiteSpace: "nowrap",
+                            }}
+                          >
+                            Apply →
+                          </a>
+                        ) : (
+                          <span style={{ fontFamily: "var(--font-primary)", fontSize: 13, color: "var(--text-tertiary)" }}>
+                            —
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Footer count */}
-              <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border-subtle)" }}>
+              {/* Footer */}
+              <div style={{
+                padding: "10px 20px", borderTop: "1px solid var(--border-subtle)",
+                background: "var(--surface)",
+              }}>
                 <span style={{ fontFamily: "var(--font-primary)", fontSize: 12, color: "var(--text-tertiary)" }}>
-                  {rows.length} job{rows.length !== 1 ? "s" : ""} in today&apos;s Daily Pack
-                  {selectedRow ? " — press ESC or click outside to close" : " — click any card to view details"}
+                  {rows.length} job{rows.length !== 1 ? "s" : ""} queued today
+                  {selectedRow ? " — click a row to view details" : " — click any row to view details"}
                 </span>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
