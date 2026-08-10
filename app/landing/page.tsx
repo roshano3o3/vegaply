@@ -634,12 +634,10 @@ export default function VegaplyLanding() {
           <div className="founder-quote-mark" aria-hidden="true">&ldquo;</div>
           <div className="founder-body">
             <p>
-              I&apos;m Roshan. I was an F-1 student at the University of Houston, running out of OPT time, writing cover letters by hand for forty different roles. I knew which companies sponsored. I knew how to tailor a resume for a specific job. I just couldn&apos;t do it forty times, fast enough, while managing everything else a visa situation demands.
+              Most job tools help you apply. Vegaply helps you win. Every morning, your inbox has a pack ready to go - best-match roles matched line-by-line to each job description, resumes with an ATS score you can trust, and cover letters that sound like you, not a template. Just hit apply straight from your email and the application&apos;s sent. No portals, no busywork, no blending in. Built for students who&apos;d rather land the job than spend the night chasing it.
             </p>
-            <p>So I built the system I needed. Vegaply is that system.</p>
             <div className="founder-sig">
-              — Roshan, founder
-              <small>F-1 student · University of Houston</small>
+              Roshan Pellati, Founder
             </div>
           </div>
         </div>
